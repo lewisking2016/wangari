@@ -469,30 +469,6 @@ $productCount = max($productCount, 1);
     </section>
 
     <!-- ═══════════════════════════════════════════════ -->
-    <!-- 10b. WALKTHROUGH VIDEO, see it in action       -->
-    <!-- ═══════════════════════════════════════════════ -->
-    <section class="g-section g-section-ink">
-        <div class="g-container">
-            <div class="g-section-head center g-reveal">
-                <span class="g-eyebrow" style="color: var(--g-lime);">Watch It Work</span>
-                <h2>See Wangari <span class="g-serif" style="color: var(--g-lime);">in action</span></h2>
-                <p>A real walkthrough of the system: dashboard, flocks, sales and customers — live, from your own records.</p>
-            </div>
-
-            <div class="g-video-frame g-reveal g-delay-1">
-                <video controls preload="none" poster="/Frontend/images/dashboard-preview.png">
-                    <source src="/Frontend/images/demo-walkthrough.mp4" type="video/mp4">
-                    Your browser does not support HTML5 video. <a href="/Frontend/images/demo-walkthrough.mp4">Download the walkthrough</a> instead.
-                </video>
-            </div>
-
-            <div style="text-align: center; margin-top: 1.8rem;" class="g-reveal g-delay-2">
-                <a href="/Frontend/pages/contact.php" class="g-btn g-btn-lime">Book a Free Demo</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════════════════════════════════════════════ -->
     <!-- 11. BLOGS, Smart Farming Insights              -->
     <!-- ═══════════════════════════════════════════════ -->
     <section class="g-section">
