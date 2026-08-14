@@ -72,51 +72,51 @@ try {
     
     $allProducts = [
         // BROILERS (Category 1)
-        [1, 'Ross 308 Broilers', 'ross-308-broilers', 'Premium fast-growing broiler breed. Excellent feed efficiency and meat quality. Ready for market in 6-7 weeks.', 'live_chicken', 450.00, 50, 1, 1, '/Frontend/images/download (4).png'],
-        [1, 'Cobb 500 Broilers', 'cobb-500-broilers', 'High-performance broilers with excellent feed conversion. Superior meat yield and quality.', 'live_chicken', 480.00, 40, 1, 1, '/Frontend/images/download (4).png'],
-        [1, 'Hubbard Broilers', 'hubbard-broilers', 'Reliable broiler breed with consistent meat quality. Great for commercial farming.', 'live_chicken', 420.00, 60, 1, 0, '/Frontend/images/download (4).png'],
-        [1, 'Kuroiler Broilers', 'kuroiler-broilers', 'Dual-purpose breed suitable for both meat and egg production. Hardy and disease resistant.', 'live_chicken', 400.00, 45, 1, 0, '/Frontend/images/download (4).png'],
+        [1, 'Ross 308 Broilers', 'ross-308-broilers', 'Premium fast-growing broiler breed. Excellent feed efficiency and meat quality. Ready for market in 6-7 weeks.', 'live_chicken', 450.00, 50, 1, 1, ''],
+        [1, 'Cobb 500 Broilers', 'cobb-500-broilers', 'High-performance broilers with excellent feed conversion. Superior meat yield and quality.', 'live_chicken', 480.00, 40, 1, 1, ''],
+        [1, 'Hubbard Broilers', 'hubbard-broilers', 'Reliable broiler breed with consistent meat quality. Great for commercial farming.', 'live_chicken', 420.00, 60, 1, 0, ''],
+        [1, 'Kuroiler Broilers', 'kuroiler-broilers', 'Dual-purpose breed suitable for both meat and egg production. Hardy and disease resistant.', 'live_chicken', 400.00, 45, 1, 0, ''],
         
         // LAYERS (Category 2)
-        [2, 'ISA Brown Layers', 'isa-brown-layers', 'Premium brown egg layer producing 300+ eggs/year. Excellent feed efficiency.', 'live_chicken', 350.00, 45, 1, 1, '/Frontend/images/download (4).png'],
-        [2, 'Lohmann Layers', 'lohmann-layers', 'White egg layers with exceptional livability and performance. Long laying cycle.', 'live_chicken', 340.00, 55, 1, 0, '/Frontend/images/download (4).png'],
-        [2, 'Bovans Brown Layers', 'bovans-brown-layers', 'Robust brown egg layers. Excellent feed conversion and egg quality.', 'live_chicken', 360.00, 35, 1, 0, '/Frontend/images/download (4).png'],
-        [2, 'Hyline Brown Layers', 'hyline-brown-layers', 'Superior brown egg layers with consistent production. 320+ eggs per year.', 'live_chicken', 370.00, 40, 1, 1, '/Frontend/images/download (4).png'],
+        [2, 'ISA Brown Layers', 'isa-brown-layers', 'Premium brown egg layer producing 300+ eggs/year. Excellent feed efficiency.', 'live_chicken', 350.00, 45, 1, 1, ''],
+        [2, 'Lohmann Layers', 'lohmann-layers', 'White egg layers with exceptional livability and performance. Long laying cycle.', 'live_chicken', 340.00, 55, 1, 0, ''],
+        [2, 'Bovans Brown Layers', 'bovans-brown-layers', 'Robust brown egg layers. Excellent feed conversion and egg quality.', 'live_chicken', 360.00, 35, 1, 0, ''],
+        [2, 'Hyline Brown Layers', 'hyline-brown-layers', 'Superior brown egg layers with consistent production. 320+ eggs per year.', 'live_chicken', 370.00, 40, 1, 1, ''],
         
         // EGGS (Category 6)
-        [6, 'Fresh Farm Eggs (Trays)', 'fresh-farm-eggs', 'Premium quality eggs from our free-range layer flock. 30-egg trays. Freshly collected daily.', 'eggs', 420.00, 100, 1, 1, '/Frontend/images/download (3).png'],
-        [6, 'Organic Free-Range Eggs', 'organic-free-range-eggs', 'Premium organic eggs from free-range hens. 30-egg trays.', 'eggs', 550.00, 50, 1, 1, '/Frontend/images/download (3).png'],
+        [6, 'Fresh Farm Eggs (Trays)', 'fresh-farm-eggs', 'Premium quality eggs from our free-range layer flock. 30-egg trays. Freshly collected daily.', 'eggs', 420.00, 100, 1, 1, ''],
+        [6, 'Organic Free-Range Eggs', 'organic-free-range-eggs', 'Premium organic eggs from free-range hens. 30-egg trays.', 'eggs', 550.00, 50, 1, 1, ''],
         
         // DAY-OLD CHICKS (Category 3)
-        [3, 'Day-Old Broiler Chicks', 'day-old-broiler-chicks', 'Vaccinated broiler chicks from quality parent stock. 95%+ hatch rate guarantee.', 'chicks', 80.00, 1000, 1, 1, '/Frontend/images/download (7).png'],
-        [3, 'Day-Old Layer Chicks', 'day-old-layer-chicks', 'Premium layer chicks vaccinated against Mareks and Newcastle disease. Ready to grow.', 'chicks', 70.00, 800, 1, 1, '/Frontend/images/download (7).png'],
-        [3, 'Mixed Day-Old Chicks', 'mixed-day-old-chicks', 'Combination of broiler and layer chicks. Great for mixed farming operations.', 'chicks', 75.00, 500, 1, 0, '/Frontend/images/download (7).png'],
-        [3, 'Kienyeji/Indigenous Chicks', 'kienyeji-chicks', 'Hardy indigenous breed chicks. Disease resistant and suitable for free-range farming.', 'chicks', 60.00, 300, 1, 1, '/Frontend/images/download (7).png'],
-        [3, 'Kuroiler Chicks', 'kuroiler-chicks', 'Fast-growing dual-purpose chicks. Suitable for both meat and eggs.', 'chicks', 85.00, 400, 1, 1, '/Frontend/images/download (7).png'],
+        [3, 'Day-Old Broiler Chicks', 'day-old-broiler-chicks', 'Vaccinated broiler chicks from quality parent stock. 95%+ hatch rate guarantee.', 'chicks', 80.00, 1000, 1, 1, ''],
+        [3, 'Day-Old Layer Chicks', 'day-old-layer-chicks', 'Premium layer chicks vaccinated against Mareks and Newcastle disease. Ready to grow.', 'chicks', 70.00, 800, 1, 1, ''],
+        [3, 'Mixed Day-Old Chicks', 'mixed-day-old-chicks', 'Combination of broiler and layer chicks. Great for mixed farming operations.', 'chicks', 75.00, 500, 1, 0, ''],
+        [3, 'Kienyeji/Indigenous Chicks', 'kienyeji-chicks', 'Hardy indigenous breed chicks. Disease resistant and suitable for free-range farming.', 'chicks', 60.00, 300, 1, 1, ''],
+        [3, 'Kuroiler Chicks', 'kuroiler-chicks', 'Fast-growing dual-purpose chicks. Suitable for both meat and eggs.', 'chicks', 85.00, 400, 1, 1, ''],
         
         // FEEDS (Category 4)
-        [4, 'Chick Starter Crumbs (0-4 weeks)', 'chick-starter-crumbs', 'High-protein formula for day-old chicks. 24% crude protein with vitamins and probiotics. 50kg bags.', 'feed', 3200.00, 100, 1, 1, '/Frontend/images/Chick Starter Crumbs.png'],
-        [4, 'Grower Mash (4-8 weeks)', 'grower-mash', 'Balanced formula for growing chicks. 20% crude protein with essential amino acids. 50kg bags.', 'feed', 2800.00, 120, 1, 1, '/Frontend/images/Growers Mash.png'],
-        [4, 'Layer Mash (16 weeks+)', 'layer-mash', 'Premium feed for laying hens. 18% crude protein with calcium for strong eggshells. 50kg bags.', 'feed', 2500.00, 150, 1, 1, '/Frontend/images/Growers Mash.png'],
-        [4, 'Broiler Finisher (6-8 weeks)', 'broiler-finisher', 'Final stage feed for broilers. High energy formula for rapid weight gain. 50kg bags.', 'feed', 2900.00, 110, 1, 0, '/Frontend/images/Growers Mash.png'],
-        [4, 'Kienyeji Mash', 'kienyeji-mash', 'Specially formulated for indigenous/kienyeji chickens. Balanced nutrition for free-range birds. 50kg bags.', 'feed', 2600.00, 90, 1, 1, '/Frontend/images/kienyeji mash.png'],
-        [4, 'Wangari Premium Mix', 'wangari-premium-mix', 'Our signature blend. Multi-purpose feed suitable for all poultry types. 50kg bags.', 'feed', 3100.00, 200, 1, 1, '/Frontend/images/Growers Mash.png'],
-        [4, 'Vitamin & Mineral Supplements', 'vitamin-mineral-supplements', 'Complete vitamin complex and mineral pack for all poultry. Boosts immunity and productivity. 5kg bags.', 'feed', 1200.00, 80, 1, 0, '/Frontend/images/Growers Mash.png'],
-        [4, 'Chick Mash (0-4 weeks)', 'chick-mash', 'Fine mash feed for young chicks. Easy to digest with high energy content. 25kg bags.', 'feed', 1800.00, 90, 1, 1, '/Frontend/images/Chick Starter Crumbs.png'],
+        [4, 'Chick Starter Crumbs (0-4 weeks)', 'chick-starter-crumbs', 'High-protein formula for day-old chicks. 24% crude protein with vitamins and probiotics. 50kg bags.', 'feed', 3200.00, 100, 1, 1, ''],
+        [4, 'Grower Mash (4-8 weeks)', 'grower-mash', 'Balanced formula for growing chicks. 20% crude protein with essential amino acids. 50kg bags.', 'feed', 2800.00, 120, 1, 1, ''],
+        [4, 'Layer Mash (16 weeks+)', 'layer-mash', 'Premium feed for laying hens. 18% crude protein with calcium for strong eggshells. 50kg bags.', 'feed', 2500.00, 150, 1, 1, ''],
+        [4, 'Broiler Finisher (6-8 weeks)', 'broiler-finisher', 'Final stage feed for broilers. High energy formula for rapid weight gain. 50kg bags.', 'feed', 2900.00, 110, 1, 0, ''],
+        [4, 'Kienyeji Mash', 'kienyeji-mash', 'Specially formulated for indigenous/kienyeji chickens. Balanced nutrition for free-range birds. 50kg bags.', 'feed', 2600.00, 90, 1, 1, ''],
+        [4, 'Wangari Premium Mix', 'wangari-premium-mix', 'Our signature blend. Multi-purpose feed suitable for all poultry types. 50kg bags.', 'feed', 3100.00, 200, 1, 1, ''],
+        [4, 'Vitamin & Mineral Supplements', 'vitamin-mineral-supplements', 'Complete vitamin complex and mineral pack for all poultry. Boosts immunity and productivity. 5kg bags.', 'feed', 1200.00, 80, 1, 0, ''],
+        [4, 'Chick Mash (0-4 weeks)', 'chick-mash', 'Fine mash feed for young chicks. Easy to digest with high energy content. 25kg bags.', 'feed', 1800.00, 90, 1, 1, ''],
         
         // RAW MATERIALS (Category 5)
-        [5, 'Maize (Yellow Corn)', 'maize-yellow-corn', 'Premium quality yellow maize. High energy content for feed formulation. 90kg bags.', 'feed', 4500.00, 200, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Soya Bean Cake', 'soya-bean-cake', 'High protein soya bean meal. 44% crude protein. Essential for layer and broiler feeds. 50kg bags.', 'feed', 5200.00, 150, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Sunflower Cake', 'sunflower-cake', 'Protein-rich sunflower meal. 35% crude protein. Good alternative to soya. 50kg bags.', 'feed', 3800.00, 100, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Wheat Bran', 'wheat-bran', 'High fiber content. Good for digestive health. 50kg bags.', 'feed', 1800.00, 180, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Fish Meal', 'fish-meal', 'High quality protein source. 60% crude protein. Essential for layer feeds. 50kg bags.', 'feed', 8500.00, 80, 1, 0, '/Frontend/images/download (5).png'],
-        [5, 'Limestone (Calcium)', 'limestone-calcium', 'Essential calcium source for layers. Promotes strong eggshells. 50kg bags.', 'feed', 1200.00, 200, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Dicalcium Phosphate (DCP)', 'dicalcium-phosphate', 'Calcium and phosphorus supplement. Essential for bone development. 25kg bags.', 'feed', 3500.00, 60, 1, 0, '/Frontend/images/download (5).png'],
-        [5, 'Salt (Sodium Chloride)', 'salt-sodium-chloride', 'Feed grade salt. Essential mineral for poultry health. 25kg bags.', 'feed', 800.00, 100, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Premix (Vitamins & Minerals)', 'premix-vitamins-minerals', 'Complete vitamin and mineral premix. Essential micronutrients. 25kg bags.', 'feed', 6500.00, 50, 1, 1, '/Frontend/images/download (5).png'],
-        [5, 'Methionine (Amino Acid)', 'methionine-amino-acid', 'Essential amino acid supplement. Improves feather quality and growth. 25kg bags.', 'feed', 12000.00, 30, 1, 0, '/Frontend/images/download (5).png'],
-        [5, 'Lysine (Amino Acid)', 'lysine-amino-acid', 'Essential amino acid. Critical for protein synthesis and growth. 25kg bags.', 'feed', 11000.00, 30, 1, 0, '/Frontend/images/download (5).png'],
-        [5, 'Toxin Binder', 'toxin-binder', 'Protects against mycotoxins in feed. Improves feed quality and bird health. 25kg bags.', 'feed', 4800.00, 40, 1, 0, '/Frontend/images/download (5).png'],
+        [5, 'Maize (Yellow Corn)', 'maize-yellow-corn', 'Premium quality yellow maize. High energy content for feed formulation. 90kg bags.', 'feed', 4500.00, 200, 1, 1, ''],
+        [5, 'Soya Bean Cake', 'soya-bean-cake', 'High protein soya bean meal. 44% crude protein. Essential for layer and broiler feeds. 50kg bags.', 'feed', 5200.00, 150, 1, 1, ''],
+        [5, 'Sunflower Cake', 'sunflower-cake', 'Protein-rich sunflower meal. 35% crude protein. Good alternative to soya. 50kg bags.', 'feed', 3800.00, 100, 1, 1, ''],
+        [5, 'Wheat Bran', 'wheat-bran', 'High fiber content. Good for digestive health. 50kg bags.', 'feed', 1800.00, 180, 1, 1, ''],
+        [5, 'Fish Meal', 'fish-meal', 'High quality protein source. 60% crude protein. Essential for layer feeds. 50kg bags.', 'feed', 8500.00, 80, 1, 0, ''],
+        [5, 'Limestone (Calcium)', 'limestone-calcium', 'Essential calcium source for layers. Promotes strong eggshells. 50kg bags.', 'feed', 1200.00, 200, 1, 1, ''],
+        [5, 'Dicalcium Phosphate (DCP)', 'dicalcium-phosphate', 'Calcium and phosphorus supplement. Essential for bone development. 25kg bags.', 'feed', 3500.00, 60, 1, 0, ''],
+        [5, 'Salt (Sodium Chloride)', 'salt-sodium-chloride', 'Feed grade salt. Essential mineral for poultry health. 25kg bags.', 'feed', 800.00, 100, 1, 1, ''],
+        [5, 'Premix (Vitamins & Minerals)', 'premix-vitamins-minerals', 'Complete vitamin and mineral premix. Essential micronutrients. 25kg bags.', 'feed', 6500.00, 50, 1, 1, ''],
+        [5, 'Methionine (Amino Acid)', 'methionine-amino-acid', 'Essential amino acid supplement. Improves feather quality and growth. 25kg bags.', 'feed', 12000.00, 30, 1, 0, ''],
+        [5, 'Lysine (Amino Acid)', 'lysine-amino-acid', 'Essential amino acid. Critical for protein synthesis and growth. 25kg bags.', 'feed', 11000.00, 30, 1, 0, ''],
+        [5, 'Toxin Binder', 'toxin-binder', 'Protects against mycotoxins in feed. Improves feed quality and bird health. 25kg bags.', 'feed', 4800.00, 40, 1, 0, ''],
     ];
     
     $prodStmt = $pdo->prepare("INSERT INTO products (category_id, name, slug, description, product_type, price, stock_quantity, is_active, is_featured, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE price = VALUES(price), stock_quantity = VALUES(stock_quantity), is_active = VALUES(is_active), is_featured = VALUES(is_featured)");
@@ -163,7 +163,7 @@ try {
     
     echo "<p style='margin-top:30px;padding:20px;background:#fff3cd;border-left:4px solid #ffc107;border-radius:4px;'><strong>⚠️ IMPORTANT: Delete this file (complete_data_import.php) now for security!</strong></p>";
     echo "<p><a href='/status.php' style='padding:12px 24px;background:#28a745;color:white;text-decoration:none;border-radius:6px;display:inline-block;margin:10px 10px 0 0;'>Check Status</a>";
-    echo "<a href='/Frontend/pages/shop.php' style='padding:12px 24px;background:#007bff;color:white;text-decoration:none;border-radius:6px;display:inline-block;margin:10px 0 0 0;'>View Shop</a></p>";
+    echo "</p>";
     
 } catch (Exception $e) {
     echo "<span class='fail'>✗ Error: " . htmlspecialchars($e->getMessage()) . "</span>";

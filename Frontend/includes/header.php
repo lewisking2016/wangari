@@ -86,12 +86,8 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
             <li><a class="<?php echo navActive('home', $currentPage); ?>" href="/">Home</a></li>
             <li><a class="<?php echo navActive('about', $currentPage); ?>" href="/Frontend/pages/about.php">About</a></li>
             <li><a class="<?php echo navActive('services', $currentPage); ?>" href="/Frontend/pages/services.php">Services</a></li>
-            <li><a class="<?php echo navActive('recipes', $currentPage); ?>" href="/Frontend/pages/recipes.php">Recipes</a></li>
-            <li><a class="<?php echo navActive('shop', $currentPage); ?>" href="/Frontend/pages/shop.php">Shop</a></li>
+            <li><a class="<?php echo navActive('pricing', $currentPage); ?>" href="/Frontend/pages/pricing.php">Pricing</a></li>
             <li><a class="<?php echo navActive('contact', $currentPage); ?>" href="/Frontend/pages/contact.php">Contact</a></li>
-            <?php if ($is_customer_logged_in): ?>
-                <li><a class="<?php echo navActive('dashboard', $currentPage); ?>" href="/Frontend/pages/dashboard.php">Dashboard</a></li>
-            <?php endif; ?>
         </ul>
 
         <div class="g-nav-right">
@@ -101,11 +97,6 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
                 <a class="g-btn g-btn-outline g-nav-cta" href="/Frontend/pages/login.php">Login</a>
                 <a class="g-btn g-btn-lime g-nav-cta" href="/Frontend/pages/register.php">Get Started</a>
             <?php endif; ?>
-
-            <a href="/Frontend/pages/cart.php" class="g-nav-cart" aria-label="Cart">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                <?php if ($cartCount > 0): ?><span class="g-cart-count"><?php echo $cartCount; ?></span><?php endif; ?>
-            </a>
 
             <button class="g-hamburger" id="gHamburger" aria-label="Toggle menu">
                 <span></span><span></span><span></span>

@@ -62,7 +62,6 @@ echo "<p>Shortcut: <a href='/wangariadmin'>/wangariadmin</a> (redirects to admin
 echo "<h2>Test Pages</h2>";
 echo "<ul>";
 echo "<li><a href='/'>Homepage</a></li>";
-echo "<li><a href='/Frontend/pages/shop.php'>Shop</a></li>";
 echo "<li><a href='/test_assets.php'>Asset Test</a></li>";
 echo "</ul>";
 

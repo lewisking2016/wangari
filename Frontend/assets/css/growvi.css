@@ -1405,3 +1405,55 @@ body.g-dark-nav .g-nav { background: var(--g-ink); }
 
 /* Legacy section spacing inherits the design-system rhythm */
 section { position: relative; }
+
+/* ══════════════════════════════════════════════════════════════
+   Wangari System — image-free gradients (Busia photos removed)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Hero — dark system gradient instead of the farm photo */
+.g-hero-bg {
+    background:
+        radial-gradient(1100px 500px at 85% -10%, rgba(208, 242, 76, 0.16) 0%, transparent 60%),
+        radial-gradient(900px 600px at -10% 110%, rgba(27, 94, 32, 0.55) 0%, transparent 55%),
+        linear-gradient(160deg, #04101f 0%, #0B2B1D 55%, #06190F 100%);
+}
+.g-hero-bg img { display: none; }
+
+/* CTA band — deep green gradient without the photo */
+.g-cta-bg {
+    background:
+        radial-gradient(900px 420px at 15% -20%, rgba(208, 242, 76, 0.14) 0%, transparent 55%),
+        linear-gradient(135deg, #071F12 0%, #0D3B22 60%, #0B2B1D 100%);
+}
+.g-cta-bg img { display: none; }
+
+/* System Feature cards — branded gradient panels */
+.g-project-img {
+    background:
+        radial-gradient(420px 260px at 20% 0%, rgba(208, 242, 76, 0.20) 0%, transparent 60%),
+        linear-gradient(150deg, #0E3B24 0%, #07210F 100%);
+}
+.g-project-img-1 { background: linear-gradient(150deg, #0E3B24 0%, #0B2B1D 100%); }
+.g-project-img-2 { background: linear-gradient(150deg, #123F2A 0%, #0A1F12 100%); }
+.g-project-img-3 { background: linear-gradient(150deg, #14532D 0%, #0B2B1D 100%); }
+.g-project-img::after,
+.g-blog-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.5;
+    background:
+        linear-gradient(115deg, transparent 0 42%, rgba(208, 242, 76, 0.10) 42% 46%, transparent 46% 100%);
+    mix-blend-mode: screen;
+}
+.g-project-img img, .g-blog-img img { display: none; }
+
+/* Blog cards — soft green gradient covers */
+.g-blog-img {
+    background:
+        radial-gradient(300px 180px at 85% 0%, rgba(208, 242, 76, 0.18) 0%, transparent 60%),
+        linear-gradient(160deg, #0F3D26 0%, #082211 100%);
+}
+.g-blog-img-1 { background: linear-gradient(160deg, #113F28 0%, #081F10 100%); }
+.g-blog-img-2 { background: linear-gradient(160deg, #0E3B24 0%, #0B2B1D 100%); }
+.g-blog-img-3 { background: linear-gradient(160deg, #15452D 0%, #082411 100%); }

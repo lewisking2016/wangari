@@ -126,7 +126,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
         .branding-side {
             flex: 1.2;
             position: relative;
-            background: var(--admin-primary);
+            background:
+                radial-gradient(900px 480px at 80% -10%, rgba(208, 242, 76, 0.16) 0%, transparent 60%),
+                radial-gradient(700px 500px at -10% 110%, rgba(0, 0, 0, 0.45) 0%, transparent 55%),
+                linear-gradient(160deg, #04101f 0%, #0B2B1D 55%, #06190F 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -352,7 +355,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
     <div class="split-container">
         <!-- Left Side: Branding -->
         <div class="branding-side">
-            <img src="/Frontend/images/adbg.png" alt="Wangari" class="branding-bg">
             <div class="branding-overlay"></div>
             <div class="branding-content">
                 <img src="/Frontend/images/wangari-logo.png" alt="Wangari" class="branding-logo">

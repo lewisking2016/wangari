@@ -80,8 +80,7 @@ try {
     echo "  Setup complete! Your system is ready.\n";
     echo "═══════════════════════════════════════════════════════════════\n\n";
 
-    echo "  Admin Login:   http://localhost:8000/Frontend/admin/login.php\n";
-    echo "  Public Shop:   http://localhost:8000/Frontend/pages/shop.php\n\n";
+    echo "  Admin Login:   http://localhost:8000/Frontend/admin/login.php\n\n";
 
     echo "  New admin modules available:\n";
     echo "  • Health & Vet         (vaccinations, mortality, treatments)\n";

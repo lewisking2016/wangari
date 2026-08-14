@@ -45,12 +45,11 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
 
                 <!-- CMS Pages -->
                 <div>
-                    <h4>CMS Pages</h4>
+                    <h4>Explore</h4>
                     <ul class="g-footer-links">
-                        <li><a href="/Frontend/pages/recipes.php">Blogs</a></li>
                         <li><a href="/Frontend/pages/services.php">Services</a></li>
-                        <li><a href="/Frontend/pages/shop.php">Shop</a></li>
-                        <li><a href="/Frontend/pages/cart.php">My Cart</a></li>
+                        <li><a href="/Frontend/pages/faq.php">FAQ</a></li>
+                        <li><a href="/wangariadmin">System Login</a></li>
                     </ul>
                 </div>
 

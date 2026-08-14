@@ -28,9 +28,7 @@ $productCount = max($productCount, 1);
     <!-- 1. HERO, image + white text + stats            -->
     <!-- ═══════════════════════════════════════════════ -->
     <section class="g-hero">
-        <div class="g-hero-bg">
-            <img src="/Frontend/images/download (8).png" alt="Busia Chicken Farm premium feed bags at golden hour" fetchpriority="high">
-        </div>
+        <div class="g-hero-bg"></div>
         <div class="g-container">
             <span class="g-hero-tag">All-in-One Farm Management System</span>
             <h1 id="gHeroTitle">One System. Every Farm. <span class="g-serif">Smart Farming Technology</span></h1>
@@ -197,9 +195,7 @@ $productCount = max($productCount, 1);
 
             <div class="g-projects">
                 <div class="g-project g-reveal g-delay-1">
-                    <div class="g-project-img">
-                        <img src="/Frontend/images/download (4).png" alt="Layers in the commercial battery cage unit" loading="lazy">
-                    </div>
+                    <div class="g-project-img g-project-img-1"></div>
                     <div class="g-project-body">
                         <h3>Production &amp; Health</h3>
                         <p>Daily egg collection, growth records, mortality and vaccination schedules, with automatic alerts when something needs attention.</p>
@@ -215,9 +211,7 @@ $productCount = max($productCount, 1);
                 </div>
 
                 <div class="g-project g-reveal g-delay-2">
-                    <div class="g-project-img">
-                        <img src="/Frontend/images/adbg.png" alt="Busia Chicken Farm feed bags" loading="lazy">
-                    </div>
+                    <div class="g-project-img g-project-img-2"></div>
                     <div class="g-project-body">
                         <h3>Feed &amp; Stock Control</h3>
                         <p>Raw material stores, feed formulas, bag production and live costing, know exactly what each bag costs to produce.</p>
@@ -233,12 +227,10 @@ $productCount = max($productCount, 1);
                 </div>
 
                 <div class="g-project g-reveal g-delay-3">
-                    <div class="g-project-img">
-                        <img src="/Frontend/images/download (3).png" alt="Fresh egg crates ready for sale" loading="lazy">
-                    </div>
+                    <div class="g-project-img g-project-img-3"></div>
                     <div class="g-project-body">
                         <h3>Sales, Credit &amp; Ledger</h3>
-                        <p>Orders, cashbook, credit customers, LPOs, invoices and profit reports, with M-Pesa-ready checkout for your online shop.</p>
+                        <p>Orders, cashbook, credit customers, LPOs, invoices and profit reports, with M-Pesa-ready payment records.</p>
                         <div class="g-project-loc">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
                             <span>P&L at a glance</span>
@@ -348,9 +340,7 @@ $productCount = max($productCount, 1);
     <!-- 8. CTA, "Let's grow something better" + form   -->
     <!-- ═══════════════════════════════════════════════ -->
     <section class="g-cta">
-        <div class="g-cta-bg">
-            <img src="/Frontend/images/download (5).png" alt="Busia Chicken Farm egg sorting facility" loading="lazy">
-        </div>
+        <div class="g-cta-bg"></div>
         <div class="g-container">
             <div class="g-cta-grid">
                 <div class="g-reveal">
@@ -498,9 +488,7 @@ $productCount = max($productCount, 1);
 
             <div class="g-blogs">
                 <article class="g-blog g-reveal g-delay-1">
-                    <div class="g-blog-img">
-                        <img src="/Frontend/images/adbg.png" alt="Feed costing guide" loading="lazy">
-                    </div>
+                    <div class="g-blog-img g-blog-img-1"></div>
                     <div class="g-blog-body">
                         <div class="g-blog-meta"><span>By</span><strong>Esther Howerd</strong></div>
                         <h3>Feed Costing 101: Know the Real Cost of Every Bag</h3>
@@ -510,9 +498,7 @@ $productCount = max($productCount, 1);
                 </article>
 
                 <article class="g-blog g-reveal g-delay-2">
-                    <div class="g-blog-img">
-                        <img src="/Frontend/images/download (2).png" alt="Credit customers guide" loading="lazy">
-                    </div>
+                    <div class="g-blog-img g-blog-img-2"></div>
                     <div class="g-blog-body">
                         <div class="g-blog-meta"><span>By</span><strong>Esther Howerd</strong></div>
                         <h3>Managing Credit Customers Without Losing Sleep</h3>
@@ -522,9 +508,7 @@ $productCount = max($productCount, 1);
                 </article>
 
                 <article class="g-blog g-reveal g-delay-3">
-                    <div class="g-blog-img">
-                        <img src="/Frontend/images/download (7).png" alt="Farm record keeping guide" loading="lazy">
-                    </div>
+                    <div class="g-blog-img g-blog-img-3"></div>
                     <div class="g-blog-body">
                         <div class="g-blog-meta"><span>By</span><strong>Esther Howerd</strong></div>
                         <h3>Why Record-Keeping Is Your Farm's Best Investment</h3>

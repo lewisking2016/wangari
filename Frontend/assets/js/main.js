@@ -22,8 +22,6 @@ const WangariApp = {
         this.setupMobileMenu();
         this.setupSmoothScroll();
         this.setupFormValidation();
-        this.setupCartFunctionality();
-        this.setupShopFilters();
         this.setupCounterAnimation();
         this.setupModalHandlers();
         console.log('Wangari App initialized');
@@ -216,135 +214,6 @@ const WangariApp = {
     },
 
     // ═══════════════════════════════════════════════════════════════
-    // CART FUNCTIONALITY
-    // ═══════════════════════════════════════════════════════════════
-
-    setupCartFunctionality() {
-        const addToCartBtns = document.querySelectorAll('.add-to-cart-btn');
-        
-        addToCartBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const productId = btn.getAttribute('data-id');
-                const quantity = parseInt(btn.getAttribute('data-qty')) || 1;
-                this.addToCart(productId, quantity);
-            });
-        });
-
-        this.updateCartCount();
-    },
-
-    // SHOP FILTERS
-    setupShopFilters() {
-        const filterForm = document.querySelector('.product-filters');
-        if (!filterForm) return;
-
-        const typeChecks = Array.from(filterForm.querySelectorAll('input[name="type"]'));
-        const availabilityChecks = Array.from(filterForm.querySelectorAll('input[name="availability"]'));
-
-        const apply = () => {
-            const selectedTypes = typeChecks.filter(i => i.checked).map(i => i.value);
-            const inStockOnly = availabilityChecks.find(i => i.value === 'in-stock')?.checked;
-
-            const cards = document.querySelectorAll('.product-card');
-            let visible = 0;
-            cards.forEach(card => {
-                const type = card.getAttribute('data-type') || '';
-                const instock = card.getAttribute('data-instock') === '1';
-
-                let show = true;
-                if (selectedTypes.length && !selectedTypes.includes(type)) show = false;
-                if (inStockOnly && !instock) show = false;
-
-                card.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
-
-            const countEl = document.getElementById('products-count');
-            if (countEl) countEl.textContent = visible;
-        };
-
-        // Attach listeners
-        [...typeChecks, ...availabilityChecks].forEach(inp => inp.addEventListener('change', apply));
-    },
-
-    showCartPopup(text) {
-        const existing = document.querySelector('.cart-popup');
-        if (existing) existing.remove();
-
-        const popup = document.createElement('div');
-        popup.className = 'cart-popup';
-        popup.style.cssText = 'position: fixed; right: 20px; bottom: 100px; background: white; border: 1px solid rgba(0,0,0,0.08); padding: 12px 16px; box-shadow: var(--shadow-lg); z-index: 4000; border-radius: 8px;';
-        popup.textContent = text;
-
-        document.body.appendChild(popup);
-
-        setTimeout(() => popup.remove(), 3000);
-    },
-
-    async addToCart(productId, quantity = 1) {
-        try {
-            const formData = new FormData();
-            formData.append('action', 'add');
-            formData.append('product_id', productId);
-            formData.append('quantity', quantity);
-
-            const response = await fetch('/Backend/api/cart.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.showNotification(result.message, 'success');
-                this.updateCartCount(result.data.cart_count);
-                // Show small cart popup anchored to cart icon with product name if available
-                let name = result.data?.product_name || null;
-                if (!name) {
-                    const card = document.querySelector(`.product-card[data-id="${productId}"] .product-name`);
-                    if (card) name = card.textContent.trim();
-                }
-                if (name) this.showCartPopup(`${name} added to cart`);
-            } else {
-                this.showNotification(result.message || 'Failed to add product', 'error');
-            }
-        } catch (error) {
-            console.error('Cart error:', error);
-            this.showNotification('Error connecting to cart', 'error');
-        }
-    },
-
-    getCart() {
-        // We'll rely on the server session now, but keep this for compatibility if needed
-        return [];
-    },
-
-    saveCart(cart) {
-        // We'll rely on the server session now
-    },
-
-    async updateCartCount(count = null) {
-        if (count === null) {
-            try {
-                const response = await fetch('/Backend/api/cart.php?action=get');
-                const result = await response.json();
-                if (result.success) {
-                    count = result.data.count;
-                }
-            } catch (e) {
-                count = 0;
-            }
-        }
-
-        const cartBadge = document.querySelector('.cart-count');
-        if (cartBadge) {
-            cartBadge.textContent = count || 0;
-            cartBadge.style.animation = 'pulse 0.5s ease';
-        }
-    },
-
-    // ═══════════════════════════════════════════════════════════════
     // COUNTER ANIMATION
     // ═══════════════════════════════════════════════════════════════
 
@@ -495,7 +364,6 @@ const WangariApp = {
         this.setupIntersectionObserver();
         this.setupTabs();
         this.setupAccordion();
-        this.updateCartCount();
     },
 };
 

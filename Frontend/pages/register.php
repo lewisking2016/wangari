@@ -19,7 +19,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
 
 // Redirect only if a customer is already logged in
 if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'customer') {
-    echo "<script>window.location.href = '/Frontend/pages/dashboard.php';</script>";
+    echo "<script>window.location.href = '/Frontend/index.php';</script>";
     exit;
 }
 

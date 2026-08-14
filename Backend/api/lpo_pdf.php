@@ -100,12 +100,12 @@ function pdfWrap(string $s, float $maxWidth, float $size = 9): array {
     return $out ?: [''];
 }
 
-/** Convert the farm logo PNG → JPEG composited onto the header band green
- *  (#1B5E20) so the transparent logo blends seamlessly with the band — no
- *  white box. Alpha-blending is enabled so soft edges blend against green. */
+/** Convert the farm logo PNG → JPEG. The Wangari logo is an opaque cream
+ *  square, so it is composited onto its own background colour so the tile
+ *  sits cleanly on the green header band. */
 function pdfLogoJpeg(): ?string {
-    $png = dirname(__DIR__, 2) . '/Frontend/images/busia logo.png';
-    $cache = sys_get_temp_dir() . '/busia_logo_577.jpg';
+    $png = dirname(__DIR__, 2) . '/Frontend/images/wangari-logo.png';
+    $cache = sys_get_temp_dir() . '/wangari_logo_577.jpg';
     if (!is_file($png) || !function_exists('imagecreatefrompng')) return null;
     if (is_file($cache) && filemtime($cache) >= filemtime($png)) return $cache;
     try {
@@ -115,8 +115,8 @@ function pdfLogoJpeg(): ?string {
         $canvas = imagecreatetruecolor($w, $h);
         imagealphablending($canvas, true);
         imagesavealpha($canvas, false);
-        $green = imagecolorallocate($canvas, 27, 94, 32); // matches $green band
-        imagefill($canvas, 0, 0, $green);
+        $cream = imagecolorallocate($canvas, 245, 242, 235); // logo's own cream background
+        imagefill($canvas, 0, 0, $cream);
         imagecopy($canvas, $src, 0, 0, 0, 0, $w, $h);
         imagejpeg($canvas, $cache, 90);
         imagedestroy($src); imagedestroy($canvas);
