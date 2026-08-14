@@ -355,7 +355,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
             <img src="/Frontend/images/adbg.png" alt="Wangari" class="branding-bg">
             <div class="branding-overlay"></div>
             <div class="branding-content">
-                <img src="/Frontend/images/wangari logo.png" alt="Wangari" class="branding-logo">
+                <img src="/Frontend/images/wangari-logo.png" alt="Wangari" class="branding-logo">
                 <h1>Smart Farming for a Sustainable Future.</h1>
                 <p>Empowering poultry farmers with real-time insights and intelligent management tools.</p>
                 <div style="display: flex; gap: 24px;">

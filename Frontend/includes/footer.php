@@ -23,7 +23,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
                 <!-- Brand -->
                 <div class="g-footer-brand">
                     <a href="/" class="g-logo">
-                        <img src="/Frontend/images/wangari-mark.svg" alt="Wangari">
+                        <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
                         <span>Wangari<em>.</em></span>
                     </a>
                     <p>Smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one place, inspired by Prof. Wangari Maathai.</p>

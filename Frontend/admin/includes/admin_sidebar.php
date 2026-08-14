@@ -61,7 +61,7 @@ HTML;
 <nav class="w2-side">
     <!-- Brand -->
     <div class="w2-side-brand">
-        <img src="/Frontend/images/wangari-mark.svg" alt="Wangari" class="w2-logo">
+        <img src="/Frontend/images/wangari-logo.png" alt="Wangari" class="w2-logo">
         <div>
             <p class="w2-brand-name">Wangari</p>
             <small class="w2-brand-sub">Farm OS</small>

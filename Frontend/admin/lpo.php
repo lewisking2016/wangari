@@ -359,7 +359,7 @@ async function viewDoc(id) {
         <div id="printable-doc">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <img src="/Frontend/images/busia logo.png" style="height:46px;">
+                    <img src="/Frontend/images/wangari-logo.png" style="height:46px;">
                     <div>
                         <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.15rem;color:#0f172a;">Busia Chicken Farm</div>
                         <div style="font-size:0.78rem;color:#64748b;">Busia, Kenya &nbsp;•&nbsp; new.decapoli.co.ke</div>

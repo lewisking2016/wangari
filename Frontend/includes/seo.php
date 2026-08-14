@@ -16,7 +16,7 @@ function generateOrganizationSchema(): string
         'name' => 'Wangari',
         'alternateName' => 'Wangari Farm Platform',
         'url' => 'https://wangari.farm',
-        'logo' => 'https://wangari.farm/Frontend/images/wangari-logo.svg',
+        'logo' => 'https://wangari.farm/Frontend/images/wangari-logo.png',
         'description' => 'Leading poultry supplier in East Africa. Premium chickens, eggs, and animal feeds.',
         'sameAs' => [
             'https://www.facebook.com/wangari.farm',

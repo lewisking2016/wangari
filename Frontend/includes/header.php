@@ -68,7 +68,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/growvi.css">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/Frontend/images/wangari-mark.svg">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
 </head>
 <body>
 
@@ -78,7 +78,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 <nav class="g-nav" id="gNav">
     <div class="g-nav-inner">
         <a href="/" class="g-logo">
-            <img src="/Frontend/images/wangari-mark.svg" alt="Wangari">
+            <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
             <span>Wangari<em>.</em></span>
         </a>
 

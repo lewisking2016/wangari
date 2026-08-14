@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
     <div class="g-auth-brand">
         <div>
             <a href="/" class="g-logo">
-                <img src="/Frontend/images/wangari-mark.svg" alt="Wangari">
+                <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
                 <span>Wangari<em>.</em></span>
             </a>
             <div style="margin-top: 6rem;">
