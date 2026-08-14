@@ -89,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 
 /* ── Load data ── */
 $segments = $followups = $contacts = [];
+$users = $walkins = [];
 $customerOptions = [];   // id => label
 $customerBalances = [];  // customer key => outstanding credit
 
@@ -97,7 +98,7 @@ if ($pdo) {
         $segments = $pdo->query('SELECT * FROM crm_segments ORDER BY name')->fetchAll();
 
         // Customers: registered users + walk-ins merged into one list
-        $users = $pdo->query('SELECT id, username, email, phone, created_at FROM users ORDER BY username')->fetchAll();
+        $users = $pdo->query('SELECT id, username, email, phone_number, created_at FROM users ORDER BY username')->fetchAll();
         foreach ($users as $u) {
             $label = ($u['username'] ?: $u['email']) . ' <span style="color:#94a3b8;font-weight:400;">(account)</span>';
             $customerOptions['u' . $u['id']] = $label;
@@ -193,7 +194,7 @@ $tabs = [
             <tbody>
             <?php
             $rows = [];
-            foreach ($users as $u) $rows[] = ['name' => $u['username'] ?: $u['email'], 'phone' => $u['phone'] ?? '', 'type' => 'Account', 'key' => 'u' . $u['id'], 'since' => substr($u['created_at'] ?? '', 0, 10)];
+            foreach ($users as $u) $rows[] = ['name' => $u['username'] ?: $u['email'], 'phone' => $u['phone_number'] ?? '', 'type' => 'Account', 'key' => 'u' . $u['id'], 'since' => substr($u['created_at'] ?? '', 0, 10)];
             foreach ($walkins as $w) $rows[] = ['name' => $w['customer_name'] ?: 'Walk-in #' . $w['id'], 'phone' => $w['phone'] ?? '', 'type' => 'Walk-in', 'key' => 'w' . $w['id'], 'since' => substr($w['created_at'] ?? '', 0, 10)];
             if (empty($rows)): ?>
                 <tr><td colspan="5" style="text-align:center;padding:28px;color:#94a3b8;">No customers yet.</td></tr>
