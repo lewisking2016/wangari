@@ -222,7 +222,7 @@ function editWorker(w) {
             <thead><tr><th>Date</th><th>Worker</th><th>Hours</th><th>Task</th><th>Location</th><th>Notes</th></tr></thead>
             <tbody>
             <?php if (empty($attendance)): ?>
-                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No attendance recorded yet.</td></tr>
+                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No attendance yet.</strong><br>Record who worked, hours and task with <strong>+ Record Attendance</strong> — wages calculate automatically from rates.</td></tr>
             <?php else: foreach ($attendance as $a): ?>
                 <tr>
                     <td><?= htmlspecialchars($a['work_date'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -277,7 +277,7 @@ function editWorker(w) {
             <thead><tr><th>Date</th><th>Worker</th><th>Amount (KES)</th><th>Period</th><th>Method</th><th>Notes</th></tr></thead>
             <tbody>
             <?php if (empty($payments)): ?>
-                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No wage payments recorded yet.</td></tr>
+                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No wage payments yet.</strong><br>Record money paid to workers with <strong>+ Record Payment</strong> to keep your labour costs clear.</td></tr>
             <?php else: foreach ($payments as $p): ?>
                 <tr>
                     <td><?= htmlspecialchars(substr($p['paid_at'], 0, 10), ENT_QUOTES, 'UTF-8') ?></td>

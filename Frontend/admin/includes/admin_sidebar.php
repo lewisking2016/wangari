@@ -77,14 +77,17 @@ HTML;
 
         <p class="w2-nav-section">Farm Operations</p>
         <?= w2NavGroup('sprout', 'Farm Operations', 'hub_operations.php', [
-            'flocks'       => 'Flocks / Herds',
-            'production'   => 'Daily Production',
+            'overview'     => 'Overview',
+            'animals'      => 'Animals',
+            'groups'       => 'Groups',
+            'housing'      => 'Housing',
+            'health'       => 'Health',
             'vaccinations' => 'Vaccinations',
-            'animals'      => 'Animals List',
-            'health'       => 'Health Records',
-            'breeding'     => 'Breeding Events',
-            'herds'        => 'Herds / Pens',
-        ], $tab ?: 'flocks') ?>
+            'production'   => 'Production',
+            'breeding'     => 'Breeding',
+            'feeding'      => 'Feeding',
+            'poultry'      => 'Poultry Tools',
+        ], $tab ?: 'overview') ?>
 
         <?= w2NavGroup('wheat', 'Crops & Fields', 'hub_crops.php', [
             'fields'     => 'Fields',
@@ -140,6 +143,7 @@ HTML;
         ], $tab ?: 'reminders') ?>
 
         <?= w2NavItem('/Frontend/admin/bulk_import_export.php', 'database', 'Bulk Import/Export', w2IsActive('bulk_import_export.php')) ?>
+        <?= w2NavItem('/Frontend/admin/connectors.php', 'plug', 'Connectors', w2IsActive('connectors.php')) ?>
 
         <p class="w2-nav-section">System</p>
         <?= w2NavGroup('settings', 'Settings', 'hub_settings.php', [

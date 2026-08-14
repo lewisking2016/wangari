@@ -40,11 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } else {
             try {
                 if ($id > 0) {
-                    $pdo->prepare('UPDATE farm_items SET name=?,category=?,quantity=?,condition_status=?,purchase_date=?,cost=?,notes=? WHERE id=?')
+                    $pdo->prepare('UPDATE farm_equipment SET name=?,category=?,quantity=?,condition_status=?,purchase_date=?,cost=?,notes=? WHERE id=?')
                         ->execute([$name,$category,$qty,$cond,$pur_date?:null,$cost?:null,$notes,$id]);
                     $message = 'Equipment updated successfully.';
                 } else {
-                    $pdo->prepare('INSERT INTO farm_items (name,category,quantity,condition_status,purchase_date,cost,notes) VALUES (?,?,?,?,?,?,?)')
+                    $pdo->prepare('INSERT INTO farm_equipment (name,category,quantity,condition_status,purchase_date,cost,notes) VALUES (?,?,?,?,?,?,?)')
                         ->execute([$name,$category,$qty,$cond,$pur_date?:null,$cost?:null,$notes]);
                     $message = 'Equipment added successfully.';
                 }
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 $farmItems = [];
 if ($pdo && $tab === 'equipment') {
     try {
-        $farmItems = $pdo->query('SELECT * FROM farm_items ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
+        $farmItems = $pdo->query('SELECT * FROM farm_equipment ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { $error_message = $e->getMessage(); }
 }
 
@@ -119,7 +119,7 @@ $tabs = [
             <thead><tr><th>Name</th><th>Category</th><th>Quantity</th><th>Condition</th><th>Purchase Date</th><th>Cost</th><th>Actions</th></tr></thead>
             <tbody>
             <?php if (empty($farmItems)): ?>
-                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No physical equipment logged yet.</td></tr>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No equipment logged yet.</strong><br>Register tools, machinery and structures with <strong>+ Add Tool / Equipment</strong> to track condition and value.</td></tr>
             <?php else: foreach ($farmItems as $fi): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($fi['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>

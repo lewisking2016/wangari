@@ -70,9 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
                     $_SESSION['first_name'] = $user['first_name'];
                     logActivity($pdo, 'login', 'auth', "{$user['username']} logged in", (int)$user['id'], 'user');
 
-                    $next = $_GET['next'] ?? '/Frontend/admin/products.php';
+                    $next = $_GET['next'] ?? '/Frontend/admin/dashboard.php';
                     if (!isSafeAdminRedirect($next)) {
-                        $next = '/Frontend/admin/products.php';
+                        $next = '/Frontend/admin/dashboard.php';
                     }
                     header('Location: ' . $next);
                     exit;
@@ -416,7 +416,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
                             <input type="checkbox" name="remember" style="accent-color: var(--admin-primary);">
                             Keep me signed in
                         </label>
-                        <a href="#" class="forgot-password">Forgot password?</a>
+                        <a href="/Frontend/pages/forgot-password.php" class="forgot-password">Forgot password?</a>
                     </div>
 
                     <button type="submit" name="admin_login" class="btn-login">

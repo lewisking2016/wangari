@@ -171,6 +171,19 @@ document.getElementById('pay-form').addEventListener('submit', async e => {
     else alert('Error: ' + r.message);
 });
 
+function updateKpis(data) {
+    const today = new Date().toISOString().split('T')[0];
+    const totalOwed = data.filter(c => c.status!=='paid').reduce((s,c) => s + parseFloat(c.balance), 0);
+    const overdue = data.filter(c => c.status!=='paid' && c.due_date && c.due_date < today).reduce((s,c) => s + parseFloat(c.balance), 0);
+    const activeCustomers = new Set(data.filter(c => c.status!=='paid').map(c => c.customer_name)).size;
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const collectedMonth = data.filter(c => c.last_payment_date && c.last_payment_date >= monthStart).reduce((s,c) => s + parseFloat(c.amount_paid), 0);
+    document.getElementById('cr-total-owed').textContent = 'KES ' + totalOwed.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    document.getElementById('cr-overdue').textContent = 'KES ' + overdue.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+    document.getElementById('cr-active').textContent = activeCustomers;
+    document.getElementById('cr-collected').textContent = 'KES ' + collectedMonth.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
 async function loadCredit() {
     const status = document.getElementById('cr-filter-status').value;
     let url = '/Backend/api/admin_business.php?action=list_credit';

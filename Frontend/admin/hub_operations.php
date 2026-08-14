@@ -1,7 +1,11 @@
 <?php
 /**
- * Hub: Farm Operations, ALL content inline, no double-includes.
- * Tabs: Flocks | Production | Vaccinations | Animals | Health | Breeding | Herds
+ * Farm Operations V2 — Species-agnostic module
+ * Tabs: overview | animals | groups | housing | health | vaccinations | production | breeding | feeding | poultry
+ *
+ * Every animal type (chicken, cattle, goat, sheep, pig, rabbit…) gets equal
+ * treatment: unified registry, shared health/vaccination/production/breeding
+ * feeds, species-aware housing, and poultry deep-tools folded in.
  */
 declare(strict_types=1);
 $temp_dir = sys_get_temp_dir();
@@ -15,100 +19,350 @@ if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_ad
 $page_title = 'Farm Operations - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
-$tab = $_GET['tab'] ?? 'flocks';
-$validTabs = ['flocks','production','vaccinations','animals','health','breeding','herds'];
-if (!in_array($tab, $validTabs, true)) $tab = 'flocks';
+$tab = $_GET['tab'] ?? 'overview';
+$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','poultry'];
+if (!in_array($tab, $validTabs, true)) $tab = 'overview';
 
 $pdo = getDB();
 $message = ''; $error_message = '';
+$speciesFilter = $_GET['species'] ?? '';
 
-/* ── POST handlers (PHP forms only, not for API tabs) ─── */
+/* ══════════════════════════════════════════════════════════════
+   POST HANDLERS — all forms POST back to the same page
+   ══════════════════════════════════════════════════════════════ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
+    /* ── Save Animal (individual) ── */
     if ($postAction === 'save_animal') {
         $id = (int)($_POST['id'] ?? 0);
-        $fields = [$_POST['tag_id']??'',$_POST['name']??'',$_POST['species']??'',$_POST['breed']??'',$_POST['gender']??'',$_POST['dob']??'',$_POST['status']??'alive',$_POST['notes']??''];
-        $fields = array_map('trim', $fields);
+        $v = [
+            trim($_POST['tag'] ?? ''), trim($_POST['name'] ?? ''),
+            trim($_POST['species'] ?? 'Chicken'), trim($_POST['breed'] ?? ''),
+            trim($_POST['gender'] ?? 'female'), $_POST['birth_date'] ?? null,
+            trim($_POST['status'] ?? 'Active'), (int)($_POST['group_id'] ?? 0) ?: null,
+            trim($_POST['notes'] ?? ''),
+        ];
         try {
             if ($id > 0) {
-                $pdo->prepare('UPDATE animals SET tag_id=?,name=?,species=?,breed=?,gender=?,date_of_birth=?,status=?,notes=? WHERE id=?')
-                    ->execute(array_merge($fields, [$id]));
+                $pdo->prepare('UPDATE animals SET tag=?,name=?,type=?,breed=?,gender=?,birth_date=?,status=?,group_id=?,notes=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
                 $message = 'Animal updated.';
             } else {
-                $pdo->prepare('INSERT INTO animals (tag_id,name,species,breed,gender,date_of_birth,status,notes) VALUES (?,?,?,?,?,?,?,?)')
-                    ->execute($fields);
+                $pdo->prepare('INSERT INTO animals (tag,name,type,breed,gender,birth_date,status,group_id,notes) VALUES (?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
                 $message = 'Animal added.';
             }
-        } catch(Exception $e) { $error_message = $e->getMessage(); }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'animals';
     }
 
-    if ($postAction === 'save_herd') {
+    /* ── Save Group (flock/herd/pen/boma) ── */
+    if ($postAction === 'save_group') {
         $id = (int)($_POST['id'] ?? 0);
-        $n=$_POST['name']??''; $t=$_POST['type']??''; $l=$_POST['location']??''; $c=(int)($_POST['head_count']??0);
+        $v = [
+            trim($_POST['name'] ?? ''), trim($_POST['species'] ?? 'Chicken'),
+            trim($_POST['group_type'] ?? 'flock'), trim($_POST['breed'] ?? ''),
+            (int)($_POST['head_count'] ?? 0), (int)($_POST['housing_id'] ?? 0) ?: null,
+            trim($_POST['location'] ?? ''), trim($_POST['status'] ?? 'active'),
+            trim($_POST['notes'] ?? ''),
+        ];
         try {
-            $id > 0
-                ? $pdo->prepare('UPDATE herds SET name=?,type=?,location=?,head_count=? WHERE id=?')->execute([$n,$t,$l,$c,$id])
-                : $pdo->prepare('INSERT INTO herds (name,type,location,head_count) VALUES (?,?,?,?)')->execute([$n,$t,$l,$c]);
-            $message = $id > 0 ? 'Herd updated.' : 'Herd created.';
-        } catch(Exception $e) { $error_message = $e->getMessage(); }
-        $tab = 'herds';
+            if ($id > 0) {
+                $pdo->prepare('UPDATE animal_groups SET name=?,species=?,group_type=?,breed=?,head_count=?,housing_id=?,location=?,status=?,notes=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Group updated.';
+            } else {
+                $pdo->prepare('INSERT INTO animal_groups (name,species,group_type,breed,head_count,housing_id,location,status,notes) VALUES (?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Group created.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'groups';
     }
 
-    if ($postAction === 'save_health') {
-        $id=(int)($_POST['id']??0);
-        $v=[$_POST['animal_id']??null,$_POST['record_date']??date('Y-m-d'),$_POST['diagnosis']??'',$_POST['treatment']??'',$_POST['vet_name']??'',(float)($_POST['cost']??0)?:(null),$_POST['notes']??''];
+    /* ── Save Housing ── */
+    if ($postAction === 'save_housing') {
+        $id = (int)($_POST['id'] ?? 0);
+        $v = [
+            trim($_POST['house_name'] ?? ''), trim($_POST['house_code'] ?? ''),
+            trim($_POST['location'] ?? ''), (int)($_POST['capacity'] ?? 0),
+            trim($_POST['species'] ?? 'Chicken'), trim($_POST['house_type'] ?? 'house'),
+            trim($_POST['description'] ?? ''),
+        ];
         try {
-            $id > 0
-                ? $pdo->prepare('UPDATE health_records SET animal_id=?,record_date=?,diagnosis=?,treatment=?,vet_name=?,cost=?,notes=? WHERE id=?')->execute(array_merge($v,[$id]))
-                : $pdo->prepare('INSERT INTO health_records (animal_id,record_date,diagnosis,treatment,vet_name,cost,notes) VALUES (?,?,?,?,?,?,?)')->execute($v);
-            $message = $id > 0 ? 'Health record updated.' : 'Health record logged.';
-        } catch(Exception $e) { $error_message = $e->getMessage(); }
+            if ($id > 0) {
+                $pdo->prepare('UPDATE houses SET house_name=?,house_code=?,location=?,capacity=?,species=?,house_type=?,description=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Housing updated.';
+            } else {
+                $pdo->prepare('INSERT INTO houses (house_name,house_code,location,capacity,species,house_type,description) VALUES (?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Housing unit added.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'housing';
+    }
+
+    /* ── Save Health Record ── */
+    if ($postAction === 'save_health') {
+        $id = (int)($_POST['id'] ?? 0);
+        $v = [
+            $_POST['record_date'] ?? date('Y-m-d'),
+            trim($_POST['subject'] ?? ''),
+            trim($_POST['record_type'] ?? 'treatment'),
+            trim($_POST['vaccine_name'] ?? ''), trim($_POST['product_name'] ?? ''),
+            trim($_POST['dosage'] ?? ''), trim($_POST['route'] ?? 'oral'),
+            (int)($_POST['birds_treated'] ?? 0), (int)($_POST['mortality_count'] ?? 0),
+            trim($_POST['vet_name'] ?? ''), $_POST['next_due_date'] ?: null,
+            (float)($_POST['cost'] ?? 0), trim($_POST['status'] ?? 'completed'),
+            trim($_POST['notes'] ?? ''), trim($_POST['species'] ?? 'Chicken'),
+            (int)($_POST['animal_id'] ?? 0) ?: null,
+            (int)($_POST['group_id'] ?? 0) ?: null,
+        ];
+        try {
+            if ($id > 0) {
+                $pdo->prepare('UPDATE health_records SET record_date=?,subject=?,record_type=?,vaccine_name=?,product_name=?,dosage=?,route=?,birds_treated=?,mortality_count=?,vet_name=?,next_due_date=?,cost=?,status=?,notes=?,species=?,animal_id=?,group_id=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Health record updated.';
+            } else {
+                $pdo->prepare('INSERT INTO health_records (record_date,subject,record_type,vaccine_name,product_name,dosage,route,birds_treated,mortality_count,vet_name,next_due_date,cost,status,notes,species,animal_id,group_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Health record logged.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'health';
     }
 
-    if ($postAction === 'save_breeding') {
-        $id=(int)($_POST['id']??0);
-        $v=[$_POST['sire']??'',$_POST['dam']??'',$_POST['breeding_date']??date('Y-m-d'),$_POST['expected_birth']??null,$_POST['status']??'Pending',$_POST['notes']??''];
+    /* ── Save Vaccination ── */
+    if ($postAction === 'save_vaccination') {
+        $id = (int)($_POST['id'] ?? 0);
+        $v = [
+            (int)($_POST['flock_id'] ?? 0) ?: null,
+            trim($_POST['vaccine_name'] ?? ''),
+            $_POST['scheduled_date'] ?? date('Y-m-d'),
+            $_POST['administered_date'] ?: null,
+            trim($_POST['status'] ?? 'scheduled'),
+            trim($_POST['dosage'] ?? ''), trim($_POST['notes'] ?? ''),
+            (float)($_POST['cost'] ?? 0),
+            trim($_POST['species'] ?? 'Chicken'),
+            (int)($_POST['animal_id'] ?? 0) ?: null,
+            (int)($_POST['group_id'] ?? 0) ?: null,
+            $_POST['next_due_date'] ?: null,
+        ];
         try {
-            $id > 0
-                ? $pdo->prepare('UPDATE breeding_records SET sire=?,dam=?,breeding_date=?,expected_birth=?,status=?,notes=? WHERE id=?')->execute(array_merge($v,[$id]))
-                : $pdo->prepare('INSERT INTO breeding_records (sire,dam,breeding_date,expected_birth,status,notes) VALUES (?,?,?,?,?,?)')->execute($v);
-            $message = $id > 0 ? 'Breeding record updated.' : 'Breeding recorded.';
-        } catch(Exception $e) { $error_message = $e->getMessage(); }
+            if ($id > 0) {
+                $pdo->prepare('UPDATE vaccinations SET flock_id=?,vaccine_name=?,scheduled_date=?,administered_date=?,status=?,dosage=?,notes=?,cost=?,species=?,animal_id=?,group_id=?,next_due_date=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Vaccination updated.';
+            } else {
+                $pdo->prepare('INSERT INTO vaccinations (flock_id,vaccine_name,scheduled_date,administered_date,status,dosage,notes,cost,species,animal_id,group_id,next_due_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Vaccination scheduled.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'vaccinations';
+    }
+
+    /* ── Save Production Record ── */
+    if ($postAction === 'save_production') {
+        $id = (int)($_POST['id'] ?? 0);
+        $v = [
+            (int)($_POST['flock_id'] ?? 0) ?: null,
+            $_POST['record_date'] ?? date('Y-m-d'),
+            (int)($_POST['eggs_collected'] ?? 0), (int)($_POST['cracked_eggs'] ?? 0),
+            (float)($_POST['meat_weight_kg'] ?? 0), (int)($_POST['mortality'] ?? 0),
+            (float)($_POST['feed_consumed_kg'] ?? 0), trim($_POST['notes'] ?? ''),
+            trim($_POST['species'] ?? 'Chicken'),
+            (int)($_POST['group_id'] ?? 0) ?: null,
+            (float)($_POST['milk_litres'] ?? 0),
+            (float)($_POST['weight_kg'] ?? 0),
+            (int)($_POST['sold_count'] ?? 0),
+        ];
+        try {
+            if ($id > 0) {
+                $pdo->prepare('UPDATE production_records SET flock_id=?,record_date=?,eggs_collected=?,cracked_eggs=?,meat_weight_kg=?,mortality=?,feed_consumed_kg=?,notes=?,species=?,group_id=?,milk_litres=?,weight_kg=?,sold_count=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Production record updated.';
+            } else {
+                $pdo->prepare('INSERT INTO production_records (flock_id,record_date,eggs_collected,cracked_eggs,meat_weight_kg,mortality,feed_consumed_kg,notes,species,group_id,milk_litres,weight_kg,sold_count) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Production logged.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'production';
+    }
+
+    /* ── Save Breeding Record ── */
+    if ($postAction === 'save_breeding') {
+        $id = (int)($_POST['id'] ?? 0);
+        $v = [
+            trim($_POST['species'] ?? 'Chicken'),
+            trim($_POST['dam'] ?? ''), trim($_POST['sire'] ?? ''),
+            $_POST['breeding_date'] ?? date('Y-m-d'),
+            $_POST['expected_birth'] ?: null,
+            trim($_POST['status'] ?? 'Pending'),
+            trim($_POST['notes'] ?? ''),
+            (int)($_POST['offspring_count'] ?? 0),
+            (int)($_POST['dam_id'] ?? 0) ?: null,
+            (int)($_POST['sire_id'] ?? 0) ?: null,
+        ];
+        try {
+            if ($id > 0) {
+                $pdo->prepare('UPDATE breeding_records SET species=?,male_parent=?,type=?,date=?,due_date=?,status=?,notes=?,offspring_count=?,dam_id=?,sire_id=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Breeding record updated.';
+            } else {
+                $pdo->prepare('INSERT INTO breeding_records (species,male_parent,type,date,due_date,status,notes,offspring_count,dam_id,sire_id) VALUES (?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Breeding recorded.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'breeding';
+    }
+
+    /* ── Save Feed Log ── */
+    if ($postAction === 'save_feed_log') {
+        $id = (int)($_POST['id'] ?? 0);
+        $v = [
+            $_POST['record_date'] ?? date('Y-m-d'),
+            (int)($_POST['group_id'] ?? 0) ?: null,
+            (int)($_POST['animal_id'] ?? 0) ?: null,
+            trim($_POST['species'] ?? 'Chicken'),
+            trim($_POST['feed_type'] ?? ''),
+            (float)($_POST['quantity_kg'] ?? 0),
+            (float)($_POST['cost'] ?? 0),
+            trim($_POST['notes'] ?? ''),
+            (int)($_SESSION['user_id'] ?? 0),
+        ];
+        try {
+            if ($id > 0) {
+                $pdo->prepare('UPDATE feed_logs SET record_date=?,group_id=?,animal_id=?,species=?,feed_type=?,quantity_kg=?,cost=?,notes=?,recorded_by=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Feed log updated.';
+            } else {
+                $pdo->prepare('INSERT INTO feed_logs (record_date,group_id,animal_id,species,feed_type,quantity_kg,cost,notes,recorded_by) VALUES (?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Feed logged.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'feeding';
     }
 }
 
-/* ── Load PHP-tab data ─── */
-$animals = $herds = $healthRecs = $breedingRecs = $animalList = [];
+/* ══════════════════════════════════════════════════════════════
+   DATA LOADING — fetch data for the active tab
+   ══════════════════════════════════════════════════════════════ */
+$animals = $groups = $houses = $healthRecs = $vaccinations = $prodRecs = $breedingRecs = $feedLogs = $feedStandards = $vaccineGuides = $animalList = $groupList = [];
+
 if ($pdo) {
     try {
-        if ($tab === 'animals')     $animals     = $pdo->query('SELECT * FROM animals ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
-        if ($tab === 'herds')       $herds       = $pdo->query('SELECT * FROM herds ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
-        if ($tab === 'health')      $healthRecs  = $pdo->query('SELECT hr.*, a.name AS aname, a.tag_id FROM health_records hr LEFT JOIN animals a ON hr.animal_id=a.id ORDER BY hr.record_date DESC')->fetchAll(PDO::FETCH_ASSOC);
-        if ($tab === 'breeding')    $breedingRecs= $pdo->query('SELECT * FROM breeding_records ORDER BY breeding_date DESC')->fetchAll(PDO::FETCH_ASSOC);
-        $animalList = $pdo->query("SELECT id, CONCAT(COALESCE(tag_id,''), ' - ', COALESCE(name,'?')) AS label FROM animals ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    } catch(Exception $e) { /* non-fatal */ }
+        $animalList = $pdo->query("SELECT id, CONCAT(COALESCE(tag,''), ' - ', COALESCE(name,'?')) AS label, type AS species FROM animals ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $groupList  = $pdo->query("SELECT id, CONCAT(name, ' [', species, ']') AS label, species FROM animal_groups WHERE status='active' ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $houses     = $pdo->query("SELECT * FROM houses WHERE is_active=1 ORDER BY house_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($tab === 'overview') {
+            $totalAnimals = $pdo->query("SELECT COUNT(*) FROM animals WHERE status IN ('Active','alive')")->fetchColumn();
+            $totalGroups  = $pdo->query("SELECT COUNT(*) FROM animal_groups WHERE status='active'")->fetchColumn();
+            $speciesCounts = $pdo->query("SELECT type AS species, COUNT(*) AS cnt FROM animals WHERE status IN ('Active','alive') GROUP BY type ORDER BY type")->fetchAll(PDO::FETCH_ASSOC);
+            $groupSpeciesCounts = $pdo->query("SELECT species, SUM(head_count) AS total_head FROM animal_groups WHERE status='active' GROUP BY species ORDER BY species")->fetchAll(PDO::FETCH_ASSOC);
+            $today = date('Y-m-d');
+            $todayProd = $pdo->query("SELECT species, SUM(eggs_collected) AS eggs, SUM(milk_litres) AS milk, SUM(mortality) AS mort FROM production_records WHERE record_date='$today' GROUP BY species")->fetchAll(PDO::FETCH_ASSOC);
+            $weekAgo = date('Y-m-d', strtotime('-7 days'));
+            $upcomingVacs = $pdo->query("SELECT COUNT(*) FROM vaccinations WHERE status='scheduled' AND scheduled_date BETWEEN '$today' AND '".date('Y-m-d', strtotime('+7 days'))."'")->fetchColumn();
+            $pendingBirths = $pdo->query("SELECT COUNT(*) FROM breeding_records WHERE status='Pending' AND due_date >= '$today' AND due_date <= '".date('Y-m-d', strtotime('+14 days'))."'")->fetchColumn();
+            $recentHealth = $pdo->query("SELECT * FROM health_records ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'animals') {
+            $sql = 'SELECT a.*, ag.name AS group_name FROM animals a LEFT JOIN animal_groups ag ON a.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE a.type=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY a.type ASC, a.name ASC';
+            $animals = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'groups') {
+            $sql = 'SELECT ag.*, h.house_name FROM animal_groups ag LEFT JOIN houses h ON ag.housing_id=h.id';
+            if ($speciesFilter) $sql .= " WHERE ag.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY ag.species ASC, ag.name ASC';
+            $groups = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'housing') {
+            $sql = 'SELECT h.*, (SELECT COUNT(*) FROM animal_groups ag WHERE ag.housing_id=h.id AND ag.status=\'active\') AS active_groups FROM houses h WHERE h.is_active=1';
+            if ($speciesFilter) $sql .= " AND h.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY h.species ASC, h.house_name ASC';
+            $houses = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'health') {
+            $sql = 'SELECT hr.*, a.name AS aname, a.tag, ag.name AS gname FROM health_records hr LEFT JOIN animals a ON hr.animal_id=a.id LEFT JOIN animal_groups ag ON hr.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE hr.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY hr.record_date DESC, hr.created_at DESC LIMIT 200';
+            $healthRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'vaccinations') {
+            $sql = 'SELECT v.*, a.name AS aname, a.tag, ag.name AS gname FROM vaccinations v LEFT JOIN animals a ON v.animal_id=a.id LEFT JOIN animal_groups ag ON v.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE v.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY v.scheduled_date DESC LIMIT 200';
+            $vaccinations = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+            $vgSql = 'SELECT * FROM vaccine_guides WHERE is_active=1';
+            if ($speciesFilter) $vgSql .= " AND species=". $pdo->quote($speciesFilter);
+            $vgSql .= ' ORDER BY species ASC, sort_order ASC';
+            $vaccineGuides = $pdo->query($vgSql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'production') {
+            $sql = 'SELECT pr.*, ag.name AS gname FROM production_records pr LEFT JOIN animal_groups ag ON pr.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE pr.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY pr.record_date DESC LIMIT 200';
+            $prodRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'breeding') {
+            $sql = 'SELECT * FROM breeding_records';
+            if ($speciesFilter) $sql .= " WHERE species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY date DESC LIMIT 200';
+            $breedingRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'feeding') {
+            $sql = 'SELECT fl.*, ag.name AS gname, a.name AS aname, a.tag FROM feed_logs fl LEFT JOIN animal_groups ag ON fl.group_id=ag.id LEFT JOIN animals a ON fl.animal_id=a.id';
+            if ($speciesFilter) $sql .= " WHERE fl.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY fl.record_date DESC LIMIT 200';
+            $feedLogs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+            $fsSql = 'SELECT * FROM feeding_standards';
+            if ($speciesFilter) $fsSql .= " WHERE species=". $pdo->quote($speciesFilter);
+            $fsSql .= ' ORDER BY species ASC, week_number ASC';
+            $feedStandards = $pdo->query($fsSql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (Exception $e) { /* non-fatal */ }
 }
 
+$spList = ['Chicken','Cattle','Goat','Sheep','Pig','Rabbit','Duck','Other'];
+$allSpecies = ['Chicken','Cattle','Goat','Sheep','Pig'];
+
 $tabs = [
-    'flocks'      => ['icon'=>'layers',        'label'=>'Flocks'],
-    'production'  => ['icon'=>'egg',           'label'=>'Daily Production'],
-    'vaccinations'=> ['icon'=>'syringe',       'label'=>'Vaccinations'],
-    'animals'     => ['icon'=>'paw-print',     'label'=>'Animals'],
-    'health'      => ['icon'=>'heart-pulse',   'label'=>'Health'],
-    'breeding'    => ['icon'=>'dna',           'label'=>'Breeding'],
-    'herds'       => ['icon'=>'users',         'label'=>'Herds / Pens'],
+    'overview'     => ['icon'=>'layout-dashboard','label'=>'Overview'],
+    'animals'      => ['icon'=>'paw-print',       'label'=>'Animals'],
+    'groups'       => ['icon'=>'users',           'label'=>'Groups'],
+    'housing'      => ['icon'=>'home',            'label'=>'Housing'],
+    'health'       => ['icon'=>'heart-pulse',     'label'=>'Health'],
+    'vaccinations' => ['icon'=>'syringe',         'label'=>'Vaccinations'],
+    'production'   => ['icon'=>'egg',             'label'=>'Production'],
+    'breeding'     => ['icon'=>'dna',             'label'=>'Breeding'],
+    'feeding'      => ['icon'=>'wheat',           'label'=>'Feeding'],
+    'poultry'      => ['icon'=>'bird',            'label'=>'Poultry Tools'],
 ];
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
+<!-- Header -->
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
     <div>
         <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Farm Operations</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage flocks, daily egg collection, vaccinations, animals, health records, and breeding.</p>
+        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage all animals, groups, health, production and more — every species, one place.</p>
     </div>
 </div>
 
@@ -126,510 +380,124 @@ $tabs = [
 <!-- Tab Bar -->
 <div style="display:flex;gap:4px;background:#f1f5f9;padding:5px;border-radius:10px;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
 <?php foreach ($tabs as $key => $info): ?>
-    <a href="?tab=<?= $key ?>" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;font-weight:600;font-size:0.84rem;transition:all 0.18s;<?= $tab===$key ? 'background:#fff;color:var(--admin-primary);box-shadow:0 1px 6px rgba(15,23,42,0.08);' : 'color:#64748b;' ?>">
+    <a href="?tab=<?= $key ?><?= $speciesFilter && $key !== 'overview' ? '&species='.urlencode($speciesFilter) : '' ?>" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;font-weight:600;font-size:0.84rem;transition:all 0.18s;<?= $tab===$key ? 'background:#fff;color:var(--admin-primary);box-shadow:0 1px 6px rgba(15,23,42,0.08);' : 'color:#64748b;' ?>">
         <i data-lucide="<?= $info['icon'] ?>" style="width:15px;height:15px;"></i><?= $info['label'] ?>
     </a>
 <?php endforeach; ?>
 </div>
 
-<?php /* ══════════════════ FLOCKS TAB (API-driven JS) ══════════════════ */ ?>
-<?php if ($tab === 'flocks'): ?>
+<?php /* ════════════════════════ SPECIES FILTER CHIPS ════════════════════════ */ ?>
+<?php if (!in_array($tab, ['overview','poultry'])): ?>
+<div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;">
+    <a href="?tab=<?= $tab ?>" style="padding:6px 14px;border-radius:20px;font-size:0.82rem;font-weight:600;text-decoration:none;<?= !$speciesFilter ? 'background:var(--admin-primary);color:#fff;' : 'background:#f1f5f9;color:#475569;' ?>">All</a>
+    <?php foreach ($allSpecies as $sp): ?>
+        <a href="?tab=<?= $tab ?>&species=<?= urlencode($sp) ?>" style="padding:6px 14px;border-radius:20px;font-size:0.82rem;font-weight:600;text-decoration:none;<?= $speciesFilter === $sp ? 'background:var(--admin-primary);color:#fff;' : 'background:#f1f5f9;color:#475569;' ?>"><?= $sp ?></a>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: OVERVIEW
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php if ($tab === 'overview'): ?>
+<!-- Species KPI Cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+    <?php foreach ($groupSpeciesCounts as $gs): ?>
+    <div class="stat-card" style="cursor:pointer;" onclick="window.location='?tab=groups&species=<?= urlencode($gs['species']) ?>'">
+        <div class="stat-card-info"><small><?= htmlspecialchars($gs['species']) ?> (Groups)</small><strong><?= number_format((float)$gs['total_head']) ?></strong></div>
+        <div class="stat-card-icon"><i data-lucide="users" style="width:22px;height:22px;"></i></div>
+    </div>
+    <?php endforeach; ?>
+    <?php foreach ($speciesCounts as $sc): ?>
+    <div class="stat-card" style="cursor:pointer;" onclick="window.location='?tab=animals&species=<?= urlencode($sc['species']) ?>'">
+        <div class="stat-card-info"><small><?= htmlspecialchars($sc['species']) ?> (Individuals)</small><strong><?= number_format((int)$sc['cnt']) ?></strong></div>
+        <div class="stat-card-icon accent"><i data-lucide="paw-print" style="width:22px;height:22px;"></i></div>
+    </div>
+    <?php endforeach; ?>
+    <?php if (!$speciesCounts && !$groupSpeciesCounts): ?>
+    <div class="stat-card"><div class="stat-card-info"><small>Total Animals</small><strong>0</strong></div><div class="stat-card-icon"><i data-lucide="paw-print" style="width:22px;height:22px;"></i></div></div>
+    <?php endif; ?>
+</div>
+
+<!-- Today's Production + Alerts -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:24px;">
+    <div class="stat-card"><div class="stat-card-info"><small>Today's Eggs</small><strong><?= number_format((float)array_sum(array_column($todayProd, 'eggs'))) ?></strong></div><div class="stat-card-icon info"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
+    <div class="stat-card"><div class="stat-card-info"><small>Today's Milk (L)</small><strong><?= number_format((float)array_sum(array_column($todayProd, 'milk')), 1) ?></strong></div><div class="stat-card-icon"><i data-lucide="milk" style="width:22px;height:22px;"></i></div></div>
+    <div class="stat-card"><div class="stat-card-info"><small>Today's Mortality</small><strong style="color:#dc2626;"><?= number_format((float)array_sum(array_column($todayProd, 'mort'))) ?></strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
+    <div class="stat-card"><div class="stat-card-info"><small>Upcoming Vaccinations (7d)</small><strong><?= $upcomingVacs ?></strong></div><div class="stat-card-icon accent"><i data-lucide="syringe" style="width:22px;height:22px;"></i></div></div>
+    <div class="stat-card"><div class="stat-card-info"><small>Pending Births (14d)</small><strong><?= $pendingBirths ?></strong></div><div class="stat-card-icon info"><i data-lucide="baby" style="width:22px;height:22px;"></i></div></div>
+</div>
+
+<!-- Recent Health -->
+<div class="admin-card" style="margin-bottom:24px;">
+    <h3 style="margin:0 0 14px;font-family:'Outfit',sans-serif;font-size:1.05rem;">Recent Health Activity</h3>
+    <?php if (empty($recentHealth)): ?>
+    <p style="color:#94a3b8;text-align:center;padding:18px;">No health records yet.</p>
+    <?php else: ?>
+    <div class="table-responsive"><table class="admin-table">
+        <thead><tr><th>Date</th><th>Species</th><th>Subject</th><th>Type</th><th>Vet</th><th>Cost</th></tr></thead>
+        <tbody>
+        <?php foreach ($recentHealth as $h): ?>
+        <tr>
+            <td><?= htmlspecialchars($h['record_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($h['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($h['subject'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($h['record_type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($h['vet_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= isset($h['cost']) && $h['cost'] ? number_format((float)$h['cost'], 2) : '-' ?></td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table></div>
+    <?php endif; ?>
+</div>
+
+<!-- Quick Actions -->
 <div class="admin-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Flock Management</h3>
-            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Add and manage your chicken flocks, track bird counts and status.</p>
-        </div>
-        <button class="btn btn-primary" onclick="openFlockModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Flock</button>
-    </div>
-    <!-- Summary KPIs -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
-        <div class="stat-card"><div class="stat-card-info"><small>Total Flocks</small><strong id="kpi-flock-count">-</strong></div><div class="stat-card-icon"><i data-lucide="layers" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Live Birds</small><strong id="kpi-live-birds">-</strong></div><div class="stat-card-icon accent"><i data-lucide="bird" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Eggs Today</small><strong id="kpi-eggs-today">-</strong></div><div class="stat-card-icon info"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Mortality This Week</small><strong id="kpi-mortality-week" style="color:#dc2626;">-</strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
-    </div>
-    <div class="table-responsive">
-        <table class="admin-table">
-            <thead><tr><th>Flock Name</th><th>Breed / Type</th><th>Birds</th><th>Eggs Today</th><th>Age (wks)</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="flocks-body"><tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">Loading flocks...</td></tr></tbody>
-        </table>
+    <h3 style="margin:0 0 14px;font-family:'Outfit',sans-serif;font-size:1.05rem;">Quick Actions</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="?tab=animals" class="btn btn-primary"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Animal</a>
+        <a href="?tab=groups" class="btn btn-outline"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Group</a>
+        <a href="?tab=production" class="btn btn-outline"><i data-lucide="egg" style="width:16px;height:16px;"></i> Log Production</a>
+        <a href="?tab=health" class="btn btn-outline"><i data-lucide="heart-pulse" style="width:16px;height:16px;"></i> Health Record</a>
+        <a href="?tab=vaccinations" class="btn btn-outline"><i data-lucide="syringe" style="width:16px;height:16px;"></i> Schedule Vaccine</a>
+        <a href="?tab=feeding" class="btn btn-outline"><i data-lucide="wheat" style="width:16px;height:16px;"></i> Log Feeding</a>
     </div>
 </div>
 
-<!-- Flock Modal -->
-<div id="flock-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
-        <h3 id="flock-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Flock</h3>
-        <form id="flock-form">
-            <input type="hidden" id="flock-id">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Flock Name *</label><input class="admin-form-control" id="flock-name" placeholder="e.g. Layer Block A" required></div>
-                <div class="admin-form-group"><label class="admin-form-label">Breed</label><input class="admin-form-control" id="flock-breed" placeholder="e.g. ISA Brown"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Flock Type</label>
-                    <select class="admin-form-control" id="flock-type">
-                        <option value="layer">Layer (Eggs)</option><option value="broiler">Broiler (Meat)</option><option value="kienyeji">Kienyeji</option><option value="dual_purpose">Dual Purpose</option>
-                    </select>
-                </div>
-                <div class="admin-form-group"><label class="admin-form-label">Bird Count</label><input class="admin-form-control" type="number" id="flock-count" min="0" value="0"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Date Acquired</label><input class="admin-form-control" type="date" id="flock-date"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Location / Pen</label><input class="admin-form-control" id="flock-location" placeholder="e.g. Block B, Pen 2"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Status</label>
-                    <select class="admin-form-control" id="flock-status"><option value="active">Active</option><option value="sold">Sold</option><option value="closed">Closed</option></select>
-                </div>
-                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" id="flock-notes" rows="3"></textarea></div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:20px;">
-                <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeFlockModal()"><i data-lucide="x" style="width:15px;height:15px;"></i> Cancel</button>
-                <button type="submit" class="btn btn-primary" style="flex:1;" id="flock-submit-btn"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Flock</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<script>
-window.flocks_list = [];
-const CSRF = window.WangariAdmin?.csrfToken || '';
-
-async function loadFlocks() {
-    setTbLoading('flocks-body', 7, 'Loading flocks...');
-    try {
-        const [flockRes, prodRes] = await Promise.all([
-            fetch('/Backend/api/admin_poultry.php?action=get_flocks'),
-            fetch('/Backend/api/admin_poultry.php?action=get_production')
-        ]);
-        const flockData = await flockRes.json();
-        const prodData  = await prodRes.json().catch(()=>({success:false,data:[]}));
-
-        if (!flockData.success) { setTbError('flocks-body',7,flockData.message||'Failed to load.'); return; }
-        window.flocks_list = flockData.data;
-
-        // Build today's egg map
-        const today = new Date().toISOString().split('T')[0];
-        const eggMap = {}, mortalityMap = {};
-        (prodData.data||[]).forEach(p => {
-            if (p.record_date === today) eggMap[p.flock_id] = (eggMap[p.flock_id]||0) + parseInt(p.eggs_collected||0);
-            mortalityMap[p.flock_id] = (mortalityMap[p.flock_id]||0) + parseInt(p.mortality||0);
-        });
-
-        const activeFk = window.flocks_list.filter(f=>f.status==='active');
-        document.getElementById('kpi-flock-count').textContent = activeFk.length;
-        document.getElementById('kpi-live-birds').textContent  = activeFk.reduce((s,f)=>s+parseInt(f.current_count||0),0).toLocaleString();
-        document.getElementById('kpi-eggs-today').textContent  = Object.values(eggMap).reduce((s,v)=>s+v,0).toLocaleString();
-        document.getElementById('kpi-mortality-week').textContent = Object.values(mortalityMap).reduce((s,v)=>s+v,0);
-
-        renderFlocks(eggMap);
-    } catch(e) { setTbError('flocks-body',7,'Network error.'); console.error(e); }
-}
-
-function renderFlocks(eggMap={}) {
-    const tbody = document.getElementById('flocks-body');
-    if (!window.flocks_list.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No flocks yet. Click "Add Flock" to create one.</td></tr>'; return; }
-
-    tbody.innerHTML = window.flocks_list.map(f => {
-        const sc = f.status==='active'?'badge-pill-success':(f.status==='sold'?'badge-pill-warning':'badge-pill-danger');
-        const ageWks = f.date_acquired ? Math.round((Date.now()-new Date(f.date_acquired).getTime())/(7*86400000)) : '-';
-        const eggsToday = eggMap[f.id] || 0;
-        return `<tr>
-            <td><strong>${f.flock_name}</strong><br><small style="color:#64748b;">${f.location||'-'}</small></td>
-            <td>${f.breed||'-'}<br><small style="color:#94a3b8;text-transform:capitalize;">${f.flock_type||'layer'}</small></td>
-            <td><strong>${Number(f.current_count||0).toLocaleString()}</strong></td>
-            <td><span style="color:${eggsToday>0?'#16a34a':'#94a3b8'};font-weight:700;">${eggsToday.toLocaleString()}</span></td>
-            <td>${ageWks}</td>
-            <td><span class="badge-pill ${sc}">${f.status}</span></td>
-            <td><div class="tbl-actions">
-                <button class="btn btn-trans btn-sm" onclick='openFlockModal(${JSON.stringify(f)})'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteFlock(${f.id})"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
-            </div></td>
-        </tr>`;
-    }).join('');
-    if (typeof lucide!=='undefined') lucide.createIcons();
-}
-
-function openFlockModal(data) {
-    const isEdit = data && data.id;
-    document.getElementById('flock-modal-title').textContent = isEdit ? 'Edit Flock' : 'Add Flock';
-    document.getElementById('flock-id').value       = isEdit ? data.id : '';
-    document.getElementById('flock-name').value     = data?.flock_name || '';
-    document.getElementById('flock-breed').value    = data?.breed || '';
-    document.getElementById('flock-type').value     = data?.flock_type || 'layer';
-    document.getElementById('flock-count').value    = data?.current_count || 0;
-    document.getElementById('flock-date').value     = data?.date_acquired || '';
-    document.getElementById('flock-location').value = data?.location || '';
-    document.getElementById('flock-status').value   = data?.status || 'active';
-    document.getElementById('flock-notes').value    = data?.notes || '';
-    document.getElementById('flock-modal').style.display = 'flex';
-}
-function closeFlockModal(){ document.getElementById('flock-modal').style.display='none'; }
-
-document.getElementById('flock-form').addEventListener('submit', async e => {
-    e.preventDefault();
-    const btn = document.getElementById('flock-submit-btn');
-    btn.disabled = true; btn.textContent = 'Saving...';
-    const fd = new FormData();
-    fd.append('csrf_token', CSRF);
-    fd.append('id',          document.getElementById('flock-id').value);
-    fd.append('flock_name',  document.getElementById('flock-name').value);
-    fd.append('breed',       document.getElementById('flock-breed').value);
-    fd.append('flock_type',  document.getElementById('flock-type').value);
-    fd.append('current_count',document.getElementById('flock-count').value);
-    fd.append('date_acquired',document.getElementById('flock-date').value);
-    fd.append('location',    document.getElementById('flock-location').value);
-    fd.append('status',      document.getElementById('flock-status').value);
-    fd.append('notes',       document.getElementById('flock-notes').value);
-    try {
-        const res = await fetch('/Backend/api/admin_poultry.php?action=save_flock',{method:'POST',body:fd});
-        const r = await res.json();
-        if (r.success) { closeFlockModal(); loadFlocks(); }
-        else alert('Error: '+(r.message||'Could not save.'));
-    } catch(e){ alert('Network error.'); } finally {
-        btn.disabled=false; btn.innerHTML='<i data-lucide="save" style="width:15px;height:15px;"></i> Save Flock';
-        if(typeof lucide!=='undefined') lucide.createIcons();
-    }
-});
-
-async function deleteFlock(id) {
-    if (!confirm('Delete this flock? This cannot be undone.')) return;
-    const fd = new FormData(); fd.append('id',id); fd.append('csrf_token',CSRF);
-    const res = await fetch('/Backend/api/admin_poultry.php?action=delete_flock',{method:'POST',body:fd});
-    const r = await res.json();
-    r.success ? loadFlocks() : alert(r.message);
-}
-
-document.addEventListener('click',e=>{ const m=document.getElementById('flock-modal'); if(m&&e.target===m) m.style.display='none'; });
-document.addEventListener('DOMContentLoaded', loadFlocks);
-</script>
-
-<?php /* ══════════════════ PRODUCTION TAB (Daily Egg / Feed / Mortality) ══════════════════ */ ?>
-<?php elseif ($tab === 'production'): ?>
-<div class="admin-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Production Log</h3>
-            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Record daily egg collection, feed consumed, and bird mortality per flock.</p>
-        </div>
-        <button class="btn btn-primary" onclick="openProductionModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Today's Production</button>
-    </div>
-    <!-- Weekly KPIs -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
-        <div class="stat-card"><div class="stat-card-info"><small>Eggs This Week</small><strong id="prod-kpi-eggs">-</strong></div><div class="stat-card-icon accent"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Feed This Week (kg)</small><strong id="prod-kpi-feed">-</strong></div><div class="stat-card-icon info"><i data-lucide="layers" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Mortality This Week</small><strong id="prod-kpi-mort" style="color:#dc2626;">-</strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Cracked / Rejected</small><strong id="prod-kpi-cracked">-</strong></div><div class="stat-card-icon" style="background:#fef3c7;color:#d97706;"><i data-lucide="x-circle" style="width:22px;height:22px;"></i></div></div>
-    </div>
-    <div class="table-responsive">
-        <table class="admin-table">
-            <thead><tr><th>Date</th><th>Flock</th><th>Eggs</th><th>Cracked</th><th>Feed (kg)</th><th>Mortality</th><th>Notes</th><th>Actions</th></tr></thead>
-            <tbody id="production-body"><tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">Loading...</td></tr></tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Production Modal -->
-<div id="production-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:520px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
-        <h3 id="prod-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Log Daily Production</h3>
-        <form id="production-form">
-            <input type="hidden" id="prod-id">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div class="admin-form-group"><label class="admin-form-label">Flock *</label>
-                    <select class="admin-form-control" id="prod-flock" required><option value="">Choose flock...</option></select>
-                </div>
-                <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" id="prod-date" required></div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
-                <div class="admin-form-group">
-                    <label class="admin-form-label">Eggs Collected (Pieces)</label>
-                    <input class="admin-form-control" type="number" id="prod-eggs" min="0" value="0">
-                </div>
-                <div class="admin-form-group">
-                    <label class="admin-form-label">Cracked / Rejected Eggs</label>
-                    <input class="admin-form-control" type="number" id="prod-cracked" min="0" value="0">
-                </div>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
-                <div class="admin-form-group">
-                    <label class="admin-form-label">Milk Yield (Litres)</label>
-                    <input class="admin-form-control" type="number" step="0.1" id="prod-milk" min="0" value="0" placeholder="For Cows/Goats">
-                </div>
-                <div class="admin-form-group">
-                    <label class="admin-form-label">Feed Consumed (kg)</label>
-                    <input class="admin-form-control" type="number" step="0.1" id="prod-feed" min="0" value="0">
-                </div>
-            </div>
-            <div class="admin-form-group"><label class="admin-form-label">Mortality (Animals Lost Today)</label><input class="admin-form-control" type="number" id="prod-mortality" min="0" value="0" style="border-color:#fca5a5;"></div>
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes / Observations</label><textarea class="admin-form-control" id="prod-notes" rows="2" placeholder="Any remarks, cause of mortality, observations..."></textarea></div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:20px;">
-                <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeProductionModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary" style="flex:1;" id="prod-submit-btn"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Log</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-window.production_list = []; window.flocks_prod = [];
-
-async function loadProductionData() {
-    setTbLoading('production-body', 8, 'Loading production records...');
-    try {
-        const [fr, pr] = await Promise.all([
-            fetch('/Backend/api/admin_poultry.php?action=get_flocks'),
-            fetch('/Backend/api/admin_poultry.php?action=get_production')
-        ]);
-        const fd = await fr.json(); const pd = await pr.json();
-        if (fd.success) { window.flocks_prod = fd.data; populateProdFlocks(); }
-        if (!pd.success) { setTbError('production-body',8,pd.message||'Failed to load.'); return; }
-        window.production_list = pd.data;
-
-        // Weekly KPIs
-        const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
-        const weekly = window.production_list.filter(p=>new Date(p.record_date)>=weekAgo);
-        document.getElementById('prod-kpi-eggs').textContent    = weekly.reduce((s,p)=>s+parseInt(p.eggs_collected||0),0).toLocaleString();
-        document.getElementById('prod-kpi-feed').textContent    = weekly.reduce((s,p)=>s+parseFloat(p.feed_consumed_kg||0),0).toFixed(1);
-        document.getElementById('prod-kpi-mort').textContent    = weekly.reduce((s,p)=>s+parseInt(p.mortality||0),0);
-        document.getElementById('prod-kpi-cracked').textContent = weekly.reduce((s,p)=>s+parseInt(p.cracked_eggs||0),0).toLocaleString();
-
-        renderProduction();
-    } catch(e){ setTbError('production-body',8,'Network error.'); console.error(e); }
-}
-
-function populateProdFlocks(){
-    const sel = document.getElementById('prod-flock');
-    sel.innerHTML = '<option value="">Choose flock...</option>' +
-        window.flocks_prod.filter(f=>f.status==='active').map(f=>`<option value="${f.id}">${f.flock_name}</option>`).join('');
-}
-
-function renderProduction(){
-    const tbody = document.getElementById('production-body');
-    if (!window.production_list.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No production logs yet. Click "Log Today\'s Production" to start.</td></tr>'; return; }
-    tbody.innerHTML = window.production_list.map(p=>`<tr>
-        <td>${p.record_date}</td>
-        <td><strong>${p.flock_name||'-'}</strong></td>
-        <td><strong>${Number(p.eggs_collected).toLocaleString()}</strong></td>
-        <td>${p.cracked_eggs||0}</td>
-        <td>${parseFloat(p.feed_consumed_kg||0).toFixed(1)}</td>
-        <td><strong style="color:${parseInt(p.mortality)>0?'#dc2626':'#1e293b'}">${p.mortality||0}</strong></td>
-        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes||'-'}</td>
-        <td><div class="tbl-actions">
-            <button class="btn btn-trans btn-sm" onclick="editProduction(${p.id})"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProduction(${p.id})"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
-        </div></td>
-    </tr>`).join('');
-    if(typeof lucide!=='undefined') lucide.createIcons();
-}
-
-function openProductionModal(data){
-    const isEdit = data&&data.id;
-    document.getElementById('prod-modal-title').textContent = isEdit?'Edit Production Log':'Log Daily Production';
-    document.getElementById('prod-id').value       = isEdit?data.id:'';
-    document.getElementById('prod-flock').value    = data?.flock_id||'';
-    document.getElementById('prod-date').value     = data?.record_date||new Date().toISOString().split('T')[0];
-    document.getElementById('prod-eggs').value     = data?.eggs_collected||0;
-    document.getElementById('prod-cracked').value  = data?.cracked_eggs||0;
-    document.getElementById('prod-feed').value     = data?.feed_consumed_kg||0;
-    document.getElementById('prod-mortality').value= data?.mortality||0;
-    document.getElementById('prod-notes').value    = data?.notes||'';
-    document.getElementById('production-modal').style.display='flex';
-}
-function closeProductionModal(){ document.getElementById('production-modal').style.display='none'; }
-function editProduction(id){ openProductionModal(window.production_list.find(p=>p.id==id)); }
-
-async function deleteProduction(id){
-    if(!confirm('Delete this production log?')) return;
-    const fd=new FormData(); fd.append('id',id); fd.append('csrf_token',CSRF);
-    const r=await(await fetch('/Backend/api/admin_poultry.php?action=delete_production',{method:'POST',body:fd})).json();
-    r.success?loadProductionData():alert(r.message);
-}
-
-document.getElementById('production-form').addEventListener('submit',async e=>{
-    e.preventDefault(); const btn=document.getElementById('prod-submit-btn');
-    btn.disabled=true; btn.textContent='Saving...';
-    const fd=new FormData();
-    fd.append('csrf_token',CSRF);
-    fd.append('id',             document.getElementById('prod-id').value);
-    fd.append('flock_id',       document.getElementById('prod-flock').value);
-    fd.append('record_date',    document.getElementById('prod-date').value);
-    fd.append('eggs_collected', document.getElementById('prod-eggs').value);
-    fd.append('cracked_eggs',   document.getElementById('prod-cracked').value);
-    fd.append('feed_consumed_kg',document.getElementById('prod-feed').value);
-    fd.append('meat_weight_kg', 0);
-    fd.append('mortality',      document.getElementById('prod-mortality').value);
-    fd.append('notes',          document.getElementById('prod-notes').value);
-    try{
-        const r=await(await fetch('/Backend/api/admin_poultry.php?action=save_production',{method:'POST',body:fd})).json();
-        if(r.success){ closeProductionModal(); loadProductionData(); }
-        else alert('Error: '+(r.message||'Could not save.'));
-    }catch(e){alert('Network error.');}
-    finally{ btn.disabled=false; btn.innerHTML='<i data-lucide="save" style="width:15px;height:15px;"></i> Save Log'; if(typeof lucide!=='undefined')lucide.createIcons(); }
-});
-
-document.addEventListener('click',e=>{ const m=document.getElementById('production-modal'); if(m&&e.target===m) m.style.display='none'; });
-document.addEventListener('DOMContentLoaded',loadProductionData);
-</script>
-
-<?php /* ══════════════════ VACCINATIONS TAB (API JS) ══════════════════ */ ?>
-<?php elseif ($tab === 'vaccinations'): ?>
-<div class="admin-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Vaccination Schedule</h3>
-            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track and schedule all flock vaccinations. Never miss a dose.</p>
-        </div>
-        <button class="btn btn-primary" onclick="openVacModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Schedule Vaccine</button>
-    </div>
-    <div class="table-responsive">
-        <table class="admin-table">
-            <thead><tr><th>Scheduled Date</th><th>Flock</th><th>Vaccine / Treatment</th><th>Administered Date</th><th>Next Due</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="vac-body"><tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">Loading...</td></tr></tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Vaccination Modal -->
-<div id="vac-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:520px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
-        <h3 id="vac-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Schedule Vaccination</h3>
-        <form id="vac-form">
-            <input type="hidden" id="vac-id">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Target Flock *</label>
-                    <select class="admin-form-control" id="vac-flock" required><option value="">Select flock...</option></select>
-                </div>
-                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Vaccine / Treatment Name *</label>
-                    <input class="admin-form-control" id="vac-name" required placeholder="e.g. Newcastle (Lasota), Gumboro, Marek's">
-                </div>
-                <div class="admin-form-group"><label class="admin-form-label">Scheduled Date *</label><input class="admin-form-control" type="date" id="vac-sched" required></div>
-                <div class="admin-form-group"><label class="admin-form-label">Next Due Date</label><input class="admin-form-control" type="date" id="vac-next"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Administered Date</label><input class="admin-form-control" type="date" id="vac-admin-date"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Status</label>
-                    <select class="admin-form-control" id="vac-status">
-                        <option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="missed">Missed</option>
-                    </select>
-                </div>
-                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Dosage / Notes</label><textarea class="admin-form-control" id="vac-notes" rows="2" placeholder="Dosage, route, administered by..."></textarea></div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:20px;">
-                <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeVacModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary" style="flex:1;" id="vac-submit-btn"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-window.vac_list=[]; window.flocks_vac=[];
-
-async function loadVaccinations(){
-    setTbLoading('vac-body',7,'Loading vaccination schedule...');
-    try{
-        const [fr,vr]=await Promise.all([
-            fetch('/Backend/api/admin_poultry.php?action=get_flocks'),
-            fetch('/Backend/api/admin_poultry.php?action=get_vaccinations')
-        ]);
-        const fd=await fr.json(); const vd=await vr.json();
-        if(fd.success){ window.flocks_vac=fd.data; populateVacFlocks(); }
-        if(!vd.success){ setTbError('vac-body',7,vd.message||'Failed to load.'); return; }
-        window.vac_list=vd.data; renderVaccinations();
-    }catch(e){ setTbError('vac-body',7,'Network error.'); console.error(e); }
-}
-function populateVacFlocks(){
-    document.getElementById('vac-flock').innerHTML='<option value="">Select flock...</option>'+
-        window.flocks_vac.filter(f=>f.status==='active').map(f=>`<option value="${f.id}">${f.flock_name}</option>`).join('');
-}
-function renderVaccinations(){
-    const tbody=document.getElementById('vac-body');
-    if(!window.vac_list.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No vaccinations scheduled. Click "Schedule Vaccine" to start.</td></tr>'; return; }
-    const today=new Date().toISOString().split('T')[0];
-    tbody.innerHTML=window.vac_list.map(v=>{
-        const sc=v.status==='completed'?'badge-pill-success':(v.status==='missed'?'badge-pill-danger':'badge-pill-warning');
-        const overdue=v.status==='scheduled'&&v.scheduled_date<today;
-        return `<tr style="${overdue?'background:#fff7ed;':''}">
-            <td>${overdue?'<span style="color:#dc2626;font-weight:700;">⚠ </span>':''}${v.scheduled_date}</td>
-            <td><strong>${v.flock_name||'-'}</strong></td>
-            <td>${v.vaccine_name}</td>
-            <td>${v.administered_date||'<span style="color:#94a3b8;">Pending</span>'}</td>
-            <td>${v.next_due_date||'-'}</td>
-            <td><span class="badge-pill ${sc}">${v.status}</span></td>
-            <td><div class="tbl-actions">
-                <button class="btn btn-trans btn-sm" onclick="editVac(${v.id})"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteVac(${v.id})"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
-            </div></td>
-        </tr>`;
-    }).join('');
-    if(typeof lucide!=='undefined') lucide.createIcons();
-}
-function openVacModal(data){
-    const isEdit=data&&data.id;
-    document.getElementById('vac-modal-title').textContent=isEdit?'Edit Vaccination':'Schedule Vaccination';
-    document.getElementById('vac-id').value        =isEdit?data.id:'';
-    document.getElementById('vac-flock').value     =data?.flock_id||'';
-    document.getElementById('vac-name').value      =data?.vaccine_name||'';
-    document.getElementById('vac-sched').value     =data?.scheduled_date||'';
-    document.getElementById('vac-next').value      =data?.next_due_date||'';
-    document.getElementById('vac-admin-date').value=data?.administered_date||'';
-    document.getElementById('vac-status').value    =data?.status||'scheduled';
-    document.getElementById('vac-notes').value     =data?.notes||'';
-    document.getElementById('vac-modal').style.display='flex';
-}
-function closeVacModal(){ document.getElementById('vac-modal').style.display='none'; }
-function editVac(id){ openVacModal(window.vac_list.find(v=>v.id==id)); }
-
-async function deleteVac(id){
-    if(!confirm('Delete this vaccination record?')) return;
-    const fd=new FormData(); fd.append('id',id); fd.append('csrf_token',CSRF);
-    const r=await(await fetch('/Backend/api/admin_poultry.php?action=delete_vaccination',{method:'POST',body:fd})).json();
-    r.success?loadVaccinations():alert(r.message);
-}
-
-document.getElementById('vac-form').addEventListener('submit',async e=>{
-    e.preventDefault(); const btn=document.getElementById('vac-submit-btn');
-    btn.disabled=true; btn.textContent='Saving...';
-    const fd=new FormData();
-    fd.append('csrf_token',CSRF);
-    fd.append('id',               document.getElementById('vac-id').value);
-    fd.append('flock_id',         document.getElementById('vac-flock').value);
-    fd.append('vaccine_name',     document.getElementById('vac-name').value);
-    fd.append('scheduled_date',   document.getElementById('vac-sched').value);
-    fd.append('next_due_date',    document.getElementById('vac-next').value);
-    fd.append('administered_date',document.getElementById('vac-admin-date').value);
-    fd.append('status',           document.getElementById('vac-status').value);
-    fd.append('notes',            document.getElementById('vac-notes').value);
-    try{
-        const r=await(await fetch('/Backend/api/admin_poultry.php?action=save_vaccination',{method:'POST',body:fd})).json();
-        if(r.success){ closeVacModal(); loadVaccinations(); }
-        else alert('Error: '+(r.message||'Could not save.'));
-    }catch(e){alert('Network error.');}
-    finally{ btn.disabled=false; btn.innerHTML='<i data-lucide="save" style="width:15px;height:15px;"></i> Save'; if(typeof lucide!=='undefined')lucide.createIcons(); }
-});
-document.addEventListener('click',e=>{ const m=document.getElementById('vac-modal'); if(m&&e.target===m) m.style.display='none'; });
-document.addEventListener('DOMContentLoaded',loadVaccinations);
-</script>
-
-<?php /* ══════════════════ ANIMALS TAB ══════════════════ */ ?>
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: ANIMALS — unified registry of individual animals
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
 <?php elseif ($tab === 'animals'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Records</h3>
-        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track individual animals with tag IDs, breed, gender, and health status.</p></div>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Registry</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">All individual animals across every species — cows, goats, sheep, pigs, rabbits, and more.</p></div>
         <button class="btn btn-primary" onclick="openAnimalModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Animal</button>
     </div>
     <div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Tag / ID</th><th>Name</th><th>Species</th><th>Breed</th><th>Gender</th><th>DOB</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody><?php if(empty($animals)): ?><tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No animals registered yet.</td></tr><?php else: foreach($animals as $a): ?>
+        <thead><tr><th>Tag</th><th>Name</th><th>Species</th><th>Breed</th><th>Gender</th><th>DOB</th><th>Group</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($animals)): ?>
+        <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No animals yet.</strong><br>Tap <strong>+ Add Animal</strong> to register your first cow, goat, sheep or any livestock.</td></tr>
+        <?php else: foreach ($animals as $a): ?>
         <tr>
-            <td><strong><?= htmlspecialchars($a['tag_id']??'-',ENT_QUOTES,'UTF-8') ?></strong></td>
-            <td><?= htmlspecialchars($a['name']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($a['species']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($a['breed']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars(ucfirst($a['gender']??'-'),ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($a['date_of_birth']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><span class="badge-pill <?= $a['status']==='alive'?'badge-pill-success':($a['status']==='sick'?'badge-pill-warning':'badge-pill-danger') ?>"><?= ucfirst(htmlspecialchars($a['status']??'alive',ENT_QUOTES,'UTF-8')) ?></span></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openAnimalModal(<?= htmlspecialchars(json_encode($a),ENT_QUOTES,"UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><strong><?= htmlspecialchars($a['tag'] ?? '-', ENT_QUOTES, 'UTF-8') ?></strong></td>
+            <td><?= htmlspecialchars($a['name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($a['type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($a['breed'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars(ucfirst($a['gender'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($a['birth_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($a['group_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill <?= ($a['status'] ?? '') === 'Active' || ($a['status'] ?? '') === 'alive' ? 'badge-pill-success' : (($a['status'] ?? '') === 'sick' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= htmlspecialchars($a['status'] ?? 'Active', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openAnimalModal(<?= htmlspecialchars(json_encode($a), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
 </div>
+
+<!-- Animal Modal -->
 <div id="animal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
         <h3 id="animal-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Animal</h3>
@@ -637,11 +505,12 @@ document.addEventListener('DOMContentLoaded',loadVaccinations);
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div class="admin-form-group"><label class="admin-form-label">Tag / ID</label><input class="admin-form-control" name="tag_id" id="a-tag" placeholder="e.g. A-001"></div>
             <div class="admin-form-group"><label class="admin-form-label">Name</label><input class="admin-form-control" name="name" id="a-name" placeholder="e.g. Bessie"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Species</label><select class="admin-form-control" name="species" id="a-species"><?php foreach(['Chicken','Cow','Goat','Pig','Sheep','Duck','Rabbit','Other'] as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
-            <div class="admin-form-group"><label class="admin-form-label">Breed</label><input class="admin-form-control" name="breed" id="a-breed"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Gender</label><select class="admin-form-control" name="gender" id="a-gender"><option value="male">Male</option><option value="female">Female</option><option value="unknown">Unknown</option></select></div>
-            <div class="admin-form-group"><label class="admin-form-label">Date of Birth</label><input class="admin-form-control" type="date" name="dob" id="a-dob"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="a-status"><option value="alive">Alive</option><option value="sick">Sick</option><option value="sold">Sold</option><option value="deceased">Deceased</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species</label><select class="admin-form-control" name="species" id="a-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Breed</label><input class="admin-form-control" name="breed" id="a-breed" placeholder="e.g. Friesian"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Gender</label><select class="admin-form-control" name="gender" id="a-gender"><option value="female">Female</option><option value="male">Male</option><option value="unknown">Unknown</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date of Birth</label><input class="admin-form-control" type="date" name="birth_date" id="a-dob"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group (optional)</label><select class="admin-form-control" name="group_id" id="a-group"><option value="">-- None --</option><?php foreach ($groupList as $gl): ?><option value="<?= (int)$gl['id'] ?>"><?= htmlspecialchars($gl['label'], ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="a-status"><option value="Active">Active</option><option value="alive">Alive</option><option value="sick">Sick</option><option value="sold">Sold</option><option value="deceased">Deceased</option></select></div>
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="a-notes" rows="3"></textarea></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:20px;">
@@ -653,50 +522,196 @@ document.addEventListener('DOMContentLoaded',loadVaccinations);
 <script>
 function openAnimalModal(d){
     document.getElementById('animal-modal-title').textContent=d?.id?'Edit Animal':'Add Animal';
-    document.getElementById('a-id').value=d?.id||''; document.getElementById('a-tag').value=d?.tag_id||'';
-    document.getElementById('a-name').value=d?.name||''; document.getElementById('a-species').value=d?.species||'Chicken';
+    document.getElementById('a-id').value=d?.id||''; document.getElementById('a-tag').value=d?.tag||'';
+    document.getElementById('a-name').value=d?.name||''; document.getElementById('a-species').value=d?.type||'Chicken';
     document.getElementById('a-breed').value=d?.breed||''; document.getElementById('a-gender').value=d?.gender||'female';
-    document.getElementById('a-dob').value=d?.date_of_birth||''; document.getElementById('a-status').value=d?.status||'alive';
-    document.getElementById('a-notes').value=d?.notes||''; document.getElementById('animal-modal').style.display='flex';
+    document.getElementById('a-dob').value=d?.birth_date||''; document.getElementById('a-group').value=d?.group_id||d?.herd_id||'';
+    document.getElementById('a-status').value=d?.status||'Active'; document.getElementById('a-notes').value=d?.notes||'';
+    document.getElementById('animal-modal').style.display='flex';
 }
 document.addEventListener('click',e=>{ const m=document.getElementById('animal-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
 
-<?php /* ══════════════════ HEALTH TAB ══════════════════ */ ?>
-<?php elseif ($tab === 'health'): ?>
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: GROUPS — unified flocks + herds
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'groups'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Health Records</h3>
-        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Log diagnoses, treatments, vet visits and medication costs.</p></div>
-        <button class="btn btn-primary" onclick="openHealthModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Health Record</button>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Groups</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Unified flocks, herds and pens — all species in one place.</p></div>
+        <button class="btn btn-primary" onclick="openGroupModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Group</button>
     </div>
     <div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Date</th><th>Animal / Flock</th><th>Diagnosis</th><th>Treatment</th><th>Vet</th><th>Cost (KES)</th><th>Actions</th></tr></thead>
-        <tbody><?php if(empty($healthRecs)): ?><tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No health records yet.</td></tr><?php else: foreach($healthRecs as $h): ?>
+        <thead><tr><th>Name</th><th>Species</th><th>Type</th><th>Breed</th><th>Head Count</th><th>Location</th><th>Housing</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($groups)): ?>
+        <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No groups yet.</strong><br>Create your first flock, herd or pen with <strong>+ Add Group</strong>.</td></tr>
+        <?php else: foreach ($groups as $g): ?>
         <tr>
-            <td><?= htmlspecialchars($h['record_date']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars(trim(($h['tag_id']??'').' '.($h['aname']??'General')),ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($h['diagnosis']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($h['treatment']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($h['vet_name']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= $h['cost']?number_format((float)$h['cost'],2):'-' ?></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHealthModal(<?= htmlspecialchars(json_encode($h),ENT_QUOTES,"UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><strong><?= htmlspecialchars($g['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($g['species'], ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars(ucfirst($g['group_type'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($g['breed'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><strong><?= number_format((float)($g['head_count'] ?? 0)) ?></strong></td>
+            <td><?= htmlspecialchars($g['location'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($g['house_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill <?= ($g['status'] ?? '') === 'active' ? 'badge-pill-success' : (($g['status'] ?? '') === 'sold' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= ucfirst(htmlspecialchars($g['status'] ?? 'active', ENT_QUOTES, 'UTF-8')) ?></span></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openGroupModal(<?= htmlspecialchars(json_encode($g), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
 </div>
+
+<!-- Group Modal -->
+<div id="group-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="group-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Group</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_group"><input type="hidden" name="id" id="g-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Group Name *</label><input class="admin-form-control" name="name" id="g-name" required placeholder="e.g. Layers Batch 15"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="g-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group Type</label><select class="admin-form-control" name="group_type" id="g-type"><option value="flock">Flock</option><option value="herd">Herd</option><option value="pen">Pen</option><option value="boma">Boma</option><option value="coop">Coop</option><option value="run">Run</option><option value="paddock">Paddock</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Breed</label><input class="admin-form-control" name="breed" id="g-breed" placeholder="e.g. Isa Brown"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Head Count</label><input class="admin-form-control" type="number" name="head_count" id="g-count" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Housing</label><select class="admin-form-control" name="housing_id" id="g-housing"><option value="">-- None --</option><?php foreach ($houses as $h): ?><option value="<?= (int)$h['id'] ?>"><?= htmlspecialchars($h['house_name'], ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Location</label><input class="admin-form-control" name="location" id="g-location" placeholder="e.g. Block A, Pen 3"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="g-status"><option value="active">Active</option><option value="sold">Sold</option><option value="archived">Archived</option></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="g-notes" rows="3"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('group-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Group</button>
+        </div></form>
+    </div>
+</div>
+<script>
+function openGroupModal(d){
+    document.getElementById('group-modal-title').textContent=d?.id?'Edit Group':'Add Group';
+    document.getElementById('g-id').value=d?.id||''; document.getElementById('g-name').value=d?.name||'';
+    document.getElementById('g-species').value=d?.species||'Chicken'; document.getElementById('g-type').value=d?.group_type||'flock';
+    document.getElementById('g-breed').value=d?.breed||''; document.getElementById('g-count').value=d?.head_count||0;
+    document.getElementById('g-housing').value=d?.housing_id||''; document.getElementById('g-location').value=d?.location||'';
+    document.getElementById('g-status').value=d?.status||'active'; document.getElementById('g-notes').value=d?.notes||'';
+    document.getElementById('group-modal').style.display='flex';
+}
+document.addEventListener('click',e=>{ const m=document.getElementById('group-modal'); if(m&&e.target===m) m.style.display='none'; });
+</script>
+
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: HOUSING
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'housing'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Housing</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Houses, pens, bomas, coops — all species in one place.</p></div>
+        <button class="btn btn-primary" onclick="openHousingModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Housing</button>
+    </div>
+    <div class="table-responsive"><table class="admin-table">
+        <thead><tr><th>Name</th><th>Code</th><th>Species</th><th>Type</th><th>Capacity</th><th>Location</th><th>Groups</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($houses)): ?>
+        <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No housing yet.</strong><br>Add your first house, pen or boma with <strong>+ Add Housing</strong>.</td></tr>
+        <?php else: foreach ($houses as $h): ?>
+        <tr>
+            <td><strong><?= htmlspecialchars($h['house_name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
+            <td><?= htmlspecialchars($h['house_code'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($h['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars(ucfirst($h['house_type'] ?? 'house'), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= number_format((float)($h['capacity'] ?? 0)) ?></td>
+            <td><?= htmlspecialchars($h['location'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= (int)($h['active_groups'] ?? 0) ?></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHousingModal(<?= htmlspecialchars(json_encode($h), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+        </tr>
+        <?php endforeach; endif; ?></tbody>
+    </table></div>
+</div>
+
+<!-- Housing Modal -->
+<div id="housing-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="housing-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Housing</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_housing"><input type="hidden" name="id" id="h-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">House Name *</label><input class="admin-form-control" name="house_name" id="h-name" required placeholder="e.g. Long House"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Code *</label><input class="admin-form-control" name="house_code" id="h-code" required placeholder="e.g. LH-01"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species</label><select class="admin-form-control" name="species" id="h-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Housing Type</label><select class="admin-form-control" name="house_type" id="h-type"><option value="house">House</option><option value="pen">Pen</option><option value="boma">Boma</option><option value="coop">Coop</option><option value="run">Run</option><option value="paddock">Paddock</option><option value="pond">Pond</option><option value="other">Other</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Capacity</label><input class="admin-form-control" type="number" name="capacity" id="h-cap" min="0" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Location</label><input class="admin-form-control" name="location" id="h-loc" placeholder="e.g. North Farm"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Description</label><textarea class="admin-form-control" name="description" id="h-desc" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('housing-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
+        </div></form>
+    </div>
+</div>
+<script>
+function openHousingModal(d){
+    document.getElementById('housing-modal-title').textContent=d?.id?'Edit Housing':'Add Housing';
+    document.getElementById('h-id').value=d?.id||''; document.getElementById('h-name').value=d?.house_name||'';
+    document.getElementById('h-code').value=d?.house_code||''; document.getElementById('h-species').value=d?.species||'Chicken';
+    document.getElementById('h-type').value=d?.house_type||'house'; document.getElementById('h-cap').value=d?.capacity||0;
+    document.getElementById('h-loc').value=d?.location||''; document.getElementById('h-desc').value=d?.description||'';
+    document.getElementById('housing-modal').style.display='flex';
+}
+document.addEventListener('click',e=>{ const m=document.getElementById('housing-modal'); if(m&&e.target===m) m.style.display='none'; });
+</script>
+
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: HEALTH
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'health'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Health Records</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Treatments, vaccinations, deworming, checkups — all species.</p></div>
+        <button class="btn btn-primary" onclick="openHealthModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Health Record</button>
+    </div>
+    <div class="table-responsive"><table class="admin-table">
+        <thead><tr><th>Date</th><th>Species</th><th>Subject</th><th>Type</th><th>Product</th><th>Vet</th><th>Cost</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($healthRecs)): ?>
+        <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No health records yet.</strong><br>Log treatments and vet visits here.</td></tr>
+        <?php else: foreach ($healthRecs as $h): ?>
+        <tr>
+            <td><?= htmlspecialchars($h['record_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($h['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($h['subject'] ?? ($h['gname'] ?? ($h['aname'] ?? '-')), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars(ucfirst($h['record_type'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($h['product_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($h['vet_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= isset($h['cost']) && $h['cost'] ? number_format((float)$h['cost'], 2) : '-' ?></td>
+            <td><span class="badge-pill <?= ($h['status'] ?? '') === 'completed' ? 'badge-pill-success' : (($h['status'] ?? '') === 'scheduled' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= htmlspecialchars($h['status'] ?? 'completed', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHealthModal(<?= htmlspecialchars(json_encode($h), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+        </tr>
+        <?php endforeach; endif; ?></tbody>
+    </table></div>
+</div>
+
+<!-- Health Modal -->
 <div id="health-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
         <h3 id="health-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Log Health Record</h3>
-        <form method="POST"><input type="hidden" name="_action" value="save_health"><input type="hidden" name="id" id="h-id">
+        <form method="POST"><input type="hidden" name="_action" value="save_health"><input type="hidden" name="id" id="hl-id">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group"><label class="admin-form-label">Date</label><input class="admin-form-control" type="date" name="record_date" id="h-date" value="<?= date('Y-m-d') ?>"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Animal (optional)</label><select class="admin-form-control" name="animal_id" id="h-animal"><option value="">-- General / Flock --</option><?php foreach($animalList as $al): ?><option value="<?= (int)$al['id'] ?>"><?= htmlspecialchars($al['label'],ENT_QUOTES,'UTF-8') ?></option><?php endforeach; ?></select></div>
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Diagnosis / Condition</label><input class="admin-form-control" name="diagnosis" id="h-diag" placeholder="e.g. Newcastle Disease, Coccidiosis"></div>
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Treatment / Medication</label><input class="admin-form-control" name="treatment" id="h-treat" placeholder="e.g. Lasota Vaccine 3ml IM, Amprolium in water"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Vet Name</label><input class="admin-form-control" name="vet_name" id="h-vet" placeholder="Dr. Kamau"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" id="h-cost" placeholder="0.00"></div>
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="h-notes" rows="3"></textarea></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="record_date" id="hl-date" value="<?= date('Y-m-d') ?>"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="hl-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Subject (Animal/Group name)</label><input class="admin-form-control" name="subject" id="hl-subject" placeholder="e.g. Bessie, Herd A, or general"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Record Type</label><select class="admin-form-control" name="record_type" id="hl-type"><option value="treatment">Treatment</option><option value="vaccination">Vaccination</option><option value="deworming">Deworming</option><option value="checkup">Checkup</option><option value="mortality">Mortality</option><option value="vitamins">Vitamins</option><option value="antibiotic">Antibiotic</option><option value="observation">Observation</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Product / Medicine</label><input class="admin-form-control" name="product_name" id="hl-product" placeholder="e.g. Amprolium, Ivermectin"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Vaccine Name (if vaccination)</label><input class="admin-form-control" name="vaccine_name" id="hl-vaccine" placeholder="e.g. Newcastle, FMD"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Dosage</label><input class="admin-form-control" name="dosage" id="hl-dosage" placeholder="e.g. 3ml IM"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Route</label><select class="admin-form-control" name="route" id="hl-route"><option value="oral">Oral</option><option value="injection">Injection</option><option value="spray">Spray</option><option value="water">Water</option><option value="feed">Feed</option><option value="eye_drop">Eye Drop</option><option value="wing_web">Wing Web</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Birds / Animals Treated</label><input class="admin-form-control" type="number" name="birds_treated" id="hl-treated" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Mortality Count</label><input class="admin-form-control" type="number" name="mortality_count" id="hl-mortality" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Vet Name</label><input class="admin-form-control" name="vet_name" id="hl-vet" placeholder="Dr. Kamau"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" id="hl-cost" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Next Due Date</label><input class="admin-form-control" type="date" name="next_due_date" id="hl-next"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="hl-status"><option value="completed">Completed</option><option value="scheduled">Scheduled</option><option value="ongoing">Ongoing</option><option value="missed">Missed</option></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="hl-notes" rows="2"></textarea></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:20px;">
             <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('health-modal').style.display='none'">Cancel</button>
@@ -707,142 +722,400 @@ document.addEventListener('click',e=>{ const m=document.getElementById('animal-m
 <script>
 function openHealthModal(d){
     document.getElementById('health-modal-title').textContent=d?.id?'Edit Health Record':'Log Health Record';
-    document.getElementById('h-id').value=d?.id||''; document.getElementById('h-date').value=d?.record_date||'<?= date("Y-m-d") ?>';
-    document.getElementById('h-animal').value=d?.animal_id||''; document.getElementById('h-diag').value=d?.diagnosis||'';
-    document.getElementById('h-treat').value=d?.treatment||''; document.getElementById('h-vet').value=d?.vet_name||'';
-    document.getElementById('h-cost').value=d?.cost||''; document.getElementById('h-notes').value=d?.notes||'';
+    document.getElementById('hl-id').value=d?.id||''; document.getElementById('hl-date').value=d?.record_date||'<?= date("Y-m-d") ?>';
+    document.getElementById('hl-species').value=d?.species||'Chicken'; document.getElementById('hl-subject').value=d?.subject||'';
+    document.getElementById('hl-type').value=d?.record_type||'treatment'; document.getElementById('hl-product').value=d?.product_name||'';
+    document.getElementById('hl-vaccine').value=d?.vaccine_name||''; document.getElementById('hl-dosage').value=d?.dosage||'';
+    document.getElementById('hl-route').value=d?.route||'oral'; document.getElementById('hl-treated').value=d?.birds_treated||0;
+    document.getElementById('hl-mortality').value=d?.mortality_count||0; document.getElementById('hl-vet').value=d?.vet_name||'';
+    document.getElementById('hl-cost').value=d?.cost||''; document.getElementById('hl-next').value=d?.next_due_date||'';
+    document.getElementById('hl-status').value=d?.status||'completed'; document.getElementById('hl-notes').value=d?.notes||'';
     document.getElementById('health-modal').style.display='flex';
 }
 document.addEventListener('click',e=>{ const m=document.getElementById('health-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
 
-<?php /* ══════════════════ BREEDING TAB ══════════════════ */ ?>
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: VACCINATIONS — schedule + vaccine guides
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'vaccinations'): ?>
+<!-- Vaccine Guides -->
+<div class="admin-card" style="margin-bottom:20px;">
+    <h3 style="margin:0 0 14px;font-family:'Outfit',sans-serif;font-size:1.05rem;">Vaccine Guides by Species</h3>
+    <?php
+    $grouped = [];
+    foreach ($vaccineGuides as $vg) { $grouped[$vg['species']][] = $vg; }
+    if (empty($grouped)): ?>
+    <p style="color:#94a3b8;text-align:center;padding:18px;">No vaccine guides yet.</p>
+    <?php else: foreach ($grouped as $sp => $guides): ?>
+    <details style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;" <?= $speciesFilter === $sp ? 'open' : '' ?>>
+        <summary style="padding:12px 16px;background:#f8fafc;cursor:pointer;font-weight:700;font-size:0.92rem;display:flex;align-items:center;gap:8px;">
+            <span class="badge-pill badge-pill-info" style="font-size:0.78rem;"><?= htmlspecialchars($sp) ?></span>
+            <?= count($guides) ?> vaccines
+        </summary>
+        <div style="padding:12px 16px;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                <tr style="border-bottom:1px solid #e2e8f0;"><th style="text-align:left;padding:6px 4px;color:#64748b;">Disease</th><th style="text-align:left;padding:6px 4px;color:#64748b;">Vaccine</th><th style="text-align:left;padding:6px 4px;color:#64748b;">When</th><th style="text-align:left;padding:6px 4px;color:#64748b;">Route</th><th style="text-align:left;padding:6px 4px;color:#64748b;">Notes</th></tr>
+                <?php foreach ($guides as $g): ?>
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:6px 4px;font-weight:600;"><?= htmlspecialchars($g['disease']) ?></td>
+                    <td style="padding:6px 4px;"><?= htmlspecialchars($g['vaccine_name']) ?></td>
+                    <td style="padding:6px 4px;"><?= htmlspecialchars($g['age_or_timing']) ?></td>
+                    <td style="padding:6px 4px;"><?= htmlspecialchars($g['route']) ?></td>
+                    <td style="padding:6px 4px;color:#64748b;"><?= htmlspecialchars($g['notes'] ?? '') ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+    </details>
+    <?php endforeach; endif; ?>
+</div>
+
+<!-- Vaccination Schedule -->
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Vaccination Schedule</h3></div>
+        <button class="btn btn-primary" onclick="openVacModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Schedule Vaccine</button>
+    </div>
+    <div class="table-responsive"><table class="admin-table">
+        <thead><tr><th>Scheduled</th><th>Species</th><th>Subject</th><th>Vaccine</th><th>Administered</th><th>Next Due</th><th>Cost</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($vaccinations)): ?>
+        <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No vaccinations scheduled.</strong></td></tr>
+        <?php else:
+            $today = date('Y-m-d');
+            foreach ($vaccinations as $v): $overdue = $v['status']==='scheduled' && $v['scheduled_date'] < $today; ?>
+        <tr style="<?= $overdue ? 'background:#fff7ed;' : '' ?>">
+            <td><?= $overdue ? '<span style="color:#dc2626;font-weight:700;">⚠ </span>' : '' ?><?= htmlspecialchars($v['scheduled_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($v['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($v['subject'] ?? ($v['gname'] ?? ($v['aname'] ?? '-')), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($v['vaccine_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= $v['administered_date'] ?: '<span style="color:#94a3b8;">Pending</span>' ?></td>
+            <td><?= $v['next_due_date'] ?? '-' ?></td>
+            <td><?= isset($v['cost']) && $v['cost'] ? number_format((float)$v['cost'], 2) : '-' ?></td>
+            <td><span class="badge-pill <?= ($v['status'] ?? '') === 'completed' ? 'badge-pill-success' : (($v['status'] ?? '') === 'missed' ? 'badge-pill-danger' : 'badge-pill-warning') ?>"><?= htmlspecialchars($v['status'] ?? 'scheduled', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openVacModal(<?= htmlspecialchars(json_encode($v), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+        </tr>
+        <?php endforeach; endif; ?></tbody>
+    </table></div>
+</div>
+
+<!-- Vaccination Modal -->
+<div id="vac-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:520px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="vac-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Schedule Vaccination</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_vaccination"><input type="hidden" name="id" id="v-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="v-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Vaccine Name *</label><input class="admin-form-control" name="vaccine_name" id="v-name" required placeholder="e.g. Newcastle, FMD"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Subject (Animal / Group)</label><input class="admin-form-control" name="subject" id="v-subject" placeholder="e.g. Bessie, Herd A, or general"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Scheduled Date *</label><input class="admin-form-control" type="date" name="scheduled_date" id="v-sched" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Administered Date</label><input class="admin-form-control" type="date" name="administered_date" id="v-admin"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Next Due Date</label><input class="admin-form-control" type="date" name="next_due_date" id="v-next"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="v-status"><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="missed">Missed</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Dosage</label><input class="admin-form-control" name="dosage" id="v-dosage" placeholder="e.g. 3ml"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" id="v-cost" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="v-notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('vac-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
+        </div></form>
+    </div>
+</div>
+<script>
+function openVacModal(d){
+    document.getElementById('vac-modal-title').textContent=d?.id?'Edit Vaccination':'Schedule Vaccination';
+    document.getElementById('v-id').value=d?.id||''; document.getElementById('v-species').value=d?.species||'Chicken';
+    document.getElementById('v-name').value=d?.vaccine_name||''; document.getElementById('v-subject').value=d?.subject||'';
+    document.getElementById('v-sched').value=d?.scheduled_date||''; document.getElementById('v-admin').value=d?.administered_date||'';
+    document.getElementById('v-next').value=d?.next_due_date||''; document.getElementById('v-status').value=d?.status||'scheduled';
+    document.getElementById('v-dosage').value=d?.dosage||''; document.getElementById('v-cost').value=d?.cost||'';
+    document.getElementById('v-notes').value=d?.notes||''; document.getElementById('vac-modal').style.display='flex';
+}
+document.addEventListener('click',e=>{ const m=document.getElementById('vac-modal'); if(m&&e.target===m) m.style.display='none'; });
+</script>
+
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: PRODUCTION
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'production'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Production Log</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Record eggs, milk, weight, feed and mortality — all species.</p></div>
+        <button class="btn btn-primary" onclick="openProdModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Production</button>
+    </div>
+    <div class="table-responsive"><table class="admin-table">
+        <thead><tr><th>Date</th><th>Species</th><th>Group</th><th>Eggs</th><th>Milk (L)</th><th>Weight (kg)</th><th>Feed (kg)</th><th>Mortality</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($prodRecs)): ?>
+        <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No production logs yet.</strong></td></tr>
+        <?php else: foreach ($prodRecs as $p): ?>
+        <tr>
+            <td><?= htmlspecialchars($p['record_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($p['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($p['gname'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><strong><?= number_format((float)($p['eggs_collected'] ?? 0)) ?></strong></td>
+            <td><strong><?= number_format((float)($p['milk_litres'] ?? 0), 1) ?></strong></td>
+            <td><strong><?= number_format((float)($p['weight_kg'] ?? 0), 1) ?></strong></td>
+            <td><?= number_format((float)($p['feed_consumed_kg'] ?? 0), 1) ?></td>
+            <td><strong style="color:<?= ($p['mortality'] ?? 0) > 0 ? '#dc2626' : '#1e293b' ?>"><?= $p['mortality'] ?? 0 ?></strong></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openProdModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+        </tr>
+        <?php endforeach; endif; ?></tbody>
+    </table></div>
+</div>
+
+<!-- Production Modal -->
+<div id="prod-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="prod-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Log Production</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_production"><input type="hidden" name="id" id="p-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="p-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id" id="p-group"><option value="">-- None --</option><?php foreach ($groupList as $gl): ?><option value="<?= (int)$gl['id'] ?>"><?= htmlspecialchars($gl['label'], ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="record_date" id="p-date" value="<?= date('Y-m-d') ?>"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Eggs Collected</label><input class="admin-form-control" type="number" name="eggs_collected" id="p-eggs" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cracked Eggs</label><input class="admin-form-control" type="number" name="cracked_eggs" id="p-cracked" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Milk (Litres)</label><input class="admin-form-control" type="number" step="0.1" name="milk_litres" id="p-milk" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Meat/Weight (kg)</label><input class="admin-form-control" type="number" step="0.1" name="meat_weight_kg" id="p-meat" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Average Weight (kg)</label><input class="admin-form-control" type="number" step="0.1" name="weight_kg" id="p-weight" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Feed Consumed (kg)</label><input class="admin-form-control" type="number" step="0.1" name="feed_consumed_kg" id="p-feed" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Mortality</label><input class="admin-form-control" type="number" name="mortality" id="p-mort" min="0" value="0" style="border-color:#fca5a5;"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Sold</label><input class="admin-form-control" type="number" name="sold_count" id="p-sold" min="0" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="p-notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('prod-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Log</button>
+        </div></form>
+    </div>
+</div>
+<script>
+function openProdModal(d){
+    document.getElementById('prod-modal-title').textContent=d?.id?'Edit Production':'Log Production';
+    document.getElementById('p-id').value=d?.id||''; document.getElementById('p-species').value=d?.species||'Chicken';
+    document.getElementById('p-group').value=d?.group_id||''; document.getElementById('p-date').value=d?.record_date||'<?= date("Y-m-d") ?>';
+    document.getElementById('p-eggs').value=d?.eggs_collected||0; document.getElementById('p-cracked').value=d?.cracked_eggs||0;
+    document.getElementById('p-milk').value=d?.milk_litres||0; document.getElementById('p-meat').value=d?.meat_weight_kg||0;
+    document.getElementById('p-weight').value=d?.weight_kg||0; document.getElementById('p-feed').value=d?.feed_consumed_kg||0;
+    document.getElementById('p-mort').value=d?.mortality||0; document.getElementById('p-sold').value=d?.sold_count||0;
+    document.getElementById('p-notes').value=d?.notes||''; document.getElementById('prod-modal').style.display='flex';
+}
+document.addEventListener('click',e=>{ const m=document.getElementById('prod-modal'); if(m&&e.target===m) m.style.display='none'; });
+</script>
+
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: BREEDING
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
 <?php elseif ($tab === 'breeding'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Breeding Records</h3>
-        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track mating events, expected births, and offspring outcomes.</p></div>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Mating events, expected births, and offspring for all species.</p></div>
         <button class="btn btn-primary" onclick="openBreedingModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Record Breeding</button>
     </div>
     <div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Date</th><th>Sire (Father)</th><th>Dam (Mother)</th><th>Expected Birth</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
-        <tbody><?php if(empty($breedingRecs)): ?><tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No breeding records yet.</td></tr><?php else: foreach($breedingRecs as $b): ?>
+        <thead><tr><th>Date</th><th>Species</th><th>Dam (Mother)</th><th>Sire (Father)</th><th>Expected Birth</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($breedingRecs)): ?>
+        <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No breeding records yet.</strong></td></tr>
+        <?php else: foreach ($breedingRecs as $b): ?>
         <tr>
-            <td><?= htmlspecialchars($b['breeding_date']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($b['sire']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($b['dam']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($b['expected_birth']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><span class="badge-pill <?= $b['status']==='Born'?'badge-pill-success':($b['status']==='Pending'?'badge-pill-warning':'badge-pill-danger') ?>"><?= htmlspecialchars($b['status']??'Pending',ENT_QUOTES,'UTF-8') ?></span></td>
-            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($b['notes']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openBreedingModal(<?= htmlspecialchars(json_encode($b),ENT_QUOTES,"UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><?= htmlspecialchars($b['date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($b['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($b['type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($b['male_parent'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($b['due_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill <?= ($b['status'] ?? '') === 'Born' ? 'badge-pill-success' : (($b['status'] ?? '') === 'Pending' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= htmlspecialchars($b['status'] ?? 'Pending', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($b['notes'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openBreedingModal(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
 </div>
+
+<!-- Breeding Modal -->
 <div id="breeding-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:500px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
-        <h3 id="breeding-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Breeding Event</h3>
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:520px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="breeding-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Breeding</h3>
         <form method="POST"><input type="hidden" name="_action" value="save_breeding"><input type="hidden" name="id" id="br-id">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Livestock Species</label>
-                <select class="admin-form-control" id="br-species" onchange="calculateExpectedBirth()">
-                    <option value="chicken">Chicken (21 Days)</option>
-                    <option value="cow">Cow (283 Days)</option>
-                    <option value="goat">Goat (150 Days)</option>
-                    <option value="pig">Pig (114 Days)</option>
-                    <option value="sheep">Sheep (150 Days)</option>
-                    <option value="other">Other / Custom</option>
-                </select>
-            </div>
-            <div class="admin-form-group"><label class="admin-form-label">Sire (Father) ID/Tag</label><input class="admin-form-control" name="sire" id="br-sire" placeholder="e.g. A-003"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Dam (Mother) ID/Tag</label><input class="admin-form-control" name="dam" id="br-dam" placeholder="e.g. A-007"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Breeding Date</label><input class="admin-form-control" type="date" name="breeding_date" id="br-date" value="<?= date('Y-m-d') ?>" onchange="calculateExpectedBirth()"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="br-species" onchange="calcDueDate()"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Dam (Mother)</label><input class="admin-form-control" name="dam" id="br-dam" placeholder="e.g. A-007"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Sire (Father)</label><input class="admin-form-control" name="sire" id="br-sire" placeholder="e.g. A-003"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Breeding Date</label><input class="admin-form-control" type="date" name="breeding_date" id="br-date" value="<?= date('Y-m-d') ?>" onchange="calcDueDate()"></div>
             <div class="admin-form-group"><label class="admin-form-label">Expected Birth</label><input class="admin-form-control" type="date" name="expected_birth" id="br-exp"></div>
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="br-status"><option>Pending</option><option>Born</option><option>Failed</option><option>Aborted</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="br-status"><option>Pending</option><option>Born</option><option>Failed</option><option>Aborted</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Offspring Count</label><input class="admin-form-control" type="number" name="offspring_count" id="br-offspring" min="0" value="0"></div>
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="br-notes" rows="3"></textarea></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:20px;">
             <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('breeding-modal').style.display='none'">Cancel</button>
-            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Record</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
         </div></form>
     </div>
 </div>
 <script>
-function calculateExpectedBirth() {
-    const breedDateVal = document.getElementById('br-date').value;
-    if (!breedDateVal) return;
-    const species = document.getElementById('br-species').value;
-    let days = 21;
-    if (species === 'cow') days = 283;
-    else if (species === 'goat' || species === 'sheep') days = 150;
-    else if (species === 'pig') days = 114;
-    else if (species === 'other') return; // let user enter custom
-
-    const d = new Date(breedDateVal);
-    d.setDate(d.getDate() + days);
-    document.getElementById('br-exp').value = d.toISOString().split('T')[0];
+const gestationDays={Chicken:21,Cattle:283,Goat:150,Sheep:150,Pig:114,Rabbit:31,Duck:28,Other:0};
+function calcDueDate(){
+    const d=document.getElementById('br-date').value;
+    if(!d)return;
+    const sp=document.getElementById('br-species').value;
+    const days=gestationDays[sp]||0;
+    if(!days)return;
+    const dt=new Date(d); dt.setDate(dt.getDate()+days);
+    document.getElementById('br-exp').value=dt.toISOString().split('T')[0];
 }
 function openBreedingModal(d){
-    document.getElementById('breeding-modal-title').textContent=d?.id?'Edit Breeding Record':'Record Breeding Event';
-    document.getElementById('br-id').value=d?.id||''; document.getElementById('br-sire').value=d?.sire||'';
-    document.getElementById('br-dam').value=d?.dam||''; document.getElementById('br-date').value=d?.breeding_date||'<?= date("Y-m-d") ?>';
-    document.getElementById('br-exp').value=d?.expected_birth||''; document.getElementById('br-status').value=d?.status||'Pending';
-    document.getElementById('br-notes').value=d?.notes||''; 
-    document.getElementById('br-species').value = 'cow';
-    document.getElementById('breeding-modal').style.display='flex';
-    calculateExpectedBirth();
+    document.getElementById('breeding-modal-title').textContent=d?.id?'Edit Breeding':'Record Breeding';
+    document.getElementById('br-id').value=d?.id||''; document.getElementById('br-species').value=d?.species||'Chicken';
+    document.getElementById('br-dam').value=d?.type||''; document.getElementById('br-sire').value=d?.male_parent||'';
+    document.getElementById('br-date').value=d?.date||'<?= date("Y-m-d") ?>'; document.getElementById('br-exp').value=d?.due_date||'';
+    document.getElementById('br-status').value=d?.status||'Pending'; document.getElementById('br-offspring').value=d?.offspring_count||0;
+    document.getElementById('br-notes').value=d?.notes||''; document.getElementById('breeding-modal').style.display='flex';
+    calcDueDate();
 }
 document.addEventListener('click',e=>{ const m=document.getElementById('breeding-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
 
-<?php /* ══════════════════ HERDS TAB ══════════════════ */ ?>
-<?php elseif ($tab === 'herds'): ?>
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: FEEDING — standards + daily log
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'feeding'): ?>
+<!-- Feeding Standards -->
+<div class="admin-card" style="margin-bottom:20px;">
+    <h3 style="margin:0 0 14px;font-family:'Outfit',sans-serif;font-size:1.05rem;">Feeding Standards</h3>
+    <?php if (empty($feedStandards)): ?>
+    <p style="color:#94a3b8;text-align:center;padding:18px;">No feeding standards configured.</p>
+    <?php else: ?>
+    <div class="table-responsive"><table class="admin-table">
+        <thead><tr><th>Species</th><th>Type</th><th>Week / Stage</th><th>Feed per Head/Day</th><th>Feed Type</th><th>Notes</th></tr></thead>
+        <tbody><?php foreach ($feedStandards as $fs): ?>
+        <tr>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($fs['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars(ucfirst($fs['bird_type'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= $fs['week_number'] ?? '-' ?></td>
+            <td><strong><?= number_format((float)($fs['feed_per_bird_per_day_grams'] ?? 0), 1) ?> g</strong></td>
+            <td><?= htmlspecialchars($fs['feed_type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($fs['notes'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+        </tr>
+        <?php endforeach; ?></tbody>
+    </table></div>
+    <?php endif; ?>
+</div>
+
+<!-- Feed Log -->
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Herd / Pen Groups</h3>
-        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Organise animals into manageable groups, pens or herds.</p></div>
-        <button class="btn btn-primary" onclick="openHerdModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Herd</button>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Feed Log</h3></div>
+        <button class="btn btn-primary" onclick="openFeedModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Feeding</button>
     </div>
     <div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Name</th><th>Type</th><th>Location / Pen</th><th>Head Count</th><th>Actions</th></tr></thead>
-        <tbody><?php if(empty($herds)): ?><tr><td colspan="5" style="text-align:center;padding:28px;color:#94a3b8;">No herds created yet.</td></tr><?php else: foreach($herds as $hd): ?>
+        <thead><tr><th>Date</th><th>Species</th><th>Group</th><th>Feed Type</th><th>Qty (kg)</th><th>Cost</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody><?php if (empty($feedLogs)): ?>
+        <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No feed logs yet.</strong></td></tr>
+        <?php else: foreach ($feedLogs as $fl): ?>
         <tr>
-            <td><strong><?= htmlspecialchars($hd['name'],ENT_QUOTES,'UTF-8') ?></strong></td>
-            <td><?= htmlspecialchars($hd['type']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><?= htmlspecialchars($hd['location']??'-',ENT_QUOTES,'UTF-8') ?></td>
-            <td><strong><?= (int)($hd['head_count']??0) ?></strong></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHerdModal(<?= htmlspecialchars(json_encode($hd),ENT_QUOTES,"UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><?= htmlspecialchars($fl['record_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($fl['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span></td>
+            <td><?= htmlspecialchars($fl['gname'] ?? ($fl['aname'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($fl['feed_type'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><strong><?= number_format((float)($fl['quantity_kg'] ?? 0), 1) ?></strong></td>
+            <td><?= isset($fl['cost']) && $fl['cost'] ? number_format((float)$fl['cost'], 2) : '-' ?></td>
+            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($fl['notes'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openFeedModal(<?= htmlspecialchars(json_encode($fl), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
 </div>
-<div id="herd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:460px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
-        <h3 id="herd-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Herd / Group</h3>
-        <form method="POST"><input type="hidden" name="_action" value="save_herd"><input type="hidden" name="id" id="herd-id">
+
+<!-- Feed Log Modal -->
+<div id="feed-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:480px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="feed-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Log Feeding</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_feed_log"><input type="hidden" name="id" id="fl-id">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Herd / Group Name *</label><input class="admin-form-control" name="name" id="herd-name" required placeholder="e.g. Pen A - Layers"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Animal Type</label><select class="admin-form-control" name="type" id="herd-type"><?php foreach(['Chicken','Cow','Goat','Pig','Sheep','Mixed','Other'] as $ht): ?><option><?= $ht ?></option><?php endforeach; ?></select></div>
-            <div class="admin-form-group"><label class="admin-form-label">Location / Pen</label><input class="admin-form-control" name="location" id="herd-loc" placeholder="e.g. Block B, Pen 3"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Head Count</label><input class="admin-form-control" type="number" name="head_count" id="herd-cnt" min="0" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="record_date" id="fl-date" value="<?= date('Y-m-d') ?>"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="fl-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id" id="fl-group"><option value="">-- None --</option><?php foreach ($groupList as $gl): ?><option value="<?= (int)$gl['id'] ?>"><?= htmlspecialchars($gl['label'], ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Feed Type</label><input class="admin-form-control" name="feed_type" id="fl-type" placeholder="e.g. Layers Mash, Dairy Meal"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Quantity (kg)</label><input class="admin-form-control" type="number" step="0.1" name="quantity_kg" id="fl-qty" min="0" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" id="fl-cost" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="fl-notes" rows="2"></textarea></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:20px;">
-            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('herd-modal').style.display='none'">Cancel</button>
-            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Herd</button>
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('feed-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
         </div></form>
     </div>
 </div>
 <script>
-function openHerdModal(d){
-    document.getElementById('herd-modal-title').textContent=d?.id?'Edit Herd':'Add Herd / Group';
-    document.getElementById('herd-id').value=d?.id||''; document.getElementById('herd-name').value=d?.name||'';
-    document.getElementById('herd-type').value=d?.type||'Chicken'; document.getElementById('herd-loc').value=d?.location||'';
-    document.getElementById('herd-cnt').value=d?.head_count||0; document.getElementById('herd-modal').style.display='flex';
+function openFeedModal(d){
+    document.getElementById('feed-modal-title').textContent=d?.id?'Edit Feed Log':'Log Feeding';
+    document.getElementById('fl-id').value=d?.id||''; document.getElementById('fl-date').value=d?.record_date||'<?= date("Y-m-d") ?>';
+    document.getElementById('fl-species').value=d?.species||'Chicken'; document.getElementById('fl-group').value=d?.group_id||'';
+    document.getElementById('fl-type').value=d?.feed_type||''; document.getElementById('fl-qty').value=d?.quantity_kg||0;
+    document.getElementById('fl-cost').value=d?.cost||''; document.getElementById('fl-notes').value=d?.notes||'';
+    document.getElementById('feed-modal').style.display='flex';
 }
-document.addEventListener('click',e=>{ const m=document.getElementById('herd-modal'); if(m&&e.target===m) m.style.display='none'; });
+document.addEventListener('click',e=>{ const m=document.getElementById('feed-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
 
+
+<?php /* ══════════════════════════════════════════════════════════════════════════════════
+   TAB: POULTRY — deep tools folded in
+   ══════════════════════════════════════════════════════════════════════════════════ */ ?>
+<?php elseif ($tab === 'poultry'): ?>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+
+    <!-- Broiler Weighings -->
+    <div class="admin-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div class="stat-card-icon accent" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i data-lucide="scale" style="width:20px;height:20px;"></i></div>
+            <div><h3 style="margin:0;font-size:1rem;">Broiler Weighings</h3><p style="margin:2px 0 0;font-size:0.82rem;color:#64748b;">Track growth per batch</p></div>
+        </div>
+        <?php
+        $broilerCount = 0;
+        try { $broilerCount = $pdo->query("SELECT COUNT(*) FROM broiler_weighings")->fetchColumn(); } catch (Exception $e) {}
+        ?>
+        <p style="margin:10px 0 14px;font-size:0.9rem;"><strong><?= $broilerCount ?></strong> weighing records</p>
+        <a href="broiler.php" class="btn btn-primary" style="width:100%;justify-content:center;"><i data-lucide="external-link" style="width:16px;height:16px;"></i> Open Broiler Tool</a>
+    </div>
+
+    <!-- Hatchery -->
+    <div class="admin-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div class="stat-card-icon info" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i data-lucide="baby" style="width:20px;height:20px;"></i></div>
+            <div><h3 style="margin:0;font-size:1rem;">Hatchery</h3><p style="margin:2px 0 0;font-size:0.82rem;color:#64748b;">Setting dates, hatch rates</p></div>
+        </div>
+        <?php
+        $hatchCount = 0;
+        try { $hatchCount = $pdo->query("SELECT COUNT(*) FROM hatchery_batches")->fetchColumn(); } catch (Exception $e) {}
+        ?>
+        <p style="margin:10px 0 14px;font-size:0.9rem;"><strong><?= $hatchCount ?></strong> hatchery batches</p>
+        <a href="hatchery.php" class="btn btn-primary" style="width:100%;justify-content:center;"><i data-lucide="external-link" style="width:16px;height:16px;"></i> Open Hatchery Tool</a>
+    </div>
+
+    <!-- Egg Grading -->
+    <div class="admin-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div class="stat-card-icon" style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fef3c7;color:#d97706;"><i data-lucide="circle-dot" style="width:20px;height:20px;"></i></div>
+            <div><h3 style="margin:0;font-size:1rem;">Egg Grading</h3><p style="margin:2px 0 0;font-size:0.82rem;color:#64748b;">Grade by size &amp; crate</p></div>
+        </div>
+        <?php
+        $gradeCount = 0;
+        try { $gradeCount = $pdo->query("SELECT COUNT(*) FROM daily_egg_grading")->fetchColumn(); } catch (Exception $e) {}
+        ?>
+        <p style="margin:10px 0 14px;font-size:0.9rem;"><strong><?= $gradeCount ?></strong> grading records</p>
+        <a href="egg_grading.php" class="btn btn-primary" style="width:100%;justify-content:center;"><i data-lucide="external-link" style="width:16px;height:16px;"></i> Open Grading Tool</a>
+    </div>
+
+</div>
 <?php endif; ?>
+
 
 <!-- Shared JS helpers -->
 <script>

@@ -37,6 +37,21 @@ if ($isStockManager) {
 }
 
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
+
+/* ── Global CSRF enforcement for admin POST requests ──
+ * Every form and same-origin fetch gets a token injected via JS below,
+ * so any POST arriving without a valid token is rejected here, before
+ * any page handler runs. (login.php and public pages do their own checks.)
+ */
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $submittedToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+    if (!function_exists('verifyCSRFToken') || !verifyCSRFToken($submittedToken)) {
+        http_response_code(419);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Security token expired. Please refresh the page and try again.';
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1112,11 +1127,50 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
         .admin-shell > nav:not(.w2-side) { display: none !important; }
 
         /* ── Responsive polish ── */
-        @media (max-width: 860px) {
-            .admin-card { padding: 16px !important; }
-            .admin-content { padding: 14px !important; }
-            .w2-side { width: 220px; }
+        @media (max-width: 1024px) {
+            .admin-content { padding: 14px; }
+            .admin-card { padding: 16px; }
         }
+        @media (max-width: 860px) {
+            .w2-side {
+                position: fixed !important;
+                top: 0; left: 0; bottom: 0;
+                width: 260px !important;
+                transform: translateX(-100%);
+                transition: transform .22s ease;
+                z-index: 1200;
+                box-shadow: 0 0 40px rgba(11,18,32,.35);
+            }
+            body.w2-nav-open .w2-side { transform: translateX(0); }
+            .w2-nav-overlay {
+                display: none; position: fixed; inset: 0;
+                background: rgba(11,18,32,.45); z-index: 1190;
+            }
+            body.w2-nav-open .w2-nav-overlay { display: block; }
+            .w2-mobile-hamburger {
+                display: inline-flex !important;
+                align-items: center; justify-content: center;
+                width: 38px; height: 38px; border-radius: 50%;
+                background: #F4F6F9; border: 1px solid var(--w2-border);
+                color: var(--w2-primary); cursor: pointer;
+            }
+            .w2-nav-parent .w2-nav-chev { margin-left: auto; }
+            .w2-nav-subs { display: none; }
+            .w2-nav-group.open .w2-nav-subs { display: block !important; }
+        }
+        /* Mobile table reflow: tables become scrollable cards instead of overflowing the page */
+        @media (max-width: 700px) {
+            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .admin-table { min-width: 620px; }
+            .admin-top-bar { flex-wrap: wrap; gap: 10px; }
+            .welcome-message h2 { font-size: 1.15rem; }
+            .stat-card { min-width: 140px; }
+            .cmd-box { max-width: 100%; margin: 0 8px; }
+            .cmd-palette { padding: 8vh 8px 8px; }
+        }
+        /* Desktop always shows the sidebar; only mobile uses the off-canvas pattern */
+        .w2-mobile-hamburger { display: none; }
+        .w2-nav-overlay { display: none; }
     </style>
 
     <script>
@@ -1133,7 +1187,48 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
 <script>
     window.WangariAdmin = window.WangariAdmin || {};
     window.WangariAdmin.csrfToken = <?php echo json_encode($csrf_token); ?>;
+
+    // ── Global CSRF injection: every form + same-origin POST fetch carries the token ──
+    (function () {
+        var TOKEN = window.WangariAdmin.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
+        if (!TOKEN) return;
+        // Hidden input into every POST form (so plain HTML form POSTs pass the global check)
+        function injectForms() {
+            document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function (f) {
+                if (f.querySelector('input[name="csrf_token"]')) return;
+                var inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'csrf_token'; inp.value = TOKEN;
+                f.appendChild(inp);
+            });
+        }
+        // Wrap fetch: add csrf_token to FormData body or JSON body of same-origin POSTs
+        var origFetch = window.fetch;
+        window.fetch = function (input, init) {
+            init = init || {};
+            if ((init.method || '').toUpperCase() === 'POST' && typeof input === 'string' && input.indexOf('http') !== 0) {
+                var isJson = (init.headers && String(init.headers['Content-Type'] || init.headers.get && init.headers.get('Content-Type') || '').indexOf('json') !== -1);
+                if (isJson && init.body && typeof init.body === 'string') {
+                    try {
+                        var parsed = JSON.parse(init.body);
+                        parsed.csrf_token = TOKEN;
+                        init.body = JSON.stringify(parsed);
+                    } catch (e) { /* keep original body */ }
+                } else if (init.body instanceof FormData) {
+                    if (!init.body.has('csrf_token')) init.body.append('csrf_token', TOKEN);
+                } else if (init.body && typeof init.body === 'string') {
+                    init.body = (init.body ? init.body + '&' : '') + 'csrf_token=' + encodeURIComponent(TOKEN);
+                }
+                var hdrs = new Headers(init.headers || {});
+                hdrs.set('X-CSRF-Token', TOKEN);
+                init.headers = hdrs;
+            }
+            return origFetch.call(this, input, init);
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectForms);
+        else injectForms();
+    })();
 </script>
+<div class="w2-nav-overlay" id="w2-nav-overlay"></div>
 <div class="admin-shell">
     <?php include __DIR__ . '/admin_sidebar.php'; ?>
     <div class="admin-content">
@@ -1147,6 +1242,10 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
                 </h2>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="w2-mobile-hamburger" id="w2-mobile-hamburger" title="Menu" aria-label="Open menu"><i data-lucide="menu" style="width:20px;height:20px;"></i></button>
+                <button id="open-command-palette" title="Quick search & commands (Ctrl+K)" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
+                    <i data-lucide="search" style="width:20px;height:20px;"></i>
+                </button>
                 <button id="open-system-guide" title="System Walkthrough Guide" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
                     <i data-lucide="help-circle" style="width:20px;height:20px;"></i>
                 </button>
@@ -1166,3 +1265,158 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
                 </div>
             </div>
         </div>
+
+        <!-- ═══════ COMMAND PALETTE (Ctrl+K) ═══════ -->
+        <div id="cmd-palette" class="cmd-palette" role="dialog" aria-modal="true" aria-label="Quick search" style="display:none;">
+            <div class="cmd-backdrop" data-cmd-close></div>
+            <div class="cmd-box">
+                <div class="cmd-input-row">
+                    <i data-lucide="search" style="width:18px;height:18px;flex:none;"></i>
+                    <input id="cmd-input" type="text" placeholder="Search pages and actions…  (type 'add flock', 'go to sales')" autocomplete="off">
+                    <kbd class="cmd-kbd">ESC</kbd>
+                </div>
+                <div id="cmd-results" class="cmd-results"></div>
+                <div class="cmd-footer">
+                    <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+                    <span><kbd>Enter</kbd> open</span>
+                    <span class="cmd-ai-hint"><i data-lucide="sparkles" style="width:12px;height:12px;"></i> Try "Ask Wangari AI" for farm questions</span>
+                </div>
+            </div>
+        </div>
+        <style>
+            .cmd-palette{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;}
+            .cmd-backdrop{position:absolute;inset:0;background:rgba(11,18,32,0.55);backdrop-filter:blur(3px);}
+            .cmd-box{position:relative;width:100%;max-width:560px;background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(11,18,32,0.35),0 0 0 1px rgba(15,23,42,0.06);overflow:hidden;animation:cmdPop .14s ease-out;}
+            @keyframes cmdPop{from{transform:translateY(-8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+            .cmd-input-row{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--w2-border,#E7EAF0);color:#64748b;}
+            .cmd-input-row input{flex:1;border:none;outline:none;font-size:1rem;font-family:'Inter Tight','Inter',sans-serif;color:var(--w2-heading,#0F172A);background:transparent;}
+            .cmd-kbd{border:1px solid var(--w2-border,#E7EAF0);border-radius:5px;padding:2px 6px;font-size:0.7rem;color:#94a3b8;background:#F8FAFC;}
+            .cmd-results{max-height:340px;overflow-y:auto;padding:6px;}
+            .cmd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--w2-text,#334155);font-size:0.92rem;}
+            .cmd-item .cmd-ic{width:30px;height:30px;border-radius:7px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;color:var(--w2-primary,#166534);flex:none;}
+            .cmd-item .cmd-path{margin-left:auto;font-size:0.72rem;color:#94a3b8;}
+            .cmd-item.active{background:var(--w2-primary,#166534);color:#fff;}
+            .cmd-item.active .cmd-ic{background:rgba(255,255,255,0.16);color:#fff;}
+            .cmd-item.active .cmd-path{color:rgba(255,255,255,0.75);}
+            .cmd-empty{padding:22px;text-align:center;color:#94a3b8;font-size:0.9rem;}
+            .cmd-footer{display:flex;gap:14px;align-items:center;padding:10px 16px;border-top:1px solid var(--w2-border,#E7EAF0);font-size:0.72rem;color:#94a3b8;background:#FAFBFC;}
+            .cmd-footer kbd,.cmd-footer .cmd-kbd{margin-right:3px;}
+            .cmd-ai-hint{margin-left:auto;display:flex;align-items:center;gap:5px;color:var(--w2-primary,#166534);}
+        </style>
+        <script>
+        (function(){
+            var ITEMS = [
+                {label:'Dashboard', path:'Overview', url:'/Frontend/admin/dashboard.php', icon:'layout-dashboard', keys:['home','overview']},
+                {label:'Ask Wangari AI', path:'Overview', url:'/Frontend/admin/ai_assistant.php', icon:'sparkles', keys:['ask','ai','chat','assistant']},
+                {label:'Farm Operations — Overview', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=overview', icon:'layout-dashboard', keys:['overview','farm','operations']},
+                {label:'Farm Operations — Animals', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=animals', icon:'paw-print', keys:['animal','cow','sheep','goat','pig','tag','livestock']},
+                {label:'Farm Operations — Groups (Flocks/Herds)', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=groups', icon:'users', keys:['flock','herd','batch','chicken','group']},
+                {label:'Farm Operations — Housing', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=housing', icon:'home', keys:['house','pen','boma','coop','housing']},
+                {label:'Farm Operations — Health Records', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=health', icon:'heart-pulse', keys:['health','treatment','vet','sick']},
+                {label:'Farm Operations — Vaccinations', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=vaccinations', icon:'syringe', keys:['vaccine','vaccination']},
+                {label:'Farm Operations — Daily Production', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=production', icon:'egg', keys:['production','eggs','milk','daily']},
+                {label:'Farm Operations — Breeding', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=breeding', icon:'dna', keys:['breed','breeding','sire','dam','pregnancy']},
+                {label:'Farm Operations — Feeding', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=feeding', icon:'wheat', keys:['feed','feeding','ration']},
+                {label:'Farm Operations — Poultry Tools', path:'Farm Ops', url:'/Frontend/admin/hub_operations.php?tab=poultry', icon:'bird', keys:['broiler','hatchery','egg grading','poultry']},
+                {label:'Crops & Fields', path:'Farm Ops', url:'/Frontend/admin/hub_crops.php', icon:'wheat', keys:['crop','field','planting','harvest']},
+                {label:'Inventory — Products Catalog', path:'Inventory', url:'/Frontend/admin/hub_inventory.php?tab=products', icon:'package', keys:['product','catalog','sell','price']},
+                {label:'Inventory — Farm Equipment', path:'Inventory', url:'/Frontend/admin/hub_inventory.php?tab=equipment', icon:'wrench', keys:['equipment','tool','machine','tractor']},
+                {label:'Inventory — Feed & Stock', path:'Inventory', url:'/Frontend/admin/hub_inventory.php?tab=feedstock', icon:'layers', keys:['feed','stock','ingredient','raw']},
+                {label:'Inventory — Alerts', path:'Inventory', url:'/Frontend/admin/hub_inventory.php?tab=alerts', icon:'bell', keys:['alert','low stock','reorder']},
+                {label:'Sales — Customer Orders', path:'Sales', url:'/Frontend/admin/hub_finance.php?tab=orders', icon:'shopping-cart', keys:['order','customer order','online']},
+                {label:'Sales — Sales Register', path:'Sales', url:'/Frontend/admin/hub_finance.php?tab=sales', icon:'receipt', keys:['sales','register','sold']},
+                {label:'Sales — Incoming Payments', path:'Sales', url:'/Frontend/admin/hub_finance.php?tab=payments', icon:'banknote', keys:['payment','mpesa','money in']},
+                {label:'Sales — Outgoing Expenses', path:'Sales', url:'/Frontend/admin/hub_finance.php?tab=expenses', icon:'arrow-down-circle', keys:['expense','spend','cost','money out']},
+                {label:'Sales — Reports & Charts', path:'Sales', url:'/Frontend/admin/hub_finance.php?tab=reports', icon:'bar-chart-3', keys:['report','chart','analytics','profit']},
+                {label:'Sales — LPO / Invoices', path:'Sales', url:'/Frontend/admin/lpo.php', icon:'file-text', keys:['lpo','invoice','document']},
+                {label:'CRM — Customers', path:'Sales', url:'/Frontend/admin/hub_crm.php?tab=customers', icon:'users', keys:['customer','client','crm']},
+                {label:'CRM — Segments', path:'Sales', url:'/Frontend/admin/hub_crm.php?tab=segments', icon:'tags', keys:['segment','group customers']},
+                {label:'CRM — Follow-ups', path:'Sales', url:'/Frontend/admin/hub_crm.php?tab=followups', icon:'calendar-check', keys:['follow','reminder customer','credit']},
+                {label:'CRM — Contact History', path:'Sales', url:'/Frontend/admin/hub_crm.php?tab=contacts', icon:'history', keys:['contact','note','history']},
+                {label:'Credit (Money Owed)', path:'Sales', url:'/Frontend/admin/credit.php', icon:'hand-coins', keys:['credit','debt','owe','aging']},
+                {label:'Labour — Workers', path:'People', url:'/Frontend/admin/hub_labour.php?tab=workers', icon:'hard-hat', keys:['worker','staff','labour','employee']},
+                {label:'Labour — Attendance', path:'People', url:'/Frontend/admin/hub_labour.php?tab=attendance', icon:'clipboard-check', keys:['attendance','hours']},
+                {label:'Labour — Wage Payments', path:'People', url:'/Frontend/admin/hub_labour.php?tab=payments', icon:'wallet', keys:['wage','salary','pay worker']},
+                {label:'Team & Messages', path:'People', url:'/Frontend/admin/hub_people.php', icon:'message-square', keys:['message','team','staff account','task']},
+                {label:'Reminders & Weather', path:'Tools', url:'/Frontend/admin/hub_reminders.php', icon:'bell', keys:['reminder','weather','alert','due']},
+                {label:'Bulk Import/Export', path:'Tools', url:'/Frontend/admin/bulk_import_export.php', icon:'database', keys:['import','export','backup','csv','excel']},
+                {label:'Settings', path:'System', url:'/Frontend/admin/hub_settings.php', icon:'settings', keys:['settings','config','app']},
+                {label:'Calendar View', path:'System', url:'/Frontend/admin/hub_settings.php?tab=calendar', icon:'calendar', keys:['calendar','schedule']},
+                {label:'Roles & Permissions', path:'System', url:'/Frontend/admin/permissions.php', icon:'shield', keys:['role','permission','access','user']},
+                {label:'System Logs', path:'System', url:'/Frontend/admin/hub_settings.php?tab=logs', icon:'scroll-text', keys:['log','activity','audit']},
+                {label:'Sign Out', path:'System', url:'/Frontend/pages/logout.php', icon:'log-out', keys:['logout','sign out','exit']}
+            ];
+            var box=document.getElementById('cmd-palette');
+            var input=document.getElementById('cmd-input');
+            var results=document.getElementById('cmd-results');
+            var activeIdx=0, filtered=[];
+            function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+            function norm(s){return s.toLowerCase();}
+            function render(q){
+                q=norm(q||'');
+                if(!q){filtered=ITEMS;}
+                else{
+                    var STOP=['add','create','new','open','go','view','show','to','my','the','record','log','make','see'];
+                    var terms=q.split(/\s+/).filter(function(t){return t && STOP.indexOf(t)===-1;});
+                    if(!terms.length){filtered=ITEMS;}
+                    else{
+                        filtered=ITEMS.filter(function(it){
+                            var hay=norm(it.label+' '+it.path+' '+(it.keys||[]).join(' '));
+                            return terms.every(function(t){return hay.indexOf(t)!==-1;});
+                        });
+                    }
+                }
+                activeIdx=0;
+                if(!filtered.length){results.innerHTML='<div class="cmd-empty">No matches — try "add flock" or "sales".</div>';return;}
+                results.innerHTML=filtered.map(function(it,i){
+                    return '<div class="cmd-item'+(i===0?' active':'')+'" data-i="'+i+'"><span class="cmd-ic"><i data-lucide="'+it.icon+'" style="width:16px;height:16px;"></i></span><span>'+esc(it.label)+'</span><span class="cmd-path">'+esc(it.path)+'</span></div>';
+                }).join('');
+                if(window.lucide)lucide.createIcons({attrs:{'class':'','width':16,'height':16}});
+                results.querySelectorAll('.cmd-item').forEach(function(el){
+                    el.addEventListener('click',function(){go(filtered[+el.dataset.i]);});
+                });
+            }
+            function go(it){if(!it)return;window.location.href=it.url;}
+            function open(){box.style.display='flex';input.value='';render('');input.focus();}
+            function close(){box.style.display='none';}
+            document.getElementById('open-command-palette').addEventListener('click',open);
+            document.addEventListener('keydown',function(e){
+                if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();box.style.display==='flex'?close():open();}
+                if(box.style.display!=='flex')return;
+                if(e.key==='Escape'){close();}
+                else if(e.key==='ArrowDown'){e.preventDefault();activeIdx=Math.min(activeIdx+1,filtered.length-1);paint();}
+                else if(e.key==='ArrowUp'){e.preventDefault();activeIdx=Math.max(activeIdx-1,0);paint();}
+                else if(e.key==='Enter'){e.preventDefault();go(filtered[activeIdx]);}
+            });
+            function paint(){results.querySelectorAll('.cmd-item').forEach(function(el,i){el.classList.toggle('active',i===activeIdx);el.scrollIntoView({block:'nearest'});});}
+            input.addEventListener('input',function(){render(input.value);});
+            box.querySelectorAll('[data-cmd-close]').forEach(function(el){el.addEventListener('click',close);});
+        })();
+
+        // ── Mobile nav: hamburger toggle ──
+        (function(){
+            var burger=document.getElementById('w2-mobile-hamburger');
+            var overlay=document.getElementById('w2-nav-overlay');
+            function setNav(open){
+                document.body.classList.toggle('w2-nav-open', open);
+            }
+            if(burger)burger.addEventListener('click',function(){setNav(!document.body.classList.contains('w2-nav-open'));});
+            if(overlay)overlay.addEventListener('click',function(){setNav(false);});
+            // Auto-close on nav link click (mobile)
+            document.querySelectorAll('.w2-nav-item, .w2-nav-sub, .w2-nav-parent').forEach(function(el){
+                el.addEventListener('click',function(){ if(window.innerWidth<=860) setNav(false); });
+            });
+            // Sidebar group accordion on mobile (submenus hidden until parent clicked)
+            document.querySelectorAll('.w2-nav-parent').forEach(function(btn){
+                btn.addEventListener('click',function(e){
+                    var grp=btn.closest('.w2-nav-group');
+                    if(!grp)return;
+                    if(window.innerWidth<=860){
+                        grp.classList.toggle('open');
+                        var subs=grp.querySelector('.w2-nav-subs');
+                        if(subs)subs.style.display=(grp.classList.contains('open')?'block':'none');
+                    }
+                });
+            });
+        })();
+        </script>

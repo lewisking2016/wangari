@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     $errors[] = 'Username or email already exists';
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, email, phone, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, ?, 'customer')");
+                    $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, email, phone_number, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, ?, 'customer')");
                     $stmt->execute([
                         $form_data['username'],
                         $hash,

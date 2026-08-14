@@ -289,4 +289,98 @@ function getFlashMessage(): ?array
     return $message;
 }
 
+/**
+ * Send a plain-text email through PHP mail() using configured SMTP-ish
+ * settings (from the app settings table). Returns true on success.
+ *
+ * Uses the `mail_from` / `mail_from_name` settings if present, else falls
+ * back to the app's farm_email / farm_name settings.
+ */
+function sendAppMail(PDO $pdo, string $to, string $subject, string $body): bool
+{
+    $from = 'info@wangari.farm';
+    $fromName = 'Wangari';
+    try {
+        $rows = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('mail_from','mail_from_name','farm_email','farm_name')")->fetchAll(PDO::FETCH_KEY_PAIR);
+        $from = $rows['mail_from'] ?? ($rows['farm_email'] ?? $from);
+        $fromName = $rows['mail_from_name'] ?? ($rows['farm_name'] ?? $fromName);
+    } catch (Exception $e) { /* settings table may be missing */ }
+    $headers = "From: " . $fromName . " <" . $from . ">\r\n" . "MIME-Version: 1.0\r\n" . "Content-Type: text/plain; charset=UTF-8\r\n";
+    $body = wordwrap($body, 72, "\n");
+    return @mail($to, $subject, $body, $headers);
+}
+
+/**
+ * Create a password-reset token for a user and return it (or null).
+ * Tokens are single-use, 32 random bytes hex, valid for 60 minutes.
+ */
+function createPasswordResetToken(PDO $pdo, int $userId): ?string
+{
+    $token = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $token);
+    try {
+        $pdo->prepare('DELETE FROM password_resets WHERE user_id=?')->execute([$userId]);
+        $pdo->prepare('INSERT INTO password_resets (user_id, token, expires_at) VALUES (?,?,DATE_ADD(NOW(), INTERVAL 60 MINUTE))')->execute([$userId, $hash]);
+        return $token;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+/**
+ * Validate a reset token: returns the user row + reset id, or null.
+ */
+function validatePasswordResetToken(PDO $pdo, string $token): ?array
+{
+    $hash = hash('sha256', $token);
+    try {
+        $stmt = $pdo->prepare('SELECT r.id AS reset_id, r.user_id, r.expires_at, u.email FROM password_resets r JOIN users u ON u.id=r.user_id WHERE r.token=? AND r.used=0 AND r.expires_at > NOW()');
+        $stmt->execute([$hash]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+/**
+ * Mark a reset token as used (after a successful password change).
+ */
+function consumePasswordResetToken(PDO $pdo, int $resetId): void
+{
+    try {
+        $pdo->prepare('UPDATE password_resets SET used=1 WHERE id=?')->execute([$resetId]);
+    } catch (Exception $e) { /* ignore */ }
+}
+
+/**
+ * "Today at a glance" digest — used by the dashboard AI card.
+ * Returns a short plain-text summary of today's key numbers.
+ */
+function getTodayDigest(PDO $pdo): string
+{
+    $out = [];
+    try {
+        $s = (float)$pdo->query('SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE DATE(created_at)=CURDATE() AND status IN ("paid","completed")')->fetchColumn();
+        $out[] = 'Sales: KES ' . number_format($s, 0);
+    } catch (Exception $e) {}
+    try {
+        $e = (float)$pdo->query('SELECT COALESCE(SUM(eggs_collected),0) FROM production_records WHERE DATE(record_date)=CURDATE()')->fetchColumn();
+        $out[] = 'Eggs: ' . number_format($e, 0);
+    } catch (Exception $e) {}
+    try {
+        $c = (int)$pdo->query('SELECT COUNT(*) FROM customer_credits WHERE balance > 0')->fetchColumn();
+        if ($c > 0) $out[] = 'Credit owed: ' . $c . ' customer(s)';
+    } catch (Exception $e) {}
+    try {
+        $r = (int)$pdo->query('SELECT COUNT(*) FROM reminders WHERE DATE(remind_at)=CURDATE() AND status="pending"')->fetchColumn();
+        if ($r > 0) $out[] = $r . ' reminder(s) today';
+    } catch (Exception $e) {}
+    try {
+        $a = (int)$pdo->query('SELECT COUNT(*) FROM system_alerts WHERE alert_type="low_stock" AND status="active"')->fetchColumn();
+        if ($a > 0) $out[] = $a . ' low-stock alert(s)';
+    } catch (Exception $e) {}
+    return $out ? implode('  •  ', $out) : 'No activity recorded yet today.';
+}
+
 ?>

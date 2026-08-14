@@ -392,3 +392,20 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     can_edit TINYINT(1) NOT NULL DEFAULT 0,
     UNIQUE KEY unique_role_module (role, module_key)
 ) ENGINE=InnoDB;
+
+-- ─────────────────────────────────────────────────────────────
+-- 16. FARM EQUIPMENT — tools, machinery, structures registry
+--     (separate from sellable farm_items catalog)
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS farm_equipment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    category VARCHAR(100) DEFAULT 'Tool',
+    quantity INT NOT NULL DEFAULT 1,
+    condition_status ENUM('New','Good','Fair','Poor','Broken') DEFAULT 'Good',
+    purchase_date DATE DEFAULT NULL,
+    cost DECIMAL(12,2) DEFAULT 0.00,
+    notes TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

@@ -312,6 +312,314 @@ function seedMasterData(PDO $pdo): void
 }
 
 /**
+ * Ops V2: Species-agnostic Farm Operations schema.
+ *
+ * Adds animal_groups (unified flocks/herds), vaccine_guides, feed_logs,
+ * and species columns on existing tables so every species (chicken, cattle,
+ * goat, sheep, pig, rabbit …) gets the same treatment.
+ */
+function reconcileOpsV2Schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    // ── 1. animal_groups — unified flocks + herds ──
+    if (!tableExists($pdo, 'animal_groups')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS animal_groups (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(150) NOT NULL,
+                species VARCHAR(80) NOT NULL DEFAULT 'Chicken',
+                group_type VARCHAR(50) NOT NULL DEFAULT 'flock',
+                breed VARCHAR(100),
+                head_count INT NOT NULL DEFAULT 0,
+                housing_id INT NULL,
+                location VARCHAR(200),
+                status ENUM('active','sold','archived') NOT NULL DEFAULT 'active',
+                source VARCHAR(50) DEFAULT 'manual',
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_ag_species (species),
+                INDEX idx_ag_status (status)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 2. vaccine_guides — per-species vaccine schedules ──
+    if (!tableExists($pdo, 'vaccine_guides')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS vaccine_guides (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                species VARCHAR(80) NOT NULL,
+                disease VARCHAR(150) NOT NULL,
+                vaccine_name VARCHAR(150) NOT NULL,
+                age_or_timing VARCHAR(120) NOT NULL,
+                route VARCHAR(60) DEFAULT 'injection',
+                dose VARCHAR(100),
+                frequency VARCHAR(120),
+                notes TEXT,
+                sort_order INT DEFAULT 0,
+                is_active TINYINT(1) DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_vg_species (species)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 3. feed_logs — daily feeding records per group/animal ──
+    if (!tableExists($pdo, 'feed_logs')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS feed_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                record_date DATE NOT NULL,
+                group_id INT NULL,
+                animal_id INT NULL,
+                species VARCHAR(80) NOT NULL DEFAULT 'Chicken',
+                feed_type VARCHAR(100),
+                quantity_kg DECIMAL(10,2) NOT NULL DEFAULT 0,
+                cost DECIMAL(10,2) DEFAULT 0,
+                notes TEXT,
+                recorded_by INT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_fl_date (record_date),
+                INDEX idx_fl_species (species)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 3b. animals — add group_id (points at animal_groups; herd_id is a
+    //    legacy FK to the old herds table) ──
+    if (tableExists($pdo, 'animals')) {
+        if (!columnExists($pdo, 'animals', 'group_id')) {
+            try { $pdo->exec('ALTER TABLE animals ADD COLUMN group_id INT NULL AFTER herd_id'); } catch (Exception $e) {}
+        }
+    }
+
+    // ── 4. houses — add species + house_type + current_occupants ──
+    if (tableExists($pdo, 'houses')) {
+        $add = [];
+        if (!columnExists($pdo, 'houses', 'species'))          $add[] = "ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken'";
+        if (!columnExists($pdo, 'houses', 'house_type'))       $add[] = "ADD COLUMN house_type VARCHAR(50) NOT NULL DEFAULT 'house'";
+        if (!columnExists($pdo, 'houses', 'current_occupants'))$add[] = 'ADD COLUMN current_occupants INT NOT NULL DEFAULT 0';
+        if ($add) { try { $pdo->exec('ALTER TABLE houses ' . implode(', ', $add)); } catch (Exception $e) {} }
+    }
+
+    // ── 5. vaccinations — add animal_id, group_id, species, dosage, cost, notes ──
+    if (tableExists($pdo, 'vaccinations')) {
+        $add = [];
+        if (!columnExists($pdo, 'vaccinations', 'animal_id')) $add[] = 'ADD COLUMN animal_id INT NULL';
+        if (!columnExists($pdo, 'vaccinations', 'group_id'))  $add[] = 'ADD COLUMN group_id INT NULL';
+        if (!columnExists($pdo, 'vaccinations', 'species'))   $add[] = "ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken'";
+        if (!columnExists($pdo, 'vaccinations', 'dosage'))    $add[] = 'ADD COLUMN dosage VARCHAR(100) NULL';
+        if (!columnExists($pdo, 'vaccinations', 'cost'))      $add[] = 'ADD COLUMN cost DECIMAL(10,2) DEFAULT 0';
+        if (!columnExists($pdo, 'vaccinations', 'notes'))     $add[] = 'ADD COLUMN notes TEXT NULL';
+        if (!columnExists($pdo, 'vaccinations', 'next_due_date'))$add[] = 'ADD COLUMN next_due_date DATE NULL';
+        if ($add) { try { $pdo->exec('ALTER TABLE vaccinations ' . implode(', ', $add)); } catch (Exception $e) {} }
+        // Make flock_id nullable for new module (existing rows keep their FK)
+        try { $pdo->exec('ALTER TABLE vaccinations MODIFY flock_id INT NULL'); } catch (Exception $e) {}
+    }
+
+    // ── 6. production_records — add group_id, species, milk_litres, weight_kg, sold_count ──
+    if (tableExists($pdo, 'production_records')) {
+        $add = [];
+        if (!columnExists($pdo, 'production_records', 'group_id'))   $add[] = 'ADD COLUMN group_id INT NULL';
+        if (!columnExists($pdo, 'production_records', 'species'))    $add[] = "ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken'";
+        if (!columnExists($pdo, 'production_records', 'milk_litres'))$add[] = 'ADD COLUMN milk_litres DECIMAL(8,2) DEFAULT 0';
+        if (!columnExists($pdo, 'production_records', 'weight_kg'))  $add[] = 'ADD COLUMN weight_kg DECIMAL(8,2) DEFAULT 0';
+        if (!columnExists($pdo, 'production_records', 'sold_count')) $add[] = 'ADD COLUMN sold_count INT DEFAULT 0';
+        if ($add) { try { $pdo->exec('ALTER TABLE production_records ' . implode(', ', $add)); } catch (Exception $e) {} }
+        try { $pdo->exec('ALTER TABLE production_records MODIFY flock_id INT NULL'); } catch (Exception $e) {}
+    }
+
+    // ── 7. health_records — reconcile to rich shape (old DBs have a legacy
+    //    subject/type/product/date schema; the code expects record_date /
+    //    record_type / product_name / vet_name / cost / next_due_date) ──
+    if (tableExists($pdo, 'health_records')) {
+        $add = [];
+        if (!columnExists($pdo, 'health_records', 'animal_id'))    $add[] = 'ADD COLUMN animal_id INT NULL';
+        if (!columnExists($pdo, 'health_records', 'group_id'))     $add[] = 'ADD COLUMN group_id INT NULL';
+        if (!columnExists($pdo, 'health_records', 'species'))      $add[] = "ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken'";
+        if (!columnExists($pdo, 'health_records', 'record_date'))  $add[] = 'ADD COLUMN record_date DATE NULL';
+        if (!columnExists($pdo, 'health_records', 'record_type'))  $add[] = "ADD COLUMN record_type VARCHAR(50) NOT NULL DEFAULT 'treatment'";
+        if (!columnExists($pdo, 'health_records', 'vaccine_name')) $add[] = 'ADD COLUMN vaccine_name VARCHAR(150) NULL';
+        if (!columnExists($pdo, 'health_records', 'product_name')) $add[] = 'ADD COLUMN product_name VARCHAR(150) NULL';
+        if (!columnExists($pdo, 'health_records', 'dosage'))       $add[] = 'ADD COLUMN dosage VARCHAR(100) NULL';
+        if (!columnExists($pdo, 'health_records', 'route'))        $add[] = "ADD COLUMN route VARCHAR(50) NOT NULL DEFAULT 'oral'";
+        if (!columnExists($pdo, 'health_records', 'birds_treated'))$add[] = 'ADD COLUMN birds_treated INT NOT NULL DEFAULT 0';
+        if (!columnExists($pdo, 'health_records', 'mortality_count'))$add[] = 'ADD COLUMN mortality_count INT NOT NULL DEFAULT 0';
+        if (!columnExists($pdo, 'health_records', 'vet_name'))     $add[] = 'ADD COLUMN vet_name VARCHAR(150) NULL';
+        if (!columnExists($pdo, 'health_records', 'next_due_date'))$add[] = 'ADD COLUMN next_due_date DATE NULL';
+        if (!columnExists($pdo, 'health_records', 'cost'))         $add[] = 'ADD COLUMN cost DECIMAL(10,2) NOT NULL DEFAULT 0';
+        if (!columnExists($pdo, 'health_records', 'recorded_by'))  $add[] = 'ADD COLUMN recorded_by INT NULL';
+        if ($add) { try { $pdo->exec('ALTER TABLE health_records ' . implode(', ', $add)); } catch (Exception $e) {} }
+
+        // Backfill rich columns from legacy columns (date→record_date,
+        // type→record_type, product→product_name, next_date→next_due_date)
+        try {
+            if (columnExists($pdo, 'health_records', 'date')) {
+                $pdo->exec("UPDATE health_records SET record_date = date WHERE record_date IS NULL AND date IS NOT NULL");
+            }
+            if (columnExists($pdo, 'health_records', 'type')) {
+                $pdo->exec("UPDATE health_records SET record_type = type WHERE (record_type = 'treatment' OR record_type = '') AND type IS NOT NULL AND type != ''");
+            }
+            if (columnExists($pdo, 'health_records', 'product')) {
+                $pdo->exec("UPDATE health_records SET product_name = product WHERE (product_name IS NULL OR product_name = '') AND product IS NOT NULL AND product != ''");
+            }
+            if (columnExists($pdo, 'health_records', 'next_date')) {
+                $pdo->exec("UPDATE health_records SET next_due_date = next_date WHERE next_due_date IS NULL AND next_date IS NOT NULL");
+            }
+        } catch (Exception $e) {}
+    }
+
+    // ── 8. breeding_records — add species, dam_id, sire_id, offspring_count, result ──
+    if (tableExists($pdo, 'breeding_records')) {
+        $add = [];
+        if (!columnExists($pdo, 'breeding_records', 'species'))         $add[] = "ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken'";
+        if (!columnExists($pdo, 'breeding_records', 'dam_id'))          $add[] = 'ADD COLUMN dam_id INT NULL';
+        if (!columnExists($pdo, 'breeding_records', 'sire_id'))         $add[] = 'ADD COLUMN sire_id INT NULL';
+        if (!columnExists($pdo, 'breeding_records', 'offspring_count')) $add[] = 'ADD COLUMN offspring_count INT DEFAULT 0';
+        if (!columnExists($pdo, 'breeding_records', 'result'))          $add[] = "ADD COLUMN result VARCHAR(50) DEFAULT 'Pending'";
+        if ($add) { try { $pdo->exec('ALTER TABLE breeding_records ' . implode(', ', $add)); } catch (Exception $e) {} }
+    }
+
+    // ── 9. feeding_standards — add species column ──
+    if (tableExists($pdo, 'feeding_standards')) {
+        if (!columnExists($pdo, 'feeding_standards', 'species')) {
+            try {
+                $pdo->exec("ALTER TABLE feeding_standards ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken' AFTER bird_type");
+            } catch (Exception $e) {}
+        }
+    }
+
+    // ── 10. Migrate existing flocks → animal_groups (one-time) ──
+    if (tableExists($pdo, 'flocks') && tableExists($pdo, 'animal_groups')) {
+        $agCount = $pdo->query('SELECT COUNT(*) FROM animal_groups')->fetchColumn();
+        $fkCount = $pdo->query('SELECT COUNT(*) FROM flocks')->fetchColumn();
+        if ($agCount == 0 && $fkCount > 0) {
+            try {
+                $pdo->exec("
+                    INSERT INTO animal_groups (name, species, group_type, breed, head_count, location, status, source, created_at)
+                    SELECT
+                        flock_name,
+                        'Chicken',
+                        CASE
+                            WHEN LOWER(flock_name) LIKE '%broiler%' THEN 'flock'
+                            WHEN LOWER(flock_name) LIKE '%layer%' THEN 'flock'
+                            WHEN LOWER(flock_name) LIKE '%kienyeji%' THEN 'flock'
+                            ELSE 'flock'
+                        END,
+                        breed,
+                        current_count,
+                        '',
+                        status,
+                        'migrated_flocks',
+                        created_at
+                    FROM flocks
+                ");
+            } catch (Exception $e) {}
+        }
+    }
+
+    // ── 11. Migrate existing herds → animal_groups (one-time) ──
+    if (tableExists($pdo, 'herds') && tableExists($pdo, 'animal_groups')) {
+        $agCount = $pdo->query('SELECT COUNT(*) FROM animal_groups WHERE source = "migrated_herds"')->fetchColumn();
+        $hdCount = $pdo->query('SELECT COUNT(*) FROM herds')->fetchColumn();
+        if ($agCount == 0 && $hdCount > 0) {
+            try {
+                $pdo->exec("
+                    INSERT INTO animal_groups (name, species, group_type, breed, head_count, location, status, source, created_at)
+                    SELECT
+                        name,
+                        CASE
+                            WHEN LOWER(name) LIKE '%goat%' OR LOWER(species) LIKE '%goat%' THEN 'Goat'
+                            WHEN LOWER(name) LIKE '%sheep%' OR LOWER(species) LIKE '%sheep%' THEN 'Sheep'
+                            WHEN LOWER(name) LIKE '%pig%' OR LOWER(species) LIKE '%pig%' THEN 'Pig'
+                            WHEN LOWER(name) LIKE '%chicken%' OR LOWER(species) LIKE '%chicken%' THEN 'Chicken'
+                            ELSE 'Cattle'
+                        END,
+                        'herd',
+                        species,
+                        size,
+                        location,
+                        LOWER(status),
+                        'migrated_herds',
+                        created_at
+                    FROM herds
+                ");
+            } catch (Exception $e) {}
+        }
+    }
+}
+
+/**
+ * Seed vaccine guides for all supported species.
+ * Idempotent — INSERT IGNORE prevents duplicates.
+ */
+function seedVaccineGuides(PDO $pdo): void
+{
+    if (!tableExists($pdo, 'vaccine_guides')) return;
+    $count = $pdo->query('SELECT COUNT(*) FROM vaccine_guides')->fetchColumn();
+    if ($count > 0) return;
+
+    $stmt = $pdo->prepare('INSERT IGNORE INTO vaccine_guides (species, disease, vaccine_name, age_or_timing, route, dose, frequency, notes, sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
+
+    $guides = [
+        // ── Chicken ──
+        ['Chicken','Newcastle Disease','Lasota / LaSota','Day 1-3, then every 4 weeks','oral / drinking water','1 dose in 10ml water','Every 4 weeks','Administer in clean water, no chlorine',1],
+        ['Chicken','Gumboro (IBD)','Gumboro Vaccine','Day 14','oral / drinking water','1 dose per bird','Once + booster at 4 weeks','Withdraw water 2hrs before',2],
+        ['Chicken','Mareks Disease','Mareks Vaccine','Day 1 (at hatchery)','injection (subcutaneous)','0.2ml per chick','Once at day-old','Must be given at hatchery only',3],
+        ['Chicken','Fowl Pox','Fowl Pox Vaccine','6-8 weeks','wing-web','1 dose','Once','Pox scab forms in 7-10 days',4],
+        ['Chicken','Infectious Bronchitis (IB)','IB Vaccine (H120)','3 weeks','oral / drinking water','1 dose','Every 12 weeks','Mix with clean water',5],
+        ['Chicken','Fowl Cholera','Fowl Cholera Bacterin','8-10 weeks','injection (IM)','0.5ml per bird','Once + annual booster','Autogenous or commercial bacterin',6],
+        ['Chicken','Coccidiosis','Coccidiosis Vaccine','Day 1','oral / spray','1 dose','Once','Or via anticoccidial in feed',7],
+        ['Chicken','Avian Influenza','AI Vaccine (where required)','Per government schedule','injection (IM)','0.5ml per bird','As required','Mandatory in some regions',8],
+
+        // ── Cattle ──
+        ['Cattle','Foot & Mouth Disease (FMD)','FMD Vaccine','3 months, then every 6 months','injection (SC)','2ml per animal','Every 6 months','Inject in neck; avoid milking day',1],
+        ['Cattle','Lumpy Skin Disease','LSD Vaccine','3 months, then annually','injection (SC)','2ml per animal','Annually','Inject behind ear',2],
+        ['Cattle','CBPP (Contagious Bovine Pleuropneumonia)','CBPP Vaccine','6 months','injection (SC)','0.5ml per animal','Once + annual booster','Subcutaneous injection',3],
+        ['Cattle','Anthrax','Anthrax Spore Vaccine','6 months, then annually','injection (SC)','1ml per animal','Annually','Inject behind ear',4],
+        ['Cattle','Blackleg','Blackleg Vaccine','3 months, then every 6 months','injection (SC)','2ml per animal','Every 6 months','Inject in neck',5],
+        ['Cattle','Brucellosis','Brucella S19 (heifers only)','4-8 months (females only)','injection (SC)','5ml per animal','Once','Only for heifers; not for pregnant animals',6],
+        ['Cattle','Rift Valley Fever','RVF Vaccine','Per outbreak/epidemic','injection (SC)','2ml per animal','As required','Seasonal in endemic areas',7],
+        ['Cattle','Deworming','Albendazole / Ivermectin','Every 3 months','oral / injection','Per body weight','Every 3-4 months','Rotate dewormers to prevent resistance',8],
+
+        // ── Goat ──
+        ['Goat','PPR (Peste des Petits Ruminants)','PPR Vaccine','3 months, then annually','injection (SC)','1ml per animal','Annually','Inject behind ear; critical vaccine',1],
+        ['Goat','CCPP (Contagious Caprine Pleuropneumonia)','CCPP Vaccine','3 months','injection (SC)','0.5ml per animal','Annually','Subcutaneous; avoid injection site issues',2],
+        ['Goat','Anthrax','Anthrax Spore Vaccine','6 months, then annually','injection (SC)','1ml per animal','Annually','Inject behind ear',3],
+        ['Goat','Enterotoxemia (Pulpy Kidney)','CDT Toxoid','3 months, then annually','injection (SC)','2ml per animal','Annually','Boost before breeding season',4],
+        ['Goat','Pasteurellosis','Pasteurella Vaccine','4 months','injection (SC)','2ml per animal','Annually','Combine with deworming schedule',5],
+        ['Goat','Foot & Mouth Disease','FMD Vaccine','3 months, then every 6 months','injection (SC)','2ml per animal','Every 6 months','Same vaccine as cattle',6],
+        ['Goat','Deworming','Albendazole / Levamisole','Every 3 months','oral','Per body weight','Every 3 months','Monitor FAMACHA score',7],
+
+        // ── Sheep ──
+        ['Sheep','PPR (Peste des Petits Ruminants)','PPR Vaccine','3 months, then annually','injection (SC)','1ml per animal','Annually','Same vaccine as goats',1],
+        ['Sheep','Anthrax','Anthrax Spore Vaccine','6 months, then annually','injection (SC)','1ml per animal','Annually','Inject behind ear',2],
+        ['Sheep','Enterotoxemia (Pulpy Kidney)','CDT Toxoid','3 months, then annually','injection (SC)','2ml per animal','Annually','Critical for pregnant ewes',3],
+        ['Sheep','Foot Rot','Foot Rot Vaccine','4 months','injection (SC)','2ml per animal','Annually','Combine with foot trimming',4],
+        ['Sheep','Caseous Lymphadenitis (CL)','CL Vaccine','4 months','injection (SC)','1ml per animal','Annually','Inject in neck region',5],
+        ['Sheep','Foot & Mouth Disease','FMD Vaccine','3 months, then every 6 months','injection (SC)','2ml per animal','Every 6 months','Same as cattle and goats',6],
+        ['Sheep','Deworming','Albendazole / Ivermectin','Every 3 months','oral / injection','Per body weight','Every 3 months','FAMACHA-based decisions preferred',7],
+
+        // ── Pig ──
+        ['Pig','African Swine Fever (ASF)','No vaccine available','N/A','N/A','N/A','N/A','Prevention through biosecurity only; no cure',1],
+        ['Pig','Classical Swine Fever (CSF)','CSF Vaccine','8 weeks, then every 6 months','injection (IM)','2ml per animal','Every 6 months','Inject behind ear',2],
+        ['Pig','Erysipelas','Erysipelas Bacterin','8 weeks, then annually','injection (IM)','2ml per animal','Annually','Combine with mycoplasma vaccine',3],
+        ['Pig','Mycoplasma Pneumonia','Mycoplasma Hyo Vaccine','3 weeks (nursery)','injection (IM)','2ml per animal','Once + booster','Pre-weaning vaccination preferred',4],
+        ['Pig','Porcine Parvovirus','PPV Vaccine (gilts only)','Before first breeding','injection (IM)','2ml per animal','Once + annual booster','Only for breeding gilts/sows',5],
+        ['Pig','Foot & Mouth Disease','FMD Vaccine','Per government schedule','injection (SC)','2ml per animal','Every 6 months','Where endemic',6],
+        ['Pig','Deworming','Ivermectin / Fenbendazole','Every 3 months','oral / injection','Per body weight','Every 3 months','Treat all pigs in pen together',7],
+    ];
+
+    foreach ($guides as $g) {
+        $stmt->execute($g);
+    }
+}
+
+/**
  * Ensure all module tables exist. No-op when everything is present.
  */
 function ensureBusiaSchema(PDO $pdo): void
@@ -325,6 +633,7 @@ function ensureBusiaSchema(PDO $pdo): void
         // existing databases get the columns the current modules read even
         // when every table already exists.
         reconcileLegacySchema($pdo);
+        reconcileOpsV2Schema($pdo);
         seedMasterData($pdo);
 
         $configDir = __DIR__;
@@ -359,6 +668,9 @@ function ensureBusiaSchema(PDO $pdo): void
                 return; // no progress — give up quietly, retried next request
             }
         }
+
+        // Seed vaccine guides after all tables exist
+        seedVaccineGuides($pdo);
     } catch (Exception $e) {
         // Silent — never break the page
     }

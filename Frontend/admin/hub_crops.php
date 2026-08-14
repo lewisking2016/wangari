@@ -270,7 +270,7 @@ function editField(f) {
             <thead><tr><th>Crop</th><th>Variety</th><th>Field</th><th>Planted</th><th>Area (acres)</th><th>Expected Harvest</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
             <?php if (empty($plantings)): ?>
-                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No plantings yet.</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No plantings yet.</strong><br>Record what you planted and when with <strong>+ New Planting</strong> — seed type, field and expected harvest date.</td></tr>
             <?php else: foreach ($plantings as $p): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($p['crop'], ENT_QUOTES, 'UTF-8') ?></strong></td>
@@ -393,7 +393,7 @@ function editField(f) {
             <thead><tr><th>Date</th><th>Field</th><th>Crop</th><th>Quantity</th><th>Price/Unit</th><th>Revenue (KES)</th><th>Buyer</th></tr></thead>
             <tbody>
             <?php if (empty($harvests)): ?>
-                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No harvests recorded yet.</td></tr>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No harvests recorded yet.</strong><br>Log yield per field with <strong>+ Record Harvest</strong> to build your production history.</td></tr>
             <?php else: foreach ($harvests as $h): ?>
                 <tr>
                     <td><?= htmlspecialchars($h['harvest_date'], ENT_QUOTES, 'UTF-8') ?></td>

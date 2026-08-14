@@ -346,6 +346,11 @@ $deniedModule = isset($_GET['denied']) ? 'that module' : '';
             </div>
             <a class="btn btn-outline btn-sm" href="ai_assistant.php">Open Assistant <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
         </div>
+        <div style="display:flex;align-items:center;gap:10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:0.83rem;color:#166534;flex-wrap:wrap;">
+            <i data-lucide="sun" style="width:16px;height:16px;flex:none;color:#1B7A3D;"></i>
+            <strong style="flex:none;">Today:</strong>
+            <span><?php echo htmlspecialchars(function_exists('getTodayDigest') ? getTodayDigest($pdo) : 'No activity recorded yet today.', ENT_QUOTES, 'UTF-8'); ?></span>
+        </div>
         <form class="d2-ai-input-wrap" method="POST" action="ai_assistant.php">
             <input name="question" placeholder="Try: 'How much did I sell this month?' or 'Who owes me credit?'" autocomplete="off">
             <button class="btn btn-primary" style="white-space:nowrap;"><i data-lucide="send" style="width:16px;height:16px;"></i> Ask</button>
