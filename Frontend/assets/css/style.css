@@ -1,23 +1,25 @@
 /**
- * Busia Chicken Farm — Premium Redesign
- * Ultra-clean, modern, minimalist aesthetic.
+ * Wangari — Smart Farming for a Sustainable Future
+ * Design system inspired by the Growvi organic-farm template and Prof. Wangari Maathai.
  */
 
 :root {
-    /* Brand Colors - Updated based on Logo */
-    --primary: #1B5E20;       /* Dark Green from Logo */
-    --primary-light: #2E7D32;
-    --accent: #FFC107;        /* Gold/Yellow from Logo accents */
-    --accent-light: #FFD54F;
+    /* Brand Colors — Wangari */
+    --primary: #166534;       /* Canopy Green */
+    --primary-light: #1B7A3D;
+    --accent: #D0F24C;        /* Acacia Lime (Growvi signature) */
+    --accent-light: #E4F8A0;
     
-    /* Neutrals */
-    --dark: #111827;          /* Tailwind Gray-900 */
+    /* Neutrals — Wangari */
+    --dark: #0B1220;          /* Nightingale Ink (deep navy) */
+    --ink: #0B1220;
+    --cream: #FAF8F2;         /* Cream section background */
     --gray-800: #1F2937;
     --gray-600: #4B5563;
     --gray-400: #9CA3AF;
     --gray-200: #E5E7EB;
     --gray-100: #F3F4F6;
-    --gray-50: #F9FAFB;
+    --gray-50: #F4F5F8;       /* Mist */
     --white: #FFFFFF;
     
     /* Spacing System */
@@ -120,7 +122,7 @@ html {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: var(--white);
     color: var(--gray-800);
     line-height: 1.6;
@@ -134,10 +136,18 @@ body {
 /* ═══════════════════════════════════════════════════════════════ */
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter Tight', 'Outfit', sans-serif;
     color: var(--dark);
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+/* Editorial serif accent (Growvi style) — for emphasized words & big numbers */
+.font-serif, .serif-accent {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
 }
 
 h1 { font-size: clamp(3rem, 6vw, 4.5rem); letter-spacing: -0.03em; }
@@ -328,10 +338,82 @@ section {
 }
 
 .product-price {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 400;
     color: var(--primary);
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Instrument Serif', serif;
+}
+
+/* Wangari extras — Growvi-style stat strips & sections */
+.wangari-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-xl);
+}
+
+.wangari-stat { text-align: center; }
+.wangari-stat .stat-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    color: var(--primary);
+    line-height: 1;
+    display: block;
+    margin-bottom: var(--space-xs);
+}
+.wangari-stat .stat-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.wangari-numbered {
+    display: grid;
+    gap: var(--space-md);
+}
+
+.wangari-numbered-item {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: flex-start;
+    padding: var(--space-xl);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-base);
+}
+
+.wangari-numbered-item:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.wangari-numbered-item .num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2rem;
+    color: var(--accent);
+    -webkit-text-stroke: 1px var(--primary);
+    line-height: 1;
+    min-width: 48px;
+}
+
+.wangari-hero {
+    background: var(--ink);
+    color: var(--white);
+}
+
+.wangari-hero h1 { color: var(--white); }
+.wangari-hero p { color: #C7CDD8; }
+.wangari-hero .btn-primary { background: var(--accent); color: var(--ink); }
+.wangari-hero .btn-primary:hover { background: var(--accent-light); }
+
+/* Green belt divider */
+.wangari-belt {
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    border: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -582,7 +664,7 @@ section {
 }
 
 .cart-link:hover {
-    background: rgba(27, 94, 32, 0.05);
+    background: rgba(22, 101, 52, 0.08);
 }
 
 .cart-link i {

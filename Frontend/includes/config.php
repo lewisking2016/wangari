@@ -38,12 +38,12 @@ define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
 define('APP_DEBUG', APP_ENV === 'development');
 
 // Site Information
-define('SITE_NAME', 'Busia Chicken Farm');
-define('SITE_TAGLINE', 'Premium Poultry Products & Farm Management');
-define('SITE_DESCRIPTION', 'Leading poultry supplier in East Africa. Quality layers, broilers, day-old chicks, and premium feeds.');
-define('SITE_EMAIL', 'info@busiachicken.com');
+define('SITE_NAME', 'Wangari');
+define('SITE_TAGLINE', 'Smart Farming for a Sustainable Future');
+define('SITE_DESCRIPTION', 'The all-in-one farm management platform for Africa. Track livestock, crops, feed production, sales and finances, and grow smarter, rooted in the spirit of Prof. Wangari Maathai.');
+define('SITE_EMAIL', 'info@wangari.farm');
 define('SITE_PHONE', '+254 727 585 599');
-define('SITE_ADDRESS', 'Nasira AC Sub-location, Busibwabo Location, Busia County, Kenya');
+define('SITE_ADDRESS', 'Nairobi, Kenya');
 
 // Pagination
 define('ITEMS_PER_PAGE', 12);
@@ -74,7 +74,7 @@ define('ORDER_STATUS', [
 
 // Delivery Zones
 define('DELIVERY_ZONES', [
-    'busia' => ['name' => 'Busia County', 'cost' => 0],
+    'wangari' => ['name' => 'Wangari County', 'cost' => 0],
     'kakamega' => ['name' => 'Kakamega County', 'cost' => 500],
     'kisumu' => ['name' => 'Kisumu County', 'cost' => 1000],
     'kisii' => ['name' => 'Kisii County', 'cost' => 1200],

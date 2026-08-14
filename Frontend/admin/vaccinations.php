@@ -9,7 +9,7 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    echo "<script>window.location.href = '/busiaadmin';</script>";
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 
@@ -222,7 +222,7 @@ async function deleteVaccination(id) {
     try {
         const formData = new FormData();
         formData.append('id', id.toString());
-        formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+        formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
 
         const response = await fetch('/Backend/api/admin_poultry.php?action=delete_vaccination', {
             method: 'POST',
@@ -242,7 +242,7 @@ document.getElementById('vaccination-form').addEventListener('submit', async (e)
     const btn = e.target.querySelector('[type="submit"]');
     setBtnLoading(btn, true);
     const formData = new FormData(e.target);
-    formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+    formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
     try {
         const response = await fetch('/Backend/api/admin_poultry.php?action=save_vaccination', {
             method: 'POST',

@@ -14,139 +14,26 @@ if (!defined('BASE_URL')) {
 
 if (!isset($page_title)) $page_title = 'Admin Console';
 // Admin access check (Basic authentication for ANY admin area)
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff'], true)) {
+// Admin access check (Basic authentication for ANY admin area)
+if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager'], true)) {
     // Redirect to login if not authorized
-    header('Location: /busiaadmin');
+    header('Location: /wangariadmin');
     exit;
 }
 
 // Authorization logic for specific roles
 $isAdmin = in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager'], true);
+$isStockManager = ($_SESSION['role'] ?? '') === 'stock_manager';
 
-/* ── Role-based module permissions ────────────────────────────────
-   The role_permissions matrix is seeded automatically (see
-   auto_migrate.php). super_admin is always allowed; every other role
-   is checked against the matrix for the module they are opening, and
-   the sidebar hides entries the role cannot view. */
-$busia_current_module = function_exists('busiaModuleKeyForScript') ? busiaModuleKeyForScript(basename($_SERVER['SCRIPT_NAME'])) : '';
-$busia_perms = function_exists('busiaRolePermissions') ? busiaRolePermissions(null) : [];
-$busia_role_perms = $busia_perms[$_SESSION['role'] ?? ''] ?? [];
-$GLOBALS['_busia_role_perms'] = $busia_role_perms;
-if (!function_exists('busiaCanView')) {
-    function busiaCanView(string $module): bool {
-        if (($_SESSION['role'] ?? '') === 'super_admin') return true;
-        $perms = $GLOBALS['_busia_role_perms'] ?? [];
-        return (bool)($perms[$module]['view'] ?? 0);
+// Restrict Stock Manager to ONLY stock-related pages
+if ($isStockManager) {
+    $currentPage = basename($_SERVER['SCRIPT_NAME']);
+    $allowedStockPages = ['stock_dashboard.php', 'stock_calculator.php', 'stock_recipes.php', 'stock_costing.php', 'stock_alerts.php', 'incoming_stock.php', 'profile.php'];
+    if (!in_array($currentPage, $allowedStockPages) && strpos($currentPage, 'stock_') === false && strpos($currentPage, 'incoming_') === false) {
+        // Redirect stock managers away from non-stock pages (like orders, settings, users)
+        header('Location: /Frontend/admin/stock_dashboard.php');
+        exit;
     }
-    function busiaCanEdit(string $module): bool {
-        if (($_SESSION['role'] ?? '') === 'super_admin') return true;
-        $perms = $GLOBALS['_busia_role_perms'] ?? [];
-        return (bool)($perms[$module]['edit'] ?? 0);
-    }
-}
-// Block modules the role has no view permission for.
-if ($busia_current_module !== '' && $busia_current_module !== 'dashboard' && !busiaCanView($busia_current_module)) {
-    header('Location: /Frontend/admin/dashboard.php?denied=1');
-    exit;
-}
-
-/* ── Quick Actions dropdown (per-page shortcuts) ──────────────────
-   Every admin page gets a "Quick Actions" menu in the top bar with
-   shortcuts to that page's main add/edit forms. Pages may override by
-   setting $quickActions before including this header. */
-if (!function_exists('busiaDefaultQuickActions')) {
-    function busiaDefaultQuickActions(string $script): array {
-        $map = [
-            'dashboard.php' => [
-                ['label' => 'New Customer Order', 'icon' => 'shopping-bag', 'href' => '/Frontend/admin/orders.php'],
-                ['label' => 'Analytics & Charts', 'icon' => 'bar-chart-2', 'href' => '/Frontend/admin/analytics.php'],
-                ['label' => 'Bulk Import / Export', 'icon' => 'upload', 'href' => '/Frontend/admin/bulk_import_export.php'],
-                ['label' => 'LPO & Invoicing', 'icon' => 'file-text', 'href' => '/Frontend/admin/lpo.php'],
-            ],
-            'products.php' => [
-                ['label' => 'Add Product', 'icon' => 'package-plus', 'click' => 'Add Product', 'href' => '/Frontend/admin/products.php'],
-                ['label' => 'Export Products CSV', 'icon' => 'download', 'href' => '/Backend/api/export.php?module=products'],
-            ],
-            'orders.php' => [['label' => 'New Order', 'icon' => 'plus-circle', 'click' => 'New Order', 'href' => '/Frontend/admin/orders.php']],
-            'flocks.php' => [['label' => 'Hatch New Flock', 'icon' => 'plus', 'click' => 'Hatch New Flock', 'href' => '/Frontend/admin/flocks.php']],
-            'production.php' => [['label' => 'Log Daily Yield', 'icon' => 'plus', 'click' => 'Log Daily Yield', 'href' => '/Frontend/admin/production.php']],
-            'vaccinations.php' => [['label' => 'Schedule Vaccine', 'icon' => 'plus', 'click' => 'Schedule Vaccine', 'href' => '/Frontend/admin/vaccinations.php']],
-            'batches.php' => [
-                ['label' => 'New Batch', 'icon' => 'plus', 'click' => 'New Batch', 'href' => '/Frontend/admin/batches.php'],
-                ['label' => 'Log Today\'s Record', 'icon' => 'clipboard', 'click' => 'Log Today\'s Record', 'href' => '/Frontend/admin/batches.php'],
-            ],
-            'health.php' => [['label' => 'New Health Record', 'icon' => 'plus', 'click' => 'Add Health Record', 'href' => '/Frontend/admin/health.php']],
-            'broiler.php' => [['label' => 'Record Weigh-In', 'icon' => 'plus', 'click' => 'Record Weigh-In', 'href' => '/Frontend/admin/broiler.php']],
-            'hatchery.php' => [['label' => 'New Hatch Record', 'icon' => 'plus', 'click' => 'New Hatch Record', 'href' => '/Frontend/admin/hatchery.php']],
-            'feeding.php' => [['label' => 'Record Feeding', 'icon' => 'plus', 'click' => 'Record Feeding', 'href' => '/Frontend/admin/feeding.php']],
-            'extras.php' => [
-                ['label' => 'Record Egg Loss', 'icon' => 'alert-circle', 'click' => 'Record Loss', 'href' => '/Frontend/admin/extras.php?tab=losses'],
-                ['label' => 'New Quality Test', 'icon' => 'flask-conical', 'click' => 'New Test', 'href' => '/Frontend/admin/extras.php?tab=quality'],
-            ],
-            'egg_grading.php' => [['label' => 'New Grading', 'icon' => 'plus', 'click' => 'New Grading', 'href' => '/Frontend/admin/egg_grading.php']],
-            'stores.php' => [['label' => 'Record Movement', 'icon' => 'arrow-down-circle', 'click' => 'Record Movement', 'href' => '/Frontend/admin/stores.php']],
-            'feed_production.php' => [['label' => 'Produce Feed', 'icon' => 'plus', 'click' => 'Produce Feed', 'href' => '/Frontend/admin/feed_production.php']],
-            'lpo.php' => [['label' => 'New LPO / Quotation / Invoice', 'icon' => 'plus', 'click' => 'New Document', 'href' => '/Frontend/admin/lpo.php']],
-            'credit.php' => [['label' => 'Record Credit Sale', 'icon' => 'plus', 'click' => 'Record Credit Sale', 'href' => '/Frontend/admin/credit.php']],
-            'bulk_sales.php' => [['label' => 'New Bulk Sale', 'icon' => 'plus', 'click' => 'New Sale', 'href' => '/Frontend/admin/bulk_sales.php']],
-            'profit.php' => [['label' => 'Add Cost', 'icon' => 'plus', 'click' => 'Add Cost', 'href' => '/Frontend/admin/profit.php']],
-            'daily_sales.php' => [['label' => 'Record Daily Sales', 'icon' => 'plus', 'click' => 'Record Daily Sales', 'href' => '/Frontend/admin/daily_sales.php']],
-            'purchase_orders.php' => [['label' => 'New Purchase Order', 'icon' => 'plus', 'click' => 'New Order', 'href' => '/Frontend/admin/purchase_orders.php']],
-            'staff.php' => [['label' => 'Add Staff', 'icon' => 'user-plus', 'href' => '/Frontend/admin/staff.php?action=add']],
-            'users.php' => [['label' => 'Create User Account', 'icon' => 'user-plus', 'click' => 'Add User', 'href' => '/Frontend/admin/users.php']],
-            'hub_settings.php' => [
-                ['label' => 'System Dropdowns', 'icon' => 'list', 'href' => '/Frontend/admin/dropdowns.php'],
-                ['label' => 'Permissions & Roles', 'icon' => 'shield', 'href' => '/Frontend/admin/permissions.php'],
-                ['label' => 'Activity Logs', 'icon' => 'history', 'href' => '/Frontend/admin/logs.php'],
-            ],
-            'calendar.php' => [['label' => 'Add Calendar Event', 'icon' => 'plus', 'click' => 'Add Event', 'href' => '/Frontend/admin/calendar.php']],
-            'dropdowns.php' => [['label' => 'Add Dropdown Option', 'icon' => 'plus', 'click' => 'Add Option', 'href' => '/Frontend/admin/dropdowns.php']],
-            'logs.php' => [['label' => 'View Activity Logs', 'icon' => 'history', 'href' => '/Frontend/admin/logs.php']],
-            'permissions.php' => [['label' => 'Edit Roles & Permissions', 'icon' => 'shield', 'href' => '/Frontend/admin/permissions.php']],
-            // Hub pages — shortcut to the hub's main sub-modules
-            'hub_finance.php' => [
-                ['label' => 'Cashbook', 'icon' => 'book', 'href' => '/Frontend/admin/cashbook.php'],
-                ['label' => 'LPO & Invoicing', 'icon' => 'file-text', 'href' => '/Frontend/admin/lpo.php'],
-                ['label' => 'Customer Credit', 'icon' => 'credit-card', 'href' => '/Frontend/admin/credit.php'],
-                ['label' => 'Bulk Sales', 'icon' => 'shopping-cart', 'href' => '/Frontend/admin/bulk_sales.php'],
-            ],
-            'hub_inventory.php' => [
-                ['label' => 'Products Catalog', 'icon' => 'package', 'href' => '/Frontend/admin/products.php'],
-                ['label' => 'Stores & Stock', 'icon' => 'warehouse', 'href' => '/Frontend/admin/stores.php'],
-                ['label' => 'Egg Grading', 'icon' => 'egg', 'href' => '/Frontend/admin/egg_grading.php'],
-            ],
-            'hub_operations.php' => [
-                ['label' => 'Hatch New Flock', 'icon' => 'plus', 'click' => 'Add Flock', 'href' => '/Frontend/admin/hub_operations.php'],
-                ['label' => 'Log Today\'s Production', 'icon' => 'clipboard', 'click' => 'Log Today\'s Production', 'href' => '/Frontend/admin/hub_operations.php'],
-                ['label' => 'Flocks', 'icon' => 'bird', 'href' => '/Frontend/admin/flocks.php'],
-            ],
-            'hub_people.php' => [
-                ['label' => 'Add Staff Member', 'icon' => 'user-plus', 'click' => 'Add Staff Member', 'href' => '/Frontend/admin/hub_people.php'],
-                ['label' => 'Tasks', 'icon' => 'check-square', 'href' => '/Frontend/admin/tasks.php'],
-                ['label' => 'Messages', 'icon' => 'message-square', 'href' => '/Frontend/admin/messages.php'],
-            ],
-            'bulk_import_export.php' => [
-                ['label' => 'Export Products CSV', 'icon' => 'download', 'href' => '/Backend/api/export.php?module=products'],
-                ['label' => 'Export Raw Materials CSV', 'icon' => 'download', 'href' => '/Backend/api/export.php?module=raw_materials'],
-                ['label' => 'Export Flocks CSV', 'icon' => 'download', 'href' => '/Backend/api/export.php?module=flocks'],
-                ['label' => 'Export LPO Documents CSV', 'icon' => 'download', 'href' => '/Backend/api/export.php?module=lpo_documents'],
-            ],
-            'sales.php' => [['label' => 'Sales & Finance Hub', 'icon' => 'trending-up', 'href' => '/Frontend/admin/hub_finance.php']],
-            'payments.php' => [['label' => 'Sales & Finance Hub', 'icon' => 'trending-up', 'href' => '/Frontend/admin/hub_finance.php']],
-            'expenses.php' => [['label' => 'Sales & Finance Hub', 'icon' => 'trending-up', 'href' => '/Frontend/admin/hub_finance.php']],
-            'reports.php' => [['label' => 'Analytics & Charts', 'icon' => 'bar-chart-2', 'href' => '/Frontend/admin/analytics.php']],
-            'orders.php' => [['label' => 'Sales & Finance Hub', 'icon' => 'trending-up', 'href' => '/Frontend/admin/hub_finance.php']],
-            'operations.php' => [['label' => 'Poultry Operations Hub', 'icon' => 'bird', 'href' => '/Frontend/admin/hub_operations.php']],
-            'incoming_stock.php' => [['label' => 'Stores & Stock', 'icon' => 'warehouse', 'href' => '/Frontend/admin/stores.php']],
-            'settings.php' => [['label' => 'App Settings Hub', 'icon' => 'settings', 'href' => '/Frontend/admin/hub_settings.php']],
-            'messages.php' => [['label' => 'Team & Messages Hub', 'icon' => 'users', 'href' => '/Frontend/admin/hub_people.php']],
-            'tasks.php' => [['label' => 'Assign Task', 'icon' => 'plus', 'click' => 'Assign Task', 'href' => '/Frontend/admin/tasks.php']],
-        ];
-        return $map[$script] ?? [];
-    }
-}
-if (!isset($quickActions)) {
-    $quickActions = busiaDefaultQuickActions(basename($_SERVER['SCRIPT_NAME']));
 }
 
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
@@ -161,18 +48,19 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/vendor/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
-    <link rel="icon" type="image/png" href="/Frontend/images/busia logo.png">
+    <link rel="icon" type="image/svg+xml" href="/Frontend/images/wangari-mark.svg">
     <style>
         :root {
-            --admin-primary: #1B5E20;
-            --admin-primary-light: #2E7D32;
-            --admin-accent: #FFC107;
-            --admin-dark: #0f172a;
-            --admin-sidebar-bg: #ffffff;
-            --admin-body-bg: #f8fafc;
+            --admin-primary: #166534;
+            --admin-primary-light: #1B7A3D;
+            --admin-accent: #D0F24C;
+            --admin-accent-dark: #9DBF2E;
+            --admin-dark: #0B1220;
+            --admin-sidebar-bg: #0B1220;
+            --admin-body-bg: #F4F5F8;
             --admin-border: rgba(203, 213, 225, 0.8);
             --admin-card-bg: #ffffff;
             --admin-text-main: #1e293b;
@@ -182,9 +70,18 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
         body.admin-layout { 
             background: var(--admin-body-bg); 
             color: var(--admin-text-main);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter Tight', sans-serif;
             margin: 0;
             padding: 0;
+        }
+
+        /* Serif accent for big numbers, Growvi style */
+        .admin-layout .stat-card strong,
+        .admin-layout .kpi-value,
+        .admin-layout .serif-num {
+            font-family: 'Instrument Serif', serif;
+            font-weight: 400;
+            letter-spacing: -0.5px;
         }
 
         nav.navbar { display: none !important; }
@@ -198,19 +95,64 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
         .admin-sidebar { 
             width: 280px; 
             background: var(--admin-sidebar-bg); 
-            border-right: 1px solid var(--admin-border); 
+            border-right: 1px solid rgba(255,255,255,0.08); 
             padding: 20px 16px; 
             position: sticky; 
             top: 0; 
             height: 100vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02); 
+            box-shadow: 4px 0 24px rgba(11, 18, 32, 0.06); 
             box-sizing: border-box;
             z-index: 100;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: rgba(27, 94, 32, 0.2) transparent;
+            scrollbar-color: rgba(208, 242, 76, 0.35) transparent;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(208, 242, 76, 0.35);
+        }
+
+        .admin-sidebar-brand p {
+            color: #ffffff;
+        }
+
+        .admin-sidebar-brand small {
+            color: #9CA3AF;
+        }
+
+        .admin-sidebar-nav a {
+            color: #C7CDD8;
+        }
+
+        .admin-sidebar-nav a:hover {
+            color: var(--admin-accent);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .admin-sidebar-nav a.active {
+            background: var(--admin-accent);
+            color: #0B1220;
+            box-shadow: 0 4px 16px rgba(208, 242, 76, 0.25);
+        }
+
+        .admin-sidebar-nav .sidebar-dropdown a {
+            color: #9CA3AF;
+        }
+
+        .admin-sidebar-nav .sidebar-dropdown a:hover {
+            color: var(--admin-accent);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .admin-sidebar-nav .sidebar-dropdown a.active {
+            background: rgba(208, 242, 76, 0.12);
+            color: var(--admin-accent);
+        }
+
+        .admin-sidebar-nav .sidebar-dropdown {
+            border-left: 2px solid rgba(255,255,255,0.12);
         }
 
         .admin-sidebar::-webkit-scrollbar {
@@ -393,7 +335,6 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
-            min-width: 0; /* let the content column shrink beside the fixed sidebar */
         }
 
         /* Top utility bar */
@@ -649,10 +590,10 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
         .admin-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
         /* ═══════════════════════════════════════════════════════════════ */
-        /* ADMIN BUTTON SYSTEM — overrides global .btn for admin context   */
+        /* ADMIN BUTTON SYSTEM, overrides global .btn for admin context   */
         /* ═══════════════════════════════════════════════════════════════ */
 
-        /* Base admin button reset — tighter padding than front-end */
+        /* Base admin button reset, tighter padding than front-end */
         .admin-layout .btn {
             display: inline-flex;
             align-items: center;
@@ -692,7 +633,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             height: 14px;
         }
 
-        /* Primary — green */
+        /* Primary, green */
         .admin-layout .btn-primary {
             background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
             color: #ffffff;
@@ -712,7 +653,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             box-shadow: 0 1px 4px rgba(27,94,32,0.2);
         }
 
-        /* Outline — border only */
+        /* Outline, border only */
         .admin-layout .btn-outline {
             background: transparent;
             border: 1.5px solid var(--admin-border);
@@ -726,7 +667,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             transform: translateY(-1px);
         }
 
-        /* Trans (transparent ghost) — for table row secondary actions */
+        /* Trans (transparent ghost), for table row secondary actions */
         .admin-layout .btn-trans {
             background: rgba(241,245,249,0.8);
             border: 1.5px solid #e2e8f0;
@@ -801,85 +742,383 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             align-items: center;
             gap: 5px;
         }
+    </style>
 
-        /* ═══════════════════════════════════════════
-           RESPONSIVE — collapsible sidebar drawer
-        ═══════════════════════════════════════════ */
-        .admin-nav-toggle {
-            display: none;
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- WANGARI ADMIN V2 — complete visual redesign               -->
+    <!-- Loads after the legacy block so it wins by source order.  -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <style id="wangari-admin-v2">
+        :root {
+            --w2-primary: #166534;
+            --w2-primary-light: #1B7A3D;
+            --w2-lime: #D0F24C;
+            --w2-ink: #0B1220;
+            --w2-cream: #F5F6F8;
+            --w2-card: #FFFFFF;
+            --w2-border: #E7EAF0;
+            --w2-text: #334155;
+            --w2-heading: #0F172A;
+            --w2-muted: #94A3B8;
+            --w2-radius: 14px;
+            --w2-radius-sm: 9px;
+            --w2-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
+        }
+
+        /* One consistent typeface across the whole admin */
+        * {
+            font-family: 'Inter Tight', 'Outfit', sans-serif !important;
+        }
+
+        body.admin-layout {
+            background: var(--w2-cream);
+            color: var(--w2-text);
+            font-family: 'Inter Tight', sans-serif !important;
+        }
+
+        /* ── Cards ── */
+        .admin-card {
+            background: var(--w2-card) !important;
+            border: 1px solid var(--w2-border) !important;
+            border-radius: var(--w2-radius) !important;
+            box-shadow: var(--w2-shadow) !important;
+            padding: 22px !important;
+        }
+
+        /* ── Tables ── */
+        .table-responsive {
+            border-radius: var(--w2-radius-sm);
+            border: 1px solid var(--w2-border);
+            overflow-x: auto;
+        }
+        .admin-table th {
+            background: #F8FAFC !important;
+            color: #64748B !important;
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            padding: 13px 18px !important;
+        }
+        .admin-table td {
+            padding: 14px 18px !important;
+            font-size: 0.9rem !important;
+            border-bottom: 1px solid #F0F2F6 !important;
+            color: var(--w2-text) !important;
+        }
+        .admin-table tr:hover td {
+            background: #FAFBFD !important;
+        }
+        .admin-table tbody tr:last-child td {
+            border-bottom: none !important;
+        }
+
+        /* ── Badges → pills ── */
+        .badge-pill {
+            border-radius: 999px !important;
+            padding: 4px 12px !important;
+            font-size: 0.72rem !important;
+            font-weight: 600 !important;
+        }
+        .badge-pill-success { background: #E4F7E9 !important; color: #15803D !important; }
+        .badge-pill-warning { background: #FEF5E0 !important; color: #B45309 !important; }
+        .badge-pill-danger  { background: #FDE8E8 !important; color: #B91C1C !important; }
+        .badge-pill-info    { background: #E0EDFF !important; color: #1D4ED8 !important; }
+
+        /* ── Buttons ── */
+        .admin-layout .btn {
+            border-radius: 999px !important;
+            padding: 10px 20px !important;
+            font-weight: 600 !important;
+            font-size: 0.88rem !important;
+            gap: 8px !important;
+        }
+        .admin-layout .btn-sm {
+            border-radius: 999px !important;
+            padding: 6px 13px !important;
+            font-size: 0.78rem !important;
+        }
+        .admin-layout .btn-primary {
+            background: linear-gradient(135deg, #14532D 0%, #1B7A3D 100%) !important;
+            box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25) !important;
+        }
+        .admin-layout .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(22, 101, 52, 0.32) !important;
+        }
+        .admin-layout .btn-outline {
+            border: 1.5px solid #D8DEE8 !important;
+            color: #475569 !important;
+            background: #fff !important;
+        }
+        .admin-layout .btn-outline:hover {
+            border-color: var(--w2-primary) !important;
+            color: var(--w2-primary) !important;
+            background: #F0FDF4 !important;
+        }
+        .admin-layout .btn-danger  { border-radius: 999px !important; }
+        .admin-layout .btn-warning { border-radius: 999px !important; }
+        .admin-layout .btn-info    { border-radius: 999px !important; }
+        .admin-layout .btn-success { border-radius: 999px !important; }
+        .tbl-actions { gap: 6px !important; }
+
+        /* ── Forms ── */
+        .admin-form-control {
+            border-radius: var(--w2-radius-sm) !important;
+            border: 1.5px solid #D8DEE8 !important;
+            padding: 11px 14px !important;
+            font-size: 0.92rem !important;
+        }
+        .admin-form-control:focus {
+            border-color: var(--w2-primary) !important;
+            box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.12) !important;
+        }
+        .admin-form-label {
+            font-weight: 600 !important;
+            font-size: 0.84rem !important;
+            color: var(--w2-heading) !important;
+        }
+
+        /* ── Stat cards (dashboard KPIs) ── */
+        .stat-card {
+            border-radius: var(--w2-radius) !important;
+            border: 1px solid var(--w2-border) !important;
+            box-shadow: var(--w2-shadow) !important;
+            padding: 22px !important;
+        }
+        .stat-card-icon {
+            border-radius: 12px !important;
+            width: 46px !important;
+            height: 46px !important;
+        }
+
+        /* ── Page h1s (hub pages use inline styles with Outfit) ── */
+        h1, h2, h3, h4, h5 {
+            font-family: 'Inter Tight', sans-serif !important;
+        }
+
+        /* ── Modals ── */
+        div[style*="position:fixed"] {
+            border-radius: var(--w2-radius) !important;
+        }
+
+        /* ── Topbar ── */
+        .admin-top-bar {
+            border-radius: var(--w2-radius) !important;
+            border: 1px solid var(--w2-border) !important;
+            box-shadow: var(--w2-shadow) !important;
+            background: var(--w2-card) !important;
+            padding: 14px 20px !important;
+        }
+        .admin-top-bar .welcome-message h2 {
+            font-family: 'Inter Tight', sans-serif !important;
+            font-size: 1.25rem !important;
+            color: var(--w2-heading) !important;
+        }
+
+        /* ── Sidebar V2 ── */
+        .w2-side {
+            width: 268px;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #0B1220 0%, #0E1B2E 100%);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            color: #C7CDD8;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .w2-side-brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 20px 20px 16px;
+        }
+        .w2-logo {
+            height: 42px;
+            width: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(208, 242, 76, 0.12);
+        }
+        .w2-brand-name {
+            margin: 0;
+            font-family: 'Inter Tight', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+        .w2-brand-sub {
+            display: block;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .w2-nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 14px 16px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(208,242,76,0.25) transparent;
+        }
+        .w2-nav-section {
+            margin: 18px 8px 7px;
+            font-size: 0.66rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(255,255,255,0.32);
+        }
+        .w2-nav-section:first-child { margin-top: 4px; }
+        .w2-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #AEB6C4;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+            margin-bottom: 2px;
+        }
+        .w2-nav-item:hover {
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+        }
+        .w2-nav-item.active {
+            background: linear-gradient(135deg, rgba(208,242,76,0.16), rgba(208,242,76,0.05));
+            color: var(--w2-lime);
+            box-shadow: inset 0 0 0 1px rgba(208,242,76,0.25);
+        }
+        .w2-nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+        .w2-nav-badge {
+            margin-left: auto;
+            background: var(--w2-lime);
+            color: #0B1220;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
+        }
+        .w2-nav-group { margin-bottom: 2px; }
+        .w2-nav-parent {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 10px 12px;
+            background: none;
+            border: none;
+            border-radius: 10px;
+            color: #AEB6C4;
+            font-weight: 600;
+            font-size: 0.9rem;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.18s;
+        }
+        .w2-nav-parent:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .w2-nav-parent.open { color: var(--w2-lime); }
+        .w2-nav-chev {
+            margin-left: auto;
+            width: 15px;
+            height: 15px;
+            transition: transform 0.25s ease;
+        }
+        .w2-nav-parent.open .w2-nav-chev { transform: rotate(180deg); }
+        .w2-nav-subs {
+            padding: 4px 0 6px 26px;
+            border-left: 2px solid rgba(208,242,76,0.18);
+            margin-left: 21px;
+        }
+        .w2-nav-sub {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 8px;
+            color: #8E97A8;
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .w2-nav-sub span {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.5;
+        }
+        .w2-nav-sub:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .w2-nav-sub.active { color: var(--w2-lime); font-weight: 700; }
+        .w2-nav-sub.active span { opacity: 1; }
+
+        .w2-side-foot {
+            padding: 14px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .w2-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            margin-bottom: 10px;
+        }
+        .w2-user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #14532D, #D0F24C);
+            color: #fff;
+            display: flex;
             align-items: center;
             justify-content: center;
-            width: 38px;
-            height: 38px;
-            border: 1px solid var(--admin-border);
-            border-radius: 8px;
-            background: #fff;
-            color: var(--admin-primary);
-            cursor: pointer;
+            font-weight: 800;
+            font-family: 'Inter Tight', sans-serif;
+            font-size: 0.95rem;
             flex-shrink: 0;
         }
-        .admin-nav-toggle:hover {
-            background: rgba(27, 94, 32, 0.06);
-            border-color: var(--admin-primary);
+        .w2-user-meta p { margin: 0; font-size: 0.85rem; font-weight: 700; color: #fff; }
+        .w2-user-meta span { font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: capitalize; }
+        .w2-signout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(220,38,38,0.1);
+            color: #FCA5A5;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.18s;
         }
-        .admin-nav-backdrop {
-            display: none;
-        }
+        .w2-signout:hover { background: rgba(220,38,38,0.2); color: #FECACA; }
 
-        /* Tablet and below: sidebar becomes a slide-in drawer */
-        @media (max-width: 1023px) {
-            .admin-nav-toggle { display: inline-flex; }
+        /* Hide legacy sidebar if any page still includes it */
+        .admin-shell > nav:not(.w2-side) { display: none !important; }
 
-            .admin-nav-backdrop {
-                display: block;
-                position: fixed;
-                inset: 0;
-                background: rgba(15, 23, 42, 0.45);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.25s ease;
-                z-index: 1090;
-            }
-            body.nav-open .admin-nav-backdrop { opacity: 1; pointer-events: auto; }
-            body.nav-open { overflow: hidden; }
-
-            #admin-nav {
-                position: fixed !important;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                transform: translateX(-105%);
-                transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-                z-index: 1100;
-                box-shadow: 4px 0 28px rgba(15, 23, 42, 0.18);
-            }
-            #admin-nav.open { transform: translateX(0); }
-
-            .admin-content { padding: 14px; }
-
-            /* Collapse the common inline card grids so nothing clips on tablets */
-            .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-            div[style*="repeat(4,1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
-            div[style*="repeat(3,1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-
-        /* Phones: single-column everything, stack the top bar */
-        @media (max-width: 640px) {
-            .admin-content { padding: 12px; }
-            .admin-top-bar {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-            .admin-top-bar > div:last-child { justify-content: flex-end; }
-            .dashboard-hero { flex-direction: column; }
-            .stat-grid { grid-template-columns: 1fr !important; }
-            div[style*="repeat(4,1fr)"],
-            div[style*="repeat(3,1fr)"],
-            div[style*="repeat(2,1fr)"],
-            div[style*="2fr 1fr"] { grid-template-columns: 1fr !important; }
+        /* ── Responsive polish ── */
+        @media (max-width: 860px) {
+            .admin-card { padding: 16px !important; }
+            .admin-content { padding: 14px !important; }
+            .w2-side { width: 220px; }
         }
     </style>
+
     <script>
         // Dynamically hide sidebar and topbar elements if loaded inside an iframe
         if (window.self !== window.top) {
@@ -892,65 +1131,37 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
 </head>
 <body class="admin-layout">
 <script>
-    window.BusiaAdmin = window.BusiaAdmin || {};
-    window.BusiaAdmin.csrfToken = <?php echo json_encode($csrf_token); ?>;
+    window.WangariAdmin = window.WangariAdmin || {};
+    window.WangariAdmin.csrfToken = <?php echo json_encode($csrf_token); ?>;
 </script>
 <div class="admin-shell">
-    <div id="admin-nav-backdrop" class="admin-nav-backdrop"></div>
     <?php include __DIR__ . '/admin_sidebar.php'; ?>
     <div class="admin-content">
-        <!-- Top utility bar -->
+        <!-- Top utility bar (V2) -->
         <div class="admin-top-bar">
-            <button id="admin-nav-toggle" class="admin-nav-toggle" aria-label="Open menu" title="Menu">
-                <i data-lucide="menu" style="width: 22px; height: 22px;"></i>
-            </button>
             <div class="welcome-message">
-                <h2>Hello, <?php echo htmlspecialchars($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'Admin'); ?></h2>
-                <p>Welcome back to your dashboard portal.</p>
+                <p style="margin:0 0 2px;color:var(--w2-muted);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Wangari Admin</p>
+                <h2 style="margin:0;display:flex;align-items:center;gap:10px;">
+                    Hello, <?php echo htmlspecialchars($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'Admin'); ?>
+                    <span class="badge-pill badge-pill-success" style="font-size:0.7rem;"><?php echo htmlspecialchars(str_replace('_', ' ', $_SESSION['role'] ?? 'super_admin')); ?></span>
+                </h2>
             </div>
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <?php if (!empty($quickActions)): ?>
-                <div class="quick-actions-wrap" style="position: relative;">
-                    <button id="quick-actions-toggle" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px;">
-                        <i data-lucide="zap" style="width: 15px; height: 15px;"></i> Quick Actions
-                        <i data-lucide="chevron-down" style="width: 13px; height: 13px; transition: transform 0.2s ease;"></i>
-                    </button>
-                    <div id="quick-actions-menu" style="display: none; position: absolute; right: 0; top: calc(100% + 8px); min-width: 250px; background: #fff; border: 1px solid var(--admin-border); border-radius: 10px; box-shadow: 0 16px 40px rgba(15,23,42,0.14); padding: 7px; z-index: 1300;">
-                        <div style="padding: 8px 12px 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">This page</div>
-                        <?php foreach ($quickActions as $qa): ?>
-                            <?php if (isset($qa['href']) && isset($qa['click'])): ?>
-                                <a href="<?= htmlspecialchars($qa['href'], ENT_QUOTES, 'UTF-8') ?>" data-quick-click="<?= htmlspecialchars($qa['click'], ENT_QUOTES, 'UTF-8') ?>" style="display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 7px; text-decoration: none; color: #1e293b; font-size: 0.88rem; font-weight: 600; transition: background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                                    <i data-lucide="<?= htmlspecialchars($qa['icon'] ?? 'arrow-right', ENT_QUOTES, 'UTF-8') ?>" style="width: 16px; height: 16px; color: var(--admin-primary); flex-shrink: 0;"></i>
-                                    <?= htmlspecialchars($qa['label'], ENT_QUOTES, 'UTF-8') ?>
-                                </a>
-                            <?php elseif (isset($qa['href'])): ?>
-                                <a href="<?= htmlspecialchars($qa['href'], ENT_QUOTES, 'UTF-8') ?>" style="display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 7px; text-decoration: none; color: #1e293b; font-size: 0.88rem; font-weight: 600; transition: background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                                    <i data-lucide="<?= htmlspecialchars($qa['icon'] ?? 'arrow-right', ENT_QUOTES, 'UTF-8') ?>" style="width: 16px; height: 16px; color: var(--admin-primary); flex-shrink: 0;"></i>
-                                    <?= htmlspecialchars($qa['label'], ENT_QUOTES, 'UTF-8') ?>
-                                </a>
-                            <?php else: ?>
-                                <button type="button" data-quick-click="<?= htmlspecialchars($qa['click'] ?? '', ENT_QUOTES, 'UTF-8') ?>" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border: none; background: none; border-radius: 7px; color: #1e293b; font-size: 0.88rem; font-weight: 600; text-align: left; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                                    <i data-lucide="<?= htmlspecialchars($qa['icon'] ?? 'arrow-right', ENT_QUOTES, 'UTF-8') ?>" style="width: 16px; height: 16px; color: var(--admin-primary); flex-shrink: 0;"></i>
-                                    <?= htmlspecialchars($qa['label'], ENT_QUOTES, 'UTF-8') ?>
-                                </a>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-                <button id="open-system-guide" title="System Walkthrough Guide" style="background: none; border: none; cursor: pointer; color: var(--admin-primary); display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: rgba(27, 94, 32, 0.08); transition: all 0.2s; outline: none;" onmouseover="this.style.background='rgba(27, 94, 32, 0.15)'" onmouseout="this.style.background='rgba(27, 94, 32, 0.08)'">
-                    <i data-lucide="help-circle" style="width: 22px; height: 22px; stroke-width: 2.2;"></i>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button id="open-system-guide" title="System Walkthrough Guide" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
+                    <i data-lucide="help-circle" style="width:20px;height:20px;"></i>
                 </button>
-                <div class="admin-profile-badge">
-                    <div class="admin-avatar">
+                <a href="/Frontend/admin/ai_assistant.php" title="Ask Wangari AI" style="background:#F4F6F9;border:1px solid var(--w2-border);color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
+                    <i data-lucide="sparkles" style="width:20px;height:20px;"></i>
+                </a>
+                <div class="admin-profile-badge" style="display:flex;align-items:center;gap:10px;background:#F8FAFC;border:1px solid var(--w2-border);border-radius:999px;padding:5px 14px 5px 6px;">
+                    <div class="admin-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#14532D,#D0F24C);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Inter Tight',sans-serif;font-size:0.9rem;">
                         <?php 
                         $initial = strtoupper(substr($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'A', 0, 1));
                         echo $initial;
                         ?>
                     </div>
-                    <div style="text-align: left;">
-                        <h5 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--admin-text-heading);"><?php echo htmlspecialchars($_SESSION['username'] ?? 'Administrator'); ?></h5>
-                        <span class="badge-pill badge-pill-success" style="padding: 2px 8px; font-size: 0.7rem; margin-top: 2px; display: inline-block;"><?php echo htmlspecialchars(str_replace('_', ' ', $_SESSION['role'] ?? 'super_admin')); ?></span>
+                    <div style="text-align: left; line-height: 1.2;">
+                        <h5 style="margin:0;font-size:0.85rem;font-weight:700;color:var(--w2-heading);"><?php echo htmlspecialchars($_SESSION['username'] ?? 'Administrator'); ?></h5>
                     </div>
                 </div>
             </div>

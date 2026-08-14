@@ -10,7 +10,7 @@ session_start();
 
 // Admin access check
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager', 'stock_manager', 'sales_staff'], true)) {
-    echo "<script>window.location.href = '/busiaadmin';</script>";
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 
@@ -171,162 +171,259 @@ $deniedModule = isset($_GET['denied']) ? 'that module' : '';
         }
     </style>
 
-    <!-- Redesigned Welcome Banner -->
-    <div class="dashboard-hero-card">
-        <h1>Operations Cockpit</h1>
-        <p>Manage products, view analytics reports, monitor system health status, and handle orders all in a clean, high-performance workspace.</p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <a class="btn btn-white" href="orders.php">
-                <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                <span>Review Orders</span>
-            </a>
-            <a class="btn btn-trans" href="products.php">
-                <i data-lucide="package" style="width: 18px; height: 18px;"></i>
-                <span>Manage Products</span>
-            </a>
-            <a class="btn btn-trans" href="reports.php">
-                <i data-lucide="bar-chart" style="width: 18px; height: 18px;"></i>
-                <span>Analytics Report</span>
-            </a>
+    <style>
+        /* ── Dashboard V2 ── */
+        .d2-hero {
+            background: linear-gradient(120deg, #0B1220 0%, #0E2A1D 55%, #14532D 100%);
+            border-radius: 18px;
+            padding: 30px 32px;
+            color: #fff;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 14px 40px rgba(11, 18, 32, 0.25);
+        }
+        .d2-hero::after {
+            content: '';
+            position: absolute;
+            right: -80px;
+            top: -80px;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(208,242,76,0.18) 0%, transparent 65%);
+        }
+        .d2-hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #D0F24C;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 10px;
+        }
+        .d2-hero h1 {
+            margin: 0 0 8px;
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.4px;
+        }
+        .d2-hero h1 .w2-serif { color: #D0F24C; font-family: 'Instrument Serif', serif; font-weight: 400; font-style: italic; }
+        .d2-hero p { margin: 0 0 20px; color: rgba(255,255,255,0.72); font-size: 0.95rem; max-width: 560px; }
+        .d2-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 2; }
+        .d2-hero-actions .btn { border-radius: 999px; }
+        .d2-hero-actions .btn-lime { background: #D0F24C; color: #0B1220; font-weight: 700; }
+        .d2-hero-actions .btn-ghost { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+
+        .d2-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .d2-kpi {
+            background: #fff;
+            border: 1px solid var(--w2-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--w2-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .d2-kpi:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(15,23,42,0.09); }
+        .d2-kpi small { color: #64748B; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .d2-kpi strong { display: block; margin-top: 6px; font-size: 1.55rem; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; }
+        .d2-kpi-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .d2-kpi-icon.green { background: #E4F7E9; color: #15803D; }
+        .d2-kpi-icon.blue  { background: #E0EDFF; color: #1D4ED8; }
+        .d2-kpi-icon.amber { background: #FEF5E0; color: #B45309; }
+        .d2-kpi-icon.red   { background: #FDE8E8; color: #B91C1C; }
+
+        .d2-ai {
+            background: linear-gradient(135deg, #ffffff 0%, #F7FBF2 100%);
+            border: 1px solid rgba(208,242,76,0.55);
+            border-radius: 16px;
+            padding: 22px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--w2-shadow);
+        }
+        .d2-ai-input-wrap { display: flex; gap: 10px; }
+        .d2-ai-input-wrap input {
+            flex: 1;
+            padding: 13px 18px;
+            border: 1.5px solid #D8DEE8;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .d2-ai-input-wrap input:focus { border-color: #1B7A3D; box-shadow: 0 0 0 4px rgba(22,101,52,0.1); }
+
+        .d2-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .d2-side { display: flex; flex-direction: column; gap: 16px; }
+        @media (max-width: 1024px) {
+            .d2-kpis { grid-template-columns: repeat(2, 1fr); }
+            .d2-main { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 560px) {
+            .d2-kpis { grid-template-columns: 1fr; }
+            .d2-hero { padding: 24px 20px; }
+            .d2-ai-input-wrap { flex-direction: column; }
+        }
+    </style>
+
+    <!-- V2 Welcome Hero -->
+    <div class="d2-hero">
+        <div class="d2-hero-eyebrow"><i data-lucide="leaf" style="width:14px;height:14px;"></i> Farm Operations Overview</div>
+        <h1>Wangari <span class="w2-serif">Home</span></h1>
+        <p>Everything that needs you today — orders, stock health, production and your AI assistant — in one clean workspace.</p>
+        <div class="d2-hero-actions">
+            <a class="btn btn-lime" href="orders.php"><i data-lucide="shopping-cart" style="width:16px;height:16px;"></i> Review Orders</a>
+            <a class="btn btn-ghost" href="products.php"><i data-lucide="package" style="width:16px;height:16px;"></i> Manage Products</a>
+            <a class="btn btn-ghost" href="reports.php"><i data-lucide="bar-chart" style="width:16px;height:16px;"></i> Analytics</a>
         </div>
     </div>
 
-    <!-- Redesigned KPI cards -->
-    <div class="dashboard-kpi-row">
-        <div class="stat-card">
-            <div class="stat-card-info">
+    <!-- V2 KPI cards -->
+    <div class="d2-kpis">
+        <div class="d2-kpi" onclick="window.location.href='orders.php'">
+            <div>
                 <small>Total Revenue</small>
                 <strong id="kpi-sales">KES 0</strong>
-                <span style="font-size: 0.8rem; color: #16a34a; font-weight: 600; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i> +18.5% this month
-                </span>
             </div>
-            <div class="stat-card-icon">
-                <i data-lucide="dollar-sign"></i>
-            </div>
+            <div class="d2-kpi-icon green"><i data-lucide="trending-up" style="width:22px;height:22px;"></i></div>
         </div>
-
-        <div class="stat-card">
-            <div class="stat-card-info">
+        <div class="d2-kpi" onclick="window.location.href='orders.php'">
+            <div>
                 <small>Orders Completed</small>
                 <strong id="kpi-orders">0</strong>
-                <span style="font-size: 0.8rem; color: #16a34a; font-weight: 600; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="check" style="width: 14px; height: 14px;"></i> +9.1% conversion
-                </span>
             </div>
-            <div class="stat-card-icon info">
-                <i data-lucide="shopping-bag"></i>
-            </div>
+            <div class="d2-kpi-icon blue"><i data-lucide="shopping-bag" style="width:22px;height:22px;"></i></div>
         </div>
-
-        <div class="stat-card">
-            <div class="stat-card-info">
+        <div class="d2-kpi" onclick="window.location.href='orders.php'">
+            <div>
                 <small>Avg. Order Value</small>
                 <strong id="kpi-avg">KES 0</strong>
-                <span style="font-size: 0.8rem; color: #16a34a; font-weight: 600; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i> +5.2% growth
-                </span>
             </div>
-            <div class="stat-card-icon accent">
-                <i data-lucide="pie-chart"></i>
-            </div>
+            <div class="d2-kpi-icon amber"><i data-lucide="pie-chart" style="width:22px;height:22px;"></i></div>
         </div>
-
-        <div class="stat-card">
-            <div class="stat-card-info">
-                <small>Healthy Flocks</small>
-                <strong id="kpi-flock-summary">—</strong>
-                <span style="font-size: 0.8rem; color: #16a34a; font-weight: 600; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Active
-                </span>
+        <div class="d2-kpi" onclick="window.location.href='stock_alerts.php'">
+            <div>
+                <small>Inventory Alerts</small>
+                <strong id="kpi-alerts-summary">0</strong>
             </div>
-            <div class="stat-card-icon accent" style="background: rgba(22, 163, 74, 0.1); color: #16a34a;">
-                <i data-lucide="layers"></i>
-            </div>
+            <div class="d2-kpi-icon red"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
         </div>
     </div>
 
-    <!-- Main Grid containing Charts and Lists -->
-    <div class="dashboard-main-grid">
-        <!-- Revenue Chart Card -->
+    <!-- V2 AI Assistant (wired to real backend) -->
+    <div class="d2-ai">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:42px;height:42px;border-radius:13px;background:#0B1220;color:#D0F24C;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(11,18,32,0.2);">
+                    <i data-lucide="sparkles" style="width:20px;height:20px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Ask Wangari <span style="color:#1B7A3D;font-family:'Instrument Serif',serif;font-style:italic;">AI</span></h3>
+                    <p style="margin:2px 0 0;font-size:0.78rem;color:#64748b;">Answers come from your own farm records.</p>
+                </div>
+            </div>
+            <a class="btn btn-outline btn-sm" href="ai_assistant.php">Open Assistant <i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+        </div>
+        <form class="d2-ai-input-wrap" method="POST" action="ai_assistant.php">
+            <input name="question" placeholder="Try: 'How much did I sell this month?' or 'Who owes me credit?'" autocomplete="off">
+            <button class="btn btn-primary" style="white-space:nowrap;"><i data-lucide="send" style="width:16px;height:16px;"></i> Ask</button>
+        </form>
+    </div>
+
+    <!-- V2 Main Grid -->
+    <div class="d2-main">
         <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: var(--admin-text-heading);">Revenue Trend</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Revenue Trend</h3>
                 <span class="badge-pill badge-pill-success">Live Sync</span>
             </div>
-            <div class="chart-box">
+            <div class="chart-box" style="height:280px;">
                 <canvas id="chart-sales"></canvas>
             </div>
         </div>
-        <!-- System Status & Stocks Alerts -->
-        <div class="admin-card" style="display: flex; flex-direction: column; gap: 20px;">
-            <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: var(--admin-text-heading);">System Overview</h3>
-            
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(27, 94, 32, 0.04); border-radius: 4px; border: 1px solid rgba(27, 94, 32, 0.08);">
-                    <div style="width: 10px; height: 10px; background: #16a34a; border-radius: 50%;"></div>
-                    <div style="flex-grow: 1;">
-                        <h5 style="margin: 0; font-size: 0.9rem; color: var(--admin-text-heading);">Platform Status</h5>
-                        <p style="margin: 0; font-size: 0.75rem; color: #64748b;">All systems operational</p>
-                    </div>
-                </div>
 
-                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(27, 94, 32, 0.04); border-radius: 4px; border: 1px solid rgba(27, 94, 32, 0.08);">
-                    <i data-lucide="bird" style="width: 16px; height: 16px; color: #16a34a;"></i>
-                    <div style="flex-grow: 1;">
-                        <h5 style="margin: 0; font-size: 0.9rem; color: var(--admin-text-heading);"><span id="kpi-active-flocks">0</span> Active Flocks</h5>
-                        <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Currently producing</p>
+        <div class="d2-side">
+            <!-- System Status -->
+            <div class="admin-card" style="padding:18px !important;">
+                <h3 style="margin:0 0 14px;font-size:1rem;color:#0F172A;">System Overview</h3>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:#F0FDF4;border-radius:12px;border:1px solid #DCFCE7;">
+                        <div style="width:9px;height:9px;background:#16a34a;border-radius:50%;box-shadow:0 0 0 4px rgba(22,163,74,0.15);"></div>
+                        <div style="flex:1;">
+                            <h5 style="margin:0;font-size:0.88rem;color:#0F172A;">Platform Status</h5>
+                            <p style="margin:0;font-size:0.75rem;color:#64748b;">All systems operational</p>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:#FEF5E0;border-radius:12px;border:1px solid #FDE68A;cursor:pointer;" onclick="window.location.href='hub_inventory.php?tab=alerts'">
+                        <i data-lucide="bell" style="width:16px;height:16px;color:#d97706;"></i>
+                        <div style="flex:1;">
+                            <h5 style="margin:0;font-size:0.88rem;color:#0F172A;"><span id="kpi-alerts">0</span> Stock Alerts</h5>
+                            <p style="margin:0;font-size:0.75rem;color:#64748b;">Items needing attention</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Top Products Widget -->
-            <div style="margin-top: 10px;">
-                <h4 style="margin: 0 0 14px 0; font-family: 'Outfit', sans-serif; font-size: 1rem; color: var(--admin-text-heading);">Top Moving Products</h4>
-                <div style="border: 1px solid var(--admin-border); border-radius: 4px; overflow: hidden;" id="top-products">
-                    <p style="padding: 16px; text-align: center; color: #64748b; margin: 0; font-size: 0.9rem;">Loading products...</p>
+            <!-- Top Products -->
+            <div class="admin-card" style="padding:18px !important;">
+                <h4 style="margin:0 0 12px;font-size:0.95rem;color:#0F172A;">Top Moving Products</h4>
+                <div id="top-products" style="border:1px solid var(--w2-border);border-radius:12px;overflow:hidden;">
+                    <p style="padding:14px;text-align:center;color:#64748b;margin:0;font-size:0.85rem;">Loading products...</p>
                 </div>
             </div>
 
-            <!-- Raw Material Health Widget -->
-            <div style="margin-top: 20px;">
-                <h4 style="margin: 0 0 14px 0; font-family: 'Outfit', sans-serif; font-size: 1rem; color: var(--admin-text-heading);">Raw Material Health</h4>
-                <div id="raw-material-health" style="border: 1px solid var(--admin-border); border-radius: 4px; overflow: hidden;">
-                    <p style="padding: 16px; text-align: center; color: #64748b; margin: 0; font-size: 0.9rem;">Loading...</p>
+            <!-- Raw Material Health -->
+            <div class="admin-card" style="padding:18px !important;">
+                <h4 style="margin:0 0 12px;font-size:0.95rem;color:#0F172A;">Raw Material Health</h4>
+                <div id="raw-material-health" style="border:1px solid var(--w2-border);border-radius:12px;overflow:hidden;">
+                    <p style="padding:14px;text-align:center;color:#64748b;margin:0;font-size:0.85rem;">Loading...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="dashboard-main-grid" style="grid-template-columns: 1fr 1fr;">
-        <!-- Order Volume Card -->
+    <div class="d2-main" style="grid-template-columns:1fr 1fr;">
         <div class="admin-card">
-            <h3 style="margin: 0 0 24px 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: var(--admin-text-heading);">Order Volumes</h3>
-            <div class="chart-box" style="height: 250px;">
+            <h3 style="margin:0 0 18px;font-size:1.05rem;color:#0F172A;">Order Volumes</h3>
+            <div class="chart-box" style="height:240px;">
                 <canvas id="chart-orders"></canvas>
             </div>
         </div>
-
-        <!-- Recent Activity Card -->
         <div class="admin-card">
-            <h3 style="margin: 0 0 20px 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: var(--admin-text-heading);">System Audit Log</h3>
+            <h3 style="margin:0 0 14px;font-size:1.05rem;color:#0F172A;">Recent Activity</h3>
             <div class="table-responsive">
                 <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Action / Log Details</th>
-                            <th style="text-align: right;">Time</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Action / Log Details</th><th style="text-align:right;">Time</th></tr></thead>
                     <tbody id="recent-activity">
-                        <tr>
-                            <td colspan="2" style="text-align: center; color: #64748b; padding: 20px;">Fetching logs...</td>
-                        </tr>
+                        <tr><td colspan="2" style="text-align:center;color:#64748b;padding:18px;">Fetching logs...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -352,11 +449,54 @@ async function loadDashboard() {
 
     const labels = sales.map((item) => BusiaCharts.dayLabel(item.date));
 
-    // Revenue trend (line/area)
-    dashCharts.sales = BusiaCharts.areaChart(document.getElementById('chart-sales'), labels, sales.map(i => i.value), { color: BusiaCharts.C.primary });
+    new Chart(document.getElementById('chart-sales'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Revenue',
+                data: sales.map((item) => item.value),
+                borderColor: '#166534',
+                backgroundColor: 'rgba(22, 101, 52, 0.08)',
+                fill: true,
+                tension: 0.32,
+                pointRadius: 3,
+                pointBackgroundColor: '#D0F24C',
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                y: { grid: { color: 'rgba(148,163,184,0.12)' }, ticks: { color: '#64748b' } },
+            },
+        },
+    });
 
-    // Orders (bar)
-    dashCharts.orders = BusiaCharts.barChart(document.getElementById('chart-orders'), labels, orders.map(i => i.value), { color: BusiaCharts.C.amber, radius: 4 });
+    new Chart(document.getElementById('chart-orders'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Orders',
+                data: orders.map((item) => item.value),
+                backgroundColor: '#D0F24C',
+                borderRadius: 0,
+                maxBarThickness: 28,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                y: { grid: { color: 'rgba(148,163,184,0.12)' }, ticks: { color: '#64748b', precision: 0 } },
+            },
+        },
+    });
 
     // Top products (horizontal bar)
     if (document.getElementById('chart-top-products') && topProducts.length) {

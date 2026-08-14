@@ -100,7 +100,7 @@ try {
         [4, 'Layer Mash (16 weeks+)', 'layer-mash', 'Premium feed for laying hens. 18% crude protein with calcium for strong eggshells. 50kg bags.', 'feed', 2500.00, 150, 1, 1, '/Frontend/images/Growers Mash.png'],
         [4, 'Broiler Finisher (6-8 weeks)', 'broiler-finisher', 'Final stage feed for broilers. High energy formula for rapid weight gain. 50kg bags.', 'feed', 2900.00, 110, 1, 0, '/Frontend/images/Growers Mash.png'],
         [4, 'Kienyeji Mash', 'kienyeji-mash', 'Specially formulated for indigenous/kienyeji chickens. Balanced nutrition for free-range birds. 50kg bags.', 'feed', 2600.00, 90, 1, 1, '/Frontend/images/kienyeji mash.png'],
-        [4, 'Busia Premium Mix', 'busia-premium-mix', 'Our signature blend. Multi-purpose feed suitable for all poultry types. 50kg bags.', 'feed', 3100.00, 200, 1, 1, '/Frontend/images/Growers Mash.png'],
+        [4, 'Wangari Premium Mix', 'wangari-premium-mix', 'Our signature blend. Multi-purpose feed suitable for all poultry types. 50kg bags.', 'feed', 3100.00, 200, 1, 1, '/Frontend/images/Growers Mash.png'],
         [4, 'Vitamin & Mineral Supplements', 'vitamin-mineral-supplements', 'Complete vitamin complex and mineral pack for all poultry. Boosts immunity and productivity. 5kg bags.', 'feed', 1200.00, 80, 1, 0, '/Frontend/images/Growers Mash.png'],
         [4, 'Chick Mash (0-4 weeks)', 'chick-mash', 'Fine mash feed for young chicks. Easy to digest with high energy content. 25kg bags.', 'feed', 1800.00, 90, 1, 1, '/Frontend/images/Chick Starter Crumbs.png'],
         

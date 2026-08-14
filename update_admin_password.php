@@ -1,6 +1,6 @@
 <?php
 /**
- * Update Admin Password to busia123
+ * Update Admin Password to wangari123
  * Run this once to update the admin password
  */
 declare(strict_types=1);
@@ -24,8 +24,8 @@ try {
     
     echo "<span class='ok'>✓ Connected to database</span>";
     
-    // Hash the password busia123
-    $newPasswordHash = password_hash('busia123', PASSWORD_DEFAULT);
+    // Hash the password wangari123
+    $newPasswordHash = password_hash('wangari123', PASSWORD_DEFAULT);
     
     // Update admin user password
     $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE username = 'admin'");
@@ -36,8 +36,8 @@ try {
         echo "<h2>Login Credentials:</h2>";
         echo "<ul>";
         echo "<li><strong>Username:</strong> admin</li>";
-        echo "<li><strong>Password:</strong> busia123</li>";
-        echo "<li><strong>Email:</strong> admin@busiachicken.com</li>";
+        echo "<li><strong>Password:</strong> wangari123</li>";
+        echo "<li><strong>Email:</strong> admin@wangari.farm</li>";
         echo "</ul>";
     } else {
         echo "<span class='fail'>✗ Admin user not found in database</span>";
@@ -45,8 +45,8 @@ try {
         // Create admin user if doesn't exist
         echo "<p>Creating admin user...</p>";
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, role, first_name, last_name) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute(['admin', 'admin@busiachicken.com', $newPasswordHash, 'super_admin', 'Admin', 'User']);
-        echo "<span class='ok'>✓ Admin user created with password: busia123</span>";
+        $stmt->execute(['admin', 'admin@wangari.farm', $newPasswordHash, 'super_admin', 'Admin', 'User']);
+        echo "<span class='ok'>✓ Admin user created with password: wangari123</span>";
     }
     
     // Also update manager and demo passwords for consistency
@@ -61,7 +61,7 @@ try {
     echo "<h2>All Login Credentials:</h2>";
     echo "<table style='width:100%;border-collapse:collapse;background:white;'>";
     echo "<tr style='background:#f8f9fa;'><th style='padding:10px;text-align:left;border:1px solid #dee2e6;'>Username</th><th style='padding:10px;text-align:left;border:1px solid #dee2e6;'>Password</th><th style='padding:10px;text-align:left;border:1px solid #dee2e6;'>Role</th></tr>";
-    echo "<tr><td style='padding:10px;border:1px solid #dee2e6;'>admin</td><td style='padding:10px;border:1px solid #dee2e6;'><strong>busia123</strong></td><td style='padding:10px;border:1px solid #dee2e6;'>Super Admin</td></tr>";
+    echo "<tr><td style='padding:10px;border:1px solid #dee2e6;'>admin</td><td style='padding:10px;border:1px solid #dee2e6;'><strong>wangari123</strong></td><td style='padding:10px;border:1px solid #dee2e6;'>Super Admin</td></tr>";
     echo "<tr><td style='padding:10px;border:1px solid #dee2e6;'>manager</td><td style='padding:10px;border:1px solid #dee2e6;'>manager123</td><td style='padding:10px;border:1px solid #dee2e6;'>Farm Manager</td></tr>";
     echo "<tr><td style='padding:10px;border:1px solid #dee2e6;'>demo</td><td style='padding:10px;border:1px solid #dee2e6;'>demo123</td><td style='padding:10px;border:1px solid #dee2e6;'>Customer</td></tr>";
     echo "</table>";

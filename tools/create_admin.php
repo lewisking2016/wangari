@@ -5,8 +5,8 @@ require_once __DIR__ . '/../Backend/config/security.php';
 $pdo = getDatabaseConnection();
 
 $username = 'admin';
-$email = 'admin@busia.local';
-$password = 'busia123';
+$email = 'admin@wangari.farm';
+$password = 'wangari123';
 $role = 'super_admin';
 
 // Check if user exists
@@ -24,7 +24,7 @@ $insert->execute([
     ':email' => $email,
     ':hash' => $hash,
     ':role' => $role,
-    ':first' => 'Busia',
+    ':first' => 'Wangari',
     ':last' => 'Admin'
 ]);
 

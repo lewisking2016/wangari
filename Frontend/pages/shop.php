@@ -1,12 +1,12 @@
 <?php
 /**
- * E-Commerce Shop Page
- * Premium Minimalist Redesign
+ * E-Commerce Shop Page, Wangari
+ * Growvi design language. Keeps JS filter contract (product-filters / product-card data attrs).
  */
 declare(strict_types=1);
 
 $path_prefix = '../';
-$page_title = 'Shop - Buy Chicken Products & Feeds | Busia Chicken Farm';
+$page_title = 'Shop - Buy Chicken Products & Feeds | Wangari';
 
 include '../includes/header.php';
 
@@ -17,196 +17,147 @@ require_once __DIR__ . '/../includes/product_source.php';
 $products = loadDisplayProducts($pdo);
 ?>
 
-<!-- Shop Hero -->
-<section style="padding: var(--space-4xl) 0 var(--space-2xl); background-image: url('/Frontend/images/adbg.png'); background-size: cover; background-position: center; background-repeat: no-repeat; border-bottom: 1px solid rgba(255,255,255,0.12); position: relative;">
-    <div style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);"></div>
-    <div class="container" style="position: relative; z-index: 1; text-align: center; color: #FFFFFF;">
-        <h1 style="margin-bottom: var(--space-sm); color: #FFFFFF;">Online Shop</h1>
-        <p style="font-size: 1.125rem; color: rgba(255,255,255,0.9);">Browse and purchase premium chicken products and feeds.</p>
-    </div>
-</section>
+<main class="g-main">
 
-<!-- Nutrition Section -->
-<section style="padding: var(--space-4xl) 0; background-color: #F8FAFC;">
-    <div class="container" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3xl); align-items: center;">
-        <div>
-            <div style="display: inline-block; padding: 0.5rem 1rem; border-radius: var(--radius-pill); background: var(--primary); color: white; font-weight: 700; margin-bottom: var(--space-lg);">
-                Nutrition
-            </div>
-            <h2 style="margin-bottom: var(--space-md);">Premium Animal Feeds for Kenyan Poultry</h2>
-            <p style="margin-bottom: var(--space-lg); color: var(--gray-600); font-size: 1rem; max-width: 640px; line-height: 1.75;">
-                Specially formulated animal feeds designed for optimal growth, productivity, and health. Each formula is balanced with essential nutrients, amino acids, and vitamins for maximum performance.
-            </p>
-            <ul style="list-style: none; padding: 0; margin: 0 0 var(--space-3xl) 0; display: grid; gap: 0.75rem;">
-                <li style="display: flex; gap: 0.75rem; align-items: flex-start;"><span style="color: var(--primary); font-weight: 700;">•</span> Starter, Grower, and Finisher feeds</li>
-                <li style="display: flex; gap: 0.75rem; align-items: flex-start;"><span style="color: var(--primary); font-weight: 700;">•</span> Premium Layer Mash with calcium</li>
-                <li style="display: flex; gap: 0.75rem; align-items: flex-start;"><span style="color: var(--primary); font-weight: 700;">•</span> Available in 50kg bulk bags</li>
-            </ul>
-            <a href="/Frontend/pages/shop.php?category=feeds" class="btn btn-primary">Shop Feeds</a>
+    <!-- Page hero -->
+    <section class="g-page-hero">
+        <div class="g-container">
+            <h1>Online <span class="g-serif">Shop</span></h1>
+            <p>Browse and purchase premium poultry products, fresh eggs and formulated feeds, delivered across Kenya.</p>
         </div>
-        <div style="border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg);">
-            <img src="/Frontend/images/download (8).png" alt="Premium animal feeds" style="width: 100%; display: block; object-fit: cover; min-height: 400px;">
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- Product Showcase Section -->
-<section style="padding: var(--space-4xl) 0; background-color: #FFFFFF;">
-    <div class="container" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3xl); align-items: center;">
-        <div>
-            <div style="display: inline-block; padding: 0.5rem 1rem; border-radius: var(--radius-pill); background: var(--primary); color: white; font-weight: 700; margin-bottom: var(--space-lg);">
-                Product Section
-            </div>
-            <h2 style="margin-bottom: var(--space-md);">Featured Poultry Products</h2>
-            <p style="margin-bottom: var(--space-lg); color: var(--gray-600); font-size: 1rem; max-width: 640px; line-height: 1.75;">
-                Discover reliable poultry products and feed blends that support Kenyan farmers with strong growth, high productivity, and healthy stock.
-            </p>
-            <ul style="list-style: none; padding: 0; margin: 0 0 var(--space-3xl) 0; display: grid; gap: 0.75rem;">
-                <li style="display: flex; gap: 0.75rem; align-items: flex-start;"><span style="color: var(--primary); font-weight: 700;">•</span> Trusted live chicken and chick breeds</li>
-                <li style="display: flex; gap: 0.75rem; align-items: flex-start;"><span style="color: var(--primary); font-weight: 700;">•</span> Balanced starter and grower feed formulas</li>
-                <li style="display: flex; gap: 0.75rem; align-items: flex-start;"><span style="color: var(--primary); font-weight: 700;">•</span> Fresh eggs and farm-ready products</li>
-            </ul>
-            <a href="/Frontend/pages/shop.php#products" class="btn btn-outline">Browse Products</a>
-        </div>
-        <div style="border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg);">
-            <img src="/Frontend/images/Growers Mash.png" alt="Featured poultry products" style="width: 100%; display: block; object-fit: cover; min-height: 400px;">
-        </div>
-    </div>
-</section>
-
-<!-- Shop Content -->
-<section style="padding: var(--space-3xl) 0; background-color: var(--white);">
-    <div class="container">
-        <div style="display: grid; grid-template-columns: 250px 1fr; gap: var(--space-3xl);">
-            
-            <!-- Sidebar: Filters -->
-            <aside>
-                <div style="position: sticky; top: 100px;">
-                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-lg); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--gray-200);">
-                        <i data-lucide="filter" style="width: 20px; height: 20px; color: var(--primary);"></i>
-                        <h3 style="margin: 0; font-size: 1.25rem;">Filters</h3>
-                    </div>
-
-                    <!-- Category Filter -->
-                    <div style="margin-bottom: var(--space-xl);">
-                        <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: var(--space-md); color: var(--dark);">Product Type</h4>
-                        <form class="product-filters">
-                        <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                            <?php 
-                            require_once __DIR__ . '/../../Backend/api/dropdowns.php';
-                            $types = getSystemDropdownOptions('product_types');
-                            foreach ($types as $t):
-                            ?>
-                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; color: var(--gray-600); font-size: 0.95rem;">
-                                <input type="checkbox" name="type" value="<?php echo htmlspecialchars($t['option_value']); ?>" class="form-checkbox"> <?php echo htmlspecialchars($t['option_label']); ?>
-                            </label>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Availability Filter -->
-                    <div>
-                        <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: var(--space-md); color: var(--dark);">Availability</h4>
-                        <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; color: var(--gray-600); font-size: 0.95rem;">
-                                <input type="checkbox" name="availability" value="in-stock" class="form-checkbox" checked> In Stock
-                            </label>
-                            <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; color: var(--gray-600); font-size: 0.95rem;">
-                                <input type="checkbox" name="availability" value="preorder" class="form-checkbox"> Pre-Order
-                            </label>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn btn-outline" style="width: 100%; margin-top: var(--space-xl); font-size: 0.9rem;" onclick="document.querySelectorAll('.product-filters input').forEach(i=>i.checked=false);document.querySelectorAll('.product-card').forEach(c=>c.style.display='');document.getElementById('products-count').textContent = document.querySelectorAll('.product-card').length;">Reset Filters</button>
-                    </form>
-                </div>
-            </aside>
-
-            <!-- Main Content -->
+    <!-- Nutrition / value intro -->
+    <section class="g-section">
+        <div class="g-container g-stack-mobile" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 3.5rem; align-items: center;">
             <div>
-                <!-- Sort & View Options -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl); padding-bottom: var(--space-md); border-bottom: 1px solid var(--gray-200);">
-                    <p style="color: var(--gray-600); margin: 0; font-size: 0.95rem;">Showing <span id="products-count"><?php echo count($products); ?></span> products</p>
-                    <div style="display: flex; gap: var(--space-md); align-items: center;">
-                        <label style="font-size: 0.9rem; color: var(--gray-600);">Sort by:</label>
-                        <select style="padding: 0.5rem 2rem 0.5rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); background-color: var(--white); font-size: 0.9rem; color: var(--dark); cursor: pointer; outline: none;">
-                            <option>Newest Arrivals</option>
-                            <option>Price: Low to High</option>
-                            <option>Price: High to Low</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Products Grid -->
-                <div class="product-grid">
-                    <?php 
-                    if (!empty($products)) {
-                        foreach ($products as $index => $product):
-                            // Fallback image logic
-                            $img = $product['img'] ?? '';
-                            if (!$img) {
-                                $img = match($product['product_type'] ?? 'feed') {
-                                    'feed' => '/Frontend/images/Growers Mash.png',
-                                    'eggs' => '/Frontend/images/download (3).png',
-                                    'chicks' => '/Frontend/images/download (7).png',
-                                    'live_chicken' => '/Frontend/images/download (4).png',
-                                    default => '/Frontend/images/Chick Starter Crumbs.png'
-                                };
-                            }
-                            $stock = $product['stock_quantity'] ?? 0;
-                            $inStock = $stock > 0;
-                    ?>
-                        <div class="product-card" data-id="<?php echo $product['id']; ?>" data-type="<?php echo htmlspecialchars($product['product_type'] ?? '', ENT_QUOTES); ?>" data-instock="<?php echo $inStock ? '1' : '0'; ?>">
-                        <a href="/Frontend/pages/product-detail.php?id=<?php echo $product['id']; ?>" style="display: block; text-decoration: none; color: inherit;">
-                            <div class="product-image">
-                                <?php if ($inStock): ?>
-                                    <span class="product-badge">In Stock</span>
-                                <?php else: ?>
-                                    <span class="product-badge" style="color: var(--gray-600);">Out of Stock</span>
-                                <?php endif; ?>
-                                <img src="<?php echo $img; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                            </div>
-                        </a>
-                        <div class="product-body">
-                            <h4 class="product-name">
-                                <a href="/Frontend/pages/product-detail.php?id=<?php echo $product['id']; ?>" style="color: inherit; text-decoration: none; font-weight: inherit;">
-                                    <?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>
-                                </a>
-                            </h4>
-                            <p class="product-description" style="color: var(--gray-600);"><?php echo htmlspecialchars(substr($product['description'] ?? '', 0, 80) . '...', ENT_QUOTES, 'UTF-8'); ?></p>
-                            <div class="product-meta">
-                                <span class="product-price">KES <?php echo number_format((float)$product['price'], 0); ?></span>
-                            </div>
-                            <button class="add-to-cart-btn btn <?php echo $inStock ? 'btn-primary' : 'btn-outline'; ?>" data-id="<?php echo $product['id']; ?>" data-qty="1" style="width: 100%; justify-content: center;" <?php echo !$inStock ? 'disabled' : ''; ?>>
-                                <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
-                                <?php echo $inStock ? 'Add to Cart' : 'Out of Stock'; ?>
-                            </button>
-                        </div>
-                    </div>
-                    <?php 
-                        endforeach;
-                    } else {
-                    ?>
-                    <div style="grid-column: 1/-1; text-align: center; padding: var(--space-4xl) 0;">
-                        <i data-lucide="package-x" style="width: 48px; height: 48px; color: var(--gray-400); margin-bottom: var(--space-md);"></i>
-                        <p style="color: var(--gray-600); font-size: 1.125rem;">No products available at the moment.</p>
-                    </div>
-                    <?php } ?>
-                </div>
-
-                <!-- Pagination -->
-                <?php if (count($products) > 12): ?>
-                <div style="display: flex; justify-content: center; gap: var(--space-sm); margin-top: var(--space-4xl);">
-                    <button class="btn btn-outline" style="padding: 0.5rem 1rem;">Previous</button>
-                    <button class="btn btn-primary" style="padding: 0.5rem 1rem;">1</button>
-                    <button class="btn btn-outline" style="padding: 0.5rem 1rem;">2</button>
-                    <button class="btn btn-outline" style="padding: 0.5rem 1rem;">Next</button>
-                </div>
-                <?php endif; ?>
+                <span class="g-eyebrow">Premium Feeds</span>
+                <h2 style="font-size: clamp(1.8rem, 3.5vw, 2.6rem);">Formulated feeds for <span class="g-serif" style="color: #1B7A3D;">Kenyan poultry</span></h2>
+                <p style="color: var(--g-muted); font-size: 1.05rem;">
+                    Specially formulated animal feeds designed for optimal growth, productivity, and health. Each formula is balanced with essential nutrients, amino acids, and vitamins for maximum performance.
+                </p>
+                <ul style="list-style: none; padding: 0; margin: 0 0 2rem; display: grid; gap: 0.6rem;">
+                    <li style="display: flex; gap: 0.6rem; align-items: center; color: var(--g-muted);">• Starter, Grower, and Finisher feeds</li>
+                    <li style="display: flex; gap: 0.6rem; align-items: center; color: var(--g-muted);">• Premium Layer Mash with calcium</li>
+                    <li style="display: flex; gap: 0.6rem; align-items: center; color: var(--g-muted);">• Available in 50kg bulk bags</li>
+                </ul>
+                <a href="/Frontend/pages/shop.php?category=feeds" class="g-btn g-btn-dark">Shop Feeds</a>
+            </div>
+            <div style="border-radius: var(--g-radius); overflow: hidden;">
+                <img src="/Frontend/images/Growers Mash.png" alt="Premium animal feeds" style="width: 100%; display: block; object-fit: cover; min-height: 380px;">
             </div>
         </div>
-    </div>
-</section>
+    </section>
+
+    <!-- Shop content: filters + grid -->
+    <section class="g-section g-section-cream" style="padding-top: 3rem;">
+        <div class="g-container">
+            <div class="g-stack-mobile-260" style="display: grid; grid-template-columns: 260px 1fr; gap: 2.5rem; align-items: start;">
+
+                <!-- Sidebar: Filters -->
+                <aside>
+                    <div class="g-shop-sidebar" style="position: sticky; top: 110px;">
+                        <div class="g-form-card" style="padding: 1.6rem;">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 1.2rem;">Filters</h3>
+
+                            <form class="product-filters g-form" style="gap: 1.4rem;">
+                                <div class="g-field">
+                                    <label>Product Type</label>
+                                    <?php
+                                    require_once __DIR__ . '/../../Backend/api/dropdowns.php';
+                                    $types = getSystemDropdownOptions('product_types');
+                                    foreach ($types as $t):
+                                    ?>
+                                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: var(--g-muted); font-size: 0.92rem; font-weight: 500; margin-bottom: 0.4rem;">
+                                        <input type="checkbox" name="type" value="<?php echo htmlspecialchars($t['option_value']); ?>" class="form-checkbox" style="accent-color: var(--g-lime); width: 16px; height: 16px;">
+                                        <?php echo htmlspecialchars($t['option_label']); ?>
+                                    </label>
+                                    <?php endforeach; ?>
+                                </div>
+
+                                <div class="g-field">
+                                    <label>Availability</label>
+                                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: var(--g-muted); font-size: 0.92rem; font-weight: 500; margin-bottom: 0.4rem;">
+                                        <input type="checkbox" name="availability" value="in-stock" class="form-checkbox" checked style="accent-color: var(--g-lime); width: 16px; height: 16px;"> In Stock
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: var(--g-muted); font-size: 0.92rem; font-weight: 500;">
+                                        <input type="checkbox" name="availability" value="preorder" class="form-checkbox" style="accent-color: var(--g-lime); width: 16px; height: 16px;"> Pre-Order
+                                    </label>
+                                </div>
+
+                                <button type="button" class="g-btn g-btn-outline-dark" style="width: 100%; font-size: 0.85rem;"
+                                    onclick="document.querySelectorAll('.product-filters input').forEach(i=>i.checked=false);document.querySelectorAll('.product-card').forEach(c=>c.style.display='');document.getElementById('products-count').textContent = document.querySelectorAll('.product-card').length;">Reset Filters</button>
+                            </form>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.6rem; flex-wrap: wrap; gap: 0.8rem;">
+                        <p style="color: var(--g-muted); margin: 0; font-size: 0.95rem;">Showing <span id="products-count"><?php echo count($products); ?></span> products</p>
+                        <div style="display: flex; gap: 0.8rem; align-items: center;">
+                            <label style="font-size: 0.9rem; color: var(--g-muted);">Sort by:</label>
+                            <select style="padding: 0.55rem 2.2rem 0.55rem 0.7rem; border-radius: var(--g-radius-sm); border: 1px solid var(--g-line); background-color: #fff; font-size: 0.9rem; color: var(--g-text); cursor: pointer; outline: none;">
+                                <option>Newest Arrivals</option>
+                                <option>Price: Low to High</option>
+                                <option>Price: High to Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="g-products">
+                        <?php
+                        if (!empty($products)) {
+                            foreach ($products as $index => $product):
+                                $img = $product['img'] ?? '';
+                                if (!$img) {
+                                    $img = match($product['product_type'] ?? 'feed') {
+                                        'feed' => '/Frontend/images/Growers Mash.png',
+                                        'eggs' => '/Frontend/images/download (3).png',
+                                        'chicks' => '/Frontend/images/download (7).png',
+                                        'live_chicken' => '/Frontend/images/download (4).png',
+                                        default => '/Frontend/images/Chick Starter Crumbs.png'
+                                    };
+                                }
+                                $stock = $product['stock_quantity'] ?? 0;
+                                $inStock = $stock > 0;
+                        ?>
+                        <div class="g-product product-card" data-id="<?php echo $product['id']; ?>" data-type="<?php echo htmlspecialchars($product['product_type'] ?? '', ENT_QUOTES); ?>" data-instock="<?php echo $inStock ? '1' : '0'; ?>">
+                            <a href="/Frontend/pages/product-detail.php?id=<?php echo $product['id']; ?>" style="display: block;">
+                                <div class="g-product-img">
+                                    <span class="g-product-badge"><?php echo $inStock ? 'In Stock' : 'Out of Stock'; ?></span>
+                                    <img src="<?php echo $img; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                </div>
+                            </a>
+                            <div class="g-product-body">
+                                <h3 class="product-name">
+                                    <a href="/Frontend/pages/product-detail.php?id=<?php echo $product['id']; ?>" style="color: inherit;"><?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?></a>
+                                </h3>
+                                <p class="g-product-desc"><?php echo htmlspecialchars(substr($product['description'] ?? '', 0, 90) . (strlen($product['description'] ?? '') > 90 ? '…' : ''), ENT_QUOTES, 'UTF-8'); ?></p>
+                                <div class="g-product-meta">
+                                    <span class="g-product-price">KES <?php echo number_format((float)$product['price'], 0); ?></span>
+                                    <button class="g-product-btn add-to-cart-btn" data-id="<?php echo $product['id']; ?>" data-qty="1" <?php echo !$inStock ? 'disabled' : ''; ?>>
+                                        <?php echo $inStock ? 'Add to Cart' : 'Out of Stock'; ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <?php
+                            endforeach;
+                        } else {
+                        ?>
+                        <div style="grid-column: 1/-1; text-align: center; padding: 4rem 0;">
+                            <p style="color: var(--g-muted); font-size: 1.1rem;">No products available at the moment.</p>
+                        </div>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
 
 <?php
 include '../includes/footer.php';

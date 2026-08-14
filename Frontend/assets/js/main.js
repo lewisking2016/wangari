@@ -1,5 +1,5 @@
 /**
- * Busia Chicken Farm - Main JavaScript
+ * Wangari — Main JavaScript
  * Premium animations, interactions, and functionality
  */
 
@@ -9,7 +9,7 @@
 // GLOBAL APP OBJECT
 // ═══════════════════════════════════════════════════════════════
 
-const BusiaApp = {
+const WangariApp = {
     // Configuration
     config: {
         scrollThreshold: 100,
@@ -26,7 +26,7 @@ const BusiaApp = {
         this.setupShopFilters();
         this.setupCounterAnimation();
         this.setupModalHandlers();
-        console.log('Busia App initialized');
+        console.log('Wangari App initialized');
     },
 
     // ═══════════════════════════════════════════════════════════════
@@ -504,11 +504,11 @@ const BusiaApp = {
 // ═══════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    BusiaApp.init();
+    WangariApp.init();
 });
 
 // Re-initialize on page load
 window.addEventListener('load', () => {
-    BusiaApp.onPageLoad();
+    WangariApp.onPageLoad();
 });
 

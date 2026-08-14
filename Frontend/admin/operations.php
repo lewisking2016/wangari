@@ -11,8 +11,8 @@ session_start();
 $page_title = 'Livestock & Poultry - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'sales_staff'], true)) {
-    echo "<script>window.location.href = '/busiaadmin';</script>";
+if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager','sales_staff'], true)) {
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 
@@ -72,3 +72,4 @@ if (!in_array($tab, $allowedTabs, true)) {
         lucide.createIcons();
     }
 </script>
+<?php include __DIR__ . '/includes/admin_footer.php'; ?>

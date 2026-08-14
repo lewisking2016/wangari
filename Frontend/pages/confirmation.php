@@ -1,7 +1,7 @@
 <?php
 /**
- * Order Confirmation Page
- * Premium Minimalist Redesign
+ * Order Confirmation, Wangari
+ * Growvi design language.
  */
 declare(strict_types=1);
 
@@ -12,7 +12,7 @@ if (is_writable($temp_dir)) {
 session_start();
 
 $path_prefix = '../';
-$page_title = 'Order Confirmation - Busia Chicken Farm';
+$page_title = 'Order Confirmation - Wangari';
 
 include '../includes/header.php';
 
@@ -23,92 +23,75 @@ if (empty($_SESSION['last_order'])) {
 }
 
 $order = $_SESSION['last_order'];
-// Clear the last order so refreshing doesn't show it again (optional, but good practice)
-// unset($_SESSION['last_order']);
 ?>
 
-<!-- Shop Hero -->
-<section style="padding: var(--space-4xl) 0 var(--space-2xl); background-color: var(--gray-50); border-bottom: 1px solid var(--gray-200);">
-    <div class="container" style="text-align: center;">
-        <h1 style="margin-bottom: var(--space-sm);">Order Complete</h1>
-        <p style="font-size: 1.125rem; color: var(--gray-600);">Thank you for shopping with Busia Chicken Farm.</p>
-    </div>
-</section>
+<main class="g-main">
 
-<!-- Confirmation Content -->
-<section style="padding: var(--space-4xl) 0; background-color: var(--white);">
-    <div class="container">
-        <div style="max-width: 600px; margin: 0 auto; text-align: center;">
-            <div style="width: 80px; height: 80px; background: #ECFDF5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-xl); color: var(--success);">
-                <i data-lucide="check-circle" style="width: 40px; height: 40px;"></i>
-            </div>
-            
-            <h2 style="margin-bottom: var(--space-md);">Order Placed Successfully!</h2>
-            <p style="color: var(--gray-600); margin-bottom: var(--space-2xl);">
-                We've received your order and are processing it now. A confirmation email has been sent to you.
-            </p>
-            
-            <div style="background-color: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: var(--space-2xl); text-align: left; margin-bottom: var(--space-2xl);">
-                <h3 style="margin-bottom: var(--space-lg); border-bottom: 1px solid var(--gray-200); padding-bottom: var(--space-md);">Order Details</h3>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg);">
-                    <div>
-                        <div style="color: var(--gray-500); font-size: 0.85rem; margin-bottom: 4px;">Order Number</div>
-                        <div style="font-weight: 600; color: var(--dark);"><?php echo htmlspecialchars($order['order_number']); ?></div>
-                    </div>
-                    <div>
-                        <div style="color: var(--gray-500); font-size: 0.85rem; margin-bottom: 4px;">Date</div>
-                        <div style="font-weight: 600; color: var(--dark);"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></div>
-                    </div>
+    <section class="g-page-hero">
+        <div class="g-container">
+            <h1>Order <span class="g-serif">Complete</span></h1>
+            <p>Your order has been placed successfully.</p>
+        </div>
+    </section>
+
+    <section class="g-section">
+        <div class="g-container" style="max-width: 720px;">
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <div style="width: 88px; height: 88px; background: #ECFDF5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.6rem; color: #15803d;">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+                <h2 style="font-size: clamp(1.8rem, 4vw, 2.4rem); margin-bottom: 0.8rem;">Order Placed Successfully!</h2>
+                <p style="color: var(--g-muted); font-size: 1.05rem; max-width: 46ch; margin: 0 auto;">
+                    We've received your order and are processing it now. A confirmation has been sent to your email and phone.
+                </p>
+            </div>
+
+            <div class="g-summary" style="text-align: left;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--g-line); padding-bottom: 0.8rem;">Order Details</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.4rem;">
                     <div>
-                        <div style="color: var(--gray-500); font-size: 0.85rem; margin-bottom: 4px;">Total Amount</div>
-                        <div style="font-weight: 700; color: var(--primary);">KES <?php echo number_format((float)$order['total_amount'], 0); ?></div>
+                        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--g-muted); margin-bottom: 0.3rem;">Order Number</div>
+                        <div style="font-weight: 700; color: var(--g-text);"><?php echo htmlspecialchars($order['order_number'] ?? ''); ?></div>
                     </div>
                     <div>
-                        <div style="color: var(--gray-500); font-size: 0.85rem; margin-bottom: 4px;">Payment Method</div>
-                        <div style="font-weight: 600; color: var(--dark); text-transform: capitalize;">
-                            <?php 
-                                if ($order['payment_method'] === 'mpesa') echo 'M-Pesa';
-                                elseif ($order['payment_method'] === 'bank') echo 'Bank Transfer';
-                                else echo 'Cash on Delivery';
+                        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--g-muted); margin-bottom: 0.3rem;">Date</div>
+                        <div style="font-weight: 700; color: var(--g-text);"><?php echo date('M d, Y', strtotime($order['created_at'] ?? 'now')); ?></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--g-muted); margin-bottom: 0.3rem;">Total Amount</div>
+                        <div style="font-weight: 800; color: var(--g-ink); font-size: 1.2rem;">KES <?php echo number_format((float)($order['total_amount'] ?? 0), 0); ?></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--g-muted); margin-bottom: 0.3rem;">Payment Method</div>
+                        <div style="font-weight: 700; color: var(--g-text); text-transform: capitalize;">
+                            <?php
+                                $pm = $order['payment_method'] ?? '';
+                                if ($pm === 'mpesa') echo 'M-Pesa';
+                                elseif ($pm === 'cod') echo 'Cash on Delivery';
+                                elseif ($pm === 'bank') echo 'Bank Transfer';
+                                else echo htmlspecialchars(str_replace('_', ' ', $pm));
                             ?>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <?php if ($order['payment_method'] === 'mpesa'): ?>
-                <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: var(--space-lg); margin-bottom: var(--space-2xl); text-align: left; display: flex; gap: var(--space-md); align-items: flex-start;">
-                    <i data-lucide="info" style="color: #3B82F6; width: 24px; height: 24px; flex-shrink: 0;"></i>
-                    <div>
-                        <h4 style="color: #1D4ED8; margin-bottom: 8px;">M-Pesa Payment Instructions</h4>
-                        <p style="color: #1E3A8A; font-size: 0.95rem; margin: 0;">
-                            Please go to your M-Pesa menu, select Lipa na M-Pesa, Paybill, enter Business Number <strong>123456</strong>, Account Number <strong><?php echo htmlspecialchars($order['order_number']); ?></strong>, and Amount <strong>KES <?php echo number_format((float)$order['total_amount'], 0); ?></strong>.
-                        </p>
-                    </div>
+
+                <?php if (!empty($order['delivery_charge']) || isset($order['subtotal'])): ?>
+                <div style="border-top: 1px solid var(--g-line); padding-top: 1rem;">
+                    <div class="g-summary-row"><span>Subtotal</span><span>KES <?php echo number_format((float)($order['subtotal'] ?? $order['total_amount'] ?? 0), 0); ?></span></div>
+                    <div class="g-summary-row"><span>Delivery</span><span><?php echo (float)($order['delivery_charge'] ?? 0) > 0 ? 'KES ' . number_format((float)$order['delivery_charge'], 0) : '<span style="color:#15803d;font-weight:700;">FREE</span>'; ?></span></div>
                 </div>
-            <?php elseif ($order['payment_method'] === 'bank'): ?>
-                <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: var(--space-lg); margin-bottom: var(--space-2xl); text-align: left; display: flex; gap: var(--space-md); align-items: flex-start;">
-                    <i data-lucide="info" style="color: #3B82F6; width: 24px; height: 24px; flex-shrink: 0;"></i>
-                    <div>
-                        <h4 style="color: #1D4ED8; margin-bottom: 8px;">Bank Transfer Instructions</h4>
-                        <p style="color: #1E3A8A; font-size: 0.95rem; margin: 0;">
-                            Please transfer the total amount to KCB Bank, Account Name: Busia Chicken Farm, Account No: <strong>1234567890</strong>. Use <strong><?php echo htmlspecialchars($order['order_number']); ?></strong> as the payment reference.
-                        </p>
-                    </div>
+                <?php endif; ?>
+
+                <div style="margin-top: 1.8rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="/Frontend/pages/shop.php" class="g-btn g-btn-dark">Continue Shopping</a>
+                    <a href="/Frontend/pages/dashboard.php" class="g-btn g-btn-outline-dark">My Dashboard</a>
                 </div>
-            <?php endif; ?>
-            
-            <div style="display: flex; gap: var(--space-md); justify-content: center;">
-                <a href="/Frontend/pages/shop.php" class="btn btn-outline">Continue Shopping</a>
-                <a href="/Frontend/index.php" class="btn btn-primary">Go to Home</a>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+
+</main>
 
 <?php
 include '../includes/footer.php';

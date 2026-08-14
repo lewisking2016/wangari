@@ -94,7 +94,7 @@ try {
     
     // Insert testimonials
     $pdo->exec("INSERT IGNORE INTO testimonials (customer_name, customer_role, rating, content, is_approved) VALUES
-        ('John Kamau', 'Commercial Farmer, Nairobi', 5, 'Busia Chicken Farm has been my go-to supplier for the past 3 years. Their day-old chicks have excellent survival rates and their feeds produce outstanding results.', 1),
+        ('John Kamau', 'Commercial Farmer, Nairobi', 5, 'Wangari has been my go-to supplier for the past 3 years. Their day-old chicks have excellent survival rates and their feeds produce outstanding results.', 1),
         ('Mary Akinyi', 'Small-Scale Farmer, Kisumu', 5, 'The quality of their layers is exceptional. My hens are producing 290+ eggs per year. The support team is also very helpful with advice.', 1),
         ('Peter Ochieng', 'Farm Manager, Bungoma', 4, 'Great products and reliable delivery. Their broilers reach market weight faster than other breeds I have tried. Highly recommended!', 1)
     ");
@@ -103,7 +103,7 @@ try {
     // Add farm manager user
     $managerHash = password_hash('manager123', PASSWORD_DEFAULT);
     $pdo->exec("INSERT IGNORE INTO users (username, email, password_hash, role, first_name, last_name) VALUES 
-        ('manager', 'manager@busiachicken.com', '$managerHash', 'farm_manager', 'Farm', 'Manager')
+        ('manager', 'manager@wangari.farm', '$managerHash', 'farm_manager', 'Farm', 'Manager')
     ");
     echo "<span class='ok'>✓ Added farm manager account (manager / manager123)</span>";
     

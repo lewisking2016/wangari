@@ -18,8 +18,8 @@ include __DIR__ . '/includes/admin_header.php';
 require_once __DIR__ . '/../../Backend/api/dropdowns.php';
 
 // Check admin access
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'sales_staff'], true)) {
-    header("Location: /busiaadmin");
+if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager','sales_staff'], true)) {
+    header("Location: /wangariadmin");
     exit;
 }
 
@@ -392,12 +392,12 @@ if ($pdo) {
             
             <div class="admin-form-group">
                 <label class="admin-form-label">Username</label>
-                <input type="text" name="username" required placeholder="e.g., john_doe" class="admin-form-control">
+                <input type="text" name="username" required placeholder="e.g. john_doe" class="admin-form-control">
             </div>
 
             <div class="admin-form-group">
                 <label class="admin-form-label">Email Address</label>
-                <input type="email" name="email" required placeholder="e.g., john@example.com" class="admin-form-control">
+                <input type="email" name="email" required placeholder="e.g. john@example.com" class="admin-form-control">
             </div>
 
             <div class="admin-form-group">

@@ -1,6 +1,7 @@
 <?php
 /**
- * Global Header & Navigation
+ * Global Header & Navigation, Wangari
+ * Growvi-style dark ink navigation with lime accents.
  */
 declare(strict_types=1);
 
@@ -32,88 +33,105 @@ function navActive(string $page, string $current): string {
 
 // Determine login state for public site (only customer role shows on website)
 $is_customer_logged_in = !empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'customer';
+
+// Cart count for badge
+$cartCount = 0;
+if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    $cartCount = array_sum(array_map('intval', $_SESSION['cart']));
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- SEO -->
+    <meta name="description" content="Wangari, smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one platform. Inspired by Prof. Wangari Maathai.">
+    <meta name="theme-color" content="#000B22">
+
     <title><?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></title>
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Inter Tight + Instrument Serif (Growvi type system) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/vendor/swiper/swiper-bundle.min.css">
 
-    <!-- Premium Stylesheet -->
+    <!-- Stylesheets (growvi.css loaded last to override legacy) -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/components.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/animations.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/responsive.css">
-    
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/growvi.css">
+
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/Frontend/images/busia logo.png">
+    <link rel="icon" type="image/svg+xml" href="/Frontend/images/wangari-mark.svg">
 </head>
 <body>
 
-    <!-- Main Navigation -->
-    <nav class="navbar">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; position: relative;">
-            <!-- Brand Logo -->
-            <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none; z-index: 10;">
-                <img src="/Frontend/images/busia logo.png" alt="Busia Chicken Farm Logo" style="height: 48px; width: auto; object-fit: contain;">
+<!-- ═══════════════════════════════════════════════ -->
+<!-- NAVBAR, Growvi ink style                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<nav class="g-nav" id="gNav">
+    <div class="g-nav-inner">
+        <a href="/" class="g-logo">
+            <img src="/Frontend/images/wangari-mark.svg" alt="Wangari">
+            <span>Wangari<em>.</em></span>
+        </a>
+
+        <ul class="g-nav-links" id="gNavLinks">
+            <li><a class="<?php echo navActive('home', $currentPage); ?>" href="/">Home</a></li>
+            <li><a class="<?php echo navActive('about', $currentPage); ?>" href="/Frontend/pages/about.php">About</a></li>
+            <li><a class="<?php echo navActive('services', $currentPage); ?>" href="/Frontend/pages/services.php">Services</a></li>
+            <li><a class="<?php echo navActive('recipes', $currentPage); ?>" href="/Frontend/pages/recipes.php">Recipes</a></li>
+            <li><a class="<?php echo navActive('shop', $currentPage); ?>" href="/Frontend/pages/shop.php">Shop</a></li>
+            <li><a class="<?php echo navActive('contact', $currentPage); ?>" href="/Frontend/pages/contact.php">Contact</a></li>
+            <?php if ($is_customer_logged_in): ?>
+                <li><a class="<?php echo navActive('dashboard', $currentPage); ?>" href="/Frontend/pages/dashboard.php">Dashboard</a></li>
+            <?php endif; ?>
+        </ul>
+
+        <div class="g-nav-right">
+            <?php if ($is_customer_logged_in): ?>
+                <a class="g-btn g-btn-lime g-nav-cta" href="/Frontend/pages/logout.php">Sign Out</a>
+            <?php else: ?>
+                <a class="g-btn g-btn-outline g-nav-cta" href="/Frontend/pages/login.php">Login</a>
+                <a class="g-btn g-btn-lime g-nav-cta" href="/Frontend/pages/register.php">Get Started</a>
+            <?php endif; ?>
+
+            <a href="/Frontend/pages/cart.php" class="g-nav-cart" aria-label="Cart">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                <?php if ($cartCount > 0): ?><span class="g-cart-count"><?php echo $cartCount; ?></span><?php endif; ?>
             </a>
 
-            <!-- Mobile Menu Button -->
-            <button id="mobile-menu-btn" style="display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; z-index: 10;" aria-label="Toggle menu">
-                <span style="display: block; width: 24px; height: 2px; background: var(--dark); transition: transform 0.3s;"></span>
-                <span style="display: block; width: 24px; height: 2px; background: var(--dark); transition: opacity 0.3s;"></span>
-                <span style="display: block; width: 24px; height: 2px; background: var(--dark); transition: transform 0.3s;"></span>
+            <button class="g-hamburger" id="gHamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
             </button>
-
-            <!-- Desktop Navigation -->
-            <div class="navbar-content" id="main-nav">
-                <ul class="navbar-nav main-links">
-                    <li><a class="nav-link<?php echo navActive('home', $currentPage); ?>" href="/">Home</a></li>
-                    <li><a class="nav-link<?php echo navActive('about', $currentPage); ?>" href="/Frontend/pages/about.php">About</a></li>
-                    <li><a class="nav-link<?php echo navActive('services', $currentPage); ?>" href="/Frontend/pages/services.php">Services</a></li>
-                    <li><a class="nav-link<?php echo navActive('recipes', $currentPage); ?>" href="/Frontend/pages/recipes.php">Recipes</a></li>
-                    <li><a class="nav-link<?php echo navActive('products', $currentPage); ?>" href="/Frontend/pages/products.php">Products</a></li>
-                    <li><a class="nav-link<?php echo navActive('shop', $currentPage); ?>" href="/Frontend/pages/shop.php">Shop</a></li>
-                    <li><a class="nav-link<?php echo navActive('contact', $currentPage); ?>" href="/Frontend/pages/contact.php">Contact</a></li>
-                </ul>
-
-                <ul class="navbar-nav auth-actions">
-                    <?php if ($is_customer_logged_in): ?>
-                        <li><a class="nav-link<?php echo navActive('dashboard', $currentPage); ?>" href="/Frontend/pages/dashboard.php">Dashboard</a></li>
-                        <li>
-                            <a class="btn btn-outline nav-btn" href="/Frontend/pages/logout.php">Logout</a>
-                        </li>
-                    <?php else: ?>
-                        <li>
-                            <a class="btn btn-outline nav-btn" href="/Frontend/pages/login.php">Login</a>
-                        </li>
-                        <li>
-                            <a class="btn btn-primary nav-btn" href="/Frontend/pages/register.php">Register</a>
-                        </li>
-                    <?php endif; ?>
-
-                    <li class="cart-item">
-                        <a href="/Frontend/pages/cart.php" class="nav-link cart-link">
-                            <i data-lucide="shopping-cart"></i>
-                            <span class="cart-count">0</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <style>
-        @media (max-width: 768px) {
-            #mobile-menu-btn { display: flex !important; }
-        }
-    </style>
+<script>
+(function () {
+    var nav = document.getElementById('gNav');
+    var links = document.getElementById('gNavLinks');
+    var burger = document.getElementById('gHamburger');
+
+    function onScroll() {
+        if (nav && window.scrollY > 30) { nav.classList.add('scrolled'); }
+        else if (nav) { nav.classList.remove('scrolled'); }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    if (burger && links) {
+        burger.addEventListener('click', function () {
+            burger.classList.toggle('open');
+            links.classList.toggle('open');
+        });
+    }
+})();
+</script>

@@ -99,7 +99,7 @@ try {
         ['category_id' => $feedCatId, 'name' => 'Grower Feed (4-8 weeks)', 'slug' => 'grower-feed', 'product_type' => 'feed', 'price' => 2800, 'stock_quantity' => 120, 'description' => 'Balanced formula for growing chicks. 20% crude protein.'],
         ['category_id' => $feedCatId, 'name' => 'Layer Mash (16 weeks+)', 'slug' => 'layer-mash', 'product_type' => 'feed', 'price' => 2500, 'stock_quantity' => 150, 'description' => 'Premium feed for laying hens. 18% crude protein with calcium.'],
         ['category_id' => $feedCatId, 'name' => 'Broiler Finisher (6-8 weeks)', 'slug' => 'broiler-finisher', 'product_type' => 'feed', 'price' => 2900, 'stock_quantity' => 110, 'description' => 'Final stage feed for broilers. High energy formula.'],
-        ['category_id' => $feedCatId, 'name' => 'Busia Premium Mix', 'slug' => 'busia-premium-mix', 'product_type' => 'feed', 'price' => 3100, 'stock_quantity' => 200, 'description' => 'Our signature blend. Multi-purpose feed suitable for all poultry types.'],
+        ['category_id' => $feedCatId, 'name' => 'Wangari Premium Mix', 'slug' => 'wangari-premium-mix', 'product_type' => 'feed', 'price' => 3100, 'stock_quantity' => 200, 'description' => 'Our signature blend. Multi-purpose feed suitable for all poultry types.'],
         ['category_id' => $feedCatId, 'name' => 'Vitamin & Mineral Supplements', 'slug' => 'vitamin-mineral-supplements', 'product_type' => 'feed', 'price' => 1200, 'stock_quantity' => 80, 'description' => 'Complete vitamin complex and mineral pack for all poultry.'],
     ];
 

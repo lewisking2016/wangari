@@ -11,6 +11,11 @@ session_start();
 $page_title = 'Health & Veterinary - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
+if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager'], true)) {
+    header('Location: /wangariadmin');
+    exit;
+}
+
 $pdo = getDB();
 $tab = $_GET['tab'] ?? 'all';
 $validTabs = ['all','vaccination','mortality','treatment','checkup','deworming','vitamins','antibiotic','observation','schedule'];

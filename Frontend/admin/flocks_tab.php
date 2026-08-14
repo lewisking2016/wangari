@@ -5,7 +5,7 @@
 declare(strict_types=1);
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    echo "<script>window.location.href = '/busiaadmin';</script>";
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 ?>
@@ -205,7 +205,7 @@ if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_ad
         try {
             const formData = new FormData();
             formData.append('id', id.toString());
-            formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+            formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
 
             const response = await fetch('/Backend/api/admin_poultry.php?action=delete_flock', {
                 method: 'POST',
@@ -225,7 +225,7 @@ if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_ad
         const btn = e.target.querySelector('[type="submit"]');
         setBtnLoading(btn, true);
         const formData = new FormData(e.target);
-        formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+        formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
         try {
             const response = await fetch('/Backend/api/admin_poultry.php?action=save_flock', {
                 method: 'POST',

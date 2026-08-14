@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Connection & Configuration
- * PDO-based database management for Busia Chicken Farm
+ * PDO-based database management for Wangari
  * PRODUCTION CONFIGURATION FOR CPANEL
  */
 declare(strict_types=1);

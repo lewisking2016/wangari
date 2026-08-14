@@ -84,8 +84,8 @@ function getFallbackProducts(): array
         ],
         [
             'id' => 6,
-            'name' => 'Busia Premium Mix',
-            'slug' => 'busia-premium-mix',
+            'name' => 'Wangari Premium Mix',
+            'slug' => 'wangari-premium-mix',
             'description' => 'Our signature blend. Multi-purpose feed suitable for all poultry types.',
             'product_type' => 'feed',
             'price' => 3100,

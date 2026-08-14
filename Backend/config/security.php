@@ -1,7 +1,7 @@
 <?php
 /**
  * Security & Utility Functions
- * PSR-12 compliant security helpers for Busia Chicken Farm
+ * PSR-12 compliant security helpers for Wangari
  */
 declare(strict_types=1);
 

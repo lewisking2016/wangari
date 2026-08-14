@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../Backend/api/dropdowns.php';
 
 // Check admin access
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    echo "<script>window.location.href = '/busiaadmin';</script>";
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 
@@ -427,7 +427,7 @@ if ($pdo) {
                             <span style="font-weight: 700; font-size: 0.95rem; color: var(--admin-text-heading);"><?php echo htmlspecialchars($p['name']); ?></span>
                             <span class="badge-pill badge-pill-success" style="font-size: 0.7rem;">Linked to <?php echo htmlspecialchars($p['linked_raw_material_name']); ?></span>
                         </div>
-                        <p style="margin: 0 0 12px; font-size: 0.8rem; color: #64748b;">Selling Price: <strong>KES <?php echo number_format($p['price'], 2); ?> / kg</strong></p>
+                        <p style="margin: 0 0 12px; font-size: 0.8rem; color: #64748b;">Selling Price: <strong>KES <?php echo number_format((float)$p['price'], 2); ?> / kg</strong></p>
                         
                         <div style="margin-bottom: 12px;">
                             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #475569; margin-bottom: 4px;">

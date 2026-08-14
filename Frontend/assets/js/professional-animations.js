@@ -194,23 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
             stats.forEach(stat => statsObserver.observe(stat));
         }
 
-        // High-end section title reveals
+        // High-end section title reveals (IntersectionObserver-based — no plugin needed)
         const sectionHeaders = document.querySelectorAll('.section-header');
-        sectionHeaders.forEach(header => {
-            gsap.fromTo(header, 
-                { opacity: 0, y: 50 },
-                {
-                    opacity: 1, 
-                    y: 0, 
-                    duration: 1, 
-                    ease: "power3.out",
-                    scrollTrigger: {
-                        trigger: header,
-                        start: "top 85%",
+        if (sectionHeaders.length > 0) {
+            const headerObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        gsap.fromTo(entry.target,
+                            { opacity: 0, y: 50 },
+                            { opacity: 1, y: 0, duration: 1, ease: "power3.out" }
+                        );
+                        headerObserver.unobserve(entry.target);
                     }
-                }
-            );
-        });
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+            sectionHeaders.forEach(header => {
+                gsap.set(header, { opacity: 0, y: 50 });
+                headerObserver.observe(header);
+            });
+        }
 
         // Magnetic Button Effect
         document.querySelectorAll('.btn-primary, .btn-accent').forEach(btn => {

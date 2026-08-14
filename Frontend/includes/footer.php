@@ -1,7 +1,7 @@
 <?php
 /**
- * Global Footer template for Frontend pages.
- * Clean, minimal redesign.
+ * Global Footer, Wangari
+ * Growvi-style dark ink footer with email subscribe strip.
  */
 declare(strict_types=1);
 
@@ -9,58 +9,67 @@ if (!isset($path_prefix)) {
     $path_prefix = '';
 }
 
-$site_name = function_exists('getSetting') ? getSetting('farm_name', 'Busia Chicken Farm') : 'Busia Chicken Farm';
-$site_email = function_exists('getSetting') ? getSetting('farm_email', 'info@busiachicken.com') : 'info@busiachicken.com';
+$site_name = function_exists('getSetting') ? getSetting('farm_name', 'Wangari') : 'Wangari';
+$site_email = function_exists('getSetting') ? getSetting('farm_email', 'info@wangari.farm') : 'info@wangari.farm';
 $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727 585 599') : '+254 727 585 599';
 ?>
 
-    <!-- Footer Section -->
-    <footer style="background-color: var(--gray-50); color: var(--gray-600); padding: var(--space-4xl) 0 var(--space-xl); border-top: 1px solid var(--gray-200);">
-        <div class="container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3xl); margin-bottom: var(--space-3xl);">
-                <!-- Column 1: Info -->
-                <div style="grid-column: span 2;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--space-md);">
-                        <img src="/Frontend/images/busia logo.png" alt="Busia Chicken Farm Logo" style="height: 60px; width: auto; object-fit: contain;">
-                        <span style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--dark); letter-spacing: 0.5px; display: none;">
-                            BUSIA<span style="color: var(--primary);">CHICKEN</span>
-                        </span>
-                    </div>
-                        <p style="font-size: 0.95rem; margin-bottom: var(--space-md); max-width: 400px;">
-                            Leading supplier of premium grade poultry products, feed management tools, and expert consulting in East Africa.
-                        </p>
-                        <p style="font-size: 0.95rem; color: var(--dark); font-weight: 500;">
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- FOOTER, Growvi ink style                       -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <footer class="g-footer">
+        <div class="g-container">
+            <div class="g-footer-top">
+                <!-- Brand -->
+                <div class="g-footer-brand">
+                    <a href="/" class="g-logo">
+                        <img src="/Frontend/images/wangari-mark.svg" alt="Wangari">
+                        <span>Wangari<em>.</em></span>
+                    </a>
+                    <p>Smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one place, inspired by Prof. Wangari Maathai.</p>
+                    <p style="margin-top: 1rem; color: rgba(255,255,255,0.8);">
                         <?php echo htmlspecialchars($site_phone, ENT_QUOTES, 'UTF-8'); ?><br>
                         <?php echo htmlspecialchars($site_email, ENT_QUOTES, 'UTF-8'); ?>
-                        </p>
+                    </p>
                 </div>
 
-                <!-- Column 2: Quick Links -->
+                <!-- Menus -->
                 <div>
-                    <h4 style="color: var(--dark); margin-bottom: var(--space-md);">Company</h4>
-                    <ul style="list-style: none; display: flex; flex-direction: column; gap: var(--space-sm); font-size: 0.95rem;">
-                        <li><a href="/Frontend/pages/about.php" style="color: var(--gray-600);">About Us</a></li>
-                        <li><a href="/Frontend/pages/faq.php" style="color: var(--gray-600);">FAQ</a></li>
-                        <li><a href="/Frontend/pages/contact.php" style="color: var(--gray-600);">Contact</a></li>
+                    <h4>Menus</h4>
+                    <ul class="g-footer-links">
+                        <li><a href="/Frontend/pages/about.php">About Us</a></li>
+                        <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
+                        <li><a href="/Frontend/pages/contact.php">Contact Us</a></li>
                     </ul>
                 </div>
 
-                <!-- Column 3: Shop -->
+                <!-- CMS Pages -->
                 <div>
-                    <h4 style="color: var(--dark); margin-bottom: var(--space-md);">Shop</h4>
-                    <ul style="list-style: none; display: flex; flex-direction: column; gap: var(--space-sm); font-size: 0.95rem;">
-                        <li><a href="/Frontend/pages/products.php" style="color: var(--gray-600);">All Products</a></li>
-                        <li><a href="/Frontend/pages/shop.php?category=chicks" style="color: var(--gray-600);">Day-Old Chicks</a></li>
-                        <li><a href="/Frontend/pages/shop.php?category=feeds" style="color: var(--gray-600);">Feeds</a></li>
+                    <h4>CMS Pages</h4>
+                    <ul class="g-footer-links">
+                        <li><a href="/Frontend/pages/recipes.php">Blogs</a></li>
+                        <li><a href="/Frontend/pages/services.php">Services</a></li>
+                        <li><a href="/Frontend/pages/shop.php">Shop</a></li>
+                        <li><a href="/Frontend/pages/cart.php">My Cart</a></li>
                     </ul>
+                </div>
+
+                <!-- Stay Up To Date -->
+                <div class="g-subscribe">
+                    <h4>Stay Up To Date</h4>
+                    <p>Get the latest farming tips, insights, and updates delivered straight to your inbox.</p>
+                    <form class="g-subscribe-form" id="gSubscribeForm" action="<?php echo $path_prefix; ?>pages/newsletter.php" method="post">
+                        <input type="email" name="email" placeholder="you@farm.co.ke" required aria-label="Email address">
+                        <button type="submit" aria-label="Subscribe">Subscribe</button>
+                    </form>
                 </div>
             </div>
 
-            <div style="border-top: 1px solid var(--gray-200); padding-top: var(--space-xl); display: flex; justify-content: space-between; flex-wrap: wrap; font-size: 0.875rem;">
+            <div class="g-footer-bottom">
                 <p>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars($site_name, ENT_QUOTES, 'UTF-8'); ?>. All rights reserved.</p>
-                <div style="display: flex; gap: var(--space-md);">
-                    <a href="#" style="color: var(--gray-600);">Privacy Policy</a>
-                    <a href="#" style="color: var(--gray-600);">Terms of Service</a>
+                <div style="display: flex; gap: 1.5rem;">
+                    <a href="/Frontend/pages/privacy.php">Privacy Policy</a>
+                    <a href="/Frontend/pages/terms.php">Terms of Service</a>
                 </div>
             </div>
         </div>
@@ -70,96 +79,39 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
     <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/vendor/gsap/gsap.min.js"></script>
     <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/vendor/swiper/swiper-bundle.min.js"></script>
     <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/vendor/lucide/lucide.min.js"></script>
-    
-    <!-- Initialize Animations using GSAP instead of Motion CDN to avoid network issues -->
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Lucide icons
+            // Lucide icons (legacy pages)
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
 
-            // Elegant hero animations
+            // GSAP hero + scroll reveals (kept safe, no ScrollTrigger plugin required)
             if (typeof gsap !== 'undefined') {
                 const heroContent = document.querySelectorAll('.hero-content > *');
                 if (heroContent.length > 0) {
-                    gsap.fromTo(heroContent, 
+                    gsap.fromTo(heroContent,
                         { opacity: 0, y: 30 },
                         { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power2.out" }
                     );
                 }
 
-                const heroImage = document.querySelector('.hero-image');
-                if (heroImage) {
-                    gsap.fromTo(heroImage,
-                        { opacity: 0, scale: 0.95 },
-                        { opacity: 1, scale: 1, duration: 1, delay: 0.2, ease: "power2.out" }
-                    );
-                }
-
-                // Simple Scroll animations for sections
-                const observerOptions = {
-                    root: null,
-                    rootMargin: '0px 0px -100px 0px',
-                    threshold: 0.1
-                };
-
-                const observer = new IntersectionObserver((entries) => {
+                const revealObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             gsap.fromTo(entry.target,
                                 { opacity: 0, y: 40 },
                                 { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
                             );
-                            observer.unobserve(entry.target);
+                            revealObserver.unobserve(entry.target);
                         }
                     });
-                }, observerOptions);
+                }, { rootMargin: '0px 0px -80px 0px', threshold: 0.1 });
 
                 document.querySelectorAll('section:not(:first-of-type)').forEach(section => {
                     section.style.opacity = '0';
-                    observer.observe(section);
-                });
-
-                // Animate cards on scroll with stagger
-                const cardObserver = new IntersectionObserver((entries) => {
-                    const visibleCards = entries
-                        .filter(entry => entry.isIntersecting)
-                        .map(entry => entry.target);
-                    
-                    if (visibleCards.length > 0) {
-                        gsap.fromTo(visibleCards,
-                            { opacity: 0, y: 40, scale: 0.95 },
-                            { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.15, ease: "power2.out" }
-                        );
-                        visibleCards.forEach(card => cardObserver.unobserve(card));
-                    }
-                }, observerOptions);
-
-                document.querySelectorAll('.product-card, .card, .dashboard-card, .stat-box').forEach(card => {
-                    card.style.opacity = '0';
-                    cardObserver.observe(card);
-                });
-                
-                // Animate typography on scroll
-                const typoObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            gsap.fromTo(entry.target,
-                                { opacity: 0, y: 20 },
-                                { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }
-                            );
-                            typoObserver.unobserve(entry.target);
-                        }
-                    });
-                }, observerOptions);
-
-                document.querySelectorAll('h1, h2, h3, .section-header p').forEach(typo => {
-                    // avoid re-animating hero content
-                    if (!typo.closest('.hero-content')) {
-                        typo.style.opacity = '0';
-                        typoObserver.observe(typo);
-                    }
+                    revealObserver.observe(section);
                 });
             }
         });
@@ -168,5 +120,6 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
     <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/main.js" defer></script>
     <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/hero-slider.js" defer></script>
     <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/professional-animations.js" defer></script>
+    <script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/growvi-animations.js" defer></script>
 </body>
 </html>

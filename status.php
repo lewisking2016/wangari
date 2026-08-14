@@ -8,7 +8,7 @@ echo "<!DOCTYPE html><html><head><title>Status Check</title>";
 echo "<style>body{font-family:system-ui;padding:40px;background:#f5f5f5;}";
 echo ".ok{color:#28a745;} .fail{color:#dc3545;} .warn{color:#ffc107;}";
 echo "code{background:#fff;padding:4px 8px;border-radius:4px;}</style></head><body>";
-echo "<h1>🔍 Busia Chicken - System Status</h1>";
+echo "<h1>🔍 Wangari - System Status</h1>";
 
 // Check database connection
 require_once __DIR__ . '/Backend/config/database.php';
@@ -57,7 +57,7 @@ if ($pdo) {
 
 echo "<h2>Admin Access</h2>";
 echo "<p>Admin Login: <a href='/Frontend/admin/login.php'>/Frontend/admin/login.php</a></p>";
-echo "<p>Shortcut: <a href='/busiaadmin'>/busiaadmin</a> (redirects to admin login)</p>";
+echo "<p>Shortcut: <a href='/wangariadmin'>/wangariadmin</a> (redirects to admin login)</p>";
 
 echo "<h2>Test Pages</h2>";
 echo "<ul>";

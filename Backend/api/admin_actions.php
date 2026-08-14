@@ -127,7 +127,7 @@ try {
         case 'export_orders':
             // Generate CSV for orders
             header('Content-Type: text/csv');
-            header('Content-Disposition: attachment; filename="busia_orders_report_' . date('Y-m-d') . '.csv"');
+            header('Content-Disposition: attachment; filename="wangari_orders_report_' . date('Y-m-d') . '.csv"');
 
             $output = fopen('php://output', 'w');
             fputcsv($output, ['Order ID', 'Order Number', 'Customer', 'Email', 'Amount', 'Status', 'Date']);

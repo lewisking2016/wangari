@@ -18,7 +18,7 @@ chdir($docRoot);
 
 // Step 1: Remove conflicting files from git tracking
 echo "<h2>Step 1: Removing conflicting files from git...</h2>";
-$files = ['.htaccess', 'busiaadmin.php', 'complete_data_import.php', 'import_data.php', 'update_admin_password.php', 'test_assets.php', 'status.php'];
+$files = ['.htaccess', 'wangariadmin.php', 'complete_data_import.php', 'import_data.php', 'update_admin_password.php', 'test_assets.php', 'status.php'];
 
 foreach ($files as $file) {
     if (file_exists($file)) {

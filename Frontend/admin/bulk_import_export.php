@@ -20,9 +20,9 @@ $page_title = 'Bulk Import/Export - Admin';
 // Load shared config (getDB, verifyCSRFToken, security helpers) BEFORE any output
 require_once __DIR__ . '/../includes/config.php';
 
-// Check admin access before producing any output (downloads must not leak HTML)
+// Check admin access
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    header('Location: /busiaadmin');
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 

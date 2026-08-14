@@ -1,7 +1,7 @@
 <?php
 /**
- * Customer Dashboard
- * Clean SaaS-style account overview
+ * Customer Dashboard, Wangari (Growvi style)
+ * Clean account overview with serif KPIs.
  */
 declare(strict_types=1);
 
@@ -18,7 +18,7 @@ if (empty($_SESSION['user_id'])) {
 }
 
 $path_prefix = '../';
-$page_title = 'My Account - Busia Chicken Farm';
+$page_title = 'My Account - Wangari';
 
 include '../includes/header.php';
 
@@ -78,183 +78,138 @@ if ($pdo) {
         margin: 0 auto;
         padding: 60px 20px 80px;
     }
-
     .user-dash-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-end;
         margin-bottom: 32px;
         flex-wrap: wrap;
         gap: 16px;
     }
-
     .user-dash-header h1 {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--dark);
+        font-size: 1.9rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--g-text);
         margin: 0;
     }
-
-    .user-dash-header p {
-        margin: 4px 0 0 0;
-        font-size: 0.9rem;
-        color: var(--gray-500);
-    }
-
+    .user-dash-header p { margin: 4px 0 0 0; font-size: 0.9rem; color: var(--g-muted); }
     .user-kpi-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
         margin-bottom: 32px;
     }
-
     .user-kpi-card {
-        background: var(--white);
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-sm);
+        background: #fff;
+        border: 1px solid var(--g-line);
+        border-radius: var(--g-radius);
         padding: 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        transition: box-shadow 0.2s ease;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
     }
-
-    .user-kpi-card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-    }
-
+    .user-kpi-card:hover { box-shadow: 0 14px 34px rgba(0,11,34,0.08); transform: translateY(-3px); }
     .user-kpi-card small {
         display: block;
-        color: var(--gray-500);
+        color: var(--g-muted);
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.06em;
         font-size: 0.75rem;
     }
-
     .user-kpi-card strong {
         display: block;
         margin-top: 8px;
-        font-size: 1.75rem;
-        font-family: 'Outfit', sans-serif;
-        font-weight: 700;
-        color: var(--dark);
+        font-size: 1.9rem;
+        font-family: var(--g-serif);
+        font-weight: 400;
+        color: var(--g-ink);
     }
-
     .user-kpi-icon {
         width: 48px;
         height: 48px;
-        border-radius: var(--radius-sm);
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-
     .user-main-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 24px;
         margin-bottom: 32px;
     }
-
     .user-card {
-        background: var(--white);
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-sm);
+        background: #fff;
+        border: 1px solid var(--g-line);
+        border-radius: var(--g-radius);
         padding: 24px;
     }
-
     .user-card h3 {
-        font-family: 'Outfit', sans-serif;
         font-size: 1.1rem;
         font-weight: 600;
-        color: var(--dark);
+        color: var(--g-text);
         margin: 0 0 20px 0;
     }
-
     .user-order-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 14px 0;
-        border-bottom: 1px solid var(--gray-100);
+        border-bottom: 1px solid var(--g-line);
         gap: 12px;
     }
-
-    .user-order-row:last-child {
-        border-bottom: none;
-    }
-
+    .user-order-row:last-child { border-bottom: none; }
     .user-badge {
         display: inline-flex;
         align-items: center;
-        padding: 3px 10px;
-        border-radius: 2px;
-        font-size: 0.75rem;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
         font-weight: 600;
         text-transform: capitalize;
     }
-
     .user-badge-pending { background: #fef3c7; color: #b45309; }
     .user-badge-completed { background: #dcfce7; color: #15803d; }
     .user-badge-cancelled { background: #fee2e2; color: #b91c1c; }
     .user-badge-processing { background: #dbeafe; color: #1d4ed8; }
     .user-badge-shipped { background: #e0e7ff; color: #4338ca; }
     .user-badge-paid { background: #dcfce7; color: #15803d; }
-
     .user-profile-field {
         display: flex;
         justify-content: space-between;
         padding: 12px 0;
-        border-bottom: 1px solid var(--gray-100);
+        border-bottom: 1px solid var(--g-line);
         font-size: 0.9rem;
     }
-
-    .user-profile-field:last-child {
-        border-bottom: none;
-    }
-
-    .user-profile-field .label {
-        color: var(--gray-500);
-        font-weight: 500;
-    }
-
-    .user-profile-field .value {
-        color: var(--dark);
-        font-weight: 600;
-    }
-
+    .user-profile-field:last-child { border-bottom: none; }
+    .user-profile-field .label { color: var(--g-muted); font-weight: 500; }
+    .user-profile-field .value { color: var(--g-text); font-weight: 600; }
     .user-quick-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-top: 20px;
     }
-
     .user-action-btn {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
         padding: 12px 16px;
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-sm);
-        background: var(--white);
-        color: var(--dark);
+        border: 1px solid var(--g-line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--g-text);
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         text-decoration: none;
         transition: all 0.2s ease;
         cursor: pointer;
     }
-
-    .user-action-btn:hover {
-        border-color: var(--primary);
-        color: var(--primary);
-        background: rgba(27, 94, 32, 0.03);
-    }
-
+    .user-action-btn:hover { border-color: var(--g-ink); background: var(--g-ink); color: #fff; }
     @media (max-width: 768px) {
         .user-kpi-grid { grid-template-columns: 1fr; }
         .user-main-grid { grid-template-columns: 1fr; }
@@ -269,8 +224,7 @@ if ($pdo) {
             <h1>Welcome back, <?php echo htmlspecialchars($user['first_name'] ?? $user['username'] ?? 'Customer'); ?></h1>
             <p>Here's an overview of your account activity.</p>
         </div>
-        <a href="/Frontend/pages/shop.php" class="btn btn-primary" style="border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 8px;">
-            <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i>
+        <a href="/Frontend/pages/shop.php" class="g-btn g-btn-lime">
             <span>Continue Shopping</span>
         </a>
     </div>
@@ -282,7 +236,7 @@ if ($pdo) {
                 <small>Total Orders</small>
                 <strong><?php echo $total_orders; ?></strong>
             </div>
-            <div class="user-kpi-icon" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">
+            <div class="user-kpi-icon" style="background: rgba(208,242,76,0.25); color: var(--g-ink);">
                 <i data-lucide="shopping-bag" style="width: 22px; height: 22px;"></i>
             </div>
         </div>
@@ -291,7 +245,7 @@ if ($pdo) {
                 <small>Amount Spent</small>
                 <strong>KES <?php echo number_format($total_spent); ?></strong>
             </div>
-            <div class="user-kpi-icon" style="background: rgba(27, 94, 32, 0.08); color: #1B5E20;">
+            <div class="user-kpi-icon" style="background: rgba(208,242,76,0.25); color: var(--g-ink);">
                 <i data-lucide="wallet" style="width: 22px; height: 22px;"></i>
             </div>
         </div>
@@ -300,7 +254,7 @@ if ($pdo) {
                 <small>Pending Orders</small>
                 <strong><?php echo $pending_orders; ?></strong>
             </div>
-            <div class="user-kpi-icon" style="background: rgba(217, 119, 6, 0.1); color: #d97706;">
+            <div class="user-kpi-icon" style="background: rgba(217,119,6,0.12); color: #d97706;">
                 <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
             </div>
         </div>
@@ -310,9 +264,8 @@ if ($pdo) {
     <div class="user-main-grid">
         <!-- Recent Orders -->
         <div class="user-card" style="padding: 0; overflow: hidden;">
-            <div style="padding: 20px 24px; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between; align-items: center;">
+            <div style="padding: 20px 24px; border-bottom: 1px solid var(--g-line); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="margin: 0;">Recent Orders</h3>
-                <!-- Future: link to full order history -->
             </div>
             <div style="padding: 0 24px;">
                 <?php if (!empty($recent_orders)): ?>
@@ -328,15 +281,15 @@ if ($pdo) {
                     ?>
                     <div class="user-order-row">
                         <div style="flex: 1; min-width: 0;">
-                            <div style="font-weight: 600; color: var(--dark); font-size: 0.9rem;">
+                            <div style="font-weight: 600; color: var(--g-text); font-size: 0.9rem;">
                                 Order #<?php echo htmlspecialchars($order['order_number']); ?>
                             </div>
-                            <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <div style="font-size: 0.8rem; color: var(--g-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 <?php echo htmlspecialchars($order['product_names'] ?? 'Items'); ?>
                             </div>
                         </div>
                         <div style="text-align: right; flex-shrink: 0;">
-                            <div style="font-weight: 600; color: var(--dark); font-size: 0.9rem;">
+                            <div style="font-weight: 600; color: var(--g-text); font-size: 0.9rem;">
                                 KES <?php echo number_format((float)$order['total_amount']); ?>
                             </div>
                             <span class="user-badge <?php echo $badge; ?>" style="margin-top: 4px; display: inline-block;">
@@ -346,10 +299,10 @@ if ($pdo) {
                     </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div style="padding: 40px 0; text-align: center; color: var(--gray-400);">
+                    <div style="padding: 40px 0; text-align: center; color: var(--g-muted);">
                         <i data-lucide="package" style="width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.4;"></i>
                         <p style="margin: 0; font-size: 0.95rem;">No orders yet. Start shopping to see your orders here.</p>
-                        <a href="/Frontend/pages/shop.php" style="display: inline-block; margin-top: 16px; color: var(--primary); font-weight: 600; font-size: 0.9rem;">Browse Products →</a>
+                        <a href="/Frontend/pages/shop.php" style="display: inline-block; margin-top: 16px; color: var(--g-tan); font-weight: 600; font-size: 0.9rem;">Browse Products →</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -366,7 +319,7 @@ if ($pdo) {
                 </div>
                 <div class="user-profile-field">
                     <span class="label">Email</span>
-                    <span class="value"><?php echo htmlspecialchars($user['email'] ?? '—'); ?></span>
+                    <span class="value"><?php echo htmlspecialchars($user['email'] ?? '-'); ?></span>
                 </div>
                 <div class="user-profile-field">
                     <span class="label">Phone</span>
@@ -374,7 +327,7 @@ if ($pdo) {
                 </div>
                 <div class="user-profile-field">
                     <span class="label">Member Since</span>
-                    <span class="value"><?php echo isset($user['created_at']) ? date('M Y', strtotime($user['created_at'])) : '—'; ?></span>
+                    <span class="value"><?php echo isset($user['created_at']) ? date('M Y', strtotime($user['created_at'])) : '-'; ?></span>
                 </div>
             </div>
 

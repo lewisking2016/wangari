@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Asset Test - Busia Chicken</title>
+    <title>Asset Test - Wangari</title>
     <style>
         body { font-family: system-ui; padding: 40px; background: #f5f5f5; }
         .test { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; }
@@ -27,7 +27,7 @@
         'Responsive CSS' => $base . 'css/responsive.css',
         'Main JS' => $base . 'js/main.js',
         'Hero Slider JS' => $base . 'js/hero-slider.js',
-        'Logo Image' => '/Frontend/images/busia logo.png',
+        'Logo Image' => '/Frontend/images/wangari-logo.svg',
     ];
     
     foreach ($tests as $name => $path) {

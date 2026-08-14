@@ -1,6 +1,6 @@
 <?php
 /**
- * Hub: Sales & Finance — ALL content inline, no double-includes.
+ * Hub: Sales & Finance, ALL content inline, no double-includes.
  * Tabs: Orders | Sales Registry | Payments | Expenses | Financial Reports
  */
 declare(strict_types=1);
@@ -9,7 +9,7 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    echo "<script>window.location.href='/busiaadmin';</script>"; exit;
+    echo "<script>window.location.href='/wangariadmin';</script>"; exit;
 }
 
 $page_title = 'Sales & Finance - Admin';
@@ -264,7 +264,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('order-st
                 <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No payment logs yet.</td></tr>
             <?php else: foreach ($paymentsList as $p): ?>
                 <tr>
-                    <td><?= htmlspecialchars($p['transaction_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['transaction_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($p['category'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><strong>KES <?= number_format((float)$p['amount'], 2) ?></strong></td>
                     <td><?= htmlspecialchars($p['payment_method'] ?? 'Cash', ENT_QUOTES, 'UTF-8') ?></td>
@@ -275,7 +275,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('order-st
                         ?>
                         <span class="badge-pill <?= $pill ?>"><?= htmlspecialchars($st, ENT_QUOTES, 'UTF-8') ?></span>
                     </td>
-                    <td><?= htmlspecialchars($p['description'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['description'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openPayModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
                 </tr>
             <?php endforeach; endif; ?>

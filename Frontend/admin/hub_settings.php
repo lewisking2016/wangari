@@ -1,6 +1,6 @@
 <?php
 /**
- * Hub: Settings — Calendar, Dropdowns, App Settings, System Logs, DB Setup
+ * Hub: Settings, Calendar, Dropdowns, App Settings, System Logs, DB Setup
  */
 declare(strict_types=1);
 $temp_dir = sys_get_temp_dir();
@@ -215,7 +215,7 @@ $tabs = [
 <div class="admin-card">
     <div style="margin-bottom:18px;">
         <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">System Activity Logs</h3>
-        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Recent system actions — last 200 entries.</p>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Recent system actions, last 200 entries.</p>
     </div>
     <div class="table-responsive">
         <table class="admin-table">

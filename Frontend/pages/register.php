@@ -1,7 +1,7 @@
 <?php
 /**
- * Register Page
- * Premium Minimalist Redesign
+ * Register Page, Wangari
+ * Growvi-style split auth layout.
  */
 declare(strict_types=1);
 
@@ -12,7 +12,7 @@ if (is_writable($temp_dir)) {
 session_start();
 
 $path_prefix = '../';
-$page_title = 'Create Account - Busia Chicken Farm';
+$page_title = 'Create Account - Wangari';
 
 include '../includes/header.php';
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
@@ -94,21 +94,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
 }
 ?>
 
-<!-- Register Section -->
-<section style="padding: var(--space-4xl) 0; background-color: var(--gray-50); min-height: 90vh; display: flex; align-items: center;">
-    <div class="container" style="max-width: 550px;">
-        <div style="background: var(--white); padding: var(--space-3xl); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); box-shadow: var(--shadow-lg);">
-            <div style="text-align: center; margin-bottom: var(--space-2xl);">
-                <div style="width: 48px; height: 48px; background: var(--primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-md); color: white;">
-                    <i data-lucide="user-plus" style="width: 24px; height: 24px;"></i>
-                </div>
-                <h2>Create Account</h2>
-                <p style="color: var(--gray-600); margin-top: var(--space-xs);">Join our poultry farming community today.</p>
+<div class="g-auth">
+    <div class="g-auth-brand">
+        <div>
+            <a href="/" class="g-logo">
+                <img src="/Frontend/images/wangari-mark.svg" alt="Wangari">
+                <span>Wangari<em>.</em></span>
+            </a>
+            <div style="margin-top: 6rem;">
+                <h2>Start your <span class="g-serif">smart farm</span> today</h2>
+                <p>Track poultry, livestock, crops, feed production, sales and finances, all in one place, free to start.</p>
             </div>
+        </div>
+        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.45);">&copy; <?php echo date('Y'); ?> Wangari, Smart Farming for a Sustainable Future</p>
+    </div>
+
+    <div class="g-auth-form">
+        <div class="g-auth-card">
+            <h1>Create Account</h1>
+            <p>Join the farms growing smarter with Wangari.</p>
 
             <?php if (!empty($errors)): ?>
-                <div style="padding: 1rem; background-color: #FEF2F2; border-left: 4px solid var(--error); color: #991B1B; margin-bottom: var(--space-xl); border-radius: 4px;">
-                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                <div style="padding: 1rem; background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--g-radius-sm); color: #991B1B; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    <ul style="margin: 0; padding-left: 1rem;">
                         <?php foreach ($errors as $error): ?>
                             <li><?php echo htmlspecialchars($error); ?></li>
                         <?php endforeach; ?>
@@ -116,73 +124,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" class="g-form">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8'); ?>">
-                <div class="grid-2" style="margin-bottom: var(--space-lg);">
-                    <div class="form-group">
-                        <label for="first_name" class="form-label">First Name</label>
-                        <input type="text" id="first_name" name="first_name" required value="<?php echo htmlspecialchars($form_data['first_name']); ?>" class="form-control">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+                    <div class="g-field">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" required value="<?php echo htmlspecialchars($form_data['first_name']); ?>">
                     </div>
-                    <div class="form-group">
-                        <label for="last_name" class="form-label">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" required value="<?php echo htmlspecialchars($form_data['last_name']); ?>" class="form-control">
+                    <div class="g-field">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" required value="<?php echo htmlspecialchars($form_data['last_name']); ?>">
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <input type="email" id="email" name="email" required value="<?php echo htmlspecialchars($form_data['email']); ?>" class="form-control">
+                <div class="g-field">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required value="<?php echo htmlspecialchars($form_data['email']); ?>" placeholder="you@farm.co.ke">
                 </div>
-
-                <div class="form-group">
-                    <label for="phone" class="form-label">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" required value="<?php echo htmlspecialchars($form_data['phone']); ?>" placeholder="e.g. 0727..." class="form-control">
+                <div class="g-field">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required value="<?php echo htmlspecialchars($form_data['phone']); ?>" placeholder="e.g. 0727...">
                 </div>
-
-                <div class="form-group">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" name="username" required value="<?php echo htmlspecialchars($form_data['username']); ?>" class="form-control">
+                <div class="g-field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required value="<?php echo htmlspecialchars($form_data['username']); ?>">
                 </div>
-
-                <div class="grid-2" style="margin-bottom: var(--space-xl);">
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" id="password" name="password" required class="form-control">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+                    <div class="g-field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
                     </div>
-                    <div class="form-group">
-                        <label for="password_confirm" class="form-label">Confirm</label>
-                        <input type="password" id="password_confirm" name="password_confirm" required class="form-control">
+                    <div class="g-field">
+                        <label for="password_confirm">Confirm</label>
+                        <input type="password" id="password_confirm" name="password_confirm" required>
                     </div>
                 </div>
 
-                <button type="submit" name="register_submit" value="1" class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-lg);">Create Account</button>
+                <button type="submit" name="register_submit" value="1" class="g-btn g-btn-dark" style="width: 100%;">Create Account</button>
             </form>
 
-            <div style="text-align: center; padding-top: var(--space-lg); border-top: 1px solid var(--gray-200);">
-                <p style="color: var(--gray-600); font-size: 0.95rem;">Already have an account? <a href="login.php" style="color: var(--primary); font-weight: 600;">Login here</a></p>
-            </div>
-        </div>
-
-        <!-- Benefits -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); margin-top: var(--space-3xl); text-align: center;">
-            <div>
-                <div style="color: var(--primary); margin-bottom: var(--space-sm);"><i data-lucide="shield-check" style="width: 24px; height: 24px; margin: 0 auto;"></i></div>
-                <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Secure</h4>
-                <p style="font-size: 0.8rem; color: var(--gray-500);">Data protection</p>
-            </div>
-            <div>
-                <div style="color: var(--primary); margin-bottom: var(--space-sm);"><i data-lucide="zap" style="width: 24px; height: 24px; margin: 0 auto;"></i></div>
-                <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Fast</h4>
-                <p style="font-size: 0.8rem; color: var(--gray-500);">Quick checkout</p>
-            </div>
-            <div>
-                <div style="color: var(--primary); margin-bottom: var(--space-sm);"><i data-lucide="award" style="width: 24px; height: 24px; margin: 0 auto;"></i></div>
-                <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Premium</h4>
-                <p style="font-size: 0.8rem; color: var(--gray-500);">Exclusive offers</p>
-            </div>
+            <p style="text-align: center; margin-top: 1.8rem; padding-top: 1.5rem; border-top: 1px solid var(--g-line); color: var(--g-muted); font-size: 0.9rem;">
+                Already have an account? <a href="login.php" style="color: var(--g-tan); font-weight: 600;">Login here</a>
+            </p>
         </div>
     </div>
-</section>
+</div>
 
 <?php
 include '../includes/footer.php';

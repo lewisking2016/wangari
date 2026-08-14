@@ -1,7 +1,7 @@
 <?php
 /**
- * Hub: Farm Operations — Poultry-Only Edition
- * Tabs: Flocks | Production | Vaccinations | Breeding
+ * Hub: Farm Operations, ALL content inline, no double-includes.
+ * Tabs: Flocks | Production | Vaccinations | Animals | Health | Breeding | Herds
  */
 declare(strict_types=1);
 $temp_dir = sys_get_temp_dir();
@@ -9,32 +9,98 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','stock_manager','sales_staff'], true)) {
-    echo "<script>window.location.href='/busiaadmin';</script>"; exit;
+    echo "<script>window.location.href='/wangariadmin';</script>"; exit;
 }
 
 $page_title = 'Farm Operations - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'flocks';
-$validTabs = ['flocks','production','vaccinations'];
+$validTabs = ['flocks','production','vaccinations','animals','health','breeding','herds'];
 if (!in_array($tab, $validTabs, true)) $tab = 'flocks';
 
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ── POST handlers (PHP forms only — not for API tabs) ─── */
+/* ── POST handlers (PHP forms only, not for API tabs) ─── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
+    if ($postAction === 'save_animal') {
+        $id = (int)($_POST['id'] ?? 0);
+        $fields = [$_POST['tag_id']??'',$_POST['name']??'',$_POST['species']??'',$_POST['breed']??'',$_POST['gender']??'',$_POST['dob']??'',$_POST['status']??'alive',$_POST['notes']??''];
+        $fields = array_map('trim', $fields);
+        try {
+            if ($id > 0) {
+                $pdo->prepare('UPDATE animals SET tag_id=?,name=?,species=?,breed=?,gender=?,date_of_birth=?,status=?,notes=? WHERE id=?')
+                    ->execute(array_merge($fields, [$id]));
+                $message = 'Animal updated.';
+            } else {
+                $pdo->prepare('INSERT INTO animals (tag_id,name,species,breed,gender,date_of_birth,status,notes) VALUES (?,?,?,?,?,?,?,?)')
+                    ->execute($fields);
+                $message = 'Animal added.';
+            }
+        } catch(Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'animals';
+    }
+
+    if ($postAction === 'save_herd') {
+        $id = (int)($_POST['id'] ?? 0);
+        $n=$_POST['name']??''; $t=$_POST['type']??''; $l=$_POST['location']??''; $c=(int)($_POST['head_count']??0);
+        try {
+            $id > 0
+                ? $pdo->prepare('UPDATE herds SET name=?,type=?,location=?,head_count=? WHERE id=?')->execute([$n,$t,$l,$c,$id])
+                : $pdo->prepare('INSERT INTO herds (name,type,location,head_count) VALUES (?,?,?,?)')->execute([$n,$t,$l,$c]);
+            $message = $id > 0 ? 'Herd updated.' : 'Herd created.';
+        } catch(Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'herds';
+    }
+
+    if ($postAction === 'save_health') {
+        $id=(int)($_POST['id']??0);
+        $v=[$_POST['animal_id']??null,$_POST['record_date']??date('Y-m-d'),$_POST['diagnosis']??'',$_POST['treatment']??'',$_POST['vet_name']??'',(float)($_POST['cost']??0)?:(null),$_POST['notes']??''];
+        try {
+            $id > 0
+                ? $pdo->prepare('UPDATE health_records SET animal_id=?,record_date=?,diagnosis=?,treatment=?,vet_name=?,cost=?,notes=? WHERE id=?')->execute(array_merge($v,[$id]))
+                : $pdo->prepare('INSERT INTO health_records (animal_id,record_date,diagnosis,treatment,vet_name,cost,notes) VALUES (?,?,?,?,?,?,?)')->execute($v);
+            $message = $id > 0 ? 'Health record updated.' : 'Health record logged.';
+        } catch(Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'health';
+    }
+
+    if ($postAction === 'save_breeding') {
+        $id=(int)($_POST['id']??0);
+        $v=[$_POST['sire']??'',$_POST['dam']??'',$_POST['breeding_date']??date('Y-m-d'),$_POST['expected_birth']??null,$_POST['status']??'Pending',$_POST['notes']??''];
+        try {
+            $id > 0
+                ? $pdo->prepare('UPDATE breeding_records SET sire=?,dam=?,breeding_date=?,expected_birth=?,status=?,notes=? WHERE id=?')->execute(array_merge($v,[$id]))
+                : $pdo->prepare('INSERT INTO breeding_records (sire,dam,breeding_date,expected_birth,status,notes) VALUES (?,?,?,?,?,?)')->execute($v);
+            $message = $id > 0 ? 'Breeding record updated.' : 'Breeding recorded.';
+        } catch(Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'breeding';
+    }
 }
 
 /* ── Load PHP-tab data ─── */
-$breedingRecs = [];
+$animals = $herds = $healthRecs = $breedingRecs = $animalList = [];
+if ($pdo) {
+    try {
+        if ($tab === 'animals')     $animals     = $pdo->query('SELECT * FROM animals ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
+        if ($tab === 'herds')       $herds       = $pdo->query('SELECT * FROM herds ORDER BY created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
+        if ($tab === 'health')      $healthRecs  = $pdo->query('SELECT hr.*, a.name AS aname, a.tag_id FROM health_records hr LEFT JOIN animals a ON hr.animal_id=a.id ORDER BY hr.record_date DESC')->fetchAll(PDO::FETCH_ASSOC);
+        if ($tab === 'breeding')    $breedingRecs= $pdo->query('SELECT * FROM breeding_records ORDER BY breeding_date DESC')->fetchAll(PDO::FETCH_ASSOC);
+        $animalList = $pdo->query("SELECT id, CONCAT(COALESCE(tag_id,''), ' - ', COALESCE(name,'?')) AS label FROM animals ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    } catch(Exception $e) { /* non-fatal */ }
+}
 
 $tabs = [
-    'flocks'      => ['icon'=>'layers', 'label'=>'Flocks'],
-    'production'  => ['icon'=>'egg',     'label'=>'Daily Production'],
-    'vaccinations'=> ['icon'=>'syringe', 'label'=>'Vaccinations'],
+    'flocks'      => ['icon'=>'layers',        'label'=>'Flocks'],
+    'production'  => ['icon'=>'egg',           'label'=>'Daily Production'],
+    'vaccinations'=> ['icon'=>'syringe',       'label'=>'Vaccinations'],
+    'animals'     => ['icon'=>'paw-print',     'label'=>'Animals'],
+    'health'      => ['icon'=>'heart-pulse',   'label'=>'Health'],
+    'breeding'    => ['icon'=>'dna',           'label'=>'Breeding'],
+    'herds'       => ['icon'=>'users',         'label'=>'Herds / Pens'],
 ];
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
@@ -42,7 +108,7 @@ $tabs = [
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
     <div>
         <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Farm Operations</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage chicken flocks, daily egg production, and vaccinations.</p>
+        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage flocks, daily egg collection, vaccinations, animals, health records, and breeding.</p>
     </div>
 </div>
 
@@ -78,10 +144,10 @@ $tabs = [
     </div>
     <!-- Summary KPIs -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
-        <div class="stat-card"><div class="stat-card-info"><small>Total Flocks</small><strong id="kpi-flock-count">—</strong></div><div class="stat-card-icon"><i data-lucide="layers" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Live Birds</small><strong id="kpi-live-birds">—</strong></div><div class="stat-card-icon accent"><i data-lucide="bird" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Eggs Today</small><strong id="kpi-eggs-today">—</strong></div><div class="stat-card-icon info"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Mortality This Week</small><strong id="kpi-mortality-week" style="color:#dc2626;">—</strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Total Flocks</small><strong id="kpi-flock-count">-</strong></div><div class="stat-card-icon"><i data-lucide="layers" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Live Birds</small><strong id="kpi-live-birds">-</strong></div><div class="stat-card-icon accent"><i data-lucide="bird" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Eggs Today</small><strong id="kpi-eggs-today">-</strong></div><div class="stat-card-icon info"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Mortality This Week</small><strong id="kpi-mortality-week" style="color:#dc2626;">-</strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
     </div>
     <div class="table-responsive">
         <table class="admin-table">
@@ -123,7 +189,7 @@ $tabs = [
 
 <script>
 window.flocks_list = [];
-const CSRF = window.BusiaAdmin?.csrfToken || '';
+const CSRF = window.WangariAdmin?.csrfToken || '';
 
 async function loadFlocks() {
     setTbLoading('flocks-body', 7, 'Loading flocks...');
@@ -162,11 +228,11 @@ function renderFlocks(eggMap={}) {
 
     tbody.innerHTML = window.flocks_list.map(f => {
         const sc = f.status==='active'?'badge-pill-success':(f.status==='sold'?'badge-pill-warning':'badge-pill-danger');
-        const ageWks = f.date_acquired ? Math.round((Date.now()-new Date(f.date_acquired).getTime())/(7*86400000)) : '—';
+        const ageWks = f.date_acquired ? Math.round((Date.now()-new Date(f.date_acquired).getTime())/(7*86400000)) : '-';
         const eggsToday = eggMap[f.id] || 0;
         return `<tr>
-            <td><strong>${f.flock_name}</strong><br><small style="color:#64748b;">${f.location||'—'}</small></td>
-            <td>${f.breed||'—'}<br><small style="color:#94a3b8;text-transform:capitalize;">${f.flock_type||'layer'}</small></td>
+            <td><strong>${f.flock_name}</strong><br><small style="color:#64748b;">${f.location||'-'}</small></td>
+            <td>${f.breed||'-'}<br><small style="color:#94a3b8;text-transform:capitalize;">${f.flock_type||'layer'}</small></td>
             <td><strong>${Number(f.current_count||0).toLocaleString()}</strong></td>
             <td><span style="color:${eggsToday>0?'#16a34a':'#94a3b8'};font-weight:700;">${eggsToday.toLocaleString()}</span></td>
             <td>${ageWks}</td>
@@ -246,10 +312,10 @@ document.addEventListener('DOMContentLoaded', loadFlocks);
     </div>
     <!-- Weekly KPIs -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
-        <div class="stat-card"><div class="stat-card-info"><small>Eggs This Week</small><strong id="prod-kpi-eggs">—</strong></div><div class="stat-card-icon accent"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Feed This Week (kg)</small><strong id="prod-kpi-feed">—</strong></div><div class="stat-card-icon info"><i data-lucide="layers" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Mortality This Week</small><strong id="prod-kpi-mort" style="color:#dc2626;">—</strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
-        <div class="stat-card"><div class="stat-card-info"><small>Cracked / Rejected</small><strong id="prod-kpi-cracked">—</strong></div><div class="stat-card-icon" style="background:#fef3c7;color:#d97706;"><i data-lucide="x-circle" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Eggs This Week</small><strong id="prod-kpi-eggs">-</strong></div><div class="stat-card-icon accent"><i data-lucide="egg" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Feed This Week (kg)</small><strong id="prod-kpi-feed">-</strong></div><div class="stat-card-icon info"><i data-lucide="layers" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Mortality This Week</small><strong id="prod-kpi-mort" style="color:#dc2626;">-</strong></div><div class="stat-card-icon" style="background:#fee2e2;color:#dc2626;"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div></div>
+        <div class="stat-card"><div class="stat-card-info"><small>Cracked / Rejected</small><strong id="prod-kpi-cracked">-</strong></div><div class="stat-card-icon" style="background:#fef3c7;color:#d97706;"><i data-lucide="x-circle" style="width:22px;height:22px;"></i></div></div>
     </div>
     <div class="table-responsive">
         <table class="admin-table">
@@ -339,12 +405,12 @@ function renderProduction(){
     if (!window.production_list.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No production logs yet. Click "Log Today\'s Production" to start.</td></tr>'; return; }
     tbody.innerHTML = window.production_list.map(p=>`<tr>
         <td>${p.record_date}</td>
-        <td><strong>${p.flock_name||'—'}</strong></td>
+        <td><strong>${p.flock_name||'-'}</strong></td>
         <td><strong>${Number(p.eggs_collected).toLocaleString()}</strong></td>
         <td>${p.cracked_eggs||0}</td>
         <td>${parseFloat(p.feed_consumed_kg||0).toFixed(1)}</td>
         <td><strong style="color:${parseInt(p.mortality)>0?'#dc2626':'#1e293b'}">${p.mortality||0}</strong></td>
-        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes||'—'}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes||'-'}</td>
         <td><div class="tbl-actions">
             <button class="btn btn-trans btn-sm" onclick="editProduction(${p.id})"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>
             <button class="btn btn-danger btn-sm" onclick="deleteProduction(${p.id})"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
@@ -480,10 +546,10 @@ function renderVaccinations(){
         const overdue=v.status==='scheduled'&&v.scheduled_date<today;
         return `<tr style="${overdue?'background:#fff7ed;':''}">
             <td>${overdue?'<span style="color:#dc2626;font-weight:700;">⚠ </span>':''}${v.scheduled_date}</td>
-            <td><strong>${v.flock_name||'—'}</strong></td>
+            <td><strong>${v.flock_name||'-'}</strong></td>
             <td>${v.vaccine_name}</td>
             <td>${v.administered_date||'<span style="color:#94a3b8;">Pending</span>'}</td>
-            <td>${v.next_due_date||'—'}</td>
+            <td>${v.next_due_date||'-'}</td>
             <td><span class="badge-pill ${sc}">${v.status}</span></td>
             <td><div class="tbl-actions">
                 <button class="btn btn-trans btn-sm" onclick="editVac(${v.id})"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>
@@ -755,7 +821,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('breeding
         <h3 id="herd-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Herd / Group</h3>
         <form method="POST"><input type="hidden" name="_action" value="save_herd"><input type="hidden" name="id" id="herd-id">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Herd / Group Name *</label><input class="admin-form-control" name="name" id="herd-name" required placeholder="e.g. Pen A – Layers"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Herd / Group Name *</label><input class="admin-form-control" name="name" id="herd-name" required placeholder="e.g. Pen A - Layers"></div>
             <div class="admin-form-group"><label class="admin-form-label">Animal Type</label><select class="admin-form-control" name="type" id="herd-type"><?php foreach(['Chicken','Cow','Goat','Pig','Sheep','Mixed','Other'] as $ht): ?><option><?= $ht ?></option><?php endforeach; ?></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Location / Pen</label><input class="admin-form-control" name="location" id="herd-loc" placeholder="e.g. Block B, Pen 3"></div>
             <div class="admin-form-group"><label class="admin-form-label">Head Count</label><input class="admin-form-control" type="number" name="head_count" id="herd-cnt" min="0" value="0"></div>

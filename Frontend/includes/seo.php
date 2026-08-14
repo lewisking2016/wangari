@@ -13,21 +13,21 @@ function generateOrganizationSchema(): string
     return json_encode([
         '@context' => 'https://schema.org',
         '@type' => 'Organization',
-        'name' => 'Busia Chicken Farm',
-        'alternateName' => 'Busia Chicken Ltd',
-        'url' => 'https://busiachicken.com',
-        'logo' => 'https://busiachicken.com/assets/images/logo.png',
+        'name' => 'Wangari',
+        'alternateName' => 'Wangari Farm Platform',
+        'url' => 'https://wangari.farm',
+        'logo' => 'https://wangari.farm/Frontend/images/wangari-logo.svg',
         'description' => 'Leading poultry supplier in East Africa. Premium chickens, eggs, and animal feeds.',
         'sameAs' => [
-            'https://www.facebook.com/busiachicken',
-            'https://twitter.com/busiachicken',
-            'https://www.instagram.com/busiachicken'
+            'https://www.facebook.com/wangari.farm',
+            'https://twitter.com/wangarifarm',
+            'https://www.instagram.com/wangari.farm'
         ],
         'address' => [
             '@type' => 'PostalAddress',
             'streetAddress' => 'Nasira AC sub-location, Busibwabo Location',
-            'addressLocality' => 'Busia',
-            'addressRegion' => 'Busia County',
+            'addressLocality' => 'Nairobi',
+            'addressRegion' => 'Nairobi County',
             'postalCode' => '50400',
             'addressCountry' => 'KE'
         ],
@@ -35,7 +35,7 @@ function generateOrganizationSchema(): string
             '@type' => 'ContactPoint',
             'contactType' => 'Customer Service',
             'telephone' => '+254-727-585599',
-            'email' => 'info@busiachicken.com',
+            'email' => 'info@wangari.farm',
             'areaServed' => ['KE', 'UG', 'TZ'],
             'availableLanguage' => ['en', 'sw']
         ]
@@ -50,13 +50,13 @@ function generateLocalBusinessSchema(): string
     return json_encode([
         '@context' => 'https://schema.org',
         '@type' => 'LocalBusiness',
-        'name' => 'Busia Chicken Farm',
-        'image' => 'https://busiachicken.com/assets/images/farm.jpg',
+        'name' => 'Wangari',
+        'image' => 'https://wangari.com/assets/images/farm.jpg',
         'description' => 'Poultry farming, egg production, and premium animal feeds',
         'address' => [
             '@type' => 'PostalAddress',
             'streetAddress' => 'Nasira AC sub-location',
-            'addressLocality' => 'Busia',
+            'addressLocality' => 'Wangari',
             'addressCountry' => 'KE'
         ],
         'telephone' => '+254-727-585599',
@@ -76,8 +76,8 @@ function generateLocalBusinessSchema(): string
             ]
         ],
         'sameAs' => [
-            'https://www.facebook.com/busiachicken',
-            'https://www.instagram.com/busiachicken'
+            'https://www.facebook.com/wangari',
+            'https://www.instagram.com/wangari'
         ]
     ], JSON_UNESCAPED_SLASHES);
 }
@@ -95,7 +95,7 @@ function generateProductSchema(array $product): string
         'description' => $product['description'] ?? '',
         'brand' => [
             '@type' => 'Brand',
-            'name' => 'Busia Chicken Farm'
+            'name' => 'Wangari'
         ],
         'offers' => [
             '@type' => 'Offer',
@@ -223,7 +223,7 @@ Disallow: /api/
 Disallow: /config/
 Disallow: /logs/
 
-Sitemap: https://busiachicken.com/sitemap.xml
+Sitemap: https://wangari.com/sitemap.xml
 ROBOTS;
 }
 
@@ -272,7 +272,7 @@ function getCanonicalURL(string $currentUrl = ''): string
 {
     if (empty($currentUrl)) {
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-        $host = $_SERVER['HTTP_HOST'] ?? 'busiachicken.com';
+        $host = $_SERVER['HTTP_HOST'] ?? 'wangari.com';
         $path = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
         $currentUrl = $protocol . $host . $path;
     }

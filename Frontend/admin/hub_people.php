@@ -1,6 +1,6 @@
 <?php
 /**
- * Hub: Team & Messages — ALL content inline, no double-includes.
+ * Hub: Team & Messages, ALL content inline, no double-includes.
  * Tabs: Staff Members | All Users | Assign Tasks | Inbox Messages
  */
 declare(strict_types=1);
@@ -9,7 +9,7 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    echo "<script>window.location.href='/busiaadmin';</script>"; exit;
+    echo "<script>window.location.href='/wangariadmin';</script>"; exit;
 }
 
 $page_title = 'Team & Messages - Admin';
@@ -176,7 +176,7 @@ $tabs = [
                     <td><?= htmlspecialchars($s['username'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning"><?= htmlspecialchars(ucwords(str_replace('_',' ',$s['role'])), ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><?= htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($s['phone_number'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($s['phone_number'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openStaffModal(<?= htmlspecialchars(json_encode($s), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -255,7 +255,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
                 <tr>
                     <td><strong><?= htmlspecialchars($t['title'], ENT_QUOTES, 'UTF-8') ?></strong><br><small style="color:#64748b;"><?= htmlspecialchars($t['description']??'', ENT_QUOTES, 'UTF-8') ?></small></td>
                     <td><?= htmlspecialchars($t['assigned_name'] ?: 'Unassigned', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($t['due_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($t['due_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                     <td>
                         <?php
                         $ts = $t['status'] ?? 'Pending';

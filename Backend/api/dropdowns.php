@@ -1,7 +1,7 @@
 <?php
 /**
  * System Dropdowns & Master Data API and Helper Utilities
- * Busia Chicken Website & Admin Dashboard
+ * Wangari Website & Admin Dashboard
  */
 declare(strict_types=1);
 

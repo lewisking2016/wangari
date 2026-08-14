@@ -10,7 +10,7 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 $path_prefix = '../';
-$page_title = 'Admin Portal - Busia Chicken Farm';
+$page_title = 'Admin Portal - Wangari';
 
 // Load frontend config
 require_once __DIR__ . '/../includes/config.php';
@@ -31,7 +31,7 @@ function isSafeAdminRedirect(string $path): bool
         return false;
     }
 
-    return str_starts_with($path, '/Frontend/admin/') || $path === '/busiaadmin';
+    return str_starts_with($path, '/Frontend/admin/') || $path === '/wangariadmin';
 }
 
 // Redirect if already logged in as admin
@@ -352,10 +352,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
     <div class="split-container">
         <!-- Left Side: Branding -->
         <div class="branding-side">
-            <img src="/Frontend/images/adbg.png" alt="Busia Chicken Farm" class="branding-bg">
+            <img src="/Frontend/images/adbg.png" alt="Wangari" class="branding-bg">
             <div class="branding-overlay"></div>
             <div class="branding-content">
-                <img src="/Frontend/images/busia logo.png" alt="Busia Chicken" class="branding-logo">
+                <img src="/Frontend/images/wangari logo.png" alt="Wangari" class="branding-logo">
                 <h1>Smart Farming for a Sustainable Future.</h1>
                 <p>Empowering poultry farmers with real-time insights and intelligent management tools.</p>
                 <div style="display: flex; gap: 24px;">
@@ -397,7 +397,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
                         <label class="form-label">Username or Email</label>
                         <div class="input-group">
                             <i data-lucide="user"></i>
-                            <input type="text" name="username" value="<?php echo htmlspecialchars($username); ?>" required class="form-control" placeholder="admin@busiachicken.com" autocomplete="username" autofocus>
+                            <input type="text" name="username" value="<?php echo htmlspecialchars($username); ?>" required class="form-control" placeholder="admin@wangari.com" autocomplete="username" autofocus>
                         </div>
                     </div>
 
@@ -425,7 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
 
                 <div style="margin-top: 48px; text-align: center;">
                     <p style="font-size: 0.875rem; color: var(--admin-text-muted);">
-                        &copy; <?php echo date('Y'); ?> Busia Chicken Farm. All rights reserved.
+                        &copy; <?php echo date('Y'); ?> Wangari. All rights reserved.
                     </p>
                 </div>
             </div>

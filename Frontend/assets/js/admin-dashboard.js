@@ -109,7 +109,7 @@ async function loadAnalytics() {
   const low = json.data.inventory;
   const ul = document.getElementById('low-stock');
   ul.innerHTML = low
-    .map((it) => `<li>${it.name} — ${it.stock_quantity}</li>`)
+    .map((it) => `<li>${it.name}: ${it.stock_quantity}</li>`)
     .join('');
 
   const totalSales = salesData.reduce((acc, value) => acc + value, 0);

@@ -9,7 +9,7 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager', 'stock_manager', 'sales_staff'], true)) {
-    echo "<script>window.location.href = '/busiaadmin';</script>";
+    echo "<script>window.location.href = '/wangariadmin';</script>";
     exit;
 }
 
@@ -150,7 +150,7 @@ include __DIR__ . '/includes/admin_header.php';
                 <input type="number" name="quantity_kg" id="shipment-qty" class="form-control" step="0.1" min="1" placeholder="e.g. 500" required>
             </div>
             <div class="form-group" style="margin-bottom: 15px;">
-                <label class="form-label">Price per kgs (KES) — How much does 1 kgs cost?</label>
+                <label class="form-label">Price per kgs (KES), How much does 1 kgs cost?</label>
                 <input type="number" name="cost_per_kg" id="shipment-cost" class="form-control" step="0.01" min="0" placeholder="e.g. 45" required>
             </div>
             <div class="form-group" style="margin-bottom: 15px;">
@@ -411,7 +411,7 @@ async function deleteShipment(id) {
     try {
         const formData = new FormData();
         formData.append('id', id.toString());
-        formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+        formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
 
         const response = await fetch('/Backend/api/admin_incoming_stock.php?action=delete_incoming_shipment', {
             method: 'POST',
@@ -458,7 +458,7 @@ async function deleteSupplier(id) {
     try {
         const formData = new FormData();
         formData.append('id', id.toString());
-        formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+        formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
 
         const response = await fetch('/Backend/api/admin_incoming_stock.php?action=delete_supplier', {
             method: 'POST',
@@ -477,7 +477,7 @@ async function deleteSupplier(id) {
 document.getElementById('shipment-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+    formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
     try {
         const response = await fetch('/Backend/api/admin_incoming_stock.php?action=save_incoming_shipment', {
             method: 'POST',
@@ -496,7 +496,7 @@ document.getElementById('shipment-form').addEventListener('submit', async (e) =>
 document.getElementById('supplier-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    formData.append('csrf_token', window.BusiaAdmin?.csrfToken || '');
+    formData.append('csrf_token', window.WangariAdmin?.csrfToken || '');
     try {
         const response = await fetch('/Backend/api/admin_incoming_stock.php?action=save_supplier', {
             method: 'POST',

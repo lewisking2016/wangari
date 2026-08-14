@@ -5,27 +5,17 @@
 declare(strict_types=1);
 
 $path_prefix = '../';
-$page_title = 'FAQs - Busia Chicken Farm';
+$page_title = 'FAQs - Wangari';
 
 include '../includes/header.php';
 ?>
 
 <!-- Breadcrumb -->
-<section style="background-color: var(--surface); padding: var(--space-lg) 0;">
-    <div class="container">
-        <div class="breadcrumb">
-            <a href="/">Home</a>
-            <span>/</span>
-            <span>FAQ</span>
-        </div>
-    </div>
-</section>
-
 <!-- Hero Section -->
-<section class="hero" style="min-height: 60vh;">
-    <div class="container hero-content fade-up">
-        <h1>Frequently Asked Questions</h1>
-        <p style="color: white; opacity: 0.9;">Find answers to common questions about our products and services.</p>
+<section class="g-page-hero">
+    <div class="g-container">
+        <h1>Frequently Asked <span class="g-serif">Questions</span></h1>
+        <p>Find answers to common questions about our products and services.</p>
     </div>
 </section>
 
@@ -162,7 +152,7 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    Minimum order is KES 2,000. Free delivery is offered on orders above KES 5,000 within Busia County. Smaller orders within Busia incur a KES 500 delivery charge.
+                    Minimum order is KES 2,000. Free delivery is offered on orders above KES 5,000 within Wangari County. Smaller orders within Wangari incur a KES 500 delivery charge.
                 </div>
             </div>
 
@@ -172,7 +162,7 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    Orders within Busia: 1-2 days. Orders to Kakamega/Kisumu: 2-3 days. Orders to Kisii: 3-4 days. Emergency orders can be arranged for same-day delivery in Busia. Call us for urgent requests.
+                    Orders within Wangari: 1-2 days. Orders to Kakamega/Kisumu: 2-3 days. Orders to Kisii: 3-4 days. Emergency orders can be arranged for same-day delivery in Wangari. Call us for urgent requests.
                 </div>
             </div>
 
@@ -182,13 +172,13 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    We accept M-Pesa, bank transfers, and cash on delivery (COD). Online orders require M-Pesa payment or bank deposit. COD available for orders within Busia County.
+                    We accept M-Pesa, bank transfers, and cash on delivery (COD). Online orders require M-Pesa payment or bank deposit. COD available for orders within Wangari County.
                 </div>
             </div>
 
             <div class="faq-item fade-up stagger-4">
                 <div class="faq-question">
-                    <span>Can you deliver outside Busia County?</span>
+                    <span>Can you deliver outside Wangari County?</span>
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
@@ -282,7 +272,7 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    Call us immediately: +254 727 585 599. We have a vet on call for emergency advice. Isolate sick birds, improve ventilation, and ensure clean water. Don't delay—early treatment saves lives and prevents spread.
+                    Call us immediately: +254 727 585 599. We have a vet on call for emergency advice. Isolate sick birds, improve ventilation, and ensure clean water. Don't delay, early treatment saves lives and prevents spread.
                 </div>
             </div>
 

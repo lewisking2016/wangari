@@ -48,7 +48,7 @@ try {
     }
     echo "</table>";
     
-    echo "<p><a href='/busiaadmin'>Go to Admin Login</a> | <a href='/Frontend/pages/shop.php'>View Shop</a></p>";
+    echo "<p><a href='/wangariadmin'>Go to Admin Login</a> | <a href='/Frontend/pages/shop.php'>View Shop</a></p>";
     
 } catch (Exception $e) {
     echo "<p style='color:red;'><strong>Error:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";

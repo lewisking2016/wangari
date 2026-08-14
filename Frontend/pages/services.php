@@ -1,80 +1,124 @@
 <?php
 /**
- * Services Page
+ * Services, Wangari System
+ * Sells the Wangari farm management platform and its modules.
+ * Growvi design language.
  */
 declare(strict_types=1);
 
 $path_prefix = '../';
-$page_title = 'Our Services - Consulting & Incubator Rentals | Busia Chicken Farm';
+$page_title = 'Features & Modules - Wangari';
 
 include '../includes/header.php';
 ?>
 
-<!-- Services Hero -->
-<section style="padding: var(--space-4xl) 0 var(--space-2xl); background-image: url('/Frontend/images/adbg.png'); background-size: cover; background-position: center; background-repeat: no-repeat; border-bottom: 1px solid rgba(255,255,255,0.12); position: relative;">
-    <div style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);"></div>
-    <div class="container" style="position: relative; z-index: 1; text-align: center; color: #FFFFFF;">
-        <h1 style="margin-bottom: var(--space-sm); color: #FFFFFF;">Our Services</h1>
-        <p style="font-size: 1.125rem; color: rgba(255,255,255,0.9);">Supporting poultry farmers with advanced expertise, consulting, and machinery.</p>
-    </div>
-</section>
+<main class="g-main">
 
-<!-- Main Services Grid -->
-<section style="padding: var(--space-4xl) 0; background: #ffffff;">
-    <div class="container">
-        
-        <div style="text-align: center; max-width: 600px; margin: 0 auto 50px;">
-            <span style="display: inline-block; padding: 4px 12px; background: rgba(27,94,32,0.08); color: var(--primary); font-weight: 700; border-radius: var(--radius-pill); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">Professional Support</span>
-            <h2>Farming Solutions & Services</h2>
-            <p style="color: var(--gray-600); margin-top: 10px;">We go beyond chick sales to ensure local farmers succeed with comprehensive support systems.</p>
+    <section class="g-page-hero">
+        <div class="g-container">
+            <h1>Wangari <span class="g-serif">Modules</span></h1>
+            <p>One system that runs your whole agribusiness, production, inventory, sales, credit and finance working together.</p>
         </div>
+    </section>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-            
-            <!-- Service 1: Poultry Consulting -->
-            <div class="admin-card" style="padding: var(--space-xl); transition: transform 0.3s; border: 1px solid rgba(0,0,0,0.06); border-radius: var(--radius-lg);">
-                <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(27,94,32,0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                    <i data-lucide="help-circle" style="width: 24px; height: 24px;"></i>
-                </div>
-                <h4 style="margin-bottom: 12px; font-weight: 700;">Poultry Business Consulting</h4>
-                <p style="color: var(--gray-600); font-size: 0.92rem; line-height: 1.6; margin-bottom: 20px;">
-                    Get direct guidance from experienced agronomists. We advise on house construction, stocking capacity, lighting, vaccination regimens, and ventilation optimization to minimize mortality rates.
-                </p>
+    <section class="g-section">
+        <div class="g-container">
+            <div class="g-section-head center g-reveal">
+                <span class="g-eyebrow">Core Modules</span>
+                <h2>Everything your farm needs, <span class="g-serif">in one place</span></h2>
+                <p>Seven connected hubs that run the daily life of a farm, from the flock to the ledger.</p>
             </div>
 
-            <!-- Service 2: Incubator & Hatchery Hire -->
-            <div class="admin-card" style="padding: var(--space-xl); transition: transform 0.3s; border: 1px solid rgba(0,0,0,0.06); border-radius: var(--radius-lg);">
-                <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(27,94,32,0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                    <i data-lucide="layers" style="width: 24px; height: 24px;"></i>
+            <div class="g-numbered">
+                <div class="g-numbered-item g-reveal g-delay-1">
+                    <span class="g-num">01</span>
+                    <h3>Farm Operations</h3>
+                    <p>Flocks, herds, production, health, vaccinations, hatchery and breeding, captured daily in minutes, with automatic alerts.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">Poultry</span>
+                        <span class="g-service-tag">Livestock</span>
+                        <span class="g-service-tag">Hatchery</span>
+                    </div>
                 </div>
-                <h4 style="margin-bottom: 12px; font-weight: 700;">Incubator Rental & Hatching</h4>
-                <p style="color: var(--gray-600); font-size: 0.92rem; line-height: 1.6; margin-bottom: 20px;">
-                    Rent time in our high-capacity commercial egg incubators. Bring your fertile eggs, and let our calibrated machines manage humidity and temperature controls for maximum hatch rates.
-                </p>
-            </div>
-
-            <!-- Service 3: Training & Feed Formulation -->
-            <div class="admin-card" style="padding: var(--space-xl); transition: transform 0.3s; border: 1px solid rgba(0,0,0,0.06); border-radius: var(--radius-lg);">
-                <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(27,94,32,0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                    <i data-lucide="book-open" style="width: 24px; height: 24px;"></i>
+                <div class="g-numbered-item g-reveal g-delay-2">
+                    <span class="g-num">02</span>
+                    <h3>Inventory &amp; Production</h3>
+                    <p>Raw materials, feed recipes, bag production, egg grading and low-stock alerts with live costing on every bag.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">Feed Formulas</span>
+                        <span class="g-service-tag">Stock Alerts</span>
+                    </div>
                 </div>
-                <h4 style="margin-bottom: 12px; font-weight: 700;">Feed Formulation Seminars</h4>
-                <p style="color: var(--gray-600); font-size: 0.92rem; line-height: 1.6; margin-bottom: 20px;">
-                    Learn feed formulas using locally available ingredients like maize, soya, fish meal, and premixes. Save up to 40% on operational costs by preparing high-efficiency feeds yourself.
-                </p>
+                <div class="g-numbered-item g-reveal g-delay-3">
+                    <span class="g-num">03</span>
+                    <h3>Sales, Credit &amp; Finance</h3>
+                    <p>Orders, cashbook, customer credit, LPOs, invoices and profit reports, M-Pesa payment ready for Kenya.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">M-Pesa</span>
+                        <span class="g-service-tag">Profit Reports</span>
+                    </div>
+                </div>
+                <div class="g-numbered-item g-reveal g-delay-4">
+                    <span class="g-num">04</span>
+                    <h3>Online Shop</h3>
+                    <p>Your own web storefront with cart, checkout, order tracking and M-Pesa payments, built into the system.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">Storefront</span>
+                        <span class="g-service-tag">Cart &amp; Checkout</span>
+                    </div>
+                </div>
+                <div class="g-numbered-item g-reveal g-delay-5">
+                    <span class="g-num">05</span>
+                    <h3>Staff &amp; Permissions</h3>
+                    <p>Give your team role-based access, record keepers, managers, accountants, each seeing only what they need.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">Roles</span>
+                        <span class="g-service-tag">Audit Trail</span>
+                    </div>
+                </div>
+                <div class="g-numbered-item g-reveal g-delay-6">
+                    <span class="g-num">06</span>
+                    <h3>Reports &amp; Analytics</h3>
+                    <p>Profit and loss, daily sales, stock movement and production trends, exportable to Excel whenever you need.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">P&L Reports</span>
+                        <span class="g-service-tag">Excel Export</span>
+                    </div>
+                </div>
+                <div class="g-numbered-item g-reveal g-delay-7">
+                    <span class="g-num">07</span>
+                    <h3>AI Assistant</h3>
+                    <p>Ask anything about your farm in plain language and get instant answers, summaries and alerts from your own records.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">Ask Wangari</span>
+                        <span class="g-service-tag">Smart Alerts</span>
+                    </div>
+                </div>
+                <div class="g-numbered-item g-reveal g-delay-8">
+                    <span class="g-num">08</span>
+                    <h3>Multi-Language &amp; Mobile</h3>
+                    <p>Works on any device, smartphone, tablet or computer, with simple forms designed for the farm shed.</p>
+                    <div class="g-service-tags">
+                        <span class="g-service-tag">Mobile First</span>
+                        <span class="g-service-tag">Your Language</span>
+                    </div>
+                </div>
             </div>
-
         </div>
+    </section>
 
-        <!-- Call to Action -->
-        <div style="margin-top: 60px; background: #f8fafc; padding: 40px; border-radius: var(--radius-lg); text-align: center; border: 1px solid rgba(0,0,0,0.03);">
-            <h4 style="font-weight: 700; margin-bottom: 10px;">Need Custom Support or Consulting?</h4>
-            <p style="color: var(--gray-600); max-width: 500px; margin: 0 auto 24px; font-size: 0.95rem;">Send us an inquiry or visit our offices in Nasira AC sub-location for in-person support.</p>
-            <a href="/Frontend/pages/contact.php" class="btn btn-primary">Book Consultation</a>
+    <section class="g-section g-section-ink">
+        <div class="g-container" style="text-align: center; max-width: 680px;">
+            <h2 style="color: #fff;">Ready to run your farm on <span class="g-serif" style="color: var(--g-lime);">Wangari?</span></h2>
+            <p style="color: rgba(255,255,255,0.66); margin-bottom: 2rem;">Create a free account and start tracking today, no credit card required.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/Frontend/pages/register.php" class="g-btn g-btn-lime">Start Free</a>
+                <a href="/Frontend/pages/contact.php" class="g-btn g-btn-outline">Book a Demo</a>
+            </div>
         </div>
+    </section>
 
-    </div>
-</section>
+</main>
 
 <?php
 include '../includes/footer.php';

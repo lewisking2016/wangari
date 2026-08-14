@@ -80,11 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="admin-form-group">
                 <label class="admin-form-label">Farm Name</label>
-                <input type="text" name="farm_name" value="<?php echo htmlspecialchars(getSetting('farm_name', 'Busia Chicken Farm')); ?>" class="admin-form-control">
+                <input type="text" name="farm_name" value="<?php echo htmlspecialchars(getSetting('farm_name', 'Wangari')); ?>" class="admin-form-control">
             </div>
             <div class="admin-form-group">
                 <label class="admin-form-label">Contact Email</label>
-                <input type="email" name="farm_email" value="<?php echo htmlspecialchars(getSetting('farm_email', 'info@busiachicken.com')); ?>" class="admin-form-control">
+                <input type="email" name="farm_email" value="<?php echo htmlspecialchars(getSetting('farm_email', 'info@wangari.com')); ?>" class="admin-form-control">
             </div>
             <div class="admin-form-group">
                 <label class="admin-form-label">Phone Number</label>
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
             </div>
             <div class="admin-form-group">
                 <label class="admin-form-label">Location</label>
-                <input type="text" name="farm_address" value="<?php echo htmlspecialchars(getSetting('farm_address', 'Busia, Kenya')); ?>" class="admin-form-control">
+                <input type="text" name="farm_address" value="<?php echo htmlspecialchars(getSetting('farm_address', 'Wangari, Kenya')); ?>" class="admin-form-control">
             </div>
             <div class="admin-form-group">
                 <label class="admin-form-label">Currency</label>
