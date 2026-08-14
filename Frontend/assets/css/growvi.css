@@ -1407,53 +1407,105 @@ body.g-dark-nav .g-nav { background: var(--g-ink); }
 section { position: relative; }
 
 /* ══════════════════════════════════════════════════════════════
-   Wangari System — image-free gradients (Busia photos removed)
+   Wangari System — photo-backed sections (commercial-licensed)
    ══════════════════════════════════════════════════════════════ */
 
-/* Hero — dark system gradient instead of the farm photo */
+/* Hero — farm photo with dark green overlay for text contrast */
 .g-hero-bg {
     background:
-        radial-gradient(1100px 500px at 85% -10%, rgba(208, 242, 76, 0.16) 0%, transparent 60%),
-        radial-gradient(900px 600px at -10% 110%, rgba(27, 94, 32, 0.55) 0%, transparent 55%),
-        linear-gradient(160deg, #04101f 0%, #0B2B1D 55%, #06190F 100%);
+        linear-gradient(160deg, rgba(4,16,31,0.88) 0%, rgba(11,43,29,0.72) 55%, rgba(6,25,15,0.90) 100%);
 }
-.g-hero-bg img { display: none; }
+.g-hero-bg img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
 
-/* CTA band — deep green gradient without the photo */
+/* CTA band — photo with dark overlay */
 .g-cta-bg {
     background:
-        radial-gradient(900px 420px at 15% -20%, rgba(208, 242, 76, 0.14) 0%, transparent 55%),
-        linear-gradient(135deg, #071F12 0%, #0D3B22 60%, #0B2B1D 100%);
+        linear-gradient(135deg, rgba(7,31,18,0.90) 0%, rgba(13,59,34,0.82) 60%, rgba(11,43,29,0.92) 100%);
 }
-.g-cta-bg img { display: none; }
+.g-cta-bg img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+}
 
-/* System Feature cards — branded gradient panels */
+/* System Feature cards — real photos */
 .g-project-img {
-    background:
-        radial-gradient(420px 260px at 20% 0%, rgba(208, 242, 76, 0.20) 0%, transparent 60%),
-        linear-gradient(150deg, #0E3B24 0%, #07210F 100%);
+    background: #0B2B1D;
 }
-.g-project-img-1 { background: linear-gradient(150deg, #0E3B24 0%, #0B2B1D 100%); }
-.g-project-img-2 { background: linear-gradient(150deg, #123F2A 0%, #0A1F12 100%); }
-.g-project-img-3 { background: linear-gradient(150deg, #14532D 0%, #0B2B1D 100%); }
+.g-project-img-1 { background: #0B2B1D; }
+.g-project-img-2 { background: #0B2B1D; }
+.g-project-img-3 { background: #0B2B1D; }
 .g-project-img::after,
 .g-blog-img::after {
     content: '';
     position: absolute;
     inset: 0;
-    opacity: 0.5;
+    opacity: 0.35;
     background:
         linear-gradient(115deg, transparent 0 42%, rgba(208, 242, 76, 0.10) 42% 46%, transparent 46% 100%);
     mix-blend-mode: screen;
 }
-.g-project-img img, .g-blog-img img { display: none; }
+.g-project-img img, .g-blog-img img { display: block; }
 
-/* Blog cards — soft green gradient covers */
+/* Blog cards — photo covers */
 .g-blog-img {
-    background:
-        radial-gradient(300px 180px at 85% 0%, rgba(208, 242, 76, 0.18) 0%, transparent 60%),
-        linear-gradient(160deg, #0F3D26 0%, #082211 100%);
+    background: #0F3D26;
 }
-.g-blog-img-1 { background: linear-gradient(160deg, #113F28 0%, #081F10 100%); }
-.g-blog-img-2 { background: linear-gradient(160deg, #0E3B24 0%, #0B2B1D 100%); }
-.g-blog-img-3 { background: linear-gradient(160deg, #15452D 0%, #082411 100%); }
+.g-blog-img-1 { background: #113F28; }
+.g-blog-img-2 { background: #0E3B24; }
+.g-blog-img-3 { background: #15452D; }
+
+/* Dashboard product mockup — browser-frame screenshot */
+.g-dash-frame {
+    position: relative;
+    margin: 2.5rem auto 0;
+    max-width: 980px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(11,43,29,0.25);
+    background: #0B2B1D;
+    box-shadow: 0 30px 70px -30px rgba(4,16,31,0.55);
+}
+.g-dash-frame-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #0B2B1D;
+}
+.g-dash-frame-bar i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.g-dash-frame-bar i:nth-child(1) { background: #F87171; }
+.g-dash-frame-bar i:nth-child(2) { background: #FBBF24; }
+.g-dash-frame-bar i:nth-child(3) { background: #34D399; }
+.g-dash-frame-bar span {
+    margin-left: 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.6);
+}
+.g-dash-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+}
+@media (max-width: 720px) {
+    .g-dash-frame { margin-top: 1.6rem; }
+}

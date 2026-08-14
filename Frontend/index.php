@@ -28,13 +28,13 @@ $productCount = max($productCount, 1);
     <!-- 1. HERO, image + white text + stats            -->
     <!-- ═══════════════════════════════════════════════ -->
     <section class="g-hero">
-        <div class="g-hero-bg"></div>
+        <div class="g-hero-bg"><img src="/Frontend/images/farm-tractor.jpg" alt="" aria-hidden="true"></div>
         <div class="g-container">
             <span class="g-hero-tag">All-in-One Farm Management System</span>
             <h1 id="gHeroTitle">One System. Every Farm. <span class="g-serif">Smart Farming Technology</span></h1>
             <p class="g-hero-sub">Wangari runs the daily life of your farm, flocks, feed production, sales, and finances, in one simple platform that works on any device, in your language.</p>
             <div class="g-hero-actions">
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-lime">Start Free Today</a>
+                <a href="#wangari-preview" class="g-btn g-btn-lime">See the System Live</a>
                 <a href="/Frontend/pages/contact.php" class="g-btn g-btn-outline">Book a Demo</a>
             </div>
 
@@ -195,7 +195,7 @@ $productCount = max($productCount, 1);
 
             <div class="g-projects">
                 <div class="g-project g-reveal g-delay-1">
-                    <div class="g-project-img g-project-img-1"></div>
+                    <div class="g-project-img g-project-img-1"><img src="/Frontend/images/farm-poultry.jpg" alt="Poultry production managed in Wangari"></div>
                     <div class="g-project-body">
                         <h3>Production &amp; Health</h3>
                         <p>Daily egg collection, growth records, mortality and vaccination schedules, with automatic alerts when something needs attention.</p>
@@ -211,7 +211,7 @@ $productCount = max($productCount, 1);
                 </div>
 
                 <div class="g-project g-reveal g-delay-2">
-                    <div class="g-project-img g-project-img-2"></div>
+                    <div class="g-project-img g-project-img-2"><img src="/Frontend/images/farm-crops.jpg" alt="Feed and stock control in Wangari"></div>
                     <div class="g-project-body">
                         <h3>Feed &amp; Stock Control</h3>
                         <p>Raw material stores, feed formulas, bag production and live costing, know exactly what each bag costs to produce.</p>
@@ -227,7 +227,7 @@ $productCount = max($productCount, 1);
                 </div>
 
                 <div class="g-project g-reveal g-delay-3">
-                    <div class="g-project-img g-project-img-3"></div>
+                    <div class="g-project-img g-project-img-3"><img src="/Frontend/images/farm-eggs.jpg" alt="Sales, credit and ledger in Wangari"></div>
                     <div class="g-project-body">
                         <h3>Sales, Credit &amp; Ledger</h3>
                         <p>Orders, cashbook, credit customers, LPOs, invoices and profit reports, with M-Pesa-ready payment records.</p>
@@ -259,18 +259,18 @@ $productCount = max($productCount, 1);
             <div class="g-process">
                 <div class="g-step g-reveal g-delay-1">
                     <span class="g-step-num">01</span>
-                    <h3>Create Your Account</h3>
-                    <p>Sign up free in under two minutes. Set your farm name, currency, and which modules you need.</p>
+                    <h3>Request the System</h3>
+                    <p>Tell us about your farm. We recommend the modules you need and set your installation up on your laptop, server or the cloud.</p>
                 </div>
                 <div class="g-step g-reveal g-delay-2">
                     <span class="g-step-num">02</span>
-                    <h3>Set Up Your Farm</h3>
-                    <p>Add your flocks, herds, products and staff. Import existing records from Excel if you have them.</p>
+                    <h3>We Configure It</h3>
+                    <p>Your farm name, currency, staff roles and modules configured for you, and existing Excel records imported at no extra cost.</p>
                 </div>
                 <div class="g-step g-reveal g-delay-3">
                     <span class="g-step-num">03</span>
-                    <h3>Start Growing</h3>
-                    <p>Capture daily production, track costs, take orders and watch profits, then let the AI assistant guide you.</p>
+                    <h3>Train Your Team</h3>
+                    <p>We train you and your staff, then the AI assistant answers questions from your own farm records as you grow.</p>
                 </div>
             </div>
         </div>
@@ -340,7 +340,7 @@ $productCount = max($productCount, 1);
     <!-- 8. CTA, "Let's grow something better" + form   -->
     <!-- ═══════════════════════════════════════════════ -->
     <section class="g-cta">
-        <div class="g-cta-bg"></div>
+        <div class="g-cta-bg"><img src="/Frontend/images/farm-dairy.jpg" alt="" aria-hidden="true"></div>
         <div class="g-container">
             <div class="g-cta-grid">
                 <div class="g-reveal">
@@ -412,7 +412,7 @@ $productCount = max($productCount, 1);
                         <span>Do you support small-scale farmers?</span>
                         <span class="g-plus">+</span>
                     </div>
-                    <div class="g-faq-a">Absolutely. Wangari is built for farms of every size, from a backyard flock to a full commercial operation. Plans start free and scale with you.</div>
+                    <div class="g-faq-a">Absolutely. Wangari is built for farms of every size, from a backyard flock to a full commercial operation. You can run it on your own laptop, on your server, or in the cloud, and the price scales with the size of your farm.</div>
                 </div>
                 <div class="g-faq-item">
                     <div class="g-faq-q">
@@ -436,7 +436,7 @@ $productCount = max($productCount, 1);
                         <span>How do I get started, and is there support?</span>
                         <span class="g-plus">+</span>
                     </div>
-                    <div class="g-faq-a">Create a free account in under two minutes and start the same day. Every plan includes our support team, training resources, and the AI assistant that answers questions from your own farm records.</div>
+                    <div class="g-faq-a">Choose how you run it: installed on your own laptop or server for full privacy, or hosted in the cloud so you can access it from anywhere. Every installation includes our support team, training, and the AI assistant that answers questions from your own farm records.</div>
                 </div>
             </div>
         </div>
@@ -445,7 +445,7 @@ $productCount = max($productCount, 1);
     <!-- ═══════════════════════════════════════════════ -->
     <!-- 10. DASHBOARD PREVIEW, what the system looks   -->
     <!-- ═══════════════════════════════════════════════ -->
-    <section class="g-section g-section-cream">
+    <section class="g-section g-section-cream" id="wangari-preview">
         <div class="g-container">
             <div class="g-section-head center g-reveal">
                 <span class="g-eyebrow">Inside Wangari</span>
@@ -453,24 +453,17 @@ $productCount = max($productCount, 1);
                 <p>A live dashboard that tells you what needs attention today, production, stock, sales and cash in real time.</p>
             </div>
 
-            <div class="g-grid-3">
-                <div class="g-dash-tile g-reveal g-delay-1" style="background: #fff; border: 1px solid var(--g-line); border-radius: var(--g-radius); padding: 1.6rem;">
-                    <span class="g-dash-num" style="color: var(--g-ink);">Today's Eggs</span>
-                    <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Production captured in 30 seconds</span>
+            <div class="g-dash-frame g-reveal g-delay-1">
+                <div class="g-dash-frame-bar">
+                    <i></i><i></i><i></i>
+                    <span>Wangari Farm OS — Live Dashboard</span>
                 </div>
-                <div class="g-dash-tile g-reveal g-delay-2" style="background: #fff; border: 1px solid var(--g-line); border-radius: var(--g-radius); padding: 1.6rem;">
-                    <span class="g-dash-num" style="color: var(--g-ink);">Cost per Bag</span>
-                    <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Live feed costing from your stores</span>
-                </div>
-                <div class="g-dash-tile g-reveal g-delay-3" style="background: #fff; border: 1px solid var(--g-line); border-radius: var(--g-radius); padding: 1.6rem;">
-                    <span class="g-dash-num" style="color: var(--g-ink);">Today's Sales</span>
-                    <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Orders, M-Pesa and cash, all in one</span>
-                </div>
+                <img src="/Frontend/images/dashboard-preview.png" alt="Wangari dashboard screenshot showing revenue, orders, stock alerts and the AI assistant">
             </div>
 
             <div style="text-align: center; margin-top: 2.5rem;" class="g-reveal g-delay-2">
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-dark">Create Your Free Account</a>
-                <a href="/Frontend/pages/pricing.php" style="display: inline-block; margin-left: 1rem; color: var(--g-tan); font-weight: 600; font-size: 0.9rem;">See Plans &amp; Pricing →</a>
+                <a href="/Frontend/pages/contact.php" class="g-btn g-btn-dark">Book a Free Demo</a>
+                <a href="/Frontend/pages/pricing.php" style="display: inline-block; margin-left: 1rem; color: var(--g-tan); font-weight: 600; font-size: 0.9rem;">Installation &amp; Pricing →</a>
             </div>
         </div>
     </section>
@@ -488,7 +481,7 @@ $productCount = max($productCount, 1);
 
             <div class="g-blogs">
                 <article class="g-blog g-reveal g-delay-1">
-                    <div class="g-blog-img g-blog-img-1"></div>
+                    <div class="g-blog-img g-blog-img-1"><img src="/Frontend/images/farm-dairy.jpg" alt="Feed costing for dairy and livestock"></div>
                     <div class="g-blog-body">
                         <div class="g-blog-meta"><span>By</span><strong>Esther Howerd</strong></div>
                         <h3>Feed Costing 101: Know the Real Cost of Every Bag</h3>
@@ -498,7 +491,7 @@ $productCount = max($productCount, 1);
                 </article>
 
                 <article class="g-blog g-reveal g-delay-2">
-                    <div class="g-blog-img g-blog-img-2"></div>
+                    <div class="g-blog-img g-blog-img-2"><img src="/Frontend/images/farm-livestock.jpg" alt="Managing credit customers for livestock sales"></div>
                     <div class="g-blog-body">
                         <div class="g-blog-meta"><span>By</span><strong>Esther Howerd</strong></div>
                         <h3>Managing Credit Customers Without Losing Sleep</h3>
@@ -508,7 +501,7 @@ $productCount = max($productCount, 1);
                 </article>
 
                 <article class="g-blog g-reveal g-delay-3">
-                    <div class="g-blog-img g-blog-img-3"></div>
+                    <div class="g-blog-img g-blog-img-3"><img src="/Frontend/images/farm-eggs.jpg" alt="Record-keeping for your farm's best investment"></div>
                     <div class="g-blog-body">
                         <div class="g-blog-meta"><span>By</span><strong>Esther Howerd</strong></div>
                         <h3>Why Record-Keeping Is Your Farm's Best Investment</h3>

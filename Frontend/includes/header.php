@@ -77,7 +77,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 <!-- ═══════════════════════════════════════════════ -->
 <nav class="g-nav" id="gNav">
     <div class="g-nav-inner">
-        <a href="/" class="g-logo">
+        <a href="/Frontend/" class="g-logo">
             <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
             <span>Wangari<em>.</em></span>
         </a>

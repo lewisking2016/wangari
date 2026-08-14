@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — Online Orders
- * Mirrors the busia_orders_report CSV structure:
+ * Mirrors the wangari_orders_report CSV structure:
  *   Order ID, Order Number, Customer, Email, Amount, Status, Date
  */
 declare(strict_types=1);
@@ -15,8 +15,7 @@ include __DIR__ . '/includes/admin_header.php';
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
     <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Online Orders</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage orders placed through the public website. Match the busia_orders_report CSV export structure.</p>
+        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Online Orders</h1>                        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage orders placed through the public website. Match the wangari_orders_report CSV export structure.</p>
     </div>
     <div style="display:flex;gap:8px;">
         <a href="/Backend/api/export.php?module=orders" class="btn btn-outline"><i data-lucide="download" style="width:15px;height:15px;"></i> Export CSV</a>

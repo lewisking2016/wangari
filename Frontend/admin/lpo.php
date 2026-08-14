@@ -361,8 +361,8 @@ async function viewDoc(id) {
                 <div style="display:flex;align-items:center;gap:10px;">
                     <img src="/Frontend/images/wangari-logo.png" style="height:46px;">
                     <div>
-                        <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.15rem;color:#0f172a;">Busia Chicken Farm</div>
-                        <div style="font-size:0.78rem;color:#64748b;">Busia, Kenya &nbsp;•&nbsp; new.decapoli.co.ke</div>
+                        <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.15rem;color:#0f172a;">Wangari Farm OS</div>
+                        <div style="font-size:0.78rem;color:#64748b;">Wangari Systems &nbsp;•&nbsp; www.wangari.farm</div>
                     </div>
                 </div>
                 <div style="text-align:right;">

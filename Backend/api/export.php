@@ -90,7 +90,7 @@ try {
                     'Date'         => $r['created_at'],
                 ];
             }, $rows);
-            csv_send('busia_orders_report_' . $today . '.csv',
+            csv_send('wangari_orders_report_' . $today . '.csv',
                 ['Order ID', 'Order Number', 'Customer', 'Email', 'Amount', 'Status', 'Date'], $out);
             break;
 
