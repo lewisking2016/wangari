@@ -1509,3 +1509,27 @@ section { position: relative; }
 @media (max-width: 720px) {
     .g-dash-frame { margin-top: 1.6rem; }
 }
+
+/* Walkthrough video — browser-frame mockup */
+.g-video-frame {
+    position: relative;
+    margin: 2.5rem auto 0;
+    max-width: 980px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(208, 242, 76, 0.25);
+    background: #000;
+    box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.7);
+}
+.g-video-frame video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #04101f;
+}
+.g-video-frame video::-webkit-media-controls-panel { background: #0B2B1D; }
+@media (max-width: 720px) {
+    .g-video-frame { margin-top: 1.6rem; }
+}

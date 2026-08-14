@@ -523,6 +523,18 @@ async function loadDashboard() {
         }
     }
 
+    // Top KPI cards: Total Revenue / Orders Completed / Avg. Order Value
+    const totalSales = sales.reduce((acc, v) => acc + v.value, 0);
+    const totalOrders = orders.reduce((acc, v) => acc + v.value, 0);
+    const avgOrder = totalOrders ? Math.round(totalSales / totalOrders) : 0;
+    const kpiSalesEl = document.getElementById('kpi-sales');
+    const kpiOrdersEl = document.getElementById('kpi-orders');
+    const kpiAvgEl = document.getElementById('kpi-avg');
+    const fmt = (n) => n.toLocaleString();
+    if (kpiSalesEl) kpiSalesEl.textContent = 'KES ' + fmt(totalSales);
+    if (kpiOrdersEl) kpiOrdersEl.textContent = fmt(totalOrders);
+    if (kpiAvgEl) kpiAvgEl.textContent = 'KES ' + fmt(avgOrder);
+
     // Update small KPI numbers with count-up
     if (typeof BusiaCharts !== 'undefined') BusiaCharts.countUpAll();
     if (typeof lucide !== 'undefined') lucide.createIcons();
