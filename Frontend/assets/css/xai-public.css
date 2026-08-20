@@ -258,24 +258,27 @@ a {
 }
 
 .xai-btn-secondary {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--xai-text);
-    border: 1px solid var(--xai-border);
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .xai-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 .xai-btn-ghost {
     background: transparent;
-    color: var(--xai-text-secondary);
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .xai-btn-ghost:hover {
-    color: var(--xai-text);
-    background: rgba(255, 255, 255, 0.05);
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .xai-btn-lg {
@@ -1337,41 +1340,44 @@ a {
 .xai-nav-ghost {
     display: inline-flex;
     align-items: center;
-    padding: 10px 20px;
+    padding: 10px 22px;
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--xai-text);
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 100px;
     text-decoration: none;
     transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
 }
 
 .xai-nav-ghost:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .xai-nav-cta {
     display: inline-flex;
     align-items: center;
-    padding: 10px 24px;
+    padding: 10px 26px;
     font-size: 0.9rem;
     font-weight: 700;
     color: #0B1220;
     background: var(--xai-lime);
+    border: none;
     border-radius: 100px;
     text-decoration: none;
     transition: all 0.25s ease;
-    box-shadow: 0 2px 12px rgba(208, 242, 76, 0.3);
+    box-shadow: 0 2px 16px rgba(208, 242, 76, 0.4);
 }
 
 .xai-nav-cta:hover {
-    background: var(--xai-lime-dark);
+    background: #E5FF6E;
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(208, 242, 76, 0.4);
+    box-shadow: 0 6px 28px rgba(208, 242, 76, 0.5);
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
