@@ -108,7 +108,10 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                         <div class="xai-preview-dot"></div>
                         <span class="xai-preview-title">Wangari Farm OS — Live Dashboard</span>
                     </div>
-                    <img src="/Frontend/images/dashboard-preview.png" alt="Wangari dashboard showing revenue, orders, stock alerts and AI assistant" class="xai-preview-img">
+                    <video autoplay loop muted playsinline class="xai-preview-img" style="border-radius:0 0 12px 12px; width:100%; display:block; object-fit:cover;">
+                        <source src="/Frontend/images/demo-walkthrough.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
             </div>
         </div>
@@ -494,6 +497,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.addEventListener('scroll', revealOnScroll, { passive: true });
     revealOnScroll(); // Initial check
+    
+    // ===== 3D PREVIEW FRAME SCROLL EFFECT =====
+    const previewFrame = document.querySelector('.xai-preview-frame');
+    const update3DPreview = () => {
+        if (!previewFrame) return;
+        const rect = previewFrame.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate progress of the element passing through viewport
+        const start = viewportHeight;
+        const end = -rect.height;
+        const current = rect.top;
+        
+        // Clamp progress between 0 and 1
+        let progress = (start - current) / (start - end);
+        progress = Math.max(0, Math.min(1, progress));
+        
+        // Starts tilted back and down, flattens and lifts as it scrolls into view
+        const rotateX = 18 - (progress * 18); // 18deg -> 0deg
+        const translateY = 60 - (progress * 60); // 60px -> 0px
+        const scale = 0.9 + (progress * 0.1); // 0.9 -> 1.0
+        
+        previewFrame.style.transform = `perspective(1200px) rotateX(${rotateX}deg) translateY(${translateY}px) scale(${scale})`;
+        previewFrame.style.transformOrigin = 'center top';
+        previewFrame.style.transition = 'transform 0.1s ease-out';
+    };
+    
+    window.addEventListener('scroll', update3DPreview, { passive: true });
+    update3DPreview(); // Initial check
     
     // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
