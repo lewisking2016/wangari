@@ -117,7 +117,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             --w2-border: #E7EAF0;
             --w2-shadow: 0 4px 20px rgba(15,23,42,0.04);
         }
-        body { margin: 0; padding: 0; font-family: 'Inter Tight', sans-serif; background: #0B1220; }
+        html, body { margin: 0; padding: 0; font-family: 'Inter Tight', sans-serif; background: #0B1220; height: 100%; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -310,7 +310,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 
 <style>
 /* ═══ Ask Wangari — Gemini-style minimal chat ═══ */
-.ai-page { background: var(--w2-ink, #0B1220); color: #e7e7e7; margin: 0; padding: 0; min-height: calc(100vh - 90px); display: flex; flex-direction: column; font-family: 'Inter Tight', 'Google Sans', system-ui, sans-serif; }
+.ai-page { background: var(--w2-ink, #0B1220); color: #e7e7e7; margin: 0; padding: 0; min-height: 100vh; height: 100vh; display: flex; flex-direction: column; font-family: 'Inter Tight', 'Google Sans', system-ui, sans-serif; overflow: hidden; }
 
 /* ── minimal top bar ── */
 .ai-topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; }
