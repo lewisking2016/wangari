@@ -313,8 +313,11 @@ try {
         }
         .d2-ai-input-wrap input:focus { border-color: #1B7A3D; box-shadow: 0 0 0 4px rgba(22,101,52,0.1); }
 
-        .d2-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .d2-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; align-items: stretch; }
         .d2-side { display: flex; flex-direction: column; gap: 16px; }
+        .d2-charts-col { display: flex; flex-direction: column; gap: 16px; }
+        .d2-charts-col .admin-card { flex: 1; display: flex; flex-direction: column; }
+        .d2-charts-col .chart-box { flex: 1; height: auto; min-height: 200px; }
         @media (max-width: 1024px) {
             .d2-kpis { grid-template-columns: repeat(2, 1fr); }
             .d2-main { grid-template-columns: 1fr; }
@@ -397,13 +400,25 @@ try {
 
     <!-- V2 Main Grid -->
     <div class="d2-main">
-        <div class="admin-card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-                <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Revenue Trend</h3>
-                <span class="badge-pill badge-pill-success">Live Sync</span>
+        <div class="d2-charts-col">
+            <div class="admin-card" style="flex:1;display:flex;flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Revenue Trend</h3>
+                    <span class="badge-pill badge-pill-success">Live Sync</span>
+                </div>
+                <div class="chart-box" style="flex:1;min-height:200px;">
+                    <canvas id="chart-sales"></canvas>
+                </div>
             </div>
-            <div class="chart-box" style="height:280px;">
-                <canvas id="chart-sales"></canvas>
+
+            <div class="admin-card" style="flex:1;display:flex;flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Order Volumes</h3>
+                    <span class="badge-pill badge-pill-info">Daily</span>
+                </div>
+                <div class="chart-box" style="flex:1;min-height:200px;">
+                    <canvas id="chart-orders"></canvas>
+                </div>
             </div>
         </div>
 
@@ -506,12 +521,6 @@ try {
     </div>
 
     <div class="d2-main" style="grid-template-columns:1fr 1fr;">
-        <div class="admin-card">
-            <h3 style="margin:0 0 18px;font-size:1.05rem;color:#0F172A;">Order Volumes</h3>
-            <div class="chart-box" style="height:240px;">
-                <canvas id="chart-orders"></canvas>
-            </div>
-        </div>
         <div class="admin-card">
             <h3 style="margin:0 0 14px;font-size:1.05rem;color:#0F172A;">Recent Activity</h3>
             <div class="table-responsive">
