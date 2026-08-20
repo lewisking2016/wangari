@@ -3,7 +3,16 @@
   "builds": [
     {
       "src": "api/index.php",
-      "use": "vercel-php@0.7.3"
+      "use": "vercel-php@0.7.3",
+      "config": {
+        "includeFiles": [
+          "Frontend/**",
+          "Backend/**",
+          "logo/**",
+          "index.php",
+          "router.php"
+        ]
+      }
     },
     {
       "src": "Frontend/assets/**",

@@ -21,8 +21,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Detect BASE_URL automatically
-$scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME']));
-$docRoot   = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
+$scriptFilename = $_SERVER['SCRIPT_FILENAME'] ?? '';
+$documentRoot   = $_SERVER['DOCUMENT_ROOT'] ?? '';
+$scriptDir = $scriptFilename !== '' ? str_replace('\\', '/', dirname($scriptFilename)) : '';
+$docRoot   = $documentRoot !== '' ? str_replace('\\', '/', $documentRoot) : '';
 
 if (str_contains($scriptDir, '/Frontend') || str_contains($scriptDir, '/Frontend/pages')) {
     define('BASE_URL', '/Frontend/');
