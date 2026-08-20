@@ -21,7 +21,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
 <body>
 
 <!-- Navigation -->
-<nav class="xai-nav">
+<nav class="xai-nav" id="mainNav">
     <div class="xai-nav-inner">
         <a href="/" class="xai-nav-brand">
             <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
@@ -34,10 +34,10 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
             <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
         </ul>
         <div class="xai-nav-actions">
-            <a href="/Frontend/pages/login.php" class="xai-btn xai-btn-ghost">Sign In</a>
-            <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary">Get Started</a>
-            <button class="xai-mobile-toggle" onclick="document.getElementById('mobileMenu').classList.add('open')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            <a href="/Frontend/pages/login.php" class="xai-nav-ghost">Sign In</a>
+            <a href="/Frontend/pages/register.php" class="xai-nav-cta">Get Started</a>
+            <button class="xai-mobile-toggle" id="mobileMenuBtn" aria-label="Open menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
         </div>
     </div>
@@ -45,15 +45,15 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
 
 <!-- Mobile Menu -->
 <div id="mobileMenu" class="xai-mobile-menu">
-    <button class="xai-mobile-close" onclick="this.parentElement.classList.remove('open')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    <button class="xai-mobile-close" id="mobileMenuClose" aria-label="Close menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
-    <a href="#features" onclick="this.parentElement.classList.remove('open')">Features</a>
-    <a href="#preview" onclick="this.parentElement.classList.remove('open')">System</a>
-    <a href="#testimonials" onclick="this.parentElement.classList.remove('open')">Testimonials</a>
+    <a href="#features">Features</a>
+    <a href="#preview">System</a>
+    <a href="#testimonials">Testimonials</a>
     <a href="/Frontend/pages/pricing.php">Pricing</a>
     <a href="/Frontend/pages/login.php">Sign In</a>
-    <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary" style="text-align: center;">Get Started</a>
+    <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary" style="text-align: center; margin-top: 16px;">Get Started</a>
 </div>
 
 <main>
@@ -405,7 +405,54 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
     
-    // Scroll reveal animation
+    // ===== NAVIGATION SCROLL EFFECT =====
+    const nav = document.getElementById('mainNav');
+    const handleNavScroll = () => {
+        if (window.scrollY > 50) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    };
+    window.addEventListener('scroll', handleNavScroll, { passive: true });
+    handleNavScroll(); // Initial check
+    
+    // ===== MOBILE MENU =====
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenuClose = document.getElementById('mobileMenuClose');
+    
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    if (mobileMenuClose && mobileMenu) {
+        mobileMenuClose.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Close mobile menu when clicking a link
+    mobileMenu?.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+    });
+    
+    // Close mobile menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileMenu?.classList.contains('open')) {
+            mobileMenu.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // ===== SCROLL REVEAL ANIMATION =====
     const revealElements = document.querySelectorAll('.xai-reveal');
     const revealOnScroll = () => {
         revealElements.forEach(el => {
@@ -416,10 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
-    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('scroll', revealOnScroll, { passive: true });
     revealOnScroll(); // Initial check
     
-    // Smooth scroll for anchor links
+    // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -429,6 +476,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    
+    // ===== ACTIVE NAV LINK HIGHLIGHT =====
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.xai-nav-links a');
+    
+    const highlightNavLink = () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (window.scrollY >= sectionTop - 200) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    };
+    
+    window.addEventListener('scroll', highlightNavLink, { passive: true });
 });
 </script>
 
