@@ -357,7 +357,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 24px; 
             max-width: 1400px;
             margin: 0 auto;
-            width: 100%;
+            margin-left: 268px;
+            width: calc(100% - 268px);
             box-sizing: border-box;
             overflow-x: hidden;
             min-width: 0;
@@ -956,8 +957,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
             z-index: 100;
             box-sizing: border-box;
         }
@@ -1147,7 +1149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* ── Responsive polish ── */
         @media (max-width: 1024px) {
-            .admin-content { padding: 14px; }
+            .admin-content { padding: 14px; margin-left: 268px; width: calc(100% - 268px); }
             .admin-card { padding: 16px; }
             .stat-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
             .stat-card { padding: 16px; }
@@ -1161,6 +1163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .stat-card-icon { width: 40px; height: 40px; }
         }
         @media (max-width: 860px) {
+            .admin-content { margin-left: 0; width: 100%; }
             .w2-side {
                 position: fixed !important;
                 top: 0; left: 0; bottom: 0;
