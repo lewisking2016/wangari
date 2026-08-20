@@ -98,22 +98,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --admin-primary: #1B5E20;
-            --admin-primary-light: #2E7D32;
-            --admin-accent: #FFC107;
-            --admin-text-main: #1e293b;
-            --admin-text-muted: #64748b;
-            --admin-bg-light: #f8fafc;
+            --admin-primary: #166534;
+            --admin-primary-light: #1B7A3D;
+            --admin-accent: #D0F24C;
+            --admin-text-main: #334155;
+            --admin-text-heading: #0F172A;
+            --admin-text-muted: #64748B;
+            --admin-bg-light: #FAFBFC;
+            --admin-border: #E7EAF0;
+            --admin-radius: 20px;
+            --admin-radius-sm: 12px;
         }
 
         body, html {
             height: 100%;
             margin: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter Tight', sans-serif;
             background-color: #ffffff;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         .split-container {
@@ -251,18 +257,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
             width: 100%;
             padding: 14px 16px 14px 48px;
             background: var(--admin-bg-light);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            font-size: 1rem;
+            border: 1.5px solid var(--admin-border);
+            border-radius: var(--admin-radius-sm);
+            font-size: 0.95rem;
             color: var(--admin-text-main);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             outline: none;
+            font-family: 'Inter Tight', sans-serif;
         }
 
         .form-control:focus {
             background: #ffffff;
             border-color: var(--admin-primary);
-            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.1);
+            box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.1);
         }
 
         .form-control:focus + i {
@@ -293,27 +300,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
 
         .btn-login {
             width: 100%;
-            padding: 16px;
-            background: var(--admin-primary);
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #14532D 0%, #1B7A3D 100%);
             color: #ffffff;
             border: none;
-            border-radius: 8px;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
+            border-radius: 999px;
+            font-family: 'Inter Tight', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.2);
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25);
         }
 
         .btn-login:hover {
-            background: var(--admin-primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(27, 94, 32, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(22, 101, 52, 0.32);
         }
 
         .btn-login:active {

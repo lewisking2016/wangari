@@ -69,17 +69,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
     <style>
         :root {
+            /* x.ai-style semantic tokens */
             --admin-primary: #166534;
             --admin-primary-light: #1B7A3D;
+            --admin-primary-hover: #145214;
             --admin-accent: #D0F24C;
             --admin-accent-dark: #9DBF2E;
             --admin-dark: #0B1220;
-            --admin-sidebar-bg: #0B1220;
-            --admin-body-bg: #F4F5F8;
-            --admin-border: rgba(203, 213, 225, 0.8);
-            --admin-card-bg: #ffffff;
-            --admin-text-main: #1e293b;
-            --admin-text-heading: #0f172a;
+            --admin-body-bg: #FAFBFC;
+            --admin-border: #E7EAF0;
+            --admin-card-bg: #FFFFFF;
+            --admin-text-main: #334155;
+            --admin-text-heading: #0F172A;
+            --admin-text-muted: #64748B;
+            --admin-radius: 20px;
+            --admin-radius-sm: 12px;
+            --admin-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            --admin-shadow-hover: 0 8px 32px rgba(15, 23, 42, 0.08);
         }
 
         body.admin-layout { 
@@ -88,6 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-family: 'Inter Tight', sans-serif;
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Serif accent for big numbers, Growvi style */
@@ -360,9 +368,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 20px;
             background: var(--admin-card-bg);
             border: 1px solid var(--admin-border);
-            border-radius: 4px;
-            padding: 12px 20px;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            border-radius: var(--admin-radius);
+            padding: 14px 20px;
+            box-shadow: var(--admin-shadow);
         }
 
         .admin-top-bar .welcome-message h2 {
@@ -401,15 +409,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .admin-card { 
             background: var(--admin-card-bg); 
             border: 1px solid var(--admin-border); 
-            border-radius: 4px; 
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03); 
-            padding: 20px;
+            border-radius: var(--admin-radius); 
+            box-shadow: var(--admin-shadow); 
+            padding: 24px;
             box-sizing: border-box;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .admin-card:hover {
-            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+            box-shadow: var(--admin-shadow-hover);
         }
 
         .dashboard-hero { 
@@ -456,18 +464,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .stat-card { 
             padding: 24px; 
-            border-radius: 4px; 
+            border-radius: var(--admin-radius); 
             background: var(--admin-card-bg); 
             border: 1px solid var(--admin-border); 
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03); 
+            box-shadow: var(--admin-shadow); 
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .stat-card:hover {
             transform: translateY(-2px);
+            box-shadow: var(--admin-shadow-hover);
         }
 
         .stat-card-info {
@@ -495,8 +504,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .stat-card-icon {
             width: 48px;
             height: 48px;
-            border-radius: 4px;
-            background: rgba(27, 94, 32, 0.06);
+            border-radius: 14px;
+            background: rgba(22, 101, 52, 0.08);
             color: var(--admin-primary);
             display: flex;
             align-items: center;
@@ -525,34 +534,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .admin-table th {
-            padding: 16px 20px;
-            font-size: 0.8rem;
+            padding: 14px 18px;
+            font-size: 0.72rem;
             font-weight: 700;
-            color: #64748b;
+            color: #64748B;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.07em;
             border-bottom: 1px solid var(--admin-border);
-            background: var(--admin-body-bg);
+            background: #F8FAFC;
         }
 
         .admin-table td {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--admin-border);
-            font-size: 0.95rem;
+            padding: 14px 18px;
+            border-bottom: 1px solid #F0F2F6;
+            font-size: 0.9rem;
             color: var(--admin-text-main);
         }
 
         .admin-table tr:hover td {
-            background: rgba(248, 250, 252, 0.6);
+            background: #FAFBFD;
+        }
+
+        .admin-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
         .badge-pill {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 10px;
-            border-radius: 2px;
-            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.72rem;
             font-weight: 600;
             text-transform: capitalize;
         }
@@ -587,11 +600,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .admin-form-control {
             width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
+            padding: 11px 14px;
+            border: 1.5px solid #D8DEE8;
+            border-radius: var(--admin-radius-sm);
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             box-sizing: border-box;
@@ -599,7 +612,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .admin-form-control:focus {
             border-color: var(--admin-primary);
-            box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
+            box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.12);
         }
 
         .admin-actions { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -613,18 +626,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
+            gap: 8px;
             padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 0.9rem;
+            border-radius: 999px;
+            font-size: 0.88rem;
             font-weight: 600;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter Tight', sans-serif;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
-            border: 1px solid transparent;
+            border: 1.5px solid transparent;
             text-decoration: none;
             white-space: nowrap;
-            line-height: 1;
+            line-height: 1.2;
         }
 
         .admin-layout .btn i,
@@ -636,10 +649,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Small variant used for table row actions */
         .admin-layout .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            gap: 5px;
-            border-radius: 5px;
+            padding: 6px 13px;
+            font-size: 0.78rem;
+            gap: 6px;
+            border-radius: 999px;
         }
 
         .admin-layout .btn-sm i,
@@ -650,36 +663,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Primary, green */
         .admin-layout .btn-primary {
-            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
+            background: linear-gradient(135deg, #14532D 0%, #1B7A3D 100%);
             color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 2px 8px rgba(27,94,32,0.2);
+            box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25);
         }
 
         .admin-layout .btn-primary:hover {
-            background: linear-gradient(135deg, #145214 0%, var(--admin-primary) 100%);
-            box-shadow: 0 4px 16px rgba(27,94,32,0.3);
             transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(22, 101, 52, 0.32);
             color: #ffffff;
-        }
-
-        .admin-layout .btn-primary:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 4px rgba(27,94,32,0.2);
         }
 
         /* Outline, border only */
         .admin-layout .btn-outline {
-            background: transparent;
-            border: 1.5px solid var(--admin-border);
+            border: 1.5px solid #D8DEE8;
             color: #475569;
+            background: #fff;
         }
 
         .admin-layout .btn-outline:hover {
-            background: rgba(27,94,32,0.06);
             border-color: var(--admin-primary);
             color: var(--admin-primary);
-            transform: translateY(-1px);
+            background: #F0FDF4;
         }
 
         /* Trans (transparent ghost), for table row secondary actions */
