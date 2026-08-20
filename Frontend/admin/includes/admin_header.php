@@ -417,13 +417,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: var(--admin-shadow); 
             padding: 24px;
             box-sizing: border-box;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
             min-width: 0;
+            position: relative;
         }
 
         .admin-card:hover {
             box-shadow: var(--admin-shadow-hover);
+            transform: translateY(-4px);
         }
 
         .dashboard-hero { 
@@ -475,14 +477,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex; 
             align-items: center; 
             justify-content: space-between;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 0;
             overflow: hidden;
+            position: relative;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--admin-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-4px) scale(1.02);
             box-shadow: var(--admin-shadow-hover);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover .stat-card-icon {
+            transform: scale(1.15) rotate(5deg);
+            background: rgba(22, 101, 52, 0.15);
+        }
+
+        .stat-card:hover strong {
+            color: var(--admin-primary);
         }
 
         .stat-card-info {
@@ -505,6 +533,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--admin-text-heading); 
             font-family: 'Outfit', sans-serif;
             font-weight: 700;
+            transition: color 0.3s ease;
         }
 
         .stat-card-icon {
@@ -516,6 +545,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .stat-card-icon.accent {
