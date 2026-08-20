@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
                 
-                $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, role, first_name, last_name, phone, farm_name, created_at) VALUES (?, ?, ?, 'customer', ?, ?, ?, ?, NOW())");
+                $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, role, first_name, last_name, phone_number, farm_name, created_at) VALUES (?, ?, ?, 'farm_manager', ?, ?, ?, ?, NOW())");
                 $stmt->execute([$username, $formData['email'], $password_hash, $formData['first_name'], $formData['last_name'], $formData['phone'], $formData['farm_name']]);
                 
                 $success = true;

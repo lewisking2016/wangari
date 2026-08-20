@@ -75,7 +75,7 @@ if ($pdo) {
 
         // Housing utilization
         $housingUtil = $pdo->query("
-            SELECT h.species, h.house_name, h.capacity,
+            SELECT h.species, h.house_name, h.house_type, h.capacity,
                    (SELECT COUNT(*) FROM animal_groups ag WHERE ag.housing_id=h.id AND ag.status='active') as active_groups
             FROM houses h WHERE h.is_active=1
             ORDER BY h.species, h.house_name
@@ -156,10 +156,13 @@ $netCropProfit = $totalCropRevenue - $totalCropCosts;
     .progress-blue { background: linear-gradient(90deg, #3B82F6, #2563EB); }
 </style>
 
-<div class="admin-page-header">
-    <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.4rem;">Mixed Farming Dashboard <?= helpTip('See your whole farm in one view: livestock, crops, money, and upcoming tasks.') ?></h1>
-        <p style="margin:4px 0 0;font-size:0.9rem;color:#64748B;">Combined overview of livestock and crop operations</p>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    <div class="hub-page-header" style="margin-bottom:0;">
+        <div class="hub-page-icon"><i data-lucide="layout-dashboard"></i></div>
+        <div>
+            <h1 class="hub-page-title">Mixed Farming Dashboard <?= helpTip('See your whole farm in one view: livestock, crops, money, and upcoming tasks.') ?></h1>
+            <p class="hub-page-sub">Combined overview of livestock and crop operations</p>
+        </div>
     </div>
     <div style="display:flex;gap:8px;">
         <a href="hub_operations.php" class="btn btn-outline"><i data-lucide="paw-print" style="width:16px;height:16px;"></i> Livestock</a>

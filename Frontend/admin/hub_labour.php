@@ -23,7 +23,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'workers';
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ── POST handlers ── */
+/* ΓöÇΓöÇ POST handlers ΓöÇΓöÇ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-/* ── Load data ── */
+/* ΓöÇΓöÇ Load data ΓöÇΓöÇ */
 $workers = $attendance = $payments = [];
 $workerOptions = [];
 if ($pdo) {
@@ -109,32 +109,33 @@ $tabs = [
 ];
 ?>
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-    <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);">Labour &amp; Workers</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Track who worked, when, on what, and how much you owe.</p>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    <div class="hub-page-header" style="margin-bottom:0;">
+        <div class="hub-page-icon"><i data-lucide="hard-hat"></i></div>
+        <div>
+            <h1 class="hub-page-title">Labour &amp; Workers</h1>
+            <p class="hub-page-sub">Track who worked, when, on what, and how much you owe.</p>
+        </div>
     </div>
-    <?php if ($tab === 'workers'): ?><button class="btn btn-primary" onclick="document.getElementById('worker-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Add Worker</button><?php endif; ?>
-    <?php if ($tab === 'attendance'): ?><button class="btn btn-primary" onclick="document.getElementById('attendance-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Record Attendance</button><?php endif; ?>
-    <?php if ($tab === 'payments'): ?><button class="btn btn-primary" onclick="document.getElementById('payment-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Record Payment</button><?php endif; ?>
+    <div style="display:flex;gap:10px;">
+        <?php if ($tab === 'workers'): ?><button class="btn btn-primary" onclick="document.getElementById('worker-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Add Worker</button><?php endif; ?>
+        <?php if ($tab === 'attendance'): ?><button class="btn btn-primary" onclick="document.getElementById('attendance-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Record Attendance</button><?php endif; ?>
+        <?php if ($tab === 'payments'): ?><button class="btn btn-primary" onclick="document.getElementById('payment-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Record Payment</button><?php endif; ?>
+    </div>
 </div>
 
 <?php if ($message): ?>
-<div style="padding:13px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="check-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-success"><i data-lucide="check-circle-2"></i><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 <?php if ($error_message): ?>
-<div style="padding:13px 18px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="alert-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-error"><i data-lucide="alert-circle"></i><?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 
 <!-- Tab Bar -->
-<div style="display:flex;gap:4px;background:#f1f5f9;padding:5px;border-radius:10px;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
+<div class="hub-tab-bar">
 <?php foreach ($tabs as $key => $info): ?>
-    <a href="?tab=<?= $key ?>" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;font-weight:600;font-size:0.84rem;transition:all 0.18s;<?= $tab===$key ? 'background:#fff;color:var(--admin-primary);box-shadow:0 1px 6px rgba(15,23,42,0.08);' : 'color:#64748b;' ?>">
-        <i data-lucide="<?= $info['icon'] ?>" style="width:15px;height:15px;"></i><?= $info['label'] ?>
+    <a href="?tab=<?= $key ?>" class="hub-tab<?= $tab===$key ? ' active' : '' ?>">
+        <i data-lucide="<?= $info['icon'] ?>"></i><?= $info['label'] ?>
     </a>
 <?php endforeach; ?>
 </div>
@@ -143,7 +144,7 @@ $tabs = [
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
         <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Workers</h3>
-        <span style="color:#64748b;font-size:0.85rem;"><?= count(array_filter($workers, fn($w) => $w['status']==='active')) ?> active · <?= count($workers) ?> total</span>
+        <span style="color:#64748b;font-size:0.85rem;"><?= count(array_filter($workers, fn($w) => $w['status']==='active')) ?> active ┬╖ <?= count($workers) ?> total</span>
     </div>
     <div class="table-responsive">
         <table class="admin-table">
@@ -154,9 +155,9 @@ $tabs = [
             <?php else: foreach ($workers as $w): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($w['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($w['phone'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($w['role'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><span style="text-transform:capitalize;"><?= htmlspecialchars($w['wage_type'], ENT_QUOTES, 'UTF-8') ?></span> · KES <?= number_format((float)$w['wage_rate'], 0) ?></td>
+                    <td><?= htmlspecialchars($w['phone'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($w['role'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><span style="text-transform:capitalize;"><?= htmlspecialchars($w['wage_type'], ENT_QUOTES, 'UTF-8') ?></span> ┬╖ KES <?= number_format((float)$w['wage_rate'], 0) ?></td>
                     <td><span class="badge-pill <?= $w['status']==='active' ? 'badge-pill-success' : 'badge-pill-danger' ?>"><?= ucfirst($w['status']) ?></span></td>
                     <td>
                         <div class="tbl-actions">
@@ -222,15 +223,15 @@ function editWorker(w) {
             <thead><tr><th>Date</th><th>Worker</th><th>Hours</th><th>Task</th><th>Location</th><th>Notes</th></tr></thead>
             <tbody>
             <?php if (empty($attendance)): ?>
-                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No attendance yet.</strong><br>Record who worked, hours and task with <strong>+ Record Attendance</strong> — wages calculate automatically from rates.</td></tr>
+                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No attendance yet.</strong><br>Record who worked, hours and task with <strong>+ Record Attendance</strong> ΓÇö wages calculate automatically from rates.</td></tr>
             <?php else: foreach ($attendance as $a): ?>
                 <tr>
                     <td><?= htmlspecialchars($a['work_date'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><strong><?= htmlspecialchars($a['worker_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><strong><?= htmlspecialchars($a['worker_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><?= number_format((float)$a['hours_worked'], 1) ?></td>
-                    <td><?= htmlspecialchars($a['task'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($a['location'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($a['notes'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['task'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['location'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['notes'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -245,7 +246,7 @@ function editWorker(w) {
             <input type="hidden" name="_action" value="save_attendance">
             <div class="admin-form-group"><label class="admin-form-label">Worker *</label>
                 <select class="admin-form-control" name="worker_id" required>
-                    <option value="">Select worker…</option>
+                    <option value="">Select workerΓÇª</option>
                     <?php foreach ($workerOptions as $wid => $wname): ?><option value="<?= $wid ?>"><?= htmlspecialchars($wname, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Date</label>
@@ -281,11 +282,11 @@ function editWorker(w) {
             <?php else: foreach ($payments as $p): ?>
                 <tr>
                     <td><?= htmlspecialchars(substr($p['paid_at'], 0, 10), ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><strong><?= htmlspecialchars($p['worker_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><strong><?= htmlspecialchars($p['worker_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><strong>KES <?= number_format((float)$p['amount'], 0) ?></strong></td>
-                    <td><?= htmlspecialchars($p['period_start'] ?: '—', ENT_QUOTES, 'UTF-8') ?><?= $p['period_end'] ? ' → ' . htmlspecialchars($p['period_end'], ENT_QUOTES, 'UTF-8') : '' ?></td>
+                    <td><?= htmlspecialchars($p['period_start'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?><?= $p['period_end'] ? ' ΓåÆ ' . htmlspecialchars($p['period_end'], ENT_QUOTES, 'UTF-8') : '' ?></td>
                     <td><span class="badge-pill badge-pill-warning" style="text-transform:capitalize;"><?= htmlspecialchars($p['method'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= htmlspecialchars($p['notes'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['notes'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -300,7 +301,7 @@ function editWorker(w) {
             <input type="hidden" name="_action" value="save_payment">
             <div class="admin-form-group"><label class="admin-form-label">Worker *</label>
                 <select class="admin-form-control" name="worker_id" required>
-                    <option value="">Select worker…</option>
+                    <option value="">Select workerΓÇª</option>
                     <?php foreach ($workerOptions as $wid => $wname): ?><option value="<?= $wid ?>"><?= htmlspecialchars($wname, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Amount (KES) *</label>

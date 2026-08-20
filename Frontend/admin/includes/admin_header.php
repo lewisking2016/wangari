@@ -15,7 +15,7 @@ if (!defined('BASE_URL')) {
 if (!isset($page_title)) $page_title = 'Admin Console';
 // Admin access check (Basic authentication for ANY admin area)
 // Admin access check (Basic authentication for ANY admin area)
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager'], true)) {
+if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff'], true)) {
     // Redirect to login if not authorized
     header('Location: /wangariadmin');
     exit;
@@ -28,7 +28,7 @@ $isStockManager = ($_SESSION['role'] ?? '') === 'stock_manager';
 // Restrict Stock Manager to ONLY stock-related pages
 if ($isStockManager) {
     $currentPage = basename($_SERVER['SCRIPT_NAME']);
-    $allowedStockPages = ['stock_dashboard.php', 'stock_calculator.php', 'stock_recipes.php', 'stock_costing.php', 'stock_alerts.php', 'incoming_stock.php', 'profile.php'];
+    $allowedStockPages = ['stock_dashboard.php', 'stock_calculator.php', 'stock_recipes.php', 'stock_costing.php', 'stock_alerts.php', 'incoming_stock.php', 'profile.php', 'hub_inventory.php', 'hub_finance.php', 'hub_crm.php', 'dashboard.php'];
     if (!in_array($currentPage, $allowedStockPages) && strpos($currentPage, 'stock_') === false && strpos($currentPage, 'incoming_') === false) {
         // Redirect stock managers away from non-stock pages (like orders, settings, users)
         header('Location: /Frontend/admin/stock_dashboard.php');
@@ -1120,7 +1120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: currentColor;
             opacity: 0.5;
         }
-        .w2-nav-sub:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .w2-nav-sub:hover { color: #0F172A; background: #F1F5F9; }
         .w2-nav-sub.active { color: var(--w2-lime); font-weight: 700; }
         .w2-nav-sub.active span { opacity: 1; }
 
@@ -1239,7 +1239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (window.self !== window.top) {
             document.documentElement.classList.add('in-iframe');
             const style = document.createElement('style');
-            style.textContent = '.admin-shell > nav, .admin-top-bar { display: none !important; } .admin-shell { display: block !important; } .admin-content { padding: 0 !important; }';
+            style.textContent = '.admin-shell > nav, .admin-top-bar { display: none !important; } .admin-shell { display: block !important; } .admin-content { padding: 0 !important; margin-left: 0 !important; width: 100% !important; }';
             document.head.appendChild(style);
         }
     </script>

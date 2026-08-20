@@ -47,6 +47,10 @@ try {
 
 // ── Financial Summary (this month) ──
 $financeSummary = ['income' => 0, 'expenses' => 0, 'profit' => 0, 'pending_credit' => 0];
+$livestockCount = 0;
+$activeCropsCount = 0;
+$activeWorkersCount = 0;
+
 try {
     if (!isset($wPdo)) $wPdo = getDB();
     if ($wPdo) {
@@ -55,6 +59,21 @@ try {
         $exp = $wPdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='expense' AND DATE_FORMAT(transaction_date,'%Y-%m')='$month'")->fetchColumn();
         $crd = $wPdo->query("SELECT COALESCE(SUM(balance_owed),0) FROM customer_credits WHERE status='pending'")->fetchColumn();
         $financeSummary = ['income' => (float)$inc, 'expenses' => (float)$exp, 'profit' => (float)$inc - (float)$exp, 'pending_credit' => (float)$crd];
+        
+        // Extra counts
+        try {
+            $livestockCount = (int)$wPdo->query("SELECT COUNT(*) FROM animals WHERE status IN ('Active','alive','active')")->fetchColumn();
+            $groupHeadCount = (int)$wPdo->query("SELECT COALESCE(SUM(head_count),0) FROM animal_groups WHERE status='active'")->fetchColumn();
+            $livestockCount += $groupHeadCount;
+        } catch (Exception $ex) {}
+
+        try {
+            $activeCropsCount = (int)$wPdo->query("SELECT COUNT(*) FROM crop_plantings WHERE status IN ('active','planted')")->fetchColumn();
+        } catch (Exception $ex) {}
+
+        try {
+            $activeWorkersCount = (int)$wPdo->query("SELECT COUNT(*) FROM workers WHERE status='active'")->fetchColumn();
+        } catch (Exception $ex) {}
     }
 } catch (Exception $e) { /* finance is nice-to-have */ }
 ?>
@@ -316,12 +335,41 @@ try {
         .d2-kpi-icon.red   { background: #FDE8E8; color: #B91C1C; }
 
         .d2-ai {
-            background: linear-gradient(135deg, #ffffff 0%, #F7FBF2 100%);
-            border: 1px solid rgba(34,197,94,0.55);
+            background: linear-gradient(135deg, #ffffff 0%, #F5FBF2 50%, #E8F7DF 100%) !important;
+            border: 1.5px solid rgba(34,197,94,0.3) !important;
             border-radius: 16px;
             padding: 22px 24px;
             margin-bottom: 24px;
-            box-shadow: var(--w2-shadow);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.06), var(--w2-shadow) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .d2-ai::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .ai-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #22C55E;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 6px;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: ai-pulse 2s infinite;
+            vertical-align: middle;
+        }
+        @keyframes ai-pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
         .d2-ai-input-wrap { display: flex; gap: 10px; }
         .d2-ai-input-wrap input {
@@ -333,6 +381,7 @@ try {
             font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
+            background: rgba(255,255,255,0.9);
         }
         .d2-ai-input-wrap input:focus { border-color: #1B7A3D; box-shadow: 0 0 0 4px rgba(22,101,52,0.1); }
 
@@ -361,41 +410,71 @@ try {
         <h1>Wangari <span class="w2-serif">Home</span></h1>
         <p>Everything that needs you today — orders, stock health, production and your AI assistant — in one clean workspace.</p>
         <div class="d2-hero-actions">
-            <a class="btn btn-lime" href="orders.php"><i data-lucide="shopping-cart" style="width:16px;height:16px;"></i> Review Orders</a>
-            <a class="btn btn-ghost" href="products.php"><i data-lucide="package" style="width:16px;height:16px;"></i> Manage Products</a>
-            <a class="btn btn-ghost" href="reports.php"><i data-lucide="bar-chart" style="width:16px;height:16px;"></i> Analytics</a>
+            <a class="btn btn-lime" href="/Frontend/admin/hub_finance.php?tab=orders"><i data-lucide="shopping-cart" style="width:16px;height:16px;"></i> Review Orders</a>
+            <a class="btn btn-ghost" href="/Frontend/admin/hub_inventory.php?tab=products"><i data-lucide="package" style="width:16px;height:16px;"></i> Manage Products</a>
+            <a class="btn btn-ghost" href="/Frontend/admin/hub_finance.php?tab=reports"><i data-lucide="bar-chart" style="width:16px;height:16px;"></i> Analytics</a>
         </div>
     </div>
 
     <!-- V2 KPI cards -->
     <div class="d2-kpis">
-        <div class="d2-kpi" onclick="window.location.href='orders.php'">
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_finance.php?tab=sales'">
             <div>
                 <small>Total Revenue</small>
                 <strong id="kpi-sales">KES 0</strong>
             </div>
             <div class="d2-kpi-icon green"><i data-lucide="trending-up" style="width:22px;height:22px;"></i></div>
         </div>
-        <div class="d2-kpi" onclick="window.location.href='orders.php'">
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_finance.php?tab=orders'">
             <div>
                 <small>Orders Completed</small>
                 <strong id="kpi-orders">0</strong>
             </div>
             <div class="d2-kpi-icon blue"><i data-lucide="shopping-bag" style="width:22px;height:22px;"></i></div>
         </div>
-        <div class="d2-kpi" onclick="window.location.href='orders.php'">
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_finance.php?tab=orders'">
             <div>
                 <small>Avg. Order Value</small>
                 <strong id="kpi-avg">KES 0</strong>
             </div>
             <div class="d2-kpi-icon amber"><i data-lucide="pie-chart" style="width:22px;height:22px;"></i></div>
         </div>
-        <div class="d2-kpi" onclick="window.location.href='stock_alerts.php'">
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_inventory.php?tab=alerts'">
             <div>
                 <small>Inventory Alerts</small>
                 <strong id="kpi-alerts-summary">0</strong>
             </div>
             <div class="d2-kpi-icon red"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
+        </div>
+        
+        <!-- Additional KPI cards -->
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_operations.php?tab=animals'">
+            <div>
+                <small>Active Livestock</small>
+                <strong><?= number_format($livestockCount) ?></strong>
+            </div>
+            <div class="d2-kpi-icon green"><i data-lucide="sprout" style="width:22px;height:22px;"></i></div>
+        </div>
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_crops.php?tab=plantings'">
+            <div>
+                <small>Active Crops</small>
+                <strong><?= number_format($activeCropsCount) ?></strong>
+            </div>
+            <div class="d2-kpi-icon blue"><i data-lucide="wheat" style="width:22px;height:22px;"></i></div>
+        </div>
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_labour.php?tab=workers'">
+            <div>
+                <small>Active Workers</small>
+                <strong><?= number_format($activeWorkersCount) ?></strong>
+            </div>
+            <div class="d2-kpi-icon amber"><i data-lucide="users" style="width:22px;height:22px;"></i></div>
+        </div>
+        <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_crm.php?tab=customers'">
+            <div>
+                <small>Outstanding Credit</small>
+                <strong style="color:#b45309;">KES <?= number_format($financeSummary['pending_credit'], 0) ?></strong>
+            </div>
+            <div class="d2-kpi-icon red"><i data-lucide="credit-card" style="width:22px;height:22px;"></i></div>
         </div>
     </div>
 
@@ -403,8 +482,9 @@ try {
     <div class="d2-ai">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
             <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:42px;height:42px;border-radius:13px;background:#0B1220;color:#22C55E;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(11,18,32,0.2);">
+                <div style="position:relative;width:42px;height:42px;border-radius:13px;background:#0B1220;color:#22C55E;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(11,18,32,0.2);">
                     <i data-lucide="sparkles" style="width:20px;height:20px;"></i>
+                    <span class="ai-pulse-dot" style="position:absolute;top:2px;right:2px;margin:0;"></span>
                 </div>
                 <div>
                     <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Ask Wangari <span style="color:#1B7A3D;font-family:'Instrument Serif',serif;font-style:italic;">AI</span></h3>
@@ -418,11 +498,26 @@ try {
             <strong style="flex:none;">Today:</strong>
             <span><?php echo htmlspecialchars(function_exists('getTodayDigest') ? getTodayDigest($pdo) : 'No activity recorded yet today.', ENT_QUOTES, 'UTF-8'); ?></span>
         </div>
-        <form class="d2-ai-input-wrap" method="POST" action="ai_assistant.php">
-            <input name="question" placeholder="Try: 'How much did I sell this month?' or 'Who owes me credit?'" autocomplete="off">
+        <form class="d2-ai-input-wrap" method="POST" action="ai_assistant.php" style="margin-bottom:12px;">
+            <input name="question" id="ai-question-input" placeholder="Try: 'How much did I sell this month?' or 'Who owes me credit?'" autocomplete="off">
             <button class="btn btn-primary" style="white-space:nowrap;"><i data-lucide="send" style="width:16px;height:16px;"></i> Ask</button>
         </form>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" class="d2-ai-suggestions">
+            <span onclick="fillQuestion('How much did I sell this month?')" style="cursor:pointer;padding:6px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:999px;font-size:0.75rem;color:#475569;font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='#22C55E';this.style.color='#166534';this.style.background='#F0FDF4'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#475569';this.style.background='#fff'">💰 Sales this month</span>
+            <span onclick="fillQuestion('How many active animals do we have?')" style="cursor:pointer;padding:6px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:999px;font-size:0.75rem;color:#475569;font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='#22C55E';this.style.color='#166534';this.style.background='#F0FDF4'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#475569';this.style.background='#fff'">🐣 Active Livestock</span>
+            <span onclick="fillQuestion('Who owes me credit?')" style="cursor:pointer;padding:6px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:999px;font-size:0.75rem;color:#475569;font-weight:600;transition:all 0.2s;" onmouseover="this.style.borderColor='#22C55E';this.style.color='#166534';this.style.background='#F0FDF4'" onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#475569';this.style.background='#fff'">💳 Outstanding credit</span>
+        </div>
     </div>
+    
+    <script>
+    function fillQuestion(q) {
+        const input = document.getElementById('ai-question-input');
+        if (input) {
+            input.value = q;
+            input.closest('form').submit();
+        }
+    }
+    </script>
 
     <!-- V2 Main Grid -->
     <div class="d2-main">

@@ -23,7 +23,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'reminders';
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ── POST handlers ── */
+/* ΓöÇΓöÇ POST handlers ΓöÇΓöÇ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-/* ── Load data ── */
+/* ΓöÇΓöÇ Load data ΓöÇΓöÇ */
 $reminders = $alerts = [];
 $upcoming = [];
 if ($pdo) {
@@ -118,31 +118,32 @@ $tabs = [
 ];
 ?>
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-    <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);">Smart Reminders &amp; Weather</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Never miss a deadline, treatment, or weather warning again.</p>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    <div class="hub-page-header" style="margin-bottom:0;">
+        <div class="hub-page-icon"><i data-lucide="bell"></i></div>
+        <div>
+            <h1 class="hub-page-title">Smart Reminders &amp; Weather</h1>
+            <p class="hub-page-sub">Never miss a deadline, treatment, or weather warning again.</p>
+        </div>
     </div>
-    <?php if ($tab === 'reminders'): ?><button class="btn btn-primary" onclick="document.getElementById('reminder-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> New Reminder</button><?php endif; ?>
-    <?php if ($tab === 'weather'): ?><button class="btn btn-primary" onclick="document.getElementById('weather-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Log Alert</button><?php endif; ?>
+    <div style="display:flex;gap:10px;">
+        <?php if ($tab === 'reminders'): ?><button class="btn btn-primary" onclick="document.getElementById('reminder-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> New Reminder</button><?php endif; ?>
+        <?php if ($tab === 'weather'): ?><button class="btn btn-primary" onclick="document.getElementById('weather-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Log Alert</button><?php endif; ?>
+    </div>
 </div>
 
 <?php if ($message): ?>
-<div style="padding:13px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="check-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-success"><i data-lucide="check-circle-2"></i><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 <?php if ($error_message): ?>
-<div style="padding:13px 18px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="alert-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-error"><i data-lucide="alert-circle"></i><?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 
 <!-- Tab Bar -->
-<div style="display:flex;gap:4px;background:#f1f5f9;padding:5px;border-radius:10px;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
+<div class="hub-tab-bar">
 <?php foreach ($tabs as $key => $info): ?>
-    <a href="?tab=<?= $key ?>" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;font-weight:600;font-size:0.84rem;transition:all 0.18s;<?= $tab===$key ? 'background:#fff;color:var(--admin-primary);box-shadow:0 1px 6px rgba(15,23,42,0.08);' : 'color:#64748b;' ?>">
-        <i data-lucide="<?= $info['icon'] ?>" style="width:15px;height:15px;"></i><?= $info['label'] ?>
+    <a href="?tab=<?= $key ?>" class="hub-tab<?= $tab===$key ? ' active' : '' ?>">
+        <i data-lucide="<?= $info['icon'] ?>"></i><?= $info['label'] ?>
     </a>
 <?php endforeach; ?>
 </div>
@@ -164,7 +165,7 @@ $tabs = [
                 <tr>
                     <td><strong><?= htmlspecialchars(date('M j, Y H:i', strtotime($r['remind_at'])), ENT_QUOTES, 'UTF-8') ?></strong><?= $isPast ? ' <span class="badge-pill badge-pill-danger">Now</span>' : '' ?></td>
                     <td><?= htmlspecialchars($r['title'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($r['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($r['description'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning" style="text-transform:capitalize;"><?= htmlspecialchars($r['channel'], ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><span class="badge-pill <?= $r['status']==='done' ? 'badge-pill-success' : ($r['status']==='dismissed' ? 'badge-pill-danger' : 'badge-pill-warning') ?>"><?= ucfirst($r['status']) ?></span></td>
                     <td>
@@ -174,7 +175,7 @@ $tabs = [
                             <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                             <button class="btn btn-outline btn-sm"><i data-lucide="check" style="width:13px;height:13px;"></i> Dismiss</button>
                         </form>
-                        <?php else: ?><span style="color:#94a3b8;">—</span><?php endif; ?>
+                        <?php else: ?><span style="color:#94a3b8;">ΓÇö</span><?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -225,7 +226,7 @@ $tabs = [
                     <td><?= htmlspecialchars($a['alert_date'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning" style="text-transform:capitalize;"><?= htmlspecialchars($a['alert_type'], ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><strong><?= htmlspecialchars($a['title'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($a['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['description'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill <?= $a['status']==='active' ? 'badge-pill-danger' : 'badge-pill-success' ?>"><?= ucfirst($a['status']) ?></span></td>
                     <td>
                         <?php if ($a['status'] === 'active'): ?>
@@ -234,7 +235,7 @@ $tabs = [
                             <input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
                             <button class="btn btn-success btn-sm"><i data-lucide="check" style="width:13px;height:13px;"></i> Resolve</button>
                         </form>
-                        <?php else: ?><span style="color:#94a3b8;">—</span><?php endif; ?>
+                        <?php else: ?><span style="color:#94a3b8;">ΓÇö</span><?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

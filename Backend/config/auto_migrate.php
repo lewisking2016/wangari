@@ -829,18 +829,20 @@ function ensureBusiaSchema(PDO $pdo): void
         seedMasterData($pdo);
 
         $configDir = __DIR__;
-        $poultryFile = $configDir . '/migration_poultry_complete.sql';
+        $poultryFile  = $configDir . '/migration_poultry_complete.sql';
         $businessFile = $configDir . '/migration_v2_business.sql';
+        $cropsFile    = $configDir . '/migration_v5_crops.sql';
 
         // Loop until stable: a statement can fail mid-run when its foreign
         // key target is created later in the same pass (e.g. batches depends
         // on houses/flocks). Later passes create those, then the dependents.
         for ($pass = 0; $pass < 6; $pass++) {
             $existing = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) ?: [];
-            $missingPoultry = array_diff(migrationTableNames($poultryFile), $existing);
+            $missingPoultry  = array_diff(migrationTableNames($poultryFile),  $existing);
             $missingBusiness = array_diff(migrationTableNames($businessFile), $existing);
+            $missingCrops    = array_diff(migrationTableNames($cropsFile),    $existing);
 
-            if (!$missingPoultry && !$missingBusiness) {
+            if (!$missingPoultry && !$missingBusiness && !$missingCrops) {
                 return; // everything present
             }
 
@@ -853,6 +855,9 @@ function ensureBusiaSchema(PDO $pdo): void
             }
             if ($missingBusiness) {
                 runMigrationFile($pdo, $businessFile);
+            }
+            if ($missingCrops) {
+                runMigrationFile($pdo, $cropsFile);
             }
 
             $after = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);

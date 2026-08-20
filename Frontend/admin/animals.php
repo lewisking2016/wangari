@@ -1,8 +1,10 @@
 <?php
 /**
- * Admin - Animals Module
+ * Admin - Animals Module (Redirected to Unified Hub)
  */
 declare(strict_types=1);
+header('Location: /Frontend/admin/hub_operations.php?tab=animals', true, 301);
+exit;
 
 $temp_dir = sys_get_temp_dir();
 if (is_writable($temp_dir)) session_save_path($temp_dir);

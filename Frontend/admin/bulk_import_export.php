@@ -1,9 +1,9 @@
 <?php
+declare(strict_types=1);
 /**
  * Admin - Bulk Import/Export Module
  * Handles CSV/Excel import and export for all major data entities
  */
-declare(strict_types=1);
 
 // Start session safely (never warn if already started)
 if (session_status() === PHP_SESSION_NONE) {
@@ -35,6 +35,10 @@ $import_formats = [
     'raw_materials' => ['label' => 'Raw Materials', 'columns' => ['Name', 'Stock (tons)', 'Price/ton', 'Min Stock Level']],
     'flocks'        => ['label' => 'Flocks',        'columns' => ['Flock Name', 'Breed', 'Initial Count', 'Current Count', 'Hatch Date (YYYY-MM-DD)', 'Status']],
     'expenses'      => ['label' => 'Expenses',      'columns' => ['Category', 'Description', 'Amount', 'Date (YYYY-MM-DD)', 'Payment Method']],
+    'income'        => ['label' => 'Income',        'columns' => ['Category', 'Description', 'Amount', 'Date (YYYY-MM-DD)', 'Payment Method']],
+    'animals'       => ['label' => 'Animals',       'columns' => ['Tag', 'Name', 'Type', 'Breed', 'Gender', 'Birth Date (YYYY-MM-DD)', 'Status', 'Notes']],
+    'crops'         => ['label' => 'Crop Plantings','columns' => ['Field Name', 'Crop', 'Variety', 'Planting Date (YYYY-MM-DD)', 'Area (Acres)', 'Expected Harvest (YYYY-MM-DD)', 'Expected Yield', 'Yield Unit', 'Status', 'Notes']],
+    'workers'       => ['label' => 'Workers',       'columns' => ['Name', 'Phone', 'Role', 'Wage Type', 'Wage Rate', 'Status', 'Notes']],
 ];
 
 // ==================== EXPORT FUNCTIONS ====================
@@ -112,6 +116,39 @@ function exportFlocks($pdo) {
     ], $rows);
 }
 
+function exportAnimals($pdo) {
+    $stmt = $pdo->query("SELECT tag, name, type, breed, gender, birth_date, status, notes FROM animals ORDER BY id");
+    outputCSV('animals_export', ['Tag', 'Name', 'Type', 'Breed', 'Gender', 'Birth Date', 'Status', 'Notes'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
+function exportCrops($pdo) {
+    $stmt = $pdo->query("
+        SELECT f.name as field_name, cp.crop, cp.variety, cp.planting_date, cp.area_acres, 
+               cp.expected_harvest_date, cp.expected_yield, cp.yield_unit, cp.status, cp.notes
+        FROM crop_plantings cp
+        LEFT JOIN fields f ON cp.field_id = f.id
+        ORDER BY cp.id
+    ");
+    outputCSV('crops_export', ['Field Name', 'Crop', 'Variety', 'Planting Date', 'Area (Acres)', 'Expected Harvest', 'Expected Yield', 'Yield Unit', 'Status', 'Notes'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
+function exportWorkers($pdo) {
+    $stmt = $pdo->query("SELECT name, phone, role, wage_type, wage_rate, status, notes FROM workers ORDER BY id");
+    outputCSV('workers_export', ['Name', 'Phone', 'Role', 'Wage Type', 'Wage Rate', 'Status', 'Notes'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
+function exportIncome($pdo) {
+    $hasPayment = function_exists('columnExists') && columnExists($pdo, 'financial_records', 'payment_method');
+    $stmt = $pdo->query("
+        SELECT category, description, amount, transaction_date,
+               " . ($hasPayment ? 'payment_method' : "'cash' AS payment_method") . "
+        FROM financial_records
+        WHERE type = 'income'
+        ORDER BY transaction_date DESC
+    ");
+    outputCSV('income_export', ['Category', 'Description', 'Amount', 'Date', 'Payment Method'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+}
+
 function exportExpenses($pdo) {
     // Older databases lack financial_records.payment_method; the auto-migration
     // adds it, but degrade gracefully regardless so the export never fails.
@@ -169,6 +206,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['export'])) {
             case 'expenses':
                 exportExpenses($pdo);
                 break;
+            case 'animals':
+                exportAnimals($pdo);
+                break;
+            case 'crops':
+                exportCrops($pdo);
+                break;
+            case 'workers':
+                exportWorkers($pdo);
+                break;
+            case 'income':
+                exportIncome($pdo);
+                break;
+
             default:
                 die('Invalid export type');
         }
@@ -206,6 +256,10 @@ $count_queries = [
     'raw_materials' => ['raw_materials',      "SELECT COUNT(*) FROM raw_materials"],
     'flocks'        => ['flocks',             "SELECT COUNT(*) FROM flocks"],
     'expenses'      => ['financial_records',  "SELECT COUNT(*) FROM financial_records WHERE type='expense'"],
+    'income'        => ['financial_records',  "SELECT COUNT(*) FROM financial_records WHERE type='income'"],
+    'animals'       => ['animals',            "SELECT COUNT(*) FROM animals"],
+    'crops'         => ['crop_plantings',     "SELECT COUNT(*) FROM crop_plantings"],
+    'workers'       => ['workers',            "SELECT COUNT(*) FROM workers"],
 ];
 $existing_tables = ($pdo instanceof PDO) ? ($pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) ?: []) : [];
 foreach ($count_queries as $ckey => [$ctable, $csql]) {
@@ -244,6 +298,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         break;
                     case 'expenses':
                         $result = importExpenses($pdo, $file_path);
+                        break;
+                    case 'income':
+                        $result = importIncome($pdo, $file_path);
+                        break;
+                    case 'animals':
+                        $result = importAnimals($pdo, $file_path);
+                        break;
+                    case 'crops':
+                        $result = importCrops($pdo, $file_path);
+                        break;
+                    case 'workers':
+                        $result = importWorkers($pdo, $file_path);
                         break;
                     default:
                         throw new Exception('Invalid import type');
@@ -470,259 +536,259 @@ function importExpenses($pdo, $file_path) {
     return ['success' => $success, 'errors' => $errors];
 }
 
+function importIncome($pdo, $file_path) {
+    $success = 0; $errors = 0;
+    if (($handle = fopen($file_path, 'r')) !== FALSE) {
+        fgetcsv($handle); // skip header
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            try {
+                $category = trim($data[0] ?? ''); $description = trim($data[1] ?? '');
+                $amount = (float)($data[2] ?? 0); $transaction_date = trim($data[3] ?? date('Y-m-d'));
+                $payment_method = trim($data[4] ?? 'cash');
+                if (empty($description) || $amount <= 0) { $errors++; continue; }
+                $pdo->prepare("INSERT INTO financial_records (type, category, description, amount, transaction_date, payment_method) VALUES ('income', ?, ?, ?, ?, ?)")
+                    ->execute([$category, $description, $amount, $transaction_date, $payment_method]);
+                $success++;
+            } catch (Exception $e) { $errors++; }
+        }
+        fclose($handle);
+    }
+    return ['success' => $success, 'errors' => $errors];
+}
+
+function importAnimals($pdo, $file_path) {
+    $success = 0; $errors = 0;
+    if (($handle = fopen($file_path, 'r')) !== FALSE) {
+        fgetcsv($handle);
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            try {
+                $tag = trim($data[0] ?? ''); $name = trim($data[1] ?? '');
+                $type = trim($data[2] ?? ''); $breed = trim($data[3] ?? '');
+                $gender = trim($data[4] ?? ''); $birth_date = trim($data[5] ?? null);
+                $status = trim($data[6] ?? 'active'); $notes = trim($data[7] ?? '');
+                if (empty($tag)) { $errors++; continue; }
+                $pdo->prepare("INSERT INTO animals (tag, name, type, breed, gender, birth_date, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), status=VALUES(status)")
+                    ->execute([$tag, $name, $type, $breed, $gender, $birth_date ?: null, $status, $notes]);
+                $success++;
+            } catch (Exception $e) { $errors++; }
+        }
+        fclose($handle);
+    }
+    return ['success' => $success, 'errors' => $errors];
+}
+
+function importCrops($pdo, $file_path) {
+    $success = 0; $errors = 0;
+    if (($handle = fopen($file_path, 'r')) !== FALSE) {
+        fgetcsv($handle);
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            try {
+                $field_name = trim($data[0] ?? ''); $crop = trim($data[1] ?? '');
+                $variety = trim($data[2] ?? ''); $planting_date = trim($data[3] ?? date('Y-m-d'));
+                $area_acres = (float)($data[4] ?? 0); $expected_harvest = trim($data[5] ?? null);
+                $expected_yield = (float)($data[6] ?? 0); $yield_unit = trim($data[7] ?? 'kg');
+                $status = trim($data[8] ?? 'growing'); $notes = trim($data[9] ?? '');
+                if (empty($crop)) { $errors++; continue; }
+                $field_id = null;
+                if (!empty($field_name)) {
+                    $frow = $pdo->prepare("SELECT id FROM fields WHERE name = ? LIMIT 1");
+                    $frow->execute([$field_name]); $fr = $frow->fetch();
+                    if ($fr) $field_id = $fr['id'];
+                }
+                $pdo->prepare("INSERT INTO crop_plantings (field_id, crop, variety, planting_date, area_acres, expected_harvest_date, expected_yield, yield_unit, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                    ->execute([$field_id, $crop, $variety, $planting_date, $area_acres, $expected_harvest ?: null, $expected_yield, $yield_unit, $status, $notes]);
+                $success++;
+            } catch (Exception $e) { $errors++; }
+        }
+        fclose($handle);
+    }
+    return ['success' => $success, 'errors' => $errors];
+}
+
+function importWorkers($pdo, $file_path) {
+    $success = 0; $errors = 0;
+    if (($handle = fopen($file_path, 'r')) !== FALSE) {
+        fgetcsv($handle);
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            try {
+                $name = trim($data[0] ?? ''); $phone = trim($data[1] ?? '');
+                $role = trim($data[2] ?? ''); $wage_type = trim($data[3] ?? 'daily');
+                $wage_rate = (float)($data[4] ?? 0); $status = trim($data[5] ?? 'active');
+                $notes = trim($data[6] ?? '');
+                if (empty($name)) { $errors++; continue; }
+                $pdo->prepare("INSERT INTO workers (name, phone, role, wage_type, wage_rate, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE phone=VALUES(phone), status=VALUES(status)")
+                    ->execute([$name, $phone, $role, $wage_type, $wage_rate, $status, $notes]);
+                $success++;
+            } catch (Exception $e) { $errors++; }
+        }
+        fclose($handle);
+    }
+    return ['success' => $success, 'errors' => $errors];
+}
 ?>
 
-<?php
-// Render the standard admin shell (sidebar + design system). This MUST come
-// after the export/import handlers above so CSV downloads never carry HTML.
-include __DIR__ . '/includes/admin_header.php';
-?>
+<?php include __DIR__ . '/includes/admin_header.php'; ?>
 
-<!-- Alerts -->
 <?php if ($success_message): ?>
-<div style="display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 6px; color: #166534; font-size: 0.9rem; font-weight: 500; margin-bottom: 24px;">
-    <i data-lucide="check-circle-2" style="width: 18px; height: 18px; color: #16a34a; flex-shrink: 0;"></i>
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #16a34a;border-radius:10px;color:#166534;font-size:.9rem;font-weight:500;margin-bottom:24px;">
+    <i data-lucide="check-circle-2" style="width:18px;height:18px;color:#16a34a;flex-shrink:0;"></i>
     <?php echo htmlspecialchars($success_message); ?>
 </div>
 <?php endif; ?>
 <?php if ($error_message): ?>
-<div style="display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 6px; color: #991b1b; font-size: 0.9rem; font-weight: 500; margin-bottom: 24px;">
-    <i data-lucide="alert-octagon" style="width: 18px; height: 18px; color: #dc2626; flex-shrink: 0;"></i>
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #dc2626;border-radius:10px;color:#991b1b;font-size:.9rem;font-weight:500;margin-bottom:24px;">
+    <i data-lucide="alert-octagon" style="width:18px;height:18px;color:#dc2626;flex-shrink:0;"></i>
     <?php echo htmlspecialchars($error_message); ?>
 </div>
 <?php endif; ?>
 
 <style>
-    .bie-header-icon { width: 46px; height: 46px; border-radius: 10px; background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(27, 94, 32, 0.25); flex-shrink: 0; }
-    .bie-export-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-    .bie-export-tile { display: flex; flex-direction: column; gap: 10px; padding: 18px; background: var(--admin-body-bg); border: 1px solid var(--admin-border); border-radius: 8px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .bie-export-tile:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08); border-color: rgba(27, 94, 32, 0.35); }
-    .bie-icon-chip { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .bie-export-tile h4 { margin: 0; font-size: 0.98rem; font-weight: 700; color: var(--admin-text-heading); }
-    .bie-export-tile p { margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.5; flex-grow: 1; }
-    .file-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 26px 16px; border: 2px dashed #cbd5e1; border-radius: 8px; background: var(--admin-body-bg); cursor: pointer; transition: border-color .2s ease, background .2s ease; text-align: center; height: 100%; box-sizing: border-box; }
-    .file-drop:hover, .file-drop.dragover { border-color: var(--admin-primary); background: rgba(27, 94, 32, 0.04); }
-    .file-drop i { width: 28px; height: 28px; color: var(--admin-primary); }
-    .file-drop span { font-size: 0.85rem; color: #475569; font-weight: 500; }
-    .file-drop small { font-size: 0.75rem; color: #94a3b8; }
-    .fmt-chip { display: inline-block; padding: 4px 10px; margin: 0 6px 6px 0; background: #fff; border: 1px solid var(--admin-border); border-radius: 4px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; font-size: 0.78rem; color: #334155; }
-    .section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-    .section-head h3 { margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: var(--admin-text-heading); }
-    .section-sub { margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b; }
-    /* Narrow windows: stack the import-type/file row instead of overflowing */
-    @media (max-width: 1000px) {
-        div[style*="320px 1fr"] { grid-template-columns: 1fr !important; }
-    }
+.bie-hdr{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#14532D,#1B7A3D);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(27,94,32,.25);flex-shrink:0;}
+.bie-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.bie-tile{display:flex;flex-direction:column;gap:12px;padding:20px;background:#fff;border:1px solid #E7EAF0;border-radius:14px;box-shadow:0 4px 14px rgba(15,23,42,.04);transition:transform .2s,box-shadow .2s,border-color .2s;}
+.bie-tile:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(15,23,42,.09);border-color:rgba(22,101,52,.3);}
+.bie-chip{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bie-tile h4{margin:0;font-size:.95rem;font-weight:700;color:#0F172A;}
+.bie-tile p{margin:0;font-size:.79rem;color:#64748b;line-height:1.5;flex-grow:1;}
+.w2-sh{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.w2-sh h3{margin:0;font-size:1.1rem;font-weight:700;color:#0F172A;}
+.w2-ss{margin:2px 0 0;font-size:.84rem;color:#64748b;}
+.w2-sd{border:none;border-top:1px solid #E7EAF0;margin:14px 0 22px;}
+.bie-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:26px 16px;border:2px dashed #cbd5e1;border-radius:10px;background:#F8FAFC;cursor:pointer;transition:border-color .2s,background .2s;text-align:center;box-sizing:border-box;}
+.bie-drop:hover,.bie-drop.dragover{border-color:#166534;background:rgba(22,101,52,.04);}
+.bie-drop i{width:28px;height:28px;color:#166534;}
+.bie-drop span{font-size:.85rem;color:#475569;font-weight:500;}
+.bie-drop small{font-size:.75rem;color:#94a3b8;}
+.fmt-chip{display:inline-block;padding:4px 10px;margin:0 6px 6px 0;background:#fff;border:1px solid #E7EAF0;border-radius:6px;font-family:monospace;font-size:.77rem;color:#334155;}
 </style>
 
-<!-- Page Header -->
-<div style="margin-bottom: 28px; display: flex; align-items: center; gap: 16px;">
-    <div class="bie-header-icon">
-        <i data-lucide="arrow-left-right" style="width: 24px; height: 24px;"></i>
-    </div>
+<div style="margin-bottom:28px;display:flex;align-items:center;gap:16px;">
+    <div class="bie-hdr"><i data-lucide="arrow-left-right" style="width:24px;height:24px;"></i></div>
     <div>
-        <h1 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.7rem; color: var(--admin-text-heading); letter-spacing: -0.5px;">Bulk Import & Export</h1>
-        <p style="margin: 3px 0 0 0; color: #64748b; font-size: 0.9rem;">Move your farm data in and out as CSV — backups, bulk edits, and recovery.</p>
+        <h1 style="margin:0;font-size:1.7rem;font-weight:800;color:#0F172A;letter-spacing:-.5px;">Bulk Import &amp; Export</h1>
+        <p style="margin:4px 0 0;color:#64748b;font-size:.9rem;">Move your farm data in and out as CSV - backups, bulk edits, and recovery.</p>
     </div>
 </div>
 
-<!-- Quick stats -->
-<?php $stat_defs = [
-    ['products', 'package', 'Products', ''],
-    ['orders', 'shopping-cart', 'Orders', 'accent'],
-    ['customers', 'users', 'Customers', 'info'],
-    ['flocks', 'bird', 'Flocks', ''],
+<?php $stat_defs=[
+    ['products','package','Products',''],['orders','shopping-cart','Orders','accent'],
+    ['customers','users','Customers','info'],['animals','paw-print','Animals',''],
+    ['crops','sprout','Crops',''],['workers','hard-hat','Workers',''],
+    ['expenses','trending-down','Expenses',''],['income','trending-up','Income',''],
 ]; ?>
-<div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 28px;">
-    <?php foreach ($stat_defs as [$skey, $sicon, $slabel, $svariant]): ?>
+<div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:28px;">
+    <?php foreach($stat_defs as[$sk,$si,$sl,$sv]):?>
     <div class="stat-card">
-        <div class="stat-card-info">
-            <small><?php echo $slabel; ?></small>
-            <strong><?php echo isset($record_counts[$skey]) ? number_format((int)$record_counts[$skey]) : '—'; ?></strong>
-        </div>
-        <div class="stat-card-icon <?php echo $svariant; ?>">
-            <i data-lucide="<?php echo $sicon; ?>" style="width: 22px; height: 22px;"></i>
-        </div>
+        <div class="stat-card-info"><small><?=$sl?></small><strong><?=isset($record_counts[$sk])?number_format((int)$record_counts[$sk]):'&mdash;'?></strong></div>
+        <div class="stat-card-icon <?=$sv?>"><i data-lucide="<?=$si?>" style="width:22px;height:22px;"></i></div>
     </div>
-    <?php endforeach; ?>
+    <?php endforeach;?>
 </div>
 
-<!-- Export Section -->
-<div class="admin-card" style="margin-bottom: 28px;">
-    <div style="border-bottom: 1px solid var(--admin-border); padding-bottom: 16px; margin-bottom: 22px;">
-        <div class="section-head">
-            <i data-lucide="download" style="width: 20px; height: 20px; color: var(--admin-primary);"></i>
-            <h3>Export Data to CSV</h3>
-        </div>
-        <p class="section-sub">Download current data for backup, analysis in Excel, or as an import template reference.</p>
-    </div>
-
-    <?php $export_tiles = [
-        ['products', 'package', 'Products', 'All products with categories, pricing, and stock levels.', 'rgba(27,94,32,.08)', 'var(--admin-primary)'],
-        ['orders', 'shopping-cart', 'Orders', 'Complete order history with customer and payment details.', 'rgba(59,130,246,.1)', '#2563eb'],
-        ['customers', 'users', 'Customers', 'Customer database with contact information and accounts.', 'rgba(255,193,7,.14)', '#b45309'],
-        ['raw_materials', 'layers', 'Raw Materials', 'Ingredient stock levels and pricing data.', 'rgba(139,92,246,.1)', '#7c3aed'],
-        ['flocks', 'bird', 'Flocks', 'Poultry flock records with breeds, counts, and status.', 'rgba(22,163,74,.1)', '#15803d'],
-        ['expenses', 'dollar-sign', 'Expenses', 'Farm expenses with categories, vendors, and dates.', 'rgba(220,38,38,.08)', '#dc2626'],
-    ]; ?>
-    <div class="bie-export-grid">
-        <?php foreach ($export_tiles as [$ekey, $eicon, $etitle, $edesc, $echipBg, $echipColor]): ?>
-        <div class="bie-export-tile">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                <div class="bie-icon-chip" style="background: <?php echo $echipBg; ?>; color: <?php echo $echipColor; ?>;">
-                    <i data-lucide="<?php echo $eicon; ?>" style="width: 20px; height: 20px;"></i>
-                </div>
-                <?php if (isset($record_counts[$ekey]) && $record_counts[$ekey] !== null): ?>
-                <span class="badge-pill badge-pill-success"><?php echo number_format((int)$record_counts[$ekey]); ?> records</span>
-                <?php endif; ?>
+<div class="admin-card" style="margin-bottom:28px;">
+    <div class="w2-sh"><i data-lucide="download" style="width:20px;height:20px;color:#166534;"></i><h3>Export Data to CSV</h3></div>
+    <p class="w2-ss">Download current data for backup, analysis in Excel, or as an import template reference.</p>
+    <hr class="w2-sd">
+    <?php $tiles=[
+        ['products','package','Products','All products with categories, pricing, and stock levels.','rgba(22,101,52,.08)','#166534'],
+        ['orders','shopping-cart','Orders','Complete order history with customer and payment details.','rgba(59,130,246,.1)','#2563eb'],
+        ['customers','users','Customers','Customer database with contact information and accounts.','rgba(217,119,6,.12)','#b45309'],
+        ['raw_materials','layers','Raw Materials','Ingredient stock levels and current pricing data.','rgba(139,92,246,.1)','#7c3aed'],
+        ['flocks','bird','Flocks','Poultry flock records with breeds, counts, and status.','rgba(22,163,74,.1)','#15803d'],
+        ['expenses','trending-down','Expenses','Farm expense records with categories and payment details.','rgba(220,38,38,.08)','#dc2626'],
+        ['income','trending-up','Income','All income transactions with categories and methods.','rgba(16,185,129,.1)','#059669'],
+        ['animals','paw-print','Animals','Livestock records with tags, breeds, and health status.','rgba(245,158,11,.1)','#d97706'],
+        ['crops','sprout','Crop Plantings','Crop records with fields, expected yields, and harvest dates.','rgba(132,204,22,.12)','#4d7c0f'],
+        ['workers','hard-hat','Workers','Worker profiles with roles, wage rates, and status.','rgba(99,102,241,.1)','#4f46e5'],
+    ];?>
+    <div class="bie-grid">
+        <?php foreach($tiles as[$ek,$ei,$et,$ed,$bg,$col]):?>
+        <div class="bie-tile">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div class="bie-chip" style="background:<?=$bg?>;color:<?=$col?>;"><i data-lucide="<?=$ei?>" style="width:20px;height:20px;"></i></div>
+                <?php if(isset($record_counts[$ek])&&$record_counts[$ek]!==null):?><span class="badge-pill badge-pill-success"><?=number_format((int)$record_counts[$ek])?> records</span><?php endif;?>
             </div>
-            <h4><?php echo $etitle; ?></h4>
-            <p><?php echo $edesc; ?></p>
-            <a href="?export=<?php echo $ekey; ?>" class="btn btn-primary btn-sm" style="text-decoration: none; justify-content: center;">
-                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-                Export <?php echo $etitle; ?>
+            <h4><?=$et?></h4><p><?=$ed?></p>
+            <a href="?export=<?=$ek?>" class="btn btn-primary btn-sm" style="text-decoration:none;justify-content:center;">
+                <i data-lucide="download" style="width:14px;height:14px;"></i> Export <?=$et?>
             </a>
         </div>
-        <?php endforeach; ?>
+        <?php endforeach;?>
     </div>
 </div>
 
-<!-- Import Section -->
-<div class="admin-card" style="margin-bottom: 28px;">
-    <div style="border-bottom: 1px solid var(--admin-border); padding-bottom: 16px; margin-bottom: 22px;">
-        <div class="section-head">
-            <i data-lucide="upload" style="width: 20px; height: 20px; color: var(--admin-primary);"></i>
-            <h3>Import Data from CSV</h3>
-        </div>
-        <p class="section-sub">Pick a data type, choose your CSV file, and import. Duplicate handling is explained below.</p>
-    </div>
-
+<div class="admin-card" style="margin-bottom:28px;">
+    <div class="w2-sh"><i data-lucide="upload" style="width:20px;height:20px;color:#166534;"></i><h3>Import Data from CSV</h3></div>
+    <p class="w2-ss">Pick a data type, choose your CSV file, and import. Duplicate handling is explained below.</p>
+    <hr class="w2-sd">
     <form method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8'); ?>">
+        <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf_token,ENT_QUOTES,'UTF-8')?>">
         <input type="hidden" name="action" value="import">
-
-        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px; margin-bottom: 22px;">
-            <div class="admin-form-group" style="margin-bottom: 0;">
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;margin-bottom:22px;">
+            <div class="admin-form-group" style="margin-bottom:0;">
                 <label class="admin-form-label" for="import_type">Import Type</label>
                 <select name="import_type" id="import_type" required class="admin-form-control">
                     <option value="">Select Data Type...</option>
-                    <?php foreach ($import_formats as $fkey => $ffmt): ?>
-                    <option value="<?php echo $fkey; ?>"><?php echo $ffmt['label']; ?></option>
-                    <?php endforeach; ?>
+                    <?php foreach($import_formats as$fk=>$fm):?><option value="<?=$fk?>"><?=$fm['label']?></option><?php endforeach;?>
                 </select>
             </div>
-
-            <div class="admin-form-group" style="margin-bottom: 0;">
+            <div class="admin-form-group" style="margin-bottom:0;">
                 <label class="admin-form-label" for="import_file">CSV File</label>
-                <label class="file-drop" for="import_file" id="file-drop">
+                <label class="bie-drop" for="import_file" id="file-drop">
                     <i data-lucide="file-up"></i>
                     <span id="file-name">Click to choose a CSV file, or drag &amp; drop</span>
-                    <small>.csv only — up to <?php echo htmlspecialchars((string)ini_get('upload_max_filesize')); ?></small>
+                    <small>.csv only - up to <?=htmlspecialchars((string)ini_get('upload_max_filesize'))?></small>
                     <input type="file" name="import_file" id="import_file" accept=".csv" required hidden>
                 </label>
             </div>
         </div>
-
-        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-            <button type="submit" class="btn btn-primary">
-                <i data-lucide="upload" style="width: 18px; height: 18px;"></i>
-                Upload & Import Data
-            </button>
-            <span style="font-size: 0.8rem; color: #94a3b8;">Not sure of the format? Download the <a href="?template=products" id="format-template" style="color: var(--admin-primary); font-weight: 600;">CSV template</a> for the selected type.</span>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary"><i data-lucide="upload" style="width:18px;height:18px;"></i> Upload &amp; Import Data</button>
+            <span style="font-size:.8rem;color:#94a3b8;">Not sure of the format? Download the <a href="?template=products" id="format-template" style="color:#166534;font-weight:600;">CSV template</a> for the selected type.</span>
         </div>
     </form>
-
-    <!-- Live format panel -->
-    <div id="format-panel" style="display: none; margin-top: 24px; padding: 18px 20px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-            <i data-lucide="info" style="width: 18px; height: 18px; color: #d97706;"></i>
-            <h4 id="format-title" style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #92400e;">CSV columns</h4>
+    <div id="format-panel" style="display:none;margin-top:22px;padding:16px 20px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <i data-lucide="info" style="width:16px;height:16px;color:#d97706;"></i>
+            <h4 id="format-title" style="margin:0;font-size:.88rem;font-weight:700;color:#92400e;">CSV columns</h4>
         </div>
-        <div id="format-columns" style="line-height: 1;"></div>
-        <p style="margin: 8px 0 0 0; font-size: 0.78rem; color: #92400e;">
-            <i data-lucide="lightbulb" style="width: 13px; height: 13px; display: inline-block; margin-right: 4px; vertical-align: -2px;"></i>
-            TIP: The first row is the header — it is skipped automatically during import.
-        </p>
+        <div id="format-columns" style="line-height:1;"></div>
+        <p style="margin:8px 0 0;font-size:.76rem;color:#92400e;">TIP: The first row is the header - it is skipped automatically during import.</p>
     </div>
 </div>
 
-<!-- Import Behavior -->
 <div class="admin-card">
-    <div style="border-bottom: 1px solid var(--admin-border); padding-bottom: 16px; margin-bottom: 22px;">
-        <div class="section-head">
-            <i data-lucide="settings" style="width: 20px; height: 20px; color: var(--admin-primary);"></i>
-            <h3>Import Behavior</h3>
+    <div class="w2-sh"><i data-lucide="settings" style="width:20px;height:20px;color:#166534;"></i><h3>Import Behavior</h3></div>
+    <p class="w2-ss">How the system handles duplicate records during import.</p>
+    <hr class="w2-sd">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:#f0fdf4;border:1px solid #dcfce7;padding:20px;border-radius:10px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><i data-lucide="refresh-cw" style="width:18px;height:18px;color:#16a34a;"></i><h4 style="margin:0;font-weight:700;font-size:.9rem;color:#166534;">Products, Raw Materials, Customers, Animals, Workers</h4></div>
+            <p style="margin:0;font-size:.83rem;color:#15803d;line-height:1.6;"><strong>UPDATE ON DUPLICATE:</strong> if a record with the same identifier already exists, its data is updated instead of creating a duplicate row.</p>
         </div>
-        <p class="section-sub">How the system handles duplicate records during import.</p>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div style="background: #f0fdf4; border: 1px solid #dcfce7; padding: 20px; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                <i data-lucide="refresh-cw" style="width: 18px; height: 18px; color: #16a34a;"></i>
-                <h4 style="margin: 0; font-weight: 700; font-size: 0.95rem; color: #166534;">Products, Raw Materials, Customers</h4>
-            </div>
-            <p style="margin: 0; font-size: 0.85rem; color: #15803d; line-height: 1.6;">
-                <strong>UPDATE ON DUPLICATE:</strong> if a product or customer with the same name/email already exists, its data is updated instead of creating a new row.
-            </p>
-        </div>
-
-        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 20px; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                <i data-lucide="plus-circle" style="width: 18px; height: 18px; color: #d97706;"></i>
-                <h4 style="margin: 0; font-weight: 700; font-size: 0.95rem; color: #92400e;">Flocks, Expenses</h4>
-            </div>
-            <p style="margin: 0; font-size: 0.85rem; color: #b45309; line-height: 1.6;">
-                <strong>ALWAYS INSERT:</strong> every row creates a new record — ideal for historical data that doesn't need deduplication.
-            </p>
+        <div style="background:#fffbeb;border:1px solid #fde68a;padding:20px;border-radius:10px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><i data-lucide="plus-circle" style="width:18px;height:18px;color:#d97706;"></i><h4 style="margin:0;font-weight:700;font-size:.9rem;color:#92400e;">Flocks, Expenses, Income, Crop Plantings</h4></div>
+            <p style="margin:0;font-size:.83rem;color:#b45309;line-height:1.6;"><strong>ALWAYS INSERT:</strong> every row creates a new record - ideal for historical data that does not need deduplication.</p>
         </div>
     </div>
 </div>
 
 <script>
-(function () {
-    var FORMATS = <?php echo json_encode($import_formats, JSON_UNESCAPED_UNICODE); ?>;
-    var sel = document.getElementById('import_type');
-    var panel = document.getElementById('format-panel');
-    var title = document.getElementById('format-title');
-    var cols = document.getElementById('format-columns');
-    var tpl = document.getElementById('format-template');
-    var fileInput = document.getElementById('import_file');
-    var fileName = document.getElementById('file-name');
-    var drop = document.getElementById('file-drop');
-
-    function renderFormat() {
-        var fmt = FORMATS[sel.value];
-        if (!fmt) { panel.style.display = 'none'; return; }
-        title.textContent = fmt.label + ' — required CSV columns';
-        cols.innerHTML = fmt.columns.map(function (c) {
-            return '<span class="fmt-chip">' + c + '</span>';
-        }).join('');
-        tpl.href = '?template=' + encodeURIComponent(sel.value);
-        panel.style.display = 'block';
-    }
-
-    sel.addEventListener('change', renderFormat);
-
-    fileInput.addEventListener('change', function () {
-        if (fileInput.files.length) {
-            fileName.textContent = fileInput.files[0].name;
-            drop.style.borderColor = 'var(--admin-primary)';
-        }
-    });
-
-    ['dragover', 'dragenter'].forEach(function (ev) {
-        drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('dragover'); });
-    });
-    ['dragleave', 'drop'].forEach(function (ev) {
-        drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('dragover'); });
-    });
-    drop.addEventListener('drop', function (e) {
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            fileName.textContent = fileInput.files[0].name;
-        }
-    });
+(function(){
+    var F=<?php echo json_encode($import_formats,JSON_UNESCAPED_UNICODE);?>;
+    var sel=document.getElementById('import_type'),panel=document.getElementById('format-panel'),
+        ttl=document.getElementById('format-title'),cols=document.getElementById('format-columns'),
+        tpl=document.getElementById('format-template'),fi=document.getElementById('import_file'),
+        fn=document.getElementById('file-name'),drop=document.getElementById('file-drop');
+    function rf(){var f=F[sel.value];if(!f){panel.style.display='none';return;}
+        ttl.textContent=f.label+' - required CSV columns';
+        cols.innerHTML=f.columns.map(function(c){return'<span class="fmt-chip">'+c+'</span>';}).join('');
+        tpl.href='?template='+encodeURIComponent(sel.value);panel.style.display='block';}
+    sel.addEventListener('change',rf);
+    fi.addEventListener('change',function(){if(fi.files.length){fn.textContent=fi.files[0].name;drop.style.borderColor='#166534';}});
+    ['dragover','dragenter'].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.add('dragover');});});
+    ['dragleave','drop'].forEach(function(e){drop.addEventListener(e,function(ev){ev.preventDefault();drop.classList.remove('dragover');});});
+    drop.addEventListener('drop',function(e){if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;fn.textContent=fi.files[0].name;}});
 })();
 </script>
 

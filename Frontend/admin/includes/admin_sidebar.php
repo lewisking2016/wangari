@@ -98,7 +98,7 @@ HTML;
         ], $tab ?: 'fields') ?>
 
         <p class="w2-nav-section">Mixed Farming</p>
-        <?= w2NavItem('mixed_farming.php', 'layout-dashboard', 'Mixed Dashboard', w2IsActive('mixed_farming.php')) ?>
+        <?= w2NavItem('/Frontend/admin/mixed_farming.php', 'layout-dashboard', 'Mixed Dashboard', w2IsActive('mixed_farming.php')) ?>
 
         <p class="w2-nav-section">Inventory</p>
         <?= w2NavGroup('package', 'Inventory & Store', 'hub_inventory.php', [
@@ -155,7 +155,7 @@ HTML;
             'dropdowns'   => 'Dropdown Config',
             'settings'    => 'App Settings',
             'logs'        => 'System Logs',
-            'setup'       => 'DB Setup',
+            'setup'       => ['label' => 'DB Setup',            'href' => '/Frontend/admin/setup.php'],
             'permissions' => ['label' => 'Roles & Permissions', 'href' => '/Frontend/admin/permissions.php'],
         ], $tab ?: 'calendar') ?>
 

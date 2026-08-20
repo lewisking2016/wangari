@@ -159,29 +159,26 @@ $tabs = [
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+<div class="hub-page-header">
+    <div class="hub-page-icon"><i data-lucide="package" style="width:24px;height:24px;"></i></div>
     <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Inventory & Store</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage store products, farm tools, raw feed materials, and critical reorder alerts.</p>
+        <h1 class="hub-page-title">Inventory &amp; Store</h1>
+        <p class="hub-page-sub">Manage store products, farm tools, raw feed materials, and critical reorder alerts.</p>
     </div>
 </div>
 
 <?php if ($message): ?>
-<div style="padding:13px 18px;background:#dcfce7;border:1px solid #bbf7d0;border-radius:8px;color:#166534;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="check-circle-2" style="width:18px;height:18px;"></i> <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-success"><i data-lucide="check-circle-2"></i><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 <?php if ($error_message): ?>
-<div style="padding:13px 18px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="alert-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-error"><i data-lucide="alert-circle"></i><?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 
 <!-- Tab Bar -->
-<div style="display:flex;gap:4px;background:#f1f5f9;padding:5px;border-radius:10px;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
+<div class="hub-tab-bar">
 <?php foreach ($tabs as $key => $info): ?>
-    <a href="?tab=<?= $key ?>" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;font-weight:600;font-size:0.84rem;transition:all 0.18s;<?= $tab===$key ? 'background:#fff;color:var(--admin-primary);box-shadow:0 1px 6px rgba(15,23,42,0.08);' : 'color:#64748b;' ?>">
-        <i data-lucide="<?= $info['icon'] ?>" style="width:15px;height:15px;"></i><?= $info['label'] ?>
+    <a href="?tab=<?= $key ?>" class="hub-tab<?= $tab===$key ? ' active' : '' ?>">
+        <i data-lucide="<?= $info['icon'] ?>"></i><?= $info['label'] ?>
     </a>
 <?php endforeach; ?>
 </div>

@@ -23,7 +23,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'customers';
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ── POST handlers ── */
+/* ΓöÇΓöÇ POST handlers ΓöÇΓöÇ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-/* ── Load data ── */
+/* ΓöÇΓöÇ Load data ΓöÇΓöÇ */
 $segments = $followups = $contacts = [];
 $users = $walkins = [];
 $customerOptions = [];   // id => label
@@ -139,32 +139,33 @@ $tabs = [
 ];
 ?>
 
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-    <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);">CRM &amp; Customers</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Know every customer, follow up on time, and see credit aging at a glance.</p>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+    <div class="hub-page-header" style="margin-bottom:0;">
+        <div class="hub-page-icon"><i data-lucide="users"></i></div>
+        <div>
+            <h1 class="hub-page-title">CRM &amp; Customers</h1>
+            <p class="hub-page-sub">Know every customer, follow up on time, and see credit aging at a glance.</p>
+        </div>
     </div>
-    <?php if ($tab === 'segments'): ?><button class="btn btn-primary" onclick="document.getElementById('segment-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> New Segment</button><?php endif; ?>
-    <?php if ($tab === 'followups'): ?><button class="btn btn-primary" onclick="document.getElementById('followup-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Schedule Follow-up</button><?php endif; ?>
-    <?php if ($tab === 'contacts'): ?><button class="btn btn-primary" onclick="document.getElementById('contact-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Add Note</button><?php endif; ?>
+    <div style="display:flex;gap:10px;">
+        <?php if ($tab === 'segments'): ?><button class="btn btn-primary" onclick="document.getElementById('segment-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> New Segment</button><?php endif; ?>
+        <?php if ($tab === 'followups'): ?><button class="btn btn-primary" onclick="document.getElementById('followup-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Schedule Follow-up</button><?php endif; ?>
+        <?php if ($tab === 'contacts'): ?><button class="btn btn-primary" onclick="document.getElementById('contact-modal').style.display='flex'"><i data-lucide="plus" style="width:15px;height:15px;"></i> Add Note</button><?php endif; ?>
+    </div>
 </div>
 
 <?php if ($message): ?>
-<div style="padding:13px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="check-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-success"><i data-lucide="check-circle-2"></i><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 <?php if ($error_message): ?>
-<div style="padding:13px 18px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
-    <i data-lucide="alert-circle" style="width:18px;height:18px;"></i> <?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?>
-</div>
+<div class="hub-alert hub-alert-error"><i data-lucide="alert-circle"></i><?= htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 
 <!-- Tab Bar -->
-<div style="display:flex;gap:4px;background:#f1f5f9;padding:5px;border-radius:10px;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
+<div class="hub-tab-bar">
 <?php foreach ($tabs as $key => $info): ?>
-    <a href="?tab=<?= $key ?>" style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;font-weight:600;font-size:0.84rem;transition:all 0.18s;<?= $tab===$key ? 'background:#fff;color:var(--admin-primary);box-shadow:0 1px 6px rgba(15,23,42,0.08);' : 'color:#64748b;' ?>">
-        <i data-lucide="<?= $info['icon'] ?>" style="width:15px;height:15px;"></i><?= $info['label'] ?>
+    <a href="?tab=<?= $key ?>" class="hub-tab<?= $tab===$key ? ' active' : '' ?>">
+        <i data-lucide="<?= $info['icon'] ?>"></i><?= $info['label'] ?>
     </a>
 <?php endforeach; ?>
 </div>
@@ -201,10 +202,10 @@ $tabs = [
             <?php else: foreach ($rows as $r): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($r['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($r['phone'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($r['phone'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill <?= $r['type']==='Account' ? 'badge-pill-success' : 'badge-pill-warning' ?>"><?= $r['type'] ?></span></td>
-                    <td><?php $bal = $customerBalances[$r['key']]['balance'] ?? 0; echo $bal > 0 ? '<strong style="color:#b45309;">KES ' . number_format($bal, 0) . '</strong>' : '<span style="color:#94a3b8;">—</span>'; ?></td>
-                    <td><?= htmlspecialchars($r['since'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?php $bal = $customerBalances[$r['key']]['balance'] ?? 0; echo $bal > 0 ? '<strong style="color:#b45309;">KES ' . number_format($bal, 0) . '</strong>' : '<span style="color:#94a3b8;">ΓÇö</span>'; ?></td>
+                    <td><?= htmlspecialchars($r['since'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -224,7 +225,7 @@ $tabs = [
             <?php else: foreach ($segments as $s): ?>
                 <tr>
                     <td><span class="badge-pill badge-pill-success"><?= htmlspecialchars($s['name'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= htmlspecialchars($s['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($s['description'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><button class="btn btn-outline btn-sm" onclick='editSegment(<?= json_encode($s, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit</button></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -286,7 +287,7 @@ function editSegment(s) {
                             <input type="hidden" name="id" value="<?= (int)$f['id'] ?>">
                             <button class="btn btn-success btn-sm"><i data-lucide="check" style="width:13px;height:13px;"></i> Done</button>
                         </form>
-                        <?php else: ?><span style="color:#94a3b8;">—</span><?php endif; ?>
+                        <?php else: ?><span style="color:#94a3b8;">ΓÇö</span><?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -302,7 +303,7 @@ function editSegment(s) {
             <input type="hidden" name="_action" value="save_followup">
             <div class="admin-form-group"><label class="admin-form-label">Customer *</label>
                 <select class="admin-form-control" name="customer_id" required>
-                    <option value="">Select customer…</option>
+                    <option value="">Select customerΓÇª</option>
                     <?php foreach ($customerOptions as $ckey => $clabel): ?><option value="<?= (int)substr($ckey, 1) ?>" data-type="<?= $ckey[0] === 'w' ? 'walk_in' : 'user' ?>"><?= $clabel ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Customer Type</label>
@@ -355,7 +356,7 @@ document.querySelector('#followup-modal select[name=customer_id]').addEventListe
             <input type="hidden" name="_action" value="add_contact_note">
             <div class="admin-form-group"><label class="admin-form-label">Customer *</label>
                 <select class="admin-form-control" name="customer_id" required>
-                    <option value="">Select customer…</option>
+                    <option value="">Select customerΓÇª</option>
                     <?php foreach ($customerOptions as $ckey => $clabel): ?><option value="<?= (int)substr($ckey, 1) ?>"><?= $clabel ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Type</label>

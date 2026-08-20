@@ -590,11 +590,11 @@ $tabs = [
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
-<!-- Header -->
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+<div class="hub-page-header">
+    <div class="hub-page-icon"><i data-lucide="tractor" style="width:24px;height:24px;"></i></div>
     <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Farm Operations</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Manage all animals, groups, health, production and more — every species, one place.</p>
+        <h1 class="hub-page-title">Farm Operations</h1>
+        <p class="hub-page-sub">Manage all animals, groups, health, production and more — every species, one place.</p>
     </div>
 </div>
 

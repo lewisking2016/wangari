@@ -5,6 +5,8 @@
  * Calculates FCR (Feed Conversion Ratio) — the #1 KPI for any poultry farmer.
  */
 declare(strict_types=1);
+header('Location: /Frontend/admin/hub_operations.php?tab=feeding', true, 301);
+exit;
 $temp_dir = sys_get_temp_dir();
 if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
