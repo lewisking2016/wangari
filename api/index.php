@@ -4,19 +4,24 @@
  */
 declare(strict_types=1);
 
+// Ensure proper default content type
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=UTF-8');
+}
+
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $parsedPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 
 $projectRoot = dirname(__DIR__);
 
-// Handle special custom aliases
+// Handle custom alias
 if ($parsedPath === '/wangariadmin') {
     $parsedPath = '/Frontend/admin/login.php';
 }
 
 $targetFile = $projectRoot . $parsedPath;
 
-// Route to exact PHP file if requested
+// Route to exact PHP file if requested (e.g. /Frontend/pages/login.php, /Frontend/auth/google/callback.php)
 if ($parsedPath !== '/' && file_exists($targetFile) && is_file($targetFile) && str_ends_with($targetFile, '.php')) {
     chdir(dirname($targetFile));
     require $targetFile;
