@@ -365,8 +365,8 @@ function editField(f) {
                     <?php foreach ($fieldOptions as $fid => $fname): ?><option value="<?= $fid ?>"><?= htmlspecialchars($fname, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Crop *</label>
-                <input class="admin-form-control" type="text" name="crop" required list="crop-list" placeholder="e.g. Maize">
-                <datalist id="crop-list"><option>Maize</option><option>Beans</option><option>Kale</option><option>Tomatoes</option><option>Cabbage</option><option>Onions</option><option>Avocado</option><option>Napier grass</option></datalist></div>
+                <input class="admin-form-control" type="text" name="crop" required list="crop-list" placeholder="e.g. Maize, Coffee, Roses">
+                <datalist id="crop-list"><option>Maize</option><option>Beans</option><option>Kale</option><option>Tomatoes</option><option>Cabbage</option><option>Onions</option><option>Avocado</option><option>Napier grass</option><option>Coffee</option><option>Tea</option><option>Wheat</option><option>Millet</option><option>Sorghum</option><option>Sugarcane</option><option>Roses</option><option>Carnations</option><option>Gerbera</option><option>Spinach</option><option>Carrots</option><option>Potatoes</option><option>Cassava</option><option>Cowpeas</option><option>Groundnuts</option><option>Soybeans</option><option>Sesame</option><option>Sunflower</option><option>Cotton</option><option>Pyrethrum</option><option>Sisal</option><option>Banana</option><option>Mango</option><option>Pawpaw</option><option>Passion fruit</option><option>French beans</option><option>Snow peas</option><option>Chili peppers</option><option>Coriander</option><option>Mint</option><option>Lemon grass</option></datalist></div>
             <div class="admin-form-group"><label class="admin-form-label">Variety</label>
                 <input class="admin-form-control" type="text" name="variety" placeholder="e.g. H614"></div>
             <div class="admin-form-group"><label class="admin-form-label">Planting Date</label>
@@ -487,7 +487,7 @@ function editField(f) {
             <div class="admin-form-group"><label class="admin-form-label">Quantity *</label>
                 <input class="admin-form-control" type="number" step="0.01" min="0" name="quantity" required placeholder="0"></div>
             <div class="admin-form-group"><label class="admin-form-label">Unit</label>
-                <select class="admin-form-control" name="unit"><option>kg</option><option>bags</option><option>crates</option><option>tonnes</option><option>pieces</option></select></div>
+                <select class="admin-form-control" name="unit"><option>kg</option><option>bags</option><option>crates</option><option>tonnes</option><option>pieces</option><option>stems</option><option>bunches</option><option>bulbs</option><option>sacks</option><option>litres</option><option>boxes</option><option>trays</option></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Price per Unit (KES)</label>
                 <input class="admin-form-control" type="number" step="0.01" min="0" name="price_per_unit" placeholder="0"></div>
             <div class="admin-form-group"><label class="admin-form-label">Buyer</label>
