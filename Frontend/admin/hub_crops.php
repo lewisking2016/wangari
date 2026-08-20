@@ -17,7 +17,7 @@ $page_title = 'Crops & Fields - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'fields';
-$validTabs = ['fields','plantings','activities','harvests','costs','soil'];
+$validTabs = ['fields','plantings','activities','harvests','costs','irrigation','pest_control','growth','seed_inventory','post_harvest','soil'];
 if (!in_array($tab, $validTabs, true)) $tab = 'fields';
 
 $pdo = getDB();
@@ -154,6 +154,123 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $tab = 'costs';
     }
 
+    // Save irrigation record
+    if ($postAction === 'save_irrigation') {
+        try {
+            $pdo->prepare('INSERT INTO irrigation_records (field_id,planting_id,irrigation_date,method,duration_minutes,water_volume_litres,water_source,cost,notes) VALUES (?,?,?,?,?,?,?,?,?)')
+                ->execute([
+                    (int)($_POST['field_id'] ?? 0),
+                    (int)($_POST['planting_id'] ?? 0) ?: null,
+                    trim($_POST['irrigation_date'] ?? date('Y-m-d')),
+                    trim($_POST['method'] ?? 'drip'),
+                    (int)($_POST['duration_minutes'] ?? 0),
+                    (float)($_POST['water_volume_litres'] ?? 0),
+                    trim($_POST['water_source'] ?? 'borehole'),
+                    (float)($_POST['cost'] ?? 0),
+                    trim($_POST['notes'] ?? ''),
+                ]);
+            $message = 'Irrigation recorded.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'irrigation';
+    }
+
+    // Save pest/disease record
+    if ($postAction === 'save_pest_disease') {
+        try {
+            $pdo->prepare('INSERT INTO pest_disease_records (field_id,planting_id,record_date,record_type,pest_or_disease,severity,area_affected_acres,product_used,dosage,cost,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+                ->execute([
+                    (int)($_POST['field_id'] ?? 0),
+                    (int)($_POST['planting_id'] ?? 0) ?: null,
+                    trim($_POST['record_date'] ?? date('Y-m-d')),
+                    trim($_POST['record_type'] ?? 'scouting'),
+                    trim($_POST['pest_or_disease'] ?? ''),
+                    trim($_POST['severity'] ?? 'medium'),
+                    (float)($_POST['area_affected_acres'] ?? 0),
+                    trim($_POST['product_used'] ?? ''),
+                    trim($_POST['dosage'] ?? ''),
+                    (float)($_POST['cost'] ?? 0),
+                    trim($_POST['notes'] ?? ''),
+                ]);
+            $message = 'Pest/disease record saved.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'pest_control';
+    }
+
+    // Save growth monitoring
+    if ($postAction === 'save_growth') {
+        try {
+            $pdo->prepare('INSERT INTO growth_monitoring (planting_id,monitoring_date,plant_height_cm,canopy_width_cm,crop_stage,health_rating,notes) VALUES (?,?,?,?,?,?,?)')
+                ->execute([
+                    (int)($_POST['planting_id'] ?? 0),
+                    trim($_POST['monitoring_date'] ?? date('Y-m-d')),
+                    (float)($_POST['plant_height_cm'] ?? 0) ?: null,
+                    (float)($_POST['canopy_width_cm'] ?? 0) ?: null,
+                    trim($_POST['crop_stage'] ?? ''),
+                    trim($_POST['health_rating'] ?? 'good'),
+                    trim($_POST['notes'] ?? ''),
+                ]);
+            $message = 'Growth data recorded.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'growth';
+    }
+
+    // Save seed inventory
+    if ($postAction === 'save_seed') {
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            $v = [
+                trim($_POST['seed_name'] ?? ''),
+                trim($_POST['variety'] ?? ''),
+                trim($_POST['crop_type'] ?? ''),
+                trim($_POST['supplier'] ?? ''),
+                (float)($_POST['quantity_kg'] ?? 0),
+                (float)($_POST['unit_cost'] ?? 0),
+                trim($_POST['purchase_date'] ?? ''),
+                trim($_POST['expiry_date'] ?? ''),
+                trim($_POST['lot_number'] ?? ''),
+                trim($_POST['germination_rate'] ?? ''),
+                trim($_POST['storage_location'] ?? ''),
+                trim($_POST['notes'] ?? ''),
+            ];
+            if ($id > 0) {
+                $pdo->prepare('UPDATE seed_inventory SET seed_name=?,variety=?,crop_type=?,supplier=?,quantity_kg=?,unit_cost=?,purchase_date=?,expiry_date=?,lot_number=?,germination_rate=?,storage_location=?,notes=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Seed updated.';
+            } else {
+                $pdo->prepare('INSERT INTO seed_inventory (seed_name,variety,crop_type,supplier,quantity_kg,unit_cost,purchase_date,expiry_date,lot_number,germination_rate,storage_location,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Seed added.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'seed_inventory';
+    }
+
+    // Save post-harvest record
+    if ($postAction === 'save_post_harvest') {
+        try {
+            $pdo->prepare('INSERT INTO post_harvest_records (planting_id,field_id,crop,record_date,quantity,unit,moisture_pct,grading_done,grade_a_qty,grade_b_qty,rejected_qty,storage_location,loss_qty,loss_reason,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+                ->execute([
+                    (int)($_POST['planting_id'] ?? 0) ?: null,
+                    (int)($_POST['field_id'] ?? 0) ?: null,
+                    trim($_POST['crop'] ?? ''),
+                    trim($_POST['record_date'] ?? date('Y-m-d')),
+                    (float)($_POST['quantity'] ?? 0),
+                    trim($_POST['unit'] ?? 'kg'),
+                    (float)($_POST['moisture_pct'] ?? 0) ?: null,
+                    isset($_POST['grading_done']) ? 1 : 0,
+                    (float)($_POST['grade_a_qty'] ?? 0),
+                    (float)($_POST['grade_b_qty'] ?? 0),
+                    (float)($_POST['rejected_qty'] ?? 0),
+                    trim($_POST['storage_location'] ?? ''),
+                    (float)($_POST['loss_qty'] ?? 0),
+                    trim($_POST['loss_reason'] ?? ''),
+                    trim($_POST['notes'] ?? ''),
+                ]);
+            $message = 'Post-harvest record saved.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'post_harvest';
+    }
+
     // Save soil test
     if ($postAction === 'save_soil_test') {
         $id = (int)($_POST['id'] ?? 0);
@@ -214,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 }
 
 /* ── Load data ── */
-$fields = $plantings = $activities = $harvests = $cropCosts = [];
+$fields = $plantings = $activities = $harvests = $cropCosts = $irrigationRecs = $pestRecs = $growthRecs = $seedInventory = $postHarvestRecs = [];
 $fieldOptions = [];
 if ($pdo) {
     try {
@@ -224,6 +341,11 @@ if ($pdo) {
         $activities = $pdo->query('SELECT ca.*, cp.crop, f.name AS field_name FROM crop_activities ca LEFT JOIN crop_plantings cp ON cp.id=ca.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY ca.activity_date DESC LIMIT 200')->fetchAll();
         $harvests = $pdo->query('SELECT ch.*, cp.crop, f.name AS field_name FROM crop_harvests ch LEFT JOIN crop_plantings cp ON cp.id=ch.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY ch.harvest_date DESC LIMIT 200')->fetchAll();
         $cropCosts = $pdo->query('SELECT cc.*, cp.crop, f.name AS field_name, f.size_acres FROM crop_costs cc LEFT JOIN crop_plantings cp ON cp.id=cc.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY cc.cost_date DESC LIMIT 200')->fetchAll();
+        $irrigationRecs = $pdo->query('SELECT ir.*, f.name AS field_name FROM irrigation_records ir LEFT JOIN fields f ON f.id=ir.field_id ORDER BY ir.irrigation_date DESC LIMIT 200')->fetchAll();
+        $pestRecs = $pdo->query('SELECT pdr.*, f.name AS field_name FROM pest_disease_records pdr LEFT JOIN fields f ON f.id=pdr.field_id ORDER BY pdr.record_date DESC LIMIT 200')->fetchAll();
+        $growthRecs = $pdo->query('SELECT gm.*, cp.crop, f.name AS field_name FROM growth_monitoring gm LEFT JOIN crop_plantings cp ON cp.id=gm.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY gm.monitoring_date DESC LIMIT 200')->fetchAll();
+        $seedInventory = $pdo->query('SELECT * FROM seed_inventory ORDER BY seed_name ASC LIMIT 200')->fetchAll();
+        $postHarvestRecs = $pdo->query('SELECT phr.*, cp.crop, f.name AS field_name FROM post_harvest_records phr LEFT JOIN crop_plantings cp ON cp.id=phr.planting_id LEFT JOIN fields f ON f.id=phr.field_id ORDER BY phr.record_date DESC LIMIT 200')->fetchAll();
         $soilTests = $pdo->query('SELECT st.*, f.name AS field_name FROM soil_tests st LEFT JOIN fields f ON f.id=st.field_id ORDER BY st.test_date DESC LIMIT 100')->fetchAll();
         $soilAmendments = $pdo->query('SELECT sa.*, f.name AS field_name FROM soil_amendments sa LEFT JOIN fields f ON f.id=sa.field_id ORDER BY sa.amendment_date DESC LIMIT 100')->fetchAll();
     } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -234,8 +356,13 @@ $tabs = [
     'plantings'  => ['icon' => 'sprout',       'label' => 'Plantings'],
     'activities' => ['icon' => 'clipboard-list','label' => 'Field Activities'],
     'harvests'   => ['icon' => 'wheat',        'label' => 'Harvests'],
-    'costs'      => ['icon' => 'receipt',      'label' => 'Costs'],
-    'soil'       => ['icon' => 'layers',       'label' => 'Soil Health'],
+    'costs'          => ['icon' => 'receipt',      'label' => 'Costs'],
+    'irrigation'     => ['icon' => 'droplets',     'label' => 'Irrigation'],
+    'pest_control'   => ['icon' => 'bug',          'label' => 'Pest & Disease'],
+    'growth'         => ['icon' => 'sprout',       'label' => 'Growth Monitoring'],
+    'seed_inventory' => ['icon' => 'package',      'label' => 'Seed Inventory'],
+    'post_harvest'   => ['icon' => 'package-check','label' => 'Post-Harvest'],
+    'soil'           => ['icon' => 'layers',       'label' => 'Soil Health'],
 ];
 ?>
 
@@ -593,7 +720,281 @@ function openCostModal(){
 document.addEventListener('click',e=>{ const m=document.getElementById('cost-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
 
-<!-- ══════ SOIL HEALTH TAB ══════ -->
+<!-- ══════ IRRIGATION TAB ══════ -->
+<?php elseif ($tab === 'irrigation'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Irrigation Management</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track water usage, methods, and costs.</p></div>
+        <button class="btn btn-primary" onclick="openIrrigationModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Irrigation</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Field</th><th>Method</th><th>Duration</th><th>Volume (L)</th><th>Source</th><th>Cost</th></tr></thead>
+            <tbody>
+            <?php if (empty($irrigationRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No irrigation records yet.</td></tr>
+            <?php else: foreach ($irrigationRecs as $ir): ?>
+                <tr>
+                    <td><?= htmlspecialchars($ir['irrigation_date'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($ir['field_name'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-info"><?= ucfirst($ir['method']) ?></span></td>
+                    <td><?= $ir['duration_minutes'] ? $ir['duration_minutes'].' min' : '—' ?></td>
+                    <td><?= number_format((float)$ir['water_volume_litres'], 0) ?></td>
+                    <td><?= ucfirst($ir['water_source']) ?></td>
+                    <td>KES <?= number_format((float)$ir['cost'], 0) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="irrigation-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Irrigation</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_irrigation">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Field *</label><select class="admin-form-control" name="field_id" required><option value="">-- Select --</option><?php foreach ($fields as $f): ?><option value="<?= (int)$f['id'] ?>"><?= htmlspecialchars($f['name'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Planting</label><select class="admin-form-control" name="planting_id"><option value="">-- Optional --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="irrigation_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Method *</label><select class="admin-form-control" name="method"><option value="drip">Drip</option><option value="sprinkler">Sprinkler</option><option value="flood">Flood</option><option value="furrow">Furrow</option><option value="pivot">Pivot</option><option value="manual">Manual</option><option value="rainfed">Rainfed</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Duration (min)</label><input class="admin-form-control" type="number" name="duration_minutes"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Volume (litres)</label><input class="admin-form-control" type="number" step="0.1" name="water_volume_litres"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Water Source</label><select class="admin-form-control" name="water_source"><option value="borehole">Borehole</option><option value="river">River</option><option value="rainwater">Rainwater</option><option value="tap">Tap</option><option value="dam">Dam</option><option value="other">Other</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('irrigation-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openIrrigationModal(){document.getElementById('irrigation-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('irrigation-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ PEST & DISEASE TAB ══════ -->
+<?php elseif ($tab === 'pest_control'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Pest & Disease Management</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Scouting, outbreaks, and treatment records.</p></div>
+        <button class="btn btn-primary" onclick="openPestModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Pest/Disease</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Field</th><th>Type</th><th>Pest/Disease</th><th>Severity</th><th>Product Used</th><th>Cost</th></tr></thead>
+            <tbody>
+            <?php if (empty($pestRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No pest/disease records yet.</td></tr>
+            <?php else: foreach ($pestRecs as $p): ?>
+                <tr>
+                    <td><?= htmlspecialchars($p['record_date'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-info"><?= ucfirst(str_replace('_',' ',$p['record_type'])) ?></span></td>
+                    <td><strong><?= htmlspecialchars($p['pest_or_disease'], ENT_QUOTES) ?></strong></td>
+                    <td><span class="badge badge-<?= $p['severity']==='critical'||$p['severity']==='high' ? 'danger' : ($p['severity']==='medium' ? 'warning' : 'success') ?>"><?= ucfirst($p['severity']) ?></span></td>
+                    <td><?= htmlspecialchars($p['product_used'] ?? '—', ENT_QUOTES) ?></td>
+                    <td>KES <?= number_format((float)$p['cost'], 0) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="pest-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Pest/Disease</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_pest_disease">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Field *</label><select class="admin-form-control" name="field_id" required><option value="">-- Select --</option><?php foreach ($fields as $f): ?><option value="<?= (int)$f['id'] ?>"><?= htmlspecialchars($f['name'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="record_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Type *</label><select class="admin-form-control" name="record_type"><option value="scouting">Scouting</option><option value="outbreak">Outbreak</option><option value="treatment">Treatment</option><option value="prevention">Prevention</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Severity</label><select class="admin-form-control" name="severity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Pest/Disease *</label><input class="admin-form-control" name="pest_or_disease" required placeholder="e.g. Aphids, Fall Armyworm, Blight"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Product Used</label><input class="admin-form-control" name="product_used" placeholder="e.g. Thunder 145 O-TEQ"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Dosage</label><input class="admin-form-control" name="dosage" placeholder="e.g. 2ml/L"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('pest-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openPestModal(){document.getElementById('pest-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('pest-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ GROWTH MONITORING TAB ══════ -->
+<?php elseif ($tab === 'growth'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Growth Monitoring</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track plant height, canopy, and crop stage over time.</p></div>
+        <button class="btn btn-primary" onclick="openGrowthModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Growth</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Crop</th><th>Field</th><th>Height (cm)</th><th>Canopy (cm)</th><th>Stage</th><th>Health</th></tr></thead>
+            <tbody>
+            <?php if (empty($growthRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No growth monitoring records yet.</td></tr>
+            <?php else: foreach ($growthRecs as $g): ?>
+                <tr>
+                    <td><?= htmlspecialchars($g['monitoring_date'], ENT_QUOTES) ?></td>
+                    <td><strong><?= htmlspecialchars($g['crop'] ?? '—', ENT_QUOTES) ?></strong></td>
+                    <td><?= htmlspecialchars($g['field_name'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= $g['plant_height_cm'] ? number_format((float)$g['plant_height_cm'], 1).' cm' : '—' ?></td>
+                    <td><?= $g['canopy_width_cm'] ? number_format((float)$g['canopy_width_cm'], 1).' cm' : '—' ?></td>
+                    <td><?= htmlspecialchars($g['crop_stage'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-<?= $g['health_rating']==='excellent'||$g['health_rating']==='good' ? 'success' : ($g['health_rating']==='fair' ? 'warning' : 'danger') ?>"><?= ucfirst($g['health_rating']) ?></span></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="growth-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Growth Data</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_growth">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting *</label><select class="admin-form-control" name="planting_id" required><option value="">-- Select --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="monitoring_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Health Rating</label><select class="admin-form-control" name="health_rating"><option value="excellent">Excellent</option><option value="good" selected>Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="critical">Critical</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Plant Height (cm)</label><input class="admin-form-control" type="number" step="0.1" name="plant_height_cm"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Canopy Width (cm)</label><input class="admin-form-control" type="number" step="0.1" name="canopy_width_cm"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Crop Stage</label><input class="admin-form-control" name="crop_stage" placeholder="e.g. Vegetative, Flowering, Fruiting"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('growth-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openGrowthModal(){document.getElementById('growth-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('growth-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ SEED INVENTORY TAB ══════ -->
+<?php elseif ($tab === 'seed_inventory'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Seed Inventory</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track seed stocks, expiry dates, and germination rates.</p></div>
+        <button class="btn btn-primary" onclick="openSeedModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add Seed</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Seed</th><th>Variety</th><th>Crop</th><th>Qty (kg)</th><th>Unit Cost</th><th>Lot #</th><th>Expiry</th><th>Germination</th><th>Status</th></tr></thead>
+            <tbody>
+            <?php if (empty($seedInventory)): ?>
+                <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;">No seeds in inventory.</td></tr>
+            <?php else: foreach ($seedInventory as $s): ?>
+                <tr style="<?= ($s['expiry_date'] && $s['expiry_date'] <= date('Y-m-d')) ? 'background:#FEE2E2;' : '' ?>">
+                    <td><strong><?= htmlspecialchars($s['seed_name'], ENT_QUOTES) ?></strong></td>
+                    <td><?= htmlspecialchars($s['variety'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($s['crop_type'], ENT_QUOTES) ?></td>
+                    <td><?= number_format((float)$s['quantity_kg'], 1) ?></td>
+                    <td>KES <?= number_format((float)$s['unit_cost'], 0) ?></td>
+                    <td><?= htmlspecialchars($s['lot_number'] ?? '—', ENT_QUOTES) ?></td>
+                    <td style="<?= ($s['expiry_date'] && $s['expiry_date'] <= date('Y-m-d')) ? 'color:#EF4444;font-weight:700;' : '' ?>"><?= $s['expiry_date'] ? htmlspecialchars($s['expiry_date'], ENT_QUOTES) : '—' ?></td>
+                    <td><?= $s['germination_rate'] ? $s['germination_rate'].'%' : '—' ?></td>
+                    <td><span class="badge badge-<?= $s['status']==='active' ? 'success' : 'danger' ?>"><?= ucfirst($s['status']) ?></span></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="seed-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Seed to Inventory</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_seed">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Seed Name *</label><input class="admin-form-control" name="seed_name" required placeholder="e.g. Katumani Composite"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Variety</label><input class="admin-form-control" name="variety" placeholder="e.g. H614"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Crop Type *</label><input class="admin-form-control" name="crop_type" required list="crop-list2" placeholder="e.g. Maize"><datalist id="crop-list2"><option>Maize</option><option>Beans</option><option>Kale</option><option>Tomatoes</option><option>Coffee</option><option>Tea</option><option>Wheat</option><option>Sorghum</option><option>Sunflower</option><option>Cotton</option></datalist></div>
+            <div class="admin-form-group"><label class="admin-form-label">Supplier</label><input class="admin-form-control" name="supplier"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Quantity (kg) *</label><input class="admin-form-control" type="number" step="0.1" name="quantity_kg" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Unit Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="unit_cost"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Purchase Date</label><input class="admin-form-control" type="date" name="purchase_date"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Expiry Date</label><input class="admin-form-control" type="date" name="expiry_date"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Lot Number</label><input class="admin-form-control" name="lot_number"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Germination %</label><input class="admin-form-control" type="number" step="0.1" min="0" max="100" name="germination_rate"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Storage Location</label><input class="admin-form-control" name="storage_location" placeholder="e.g. Store A, Shelf 3"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('seed-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openSeedModal(){document.getElementById('seed-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('seed-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ POST-HARVEST TAB ══════ -->
+<?php elseif ($tab === 'post_harvest'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Post-Harvest Handling</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Drying, grading, storage, and loss tracking.</p></div>
+        <button class="btn btn-primary" onclick="openPostHarvestModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Post-Harvest</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Crop</th><th>Quantity</th><th>Moisture</th><th>Grade A</th><th>Grade B</th><th>Rejected</th><th>Loss</th><th>Storage</th></tr></thead>
+            <tbody>
+            <?php if (empty($postHarvestRecs)): ?>
+                <tr><td colspan="9" style="text-align:center;padding:28px;color:#94a3b8;">No post-harvest records yet.</td></tr>
+            <?php else: foreach ($postHarvestRecs as $ph): ?>
+                <tr>
+                    <td><?= htmlspecialchars($ph['record_date'], ENT_QUOTES) ?></td>
+                    <td><strong><?= htmlspecialchars($ph['crop'] ?? '—', ENT_QUOTES) ?></strong></td>
+                    <td><?= number_format((float)$ph['quantity'], 1) ?> <?= htmlspecialchars($ph['unit'], ENT_QUOTES) ?></td>
+                    <td><?= $ph['moisture_pct'] ? $ph['moisture_pct'].'%' : '—' ?></td>
+                    <td><?= number_format((float)$ph['grade_a_qty'], 1) ?></td>
+                    <td><?= number_format((float)$ph['grade_b_qty'], 1) ?></td>
+                    <td style="<?= $ph['rejected_qty'] > 0 ? 'color:#EF4444;' : '' ?>"><?= number_format((float)$ph['rejected_qty'], 1) ?></td>
+                    <td style="<?= $ph['loss_qty'] > 0 ? 'color:#EF4444;' : '' ?>"><?= number_format((float)$ph['loss_qty'], 1) ?></td>
+                    <td><?= htmlspecialchars($ph['storage_location'] ?? '—', ENT_QUOTES) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="postharvest-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Post-Harvest</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_post_harvest">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting</label><select class="admin-form-control" name="planting_id"><option value="">-- Select --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Crop *</label><input class="admin-form-control" name="crop" required placeholder="e.g. Maize"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="record_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Quantity *</label><input class="admin-form-control" type="number" step="0.1" name="quantity" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Unit</label><select class="admin-form-control" name="unit"><option>kg</option><option>bags</option><option>tonnes</option><option>crates</option><option>pieces</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Moisture %</label><input class="admin-form-control" type="number" step="0.1" name="moisture_pct"></div>
+            <div class="admin-form-group"><label class="admin-form-label"><input type="checkbox" name="grading_done" value="1" style="margin-right:6px;">Grading Done</label></div>
+            <div class="admin-form-group"><label class="admin-form-label">Grade A Qty</label><input class="admin-form-control" type="number" step="0.1" name="grade_a_qty" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Grade B Qty</label><input class="admin-form-control" type="number" step="0.1" name="grade_b_qty" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Rejected Qty</label><input class="admin-form-control" type="number" step="0.1" name="rejected_qty" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Loss Qty</label><input class="admin-form-control" type="number" step="0.1" name="loss_qty" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Storage Location</label><input class="admin-form-control" name="storage_location" placeholder="e.g. Store A"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Loss Reason</label><input class="admin-form-control" name="loss_reason" placeholder="e.g. Spillage, Moisture damage"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('postharvest-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openPostHarvestModal(){document.getElementById('postharvest-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('postharvest-modal');if(m&&e.target===m)m.style.display='none';});</script>
+\n<!-- ══════ SOIL HEALTH TAB ══════ -->
 <?php elseif ($tab === 'soil'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">

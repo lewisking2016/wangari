@@ -20,7 +20,7 @@ $page_title = 'Farm Operations - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'overview';
-$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','weights','poultry','grazing','farmmap'];
+$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','weights','milking','mortality','quarantine','ai_records','body_condition','transport','preventive_care','poultry','grazing','farmmap'];
 if (!in_array($tab, $validTabs, true)) $tab = 'overview';
 
 $pdo = getDB();
@@ -277,6 +277,147 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'weights';
     }
+
+    // Save milking record
+    if ($postAction === 'save_milking') {
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            $v = [
+                (int)($_POST['animal_id'] ?? 0) ?: null,
+                (int)($_POST['group_id'] ?? 0) ?: null,
+                trim($_POST['species'] ?? 'Cattle'),
+                trim($_POST['milking_date'] ?? date('Y-m-d')),
+                trim($_POST['milking_time'] ?? 'morning'),
+                (float)($_POST['litres'] ?? 0),
+                (float)($_POST['fat_pct'] ?? 0) ?: null,
+                trim($_POST['quality_grade'] ?? 'A'),
+                trim($_POST['notes'] ?? ''),
+            ];
+            if ($id > 0) {
+                $pdo->prepare('UPDATE milking_records SET animal_id=?,group_id=?,species=?,milking_date=?,milking_time=?,litres=?,fat_pct=?,quality_grade=?,notes=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Milking record updated.';
+            } else {
+                $pdo->prepare('INSERT INTO milking_records (animal_id,group_id,species,milking_date,milking_time,litres,fat_pct,quality_grade,notes) VALUES (?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Milking recorded.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'milking';
+    }
+
+    // Save mortality record
+    if ($postAction === 'save_mortality') {
+        try {
+            $v = [
+                (int)($_POST['animal_id'] ?? 0) ?: null,
+                (int)($_POST['group_id'] ?? 0) ?: null,
+                trim($_POST['species'] ?? 'Chicken'),
+                trim($_POST['death_date'] ?? date('Y-m-d')),
+                (int)($_POST['count'] ?? 1),
+                trim($_POST['cause'] ?? ''),
+                trim($_POST['cause_category'] ?? 'unknown'),
+                trim($_POST['disposal_method'] ?? 'burial'),
+                trim($_POST['notes'] ?? ''),
+            ];
+            $pdo->prepare('INSERT INTO mortality_records (animal_id,group_id,species,death_date,count,cause,cause_category,disposal_method,notes) VALUES (?,?,?,?,?,?,?,?,?)')
+                ->execute($v);
+            $message = 'Mortality recorded.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'mortality';
+    }
+
+    // Save quarantine record
+    if ($postAction === 'save_quarantine') {
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            $v = [
+                (int)($_POST['animal_id'] ?? 0) ?: null,
+                (int)($_POST['group_id'] ?? 0) ?: null,
+                trim($_POST['species'] ?? 'Chicken'),
+                trim($_POST['quarantine_start'] ?? date('Y-m-d')),
+                trim($_POST['reason'] ?? ''),
+                trim($_POST['location'] ?? ''),
+                trim($_POST['diagnosis'] ?? ''),
+                trim($_POST['treatment_given'] ?? ''),
+                trim($_POST['vet_name'] ?? ''),
+                (float)($_POST['cost'] ?? 0),
+            ];
+            if ($id > 0) {
+                $pdo->prepare('UPDATE quarantine_records SET animal_id=?,group_id=?,species=?,quarantine_start=?,reason=?,location=?,diagnosis=?,treatment_given=?,vet_name=?,cost=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Quarantine updated.';
+            } else {
+                $pdo->prepare('INSERT INTO quarantine_records (animal_id,group_id,species,quarantine_start,reason,location,diagnosis,treatment_given,vet_name,cost) VALUES (?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Animal quarantined.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'quarantine';
+    }
+
+    // Save AI record
+    if ($postAction === 'save_ai') {
+        try {
+            $v = [
+                (int)($_POST['animal_id'] ?? 0) ?: null,
+                trim($_POST['species'] ?? 'Cattle'),
+                trim($_POST['insemination_date'] ?? date('Y-m-d')),
+                trim($_POST['bull_semen_id'] ?? ''),
+                trim($_POST['bull_name'] ?? ''),
+                trim($_POST['bull_breed'] ?? ''),
+                trim($_POST['insemination_type'] ?? 'ai'),
+                trim($_POST['technician'] ?? ''),
+                (float)($_POST['cost'] ?? 0),
+            ];
+            $pdo->prepare('INSERT INTO ai_records (animal_id,species,insemination_date,bull_semen_id,bull_name,bull_breed,insemination_type,technician,cost) VALUES (?,?,?,?,?,?,?,?,?)')
+                ->execute($v);
+            $message = 'AI record saved.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'ai_records';
+    }
+
+    // Save body condition score
+    if ($postAction === 'save_bcs') {
+        try {
+            $v = [
+                (int)($_POST['animal_id'] ?? 0) ?: null,
+                (int)($_POST['group_id'] ?? 0) ?: null,
+                trim($_POST['species'] ?? 'Cattle'),
+                trim($_POST['score_date'] ?? date('Y-m-d')),
+                (float)($_POST['score'] ?? 0),
+                trim($_POST['scorer'] ?? ''),
+                trim($_POST['notes'] ?? ''),
+            ];
+            $pdo->prepare('INSERT INTO body_condition_scores (animal_id,group_id,species,score_date,score,scorer,notes) VALUES (?,?,?,?,?,?,?)')
+                ->execute($v);
+            $message = 'Body condition score recorded.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'body_condition';
+    }
+
+    // Save mortality record
+    if ($postAction === 'save_transport') {
+        try {
+            $v = [
+                trim($_POST['transport_date'] ?? date('Y-m-d')),
+                trim($_POST['species'] ?? 'Chicken'),
+                (int)($_POST['animal_count'] ?? 0),
+                trim($_POST['from_location'] ?? ''),
+                trim($_POST['to_location'] ?? ''),
+                trim($_POST['transporter_name'] ?? ''),
+                trim($_POST['transporter_phone'] ?? ''),
+                trim($_POST['vehicle_registration'] ?? ''),
+                (float)($_POST['transport_cost'] ?? 0),
+                trim($_POST['reason'] ?? ''),
+                trim($_POST['notes'] ?? ''),
+            ];
+            $pdo->prepare('INSERT INTO animal_transports (transport_date,species,animal_count,from_location,to_location,transporter_name,transporter_phone,vehicle_registration,transport_cost,reason,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+                ->execute($v);
+            $message = 'Transport recorded.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'transport';
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -373,6 +514,51 @@ if ($pdo) {
             $sql .= ' ORDER BY aw.recorded_date DESC LIMIT 200';
             $weightRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        if ($tab === 'milking') {
+            $sql = 'SELECT mr.*, a.name AS aname, a.tag, ag.name AS gname FROM milking_records mr LEFT JOIN animals a ON mr.animal_id=a.id LEFT JOIN animal_groups ag ON mr.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE mr.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY mr.milking_date DESC, mr.milking_time DESC LIMIT 200';
+            $milkingRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+            // Today's milking summary
+            $todayMilking = $pdo->query("SELECT milking_time, SUM(litres) as total FROM milking_records WHERE milking_date='" . date('Y-m-d') . "' GROUP BY milking_time")->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'mortality') {
+            $sql = 'SELECT mr.*, a.name AS aname, a.tag, ag.name AS gname FROM mortality_records mr LEFT JOIN animals a ON mr.animal_id=a.id LEFT JOIN animal_groups ag ON mr.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE mr.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY mr.death_date DESC LIMIT 200';
+            $mortalityRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'quarantine') {
+            $sql = 'SELECT qr.*, a.name AS aname, a.tag, ag.name AS gname FROM quarantine_records qr LEFT JOIN animals a ON qr.animal_id=a.id LEFT JOIN animal_groups ag ON qr.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE qr.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY qr.quarantine_start DESC LIMIT 200';
+            $quarantineRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'ai_records') {
+            $sql = 'SELECT air.*, a.name AS aname, a.tag FROM ai_records air LEFT JOIN animals a ON air.animal_id=a.id';
+            if ($speciesFilter) $sql .= " WHERE air.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY air.insemination_date DESC LIMIT 200';
+            $aiRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'body_condition') {
+            $sql = 'SELECT bcs.*, a.name AS aname, a.tag, ag.name AS gname FROM body_condition_scores bcs LEFT JOIN animals a ON bcs.animal_id=a.id LEFT JOIN animal_groups ag ON bcs.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE bcs.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY bcs.score_date DESC LIMIT 200';
+            $bcsRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'transport') {
+            $transportRecs = $pdo->query('SELECT * FROM animal_transports ORDER BY transport_date DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($tab === 'preventive_care') {
+            $preventiveCareRecs = $pdo->query('SELECT * FROM preventive_care ORDER BY next_due ASC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (Exception $e) { /* non-fatal */ }
 }
 
@@ -390,6 +576,13 @@ $tabs = [
     'breeding'     => ['icon'=>'dna',             'label'=>'Breeding'],
     'feeding'      => ['icon'=>'wheat',           'label'=>'Feeding'],
     'weights'      => ['icon'=>'scale',           'label'=>'Weight Tracking'],
+    'milking'      => ['icon'=>'milk',            'label'=>'Milking Records'],
+    'mortality'    => ['icon'=>'skull',           'label'=>'Mortality'],
+    'quarantine'   => ['icon'=>'shield-alert',    'label'=>'Quarantine'],
+    'ai_records'   => ['icon'=>'microscope',      'label'=>'AI & Breeding'],
+    'body_condition'=> ['icon'=>'heart',          'label'=>'Body Condition'],
+    'transport'    => ['icon'=>'truck',           'label'=>'Transport'],
+    'preventive_care'=> ['icon'=>'calendar-check','label'=>'Preventive Care'],
     'grazing'      => ['icon'=>'trees',           'label'=>'Grazing & Pasture'],
     'poultry'      => ['icon'=>'bird',            'label'=>'Poultry Tools'],
     'farmmap'      => ['icon'=>'map-pin',         'label'=>'Farm Map'],
@@ -1216,7 +1409,368 @@ function openWeightModal(d){
 document.addEventListener('click',e=>{ const m=document.getElementById('weight-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
 
-<!-- ══════ GRAZING & PASTURE TAB ══════ -->
+<!-- ══════ MILKING RECORDS TAB ══════ -->
+<?php elseif ($tab === 'milking'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Milking Records</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track daily milk production by animal and session.</p></div>
+        <button class="btn btn-primary" onclick="openMilkingModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Milking</button>
+    </div>
+    <?php if (!empty($todayMilking)): ?>
+    <div style="display:flex;gap:16px;margin-bottom:16px;">
+        <?php foreach ($todayMilking as $tm): ?>
+        <div style="background:#DBEAFE;border-radius:8px;padding:12px 16px;border:1px solid #93C5FD;">
+            <div style="font-weight:600;color:#1E40AF;"><?= ucfirst($tm['milking_time']) ?></div>
+            <div style="font-size:1.5rem;font-weight:700;color:#2563EB;"><?= number_format((float)$tm['total'], 1) ?> L</div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Time</th><th>Animal</th><th>Group</th><th>Litres</th><th>Fat %</th><th>Grade</th><th>Notes</th></tr></thead>
+            <tbody>
+            <?php if (empty($milkingRecs)): ?>
+                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No milking records yet.</td></tr>
+            <?php else: foreach ($milkingRecs as $m): ?>
+                <tr>
+                    <td><?= htmlspecialchars($m['milking_date'], ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-info\"><?= ucfirst($m['milking_time']) ?></span></td>
+                    <td><?= htmlspecialchars(($m['tag'] ? $m['tag'].' - ' : '').($m['aname'] ?? '—'), ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($m['gname'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><strong><?= number_format((float)$m['litres'], 1) ?></strong></td>
+                    <td><?= $m['fat_pct'] ? number_format((float)$m['fat_pct'], 1).'%' : '—' ?></td>
+                    <td><?= htmlspecialchars($m['quality_grade'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($m['notes'] ?? '', ENT_QUOTES) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="milking-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Milking</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_milking">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Animal</label><select class="admin-form-control" name="animal_id"><option value="">-- Select --</option><?php foreach ($animalList as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id"><option value="">-- Select --</option><?php foreach ($groupList as $g): ?><option value="<?= (int)$g['id'] ?>"><?= htmlspecialchars($g['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species</label><select class="admin-form-control" name="species"><option>Cattle</option><option>Goat</option><option>Sheep</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="milking_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Session *</label><select class="admin-form-control" name="milking_time"><option value="morning">Morning</option><option value="midday">Midday</option><option value="evening">Evening</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Litres *</label><input class="admin-form-control" type="number" step="0.1" name="litres" required placeholder="0.0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Fat %</label><input class="admin-form-control" type="number" step="0.1" name="fat_pct" placeholder="e.g. 3.5"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Grade</label><select class="admin-form-control" name="quality_grade"><option value="A">A - Excellent</option><option value="B">B - Good</option><option value="C">C - Fair</option><option value="rejected">Rejected</option></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('milking-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openMilkingModal(){document.getElementById('milking-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('milking-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ MORTALITY TAB ══════ -->
+<?php elseif ($tab === 'mortality'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Mortality Records</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track animal deaths, causes, and disposal.</p></div>
+        <button class="btn btn-primary" onclick="openMortalityModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Mortality</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Species</th><th>Animal</th><th>Count</th><th>Cause</th><th>Category</th><th>Disposal</th></tr></thead>
+            <tbody>
+            <?php if (empty($mortalityRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No mortality records.</td></tr>
+            <?php else: foreach ($mortalityRecs as $m): ?>
+                <tr>
+                    <td><?= htmlspecialchars($m['death_date'], ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-warning\"><?= htmlspecialchars($m['species'], ENT_QUOTES) ?></span></td>
+                    <td><?= htmlspecialchars(($m['tag'] ? $m['tag'].' - ' : '').($m['aname'] ?? '—'), ENT_QUOTES) ?></td>
+                    <td><strong><?= $m['count'] ?></strong></td>
+                    <td><?= htmlspecialchars($m['cause'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($m['cause_category'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($m['disposal_method'], ENT_QUOTES) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="mortality-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Mortality</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_mortality">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Animal</label><select class="admin-form-control" name="animal_id"><option value="">-- Select --</option><?php foreach ($animalList as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id"><option value="">-- Select --</option><?php foreach ($groupList as $g): ?><option value="<?= (int)$g['id'] ?>"><?= htmlspecialchars($g['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" required><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="death_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Count *</label><input class="admin-form-control" type="number" name="count" value="1" min="1" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Category</label><select class="admin-form-control" name="cause_category"><option value="disease">Disease</option><option value="predator">Predator</option><option value="accident">Accident</option><option value="starvation">Starvation</option><option value="poisoning">Poisoning</option><option value="unknown">Unknown</option></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Cause</label><input class="admin-form-control" name="cause" placeholder="e.g. Newcastle disease"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Disposal</label><select class="admin-form-control" name="disposal_method"><option value="burial">Burial</option><option value="burning">Burning</option><option value="Rendering">Rendering</option><option value="composting">Composting</option><option value="other">Other</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('mortality-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openMortalityModal(){document.getElementById('mortality-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('mortality-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ QUARANTINE TAB ══════ -->
+<?php elseif ($tab === 'quarantine'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Quarantine Management</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Isolate and treat sick animals.</p></div>
+        <button class="btn btn-primary" onclick="openQuarantineModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add to Quarantine</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Start</th><th>Species</th><th>Animal</th><th>Reason</th><th>Status</th><th>Vet</th><th>Cost</th></tr></thead>
+            <tbody>
+            <?php if (empty($quarantineRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No quarantine records.</td></tr>
+            <?php else: foreach ($quarantineRecs as $q): ?>
+                <tr>
+                    <td><?= htmlspecialchars($q['quarantine_start'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($q['species'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars(($q['tag'] ? $q['tag'].' - ' : '').($q['aname'] ?? '—'), ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($q['reason'], ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-<?= $q['status']==='active' ? 'warning' : 'success' ?>"><?= ucfirst($q['status']) ?></span></td>
+                    <td><?= htmlspecialchars($q['vet_name'] ?? '—', ENT_QUOTES) ?></td>
+                    <td>KES <?= number_format((float)$q['cost'], 0) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="quarantine-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add to Quarantine</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_quarantine">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Animal</label><select class="admin-form-control" name="animal_id"><option value="">-- Select --</option><?php foreach ($animalList as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id"><option value="">-- Select --</option><?php foreach ($groupList as $g): ?><option value="<?= (int)$g['id'] ?>"><?= htmlspecialchars($g['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" required><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Start Date *</label><input class="admin-form-control" type="date" name="quarantine_start" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Reason *</label><input class="admin-form-control" name="reason" required placeholder="e.g. Suspected pneumonia"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Location</label><input class="admin-form-control" name="location" placeholder="e.g. Isolation pen 1"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Diagnosis</label><textarea class="admin-form-control" name="diagnosis" rows="2"></textarea></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Treatment Given</label><textarea class="admin-form-control" name="treatment_given" rows="2"></textarea></div>
+            <div class="admin-form-group"><label class="admin-form-label">Vet Name</label><input class="admin-form-control" name="vet_name"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" value="0"></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('quarantine-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openQuarantineModal(){document.getElementById('quarantine-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('quarantine-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ AI & BREEDING RECORDS TAB ══════ -->
+<?php elseif ($tab === 'ai_records'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Artificial Insemination Records</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track AI services, semen usage, and pregnancy results.</p></div>
+        <button class="btn btn-primary" onclick="openAIModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record AI</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Animal</th><th>Species</th><th>Bull/Semen ID</th><th>Type</th><th>Technician</th><th>Cost</th><th>Result</th></tr></thead>
+            <tbody>
+            <?php if (empty($aiRecs)): ?>
+                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No AI records yet.</td></tr>
+            <?php else: foreach ($aiRecs as $ai): ?>
+                <tr>
+                    <td><?= htmlspecialchars($ai['insemination_date'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars(($ai['tag'] ? $ai['tag'].' - ' : '').($ai['aname'] ?? '—'), ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($ai['species'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($ai['bull_semen_id'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-info"><?= ucfirst(str_replace('_',' ',$ai['insemination_type'])) ?></span></td>
+                    <td><?= htmlspecialchars($ai['technician'] ?? '—', ENT_QUOTES) ?></td>
+                    <td>KES <?= number_format((float)$ai['cost'], 0) ?></td>
+                    <td><span class="badge badge-<?= $ai['result']==='pregnant' ? 'success' : ($ai['result']==='failed' ? 'danger' : 'warning') ?>"><?= ucfirst($ai['result']) ?></span></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="ai-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record AI Service</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_ai">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Animal *</label><select class="admin-form-control" name="animal_id" required><option value="">-- Select --</option><?php foreach ($animalList as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" required><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="insemination_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Type</label><select class="admin-form-control" name="insemination_type"><option value="ai">Artificial Insemination</option><option value="natural">Natural</option><option value="embryo_transfer">Embryo Transfer</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Bull/Semen ID</label><input class="admin-form-control" name="bull_semen_id" placeholder="e.g. SEM-2024-015"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Bull Name</label><input class="admin-form-control" name="bull_name"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Bull Breed</label><input class="admin-form-control" name="bull_breed" placeholder="e.g. Holstein Friesian"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Technician</label><input class="admin-form-control" name="technician"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" value="0"></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('ai-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openAIModal(){document.getElementById('ai-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('ai-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ BODY CONDITION SCORE TAB ══════ -->
+<?php elseif ($tab === 'body_condition'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Body Condition Scoring</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Monitor animal health through visual body condition assessment (1-5 scale).</p></div>
+        <button class="btn btn-primary" onclick="openBCSModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Score</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Animal</th><th>Species</th><th>Score</th><th>Condition</th><th>Scorer</th><th>Notes</th></tr></thead>
+            <tbody>
+            <?php if (empty($bcsRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No body condition scores recorded yet.</td></tr>
+            <?php else: foreach ($bcsRecs as $b): ?>
+                <?php $scoreLabel = $b['score'] < 2 ? 'Poor' : ($b['score'] < 3 ? 'Thin' : ($b['score'] < 4 ? 'Good' : 'Fat')); ?>
+                <tr>
+                    <td><?= htmlspecialchars($b['score_date'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars(($b['tag'] ? $b['tag'].' - ' : '').($b['aname'] ?? '—'), ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($b['species'], ENT_QUOTES) ?></td>
+                    <td><strong style="font-size:1.2rem;color:<?= $b['score'] < 2.5 ? '#EF4444' : ($b['score'] > 3.5 ? '#F59E0B' : '#22C55E') ?>"><?= number_format((float)$b['score'], 1) ?></strong>/5</td>
+                    <td><?= $scoreLabel ?></td>
+                    <td><?= htmlspecialchars($b['scorer'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($b['notes'] ?? '', ENT_QUOTES) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="bcs-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Body Condition Score</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_bcs">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Animal</label><select class="admin-form-control" name="animal_id"><option value="">-- Select --</option><?php foreach ($animalList as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id"><option value="">-- Select --</option><?php foreach ($groupList as $g): ?><option value="<?= (int)$g['id'] ?>"><?= htmlspecialchars($g['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" required><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="score_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Score (1-5) *</label><input class="admin-form-control" type="number" step="0.1" min="1" max="5" name="score" required placeholder="e.g. 3.0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Scorer</label><input class="admin-form-control" name="scorer" placeholder="Who assessed"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('bcs-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openBCSModal(){document.getElementById('bcs-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('bcs-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ TRANSPORT TAB ══════ -->
+<?php elseif ($tab === 'transport'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Transport</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track animal movements between locations.</p></div>
+        <button class="btn btn-primary" onclick="openTransportModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Transport</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Species</th><th>Count</th><th>From</th><th>To</th><th>Transporter</th><th>Cost</th><th>Status</th></tr></thead>
+            <tbody>
+            <?php if (empty($transportRecs)): ?>
+                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;">No transport records.</td></tr>
+            <?php else: foreach ($transportRecs as $t): ?>
+                <tr>
+                    <td><?= htmlspecialchars($t['transport_date'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($t['species'], ENT_QUOTES) ?></td>
+                    <td><strong><?= $t['animal_count'] ?></strong></td>
+                    <td><?= htmlspecialchars($t['from_location'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($t['to_location'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($t['transporter_name'], ENT_QUOTES) ?></td>
+                    <td>KES <?= number_format((float)$t['transport_cost'], 0) ?></td>
+                    <td><span class="badge badge-<?= $t['status']==='delivered' ? 'success' : ($t['status']==='in_transit' ? 'warning' : 'info') ?>"><?= ucfirst(str_replace('_',' ',$t['status'])) ?></span></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="transport-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Transport</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_transport">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="transport_date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" required><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Animal Count *</label><input class="admin-form-control" type="number" name="animal_count" min="1" required></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="transport_cost" value="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">From *</label><input class="admin-form-control" name="from_location" required placeholder="e.g. Main Farm, Ruiru"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">To *</label><input class="admin-form-control" name="to_location" required placeholder="e.g. Nairobi Market"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Transporter</label><input class="admin-form-control" name="transporter_name"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Phone</label><input class="admin-form-control" name="transporter_phone"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Vehicle Reg</label><input class="admin-form-control" name="vehicle_registration"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Reason</label><input class="admin-form-control" name="reason" placeholder="e.g. Market sale"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('transport-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        </div></form>
+    </div>
+</div>
+<script>function openTransportModal(){document.getElementById('transport-modal').style.display='flex';}
+document.addEventListener('click',e=>{const m=document.getElementById('transport-modal');if(m&&e.target===m)m.style.display='none';});</script>
+
+<!-- ══════ PREVENTIVE CARE TAB ══════ -->
+<?php elseif ($tab === 'preventive_care'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Preventive Care Schedule</h3>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Deworming, hoof trimming, shearing, and other routine care.</p></div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Species</th><th>Care Type</th><th>Target</th><th>Frequency</th><th>Last Done</th><th>Next Due</th><th>Cost/Event</th></tr></thead>
+            <tbody>
+            <?php if (empty($preventiveCareRecs)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No preventive care schedules.</td></tr>
+            <?php else: foreach ($preventiveCareRecs as $pc): ?>
+                <tr style="<?= ($pc['next_due'] && $pc['next_due'] <= date('Y-m-d')) ? 'background:#FEF3C7;' : '' ?>">
+                    <td><span class="badge badge-info"><?= htmlspecialchars($pc['species'], ENT_QUOTES) ?></span></td>
+                    <td><strong><?= htmlspecialchars($pc['care_type'], ENT_QUOTES) ?></strong></td>
+                    <td><?= htmlspecialchars($pc['target_group'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($pc['frequency'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= $pc['last_done'] ? htmlspecialchars($pc['last_done'], ENT_QUOTES) : 'Never' ?></td>
+                    <td style="<?= ($pc['next_due'] && $pc['next_due'] <= date('Y-m-d')) ? 'color:#EF4444;font-weight:700;' : '' ?>"><?= $pc['next_due'] ? htmlspecialchars($pc['next_due'], ENT_QUOTES) : '—' ?></td>
+                    <td>KES <?= number_format((float)$pc['cost_per_event'], 0) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+\n<!-- ══════ GRAZING & PASTURE TAB ══════ -->
 <?php elseif ($tab === 'grazing'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
