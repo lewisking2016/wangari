@@ -1,4 +1,62 @@
 {
   "version": 2,
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/Frontend/pages/pricing.php",
+      "destination": "/Frontend/pages/pricing.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/login.php",
+      "destination": "/Frontend/pages/login.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/register.php",
+      "destination": "/Frontend/pages/register.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/about.php",
+      "destination": "/Frontend/pages/about.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/services.php",
+      "destination": "/Frontend/pages/services.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/contact.php",
+      "destination": "/Frontend/pages/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/faq.php",
+      "destination": "/Frontend/pages/faq.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/privacy.php",
+      "destination": "/Frontend/pages/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/terms.php",
+      "destination": "/Frontend/pages/terms.html",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/index.php",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/Frontend/pages/(.*)\\.php",
+      "destination": "/Frontend/pages/$1.html",
+      "permanent": true
+    }
+  ]
 }
