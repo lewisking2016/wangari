@@ -108,7 +108,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                         <div class="xai-preview-dot"></div>
                         <span class="xai-preview-title">Wangari Farm OS — Live Dashboard</span>
                     </div>
-                    <video autoplay loop muted playsinline class="xai-preview-img" style="border-radius:0 0 12px 12px; width:100%; display:block; object-fit:cover;">
+                    <video autoplay loop muted playsinline id="preview-video" poster="/Frontend/images/dashboard-preview.png" class="xai-preview-img" style="border-radius:0 0 12px 12px; width:100%; display:block; object-fit:cover;">
                         <source src="/Frontend/images/demo-walkthrough.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -526,6 +526,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.addEventListener('scroll', update3DPreview, { passive: true });
     update3DPreview(); // Initial check
+    
+    // ===== FORCE VIDEO PLAYBACK =====
+    const previewVideo = document.getElementById('preview-video');
+    if (previewVideo) {
+        previewVideo.play().catch(err => {
+            const playOnInteraction = () => {
+                previewVideo.play().then(() => {
+                    document.removeEventListener('click', playOnInteraction);
+                    document.removeEventListener('touchstart', playOnInteraction);
+                }).catch(() => {});
+            };
+            document.addEventListener('click', playOnInteraction);
+            document.addEventListener('touchstart', playOnInteraction);
+        });
+    }
     
     // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
