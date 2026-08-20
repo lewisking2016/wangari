@@ -345,7 +345,7 @@ if ($pdo) {
     } catch (Exception $e) { /* non-fatal */ }
 }
 
-$spList = ['Chicken','Cattle','Goat','Sheep','Pig','Rabbit','Duck','Other'];
+$spList = ['Chicken','Cattle','Goat','Sheep','Pig','Rabbit','Duck','Turkey','Guinea fowl','Donkey','Bee','Fish','Other'];
 $allSpecies = ['Chicken','Cattle','Goat','Sheep','Pig'];
 
 $tabs = [
@@ -644,7 +644,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('group-mo
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">House Name *</label><input class="admin-form-control" name="house_name" id="h-name" required placeholder="e.g. Long House"></div>
             <div class="admin-form-group"><label class="admin-form-label">Code *</label><input class="admin-form-control" name="house_code" id="h-code" required placeholder="e.g. LH-01"></div>
             <div class="admin-form-group"><label class="admin-form-label">Species</label><select class="admin-form-control" name="species" id="h-species"><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
-            <div class="admin-form-group"><label class="admin-form-label">Housing Type</label><select class="admin-form-control" name="house_type" id="h-type"><option value="house">House</option><option value="pen">Pen</option><option value="boma">Boma</option><option value="coop">Coop</option><option value="run">Run</option><option value="paddock">Paddock</option><option value="pond">Pond</option><option value="other">Other</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Housing Type</label><select class="admin-form-control" name="house_type" id="h-type"><option value="house">House</option><option value="pen">Pen</option><option value="boma">Boma</option><option value="coop">Coop</option><option value="run">Run</option><option value="paddock">Paddock</option><option value="pond">Pond</option><option value="shed">Shed</option><option value="kraal">Kraal</option><option value="sty">Sty</option><option value="hutch">Hutch</option><option value="barn">Barn</option><option value="milking_parlor">Milking Parlor</option><option value="aviary">Aviary</option><option value="brooder">Brooder</option><option value="incubator">Incubator</option><option value="greenhouse">Greenhouse</option><option value="nursery">Nursery</option><option value="store">Store</option><option value="other">Other</option></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Capacity</label><input class="admin-form-control" type="number" name="capacity" id="h-cap" min="0" value="0"></div>
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Location</label><input class="admin-form-control" name="location" id="h-loc" placeholder="e.g. North Farm"></div>
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Description</label><textarea class="admin-form-control" name="description" id="h-desc" rows="2"></textarea></div>
