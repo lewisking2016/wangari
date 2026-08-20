@@ -90,12 +90,13 @@ HTML;
         ], $tab ?: 'overview') ?>
 
         <?= w2NavGroup('wheat', 'Crops & Fields', 'hub_crops.php', [
+            'overview'   => 'Overview',
             'fields'     => 'Fields',
             'plantings'  => 'Crop Plantings',
             'activities' => 'Field Activities',
             'harvests'   => 'Harvests',
             'costs'      => 'Crop Costs',
-        ], $tab ?: 'fields') ?>
+        ], $tab ?: 'overview') ?>
 
         <p class="w2-nav-section">Mixed Farming</p>
         <?= w2NavItem('/Frontend/admin/mixed_farming.php', 'layout-dashboard', 'Mixed Dashboard', w2IsActive('mixed_farming.php')) ?>
