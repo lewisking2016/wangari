@@ -173,7 +173,7 @@ $tabs = [
 <?php if ($tab === 'customers'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">All Customers</h3>
+        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">All Customers <?= helpTip('Every person and business that buys from your farm. Track their contact details, purchase history, and preferences.') ?></h3>
         <span style="color:#64748b;font-size:0.85rem;"><?= count($customerOptions) ?> customers</span>
     </div>
 
@@ -215,7 +215,7 @@ $tabs = [
 
 <?php elseif ($tab === 'segments'): ?>
 <div class="admin-card">
-    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Customer Segments</h3>
+    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Customer Segments <?= helpTip('Group your customers by type: wholesale buyers, retail customers, restaurants, hotels. Helps you target the right people.') ?></h3>
     <div class="table-responsive">
         <table class="admin-table">
             <thead><tr><th>Segment</th><th>Description</th><th>Actions</th></tr></thead>
@@ -263,7 +263,7 @@ function editSegment(s) {
 
 <?php elseif ($tab === 'followups'): ?>
 <div class="admin-card">
-    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Follow-ups</h3>
+    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Follow-ups <?= helpTip('Reminders to contact customers: check if they need a repeat order, resolve complaints, or share new products.') ?></h3>
     <div class="table-responsive">
         <table class="admin-table">
             <thead><tr><th>Due</th><th>Customer</th><th>Note</th><th>Status</th><th>Action</th></tr></thead>
@@ -328,7 +328,7 @@ document.querySelector('#followup-modal select[name=customer_id]').addEventListe
 
 <?php elseif ($tab === 'contacts'): ?>
 <div class="admin-card">
-    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Contact History</h3>
+    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Contact History <?= helpTip('A timeline of every conversation and interaction with your customers. Never forget what was discussed.') ?></h3>
     <div class="table-responsive">
         <table class="admin-table">
             <thead><tr><th>Date</th><th>Customer</th><th>Type</th><th>Note</th></tr></thead>

@@ -143,7 +143,7 @@ $tabs = [
 <?php if ($tab === 'workers'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Workers</h3>
+        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Workers <?= helpTip('All people who work on your farm: permanent staff, casual workers, managers. Track names, roles, phone numbers, and wages.') ?></h3>
         <span style="color:#64748b;font-size:0.85rem;"><?= count(array_filter($workers, fn($w) => $w['status']==='active')) ?> active ┬╖ <?= count($workers) ?> total</span>
     </div>
     <div class="table-responsive">
@@ -217,7 +217,7 @@ function editWorker(w) {
 
 <?php elseif ($tab === 'attendance'): ?>
 <div class="admin-card">
-    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Attendance Log</h3>
+    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Attendance Log <?= helpTip('Who came to work today? Record clock-in and clock-out times to track attendance and calculate pay.') ?></h3>
     <div class="table-responsive">
         <table class="admin-table">
             <thead><tr><th>Date</th><th>Worker</th><th>Hours</th><th>Task</th><th>Location</th><th>Notes</th></tr></thead>
@@ -270,7 +270,7 @@ function editWorker(w) {
 <?php elseif ($tab === 'payments'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Wage Payments</h3>
+        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Wage Payments <?= helpTip('Record every payment made to workers. Shows amount, date, and period covered so you never overpay.') ?></h3>
         <span style="color:#64748b;font-size:0.85rem;">Total paid: <strong style="color:var(--admin-primary);">KES <?= number_format(array_sum(array_column($payments,'amount')),0) ?></strong></span>
     </div>
     <div class="table-responsive">

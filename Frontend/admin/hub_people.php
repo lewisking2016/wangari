@@ -159,7 +159,7 @@ $tabs = [
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Staff Members</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Staff Members <?= helpTip("All people on your farm: managers, supervisors, workers. Track roles, contacts, and pay rates.") ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Manage logins and security levels for managers and handlers.</p>
         </div>
         <button class="btn btn-primary" onclick="openStaffModal()"><i data-lucide="user-plus" style="width:16px;height:16px;"></i> Add Staff Member</button>
@@ -240,7 +240,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Assigned Tasks</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Assigned Tasks <?= helpTip("Work given to each staff member. Who does what, when it is due, and whether it is done.") ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Schedule routines, feeding schedules, or vet visits for specific employees.</p>
         </div>
         <button class="btn btn-primary" onclick="openTaskModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Assign Task</button>
@@ -321,7 +321,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('task-mod
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Secure Team Messages</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Secure Team Messages <?= helpTip("Private messages between team members. Keep communication on record so nothing is lost.") ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Dispatch general announcements or individual memos.</p>
         </div>
         <button class="btn btn-primary" onclick="openMsgModal()"><i data-lucide="send" style="width:16px;height:16px;"></i> Send Message</button>

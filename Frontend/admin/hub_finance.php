@@ -182,7 +182,7 @@ $tabs = [
 <?php if ($tab === 'orders'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Customer Orders</h3>
+        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Customer Orders <?= helpTip('All orders from your customers. Track what they ordered, quantities, prices, and payment status.') ?></h3>
         <form method="GET" style="display:flex;gap:8px;flex-wrap:wrap;">
             <input type="hidden" name="tab" value="orders">
             <input type="text" name="q" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>" placeholder="Search Order # or Client..." style="padding:9px 14px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:0.88rem;outline:none;">
@@ -230,7 +230,7 @@ $tabs = [
 
 <div id="order-status-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:400px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
-        <h3 style="margin:0 0 8px;font-family:'Outfit',sans-serif;">Update Order Status</h3>
+        <h3 style="margin:0 0 8px;font-family:'Outfit',sans-serif;">Update Order Status <?= helpTip('Change the status of an order: pending, processing, delivered, or cancelled.') ?></h3>
         <p id="order-label-display" style="margin:0 0 20px;color:#64748b;font-size:0.9rem;"></p>
         <form method="POST">
             <input type="hidden" name="_action" value="update_order_status">
@@ -265,7 +265,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('order-st
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Sales Register</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Sales Register <?= helpTip('A log of every sale you have made. Shows date, customer, amount, and how they paid (cash, M-Pesa, bank).') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Completed or fully paid client orders.</p>
         </div>
     </div>
@@ -294,7 +294,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('order-st
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Incoming Payments Ledger</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Incoming Payments Ledger <?= helpTip('Every payment received from customers. Matches payments to invoices so you know who has paid and who owes you.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Log physical collections, direct bank transfers, and M-Pesa receipts.</p>
         </div>
         <button class="btn btn-primary" onclick="openPayModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Payment</button>

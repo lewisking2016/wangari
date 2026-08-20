@@ -524,7 +524,7 @@ try {
         <div class="d2-charts-col">
             <div class="admin-card" style="flex:1;display:flex;flex-direction:column;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Revenue Trend</h3>
+                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Revenue Trend <?= helpTip("Shows how much money your farm earned over time. Rising line = more income.") ?></h3>
                     <span class="badge-pill badge-pill-success">Live Sync</span>
                 </div>
                 <div class="chart-box" style="flex:1;min-height:200px;">
@@ -534,7 +534,7 @@ try {
 
             <div class="admin-card" style="flex:1;display:flex;flex-direction:column;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Order Volumes</h3>
+                    <h3 style="margin:0;font-size:1.05rem;color:#0F172A;">Order Volumes <?= helpTip("How many orders you get each day or week. More orders = more customers buying.") ?></h3>
                     <span class="badge-pill badge-pill-info">Daily</span>
                 </div>
                 <div class="chart-box" style="flex:1;min-height:200px;">
@@ -546,7 +546,7 @@ try {
         <div class="d2-side">
             <!-- System Status -->
             <div class="admin-card" style="padding:18px !important;">
-                <h3 style="margin:0 0 14px;font-size:1rem;color:#0F172A;">System Overview</h3>
+                <h3 style="margin:0 0 14px;font-size:1rem;color:#0F172A;">System Overview <?= helpTip("Summary of your farm: total animals, crops, orders, and stock levels at a glance.") ?></h3>
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:#F0FDF4;border-radius:12px;border:1px solid #DCFCE7;">
                         <div style="width:9px;height:9px;background:#16a34a;border-radius:50%;box-shadow:0 0 0 4px rgba(22,163,74,0.15);"></div>
@@ -643,7 +643,7 @@ try {
 
     <div class="d2-main" style="grid-template-columns:1fr 1fr;">
         <div class="admin-card">
-            <h3 style="margin:0 0 14px;font-size:1.05rem;color:#0F172A;">Recent Activity</h3>
+            <h3 style="margin:0 0 14px;font-size:1.05rem;color:#0F172A;">Recent Activity <?= helpTip("Latest things done in the system: new orders, animal records, payments.") ?></h3>
             <div class="table-responsive">
                 <table class="admin-table">
                     <thead><tr><th>Action / Log Details</th><th style="text-align:right;">Time</th></tr></thead>

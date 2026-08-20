@@ -194,7 +194,7 @@ $tabs = [
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Equipment & Tools Registry</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Equipment & Tools Registry <?= helpTip('Track every tool and machine on your farm: tractors, ploughs, generators, feeders. Know what you own and where it is.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track tools, machinery, structures, and their current maintenance status.</p>
         </div>
         <button class="btn btn-primary" onclick="openEquipModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Tool / Equipment</button>
@@ -295,7 +295,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('equip-mo
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Equipment Maintenance & Usage</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Equipment Maintenance & Usage <?= helpTip('Record when you service or repair equipment and track how often each tool is used.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Schedule preventive maintenance, track service history, and log equipment usage.</p>
         </div>
         <div style="display:flex;gap:8px;">

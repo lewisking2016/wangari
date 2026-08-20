@@ -151,7 +151,7 @@ $tabs = [
 <?php if ($tab === 'reminders'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Scheduled Reminders</h3>
+        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Scheduled Reminders <?= helpTip("Things you set to remember: vaccination dates, payment deadlines, permit renewals. Never miss an important date.") ?></h3>
         <span style="color:#64748b;font-size:0.85rem;"><?= count(array_filter($reminders, fn($r) => $r['status']==='pending' && strtotime($r['remind_at']) >= time())) ?> upcoming</span>
     </div>
     <div class="table-responsive">
@@ -214,7 +214,7 @@ $tabs = [
 
 <?php elseif ($tab === 'weather'): ?>
 <div class="admin-card">
-    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Weather &amp; Field Alerts</h3>
+    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Weather &amp; Field Alerts <?= helpTip("Weather updates and warnings for your fields. Know when rain, drought, or pests are coming.") ?></h3>
     <div class="table-responsive">
         <table class="admin-table">
             <thead><tr><th>Date</th><th>Type</th><th>Alert</th><th>Details</th><th>Status</th><th>Action</th></tr></thead>
@@ -270,7 +270,7 @@ $tabs = [
 <?php elseif ($tab === 'week'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Next 7 Days</h3>
+        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Next 7 Days <?= helpTip("What is coming up this week: tasks, reminders, weather alerts. Plan your week ahead.") ?></h3>
         <span style="color:#64748b;font-size:0.85rem;">Everything that needs your attention this week, from every module, in one list.</span>
     </div>
     <div class="table-responsive">

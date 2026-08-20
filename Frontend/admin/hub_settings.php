@@ -109,7 +109,7 @@ $tabs = [
 <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
     <!-- Calendar widget -->
     <div class="admin-card">
-        <h3 style="margin:0 0 18px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Calendar</h3>
+        <h3 style="margin:0 0 18px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Calendar <?= helpTip("A calendar showing all farm events: plantings, harvests, vaccinations, meetings. See everything in one view.") ?></h3>
         <div id="cal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <button class="btn btn-outline btn-sm" onclick="changeMonth(-1)"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>
             <strong id="cal-month-label" style="font-family:'Outfit',sans-serif;font-size:1rem;"></strong>
@@ -119,7 +119,7 @@ $tabs = [
     </div>
     <!-- Upcoming tasks -->
     <div class="admin-card">
-        <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Upcoming Tasks</h3>
+        <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Upcoming Tasks <?= helpTip("What needs to be done soon on your farm. Stay on top of important work.") ?></h3>
         <?php if (empty($tasksDue)): ?>
             <p style="text-align:center;color:#94a3b8;padding:20px;">No pending tasks with due dates.</p>
         <?php else: ?>
@@ -157,7 +157,7 @@ $tabs = [
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Application Settings</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Application Settings <?= helpTip("Configure how the system works: farm name, currency, date format, language, notifications.") ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Configure system-wide settings and parameters.</p>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
