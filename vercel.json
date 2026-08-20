@@ -15,6 +15,10 @@
       }
     },
     {
+      "src": "favicon.ico",
+      "use": "@vercel/static"
+    },
+    {
       "src": "Frontend/assets/**",
       "use": "@vercel/static"
     },
@@ -28,6 +32,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
     {
       "src": "/Frontend/assets/(.*)",
       "dest": "/Frontend/assets/$1"
