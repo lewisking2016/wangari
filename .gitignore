@@ -50,6 +50,7 @@ sessions/*
 # Build files
 node_modules/
 dist/
+dist-electron/
 build/
 
 # Logs

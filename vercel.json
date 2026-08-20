@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "functions": {
+    "api/**/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    },
+    "Frontend/**/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    },
+    "index.php": {
+      "runtime": "vercel-php@0.7.3"
+    }
+  },
+  "routes": [
+    {
+      "src": "/Frontend/assets/(.*)",
+      "dest": "/Frontend/assets/$1"
+    },
+    {
+      "src": "/Frontend/images/(.*)",
+      "dest": "/Frontend/images/$1"
+    },
+    {
+      "src": "/logo/(.*)",
+      "dest": "/logo/$1"
+    },
+    {
+      "src": "/Frontend/pages/(.*)",
+      "dest": "/Frontend/pages/$1"
+    },
+    {
+      "src": "/Frontend/admin/(.*)",
+      "dest": "/Frontend/admin/$1"
+    },
+    {
+      "src": "/Frontend/auth/(.*)",
+      "dest": "/Frontend/auth/$1"
+    },
+    {
+      "src": "/wangariadmin",
+      "dest": "/Frontend/admin/login.php"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.php"
+    }
+  ]
+}

@@ -5,6 +5,9 @@
  */
 declare(strict_types=1);
 
+// License guard — validates JWT in desktop mode, no-op on web
+require_once __DIR__ . '/../license/guard.php';
+
 // ---------------------------------------------------------------------
 // Database Configuration
 //
@@ -38,61 +41,77 @@ $dbEnv = function (string $key): ?string {
     return ($value === false || $value === '') ? null : (string)$value;
 };
 
-// Local-environment detection (CLI, localhost host, or local docroot).
+// Environment Detection
 $isCli = (php_sapi_name() === 'cli');
+$isDesktop = ($_ENV['WANGARI_MODE'] ?? getenv('WANGARI_MODE')) === 'desktop';
+
 $isLocalhost = $isCli
     || in_array($_SERVER['HTTP_HOST'] ?? '', ['localhost:8000', 'localhost', '127.0.0.1'], true)
     || ($_ENV['DB_HOST'] ?? getenv('DB_HOST')) === 'localhost'
     || (!empty($_SERVER['DOCUMENT_ROOT'])
         && (str_contains($_SERVER['DOCUMENT_ROOT'], 'Users') || str_contains($_SERVER['DOCUMENT_ROOT'], 'Desktop')));
 
-// Per-environment defaults. The production values are the legacy fallback
-// that keeps the LIVE site (new.decapoli.co.ke) connected — rotate the
-// password and move them out of this file when possible (see note above).
-$defaults = $isLocalhost
-    ? ['localhost', 'busia_chicken_db', 'root', '']
-    : ['localhost', 'mrhzdunf_busiachicken', 'mrhzdunf_busia_user', 'busia_user'];
+// DSN & Connection variables initialization
+$pdo = null;
 
-define('DB_HOST', $DB_HOST ?? $dbEnv('DB_HOST') ?? $defaults[0]);
-define('DB_NAME', $DB_NAME ?? $dbEnv('DB_NAME') ?? $defaults[1]);
-define('DB_USER', $DB_USER ?? $dbEnv('DB_USER') ?? $defaults[2]);
-define('DB_PASS', $DB_PASS ?? $dbEnv('DB_PASS') ?? $defaults[3]);
-define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? getenv('DB_CHARSET') ?: 'utf8mb4');
+if ($isDesktop) {
+    // Persistent local directory inside user profile
+    $userHome = $_SERVER['USERPROFILE'] ?? $_SERVER['HOME'] ?? sys_get_temp_dir();
+    $dbDir = $userHome . '/.wangari';
+    if (!is_dir($dbDir)) {
+        @mkdir($dbDir, 0755, true);
+    }
+    $sqlitePath = $dbDir . '/wangari_local.sqlite';
+    define('DB_SQLITE_PATH', $sqlitePath);
+    define('DB_DRIVER', 'sqlite');
+} else {
+    // Per-environment defaults for MySQL.
+    $defaults = $isLocalhost
+        ? ['localhost', 'busia_chicken_db', 'root', '']
+        : ['localhost', 'mrhzdunf_busiachicken', 'mrhzdunf_busia_user', 'busia_user'];
 
-// PDO Options
-$pdoOptions = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-];
+    define('DB_HOST', $DB_HOST ?? $dbEnv('DB_HOST') ?? $defaults[0]);
+    define('DB_NAME', $DB_NAME ?? $dbEnv('DB_NAME') ?? $defaults[1]);
+    define('DB_USER', $DB_USER ?? $dbEnv('DB_USER') ?? $defaults[2]);
+    define('DB_PASS', $DB_PASS ?? $dbEnv('DB_PASS') ?? $defaults[3]);
+    define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? getenv('DB_CHARSET') ?: 'utf8mb4');
+    define('DB_DRIVER', 'mysql');
+}
 
 // Connection String (DSN)
-$dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+$dsn = (DB_DRIVER === 'sqlite') 
+    ? "sqlite:" . DB_SQLITE_PATH
+    : "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
 
 // Auto-migration helper is safe to include repeatedly
 @require_once __DIR__ . '/auto_migrate.php';
-
-// Global PDO instance
-$pdo = null;
 
 /**
  * Get Database Connection
  */
 function getDatabaseConnection(): ?PDO {
-    global $pdo, $pdoOptions;
+    global $pdo;
     
     if ($pdo !== null) {
         return $pdo;
     }
     
     try {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $pdoOptions ?? [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]);
+        if (DB_DRIVER === 'sqlite') {
+            $pdo = new PDO("sqlite:" . DB_SQLITE_PATH, null, null, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+            // Enable foreign key support in SQLite
+            $pdo->exec("PRAGMA foreign_keys = ON;");
+        } else {
+            $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET, DB_USER, DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ]);
+        }
 
         if (function_exists('ensureBusiaSchema')) {
             try {
@@ -117,11 +136,15 @@ function getDatabaseConnection(): ?PDO {
  */
 function tableExists(PDO $pdo, string $table): bool {
     try {
-        // information_schema supports bound parameters on MySQL AND MariaDB
-        // (SHOW TABLES LIKE ? is rejected by MariaDB's prepared statements).
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
-        $stmt->execute([$table]);
-        return (int)$stmt->fetchColumn() > 0;
+        if (DB_DRIVER === 'sqlite') {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?");
+            $stmt->execute([$table]);
+            return (int)$stmt->fetchColumn() > 0;
+        } else {
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
+            $stmt->execute([$table]);
+            return (int)$stmt->fetchColumn() > 0;
+        }
     } catch (Exception $e) {
         @error_log("tableExists failed for {$table}: " . $e->getMessage());
         return false;
@@ -133,14 +156,26 @@ function tableExists(PDO $pdo, string $table): bool {
  */
 function columnExists(PDO $pdo, string $table, string $column): bool {
     try {
-        $stmt = $pdo->prepare("SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1");
-        $stmt->execute([$table, $column]);
-        return (bool)$stmt->fetchColumn();
+        if (DB_DRIVER === 'sqlite') {
+            $stmt = $pdo->query("PRAGMA table_info(" . preg_replace('/[^a-zA-Z0-9_]/', '', $table) . ")");
+            $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($columns as $col) {
+                if (strtolower($col['name']) === strtolower($column)) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            $stmt = $pdo->prepare("SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ? LIMIT 1");
+            $stmt->execute([$table, $column]);
+            return (bool)$stmt->fetchColumn();
+        }
     } catch (Exception $e) {
         @error_log("columnExists failed for {$table}.{$column}: " . $e->getMessage());
         return false;
     }
 }
+
 
 // Try to initialize connection - NEVER throw errors, always return null on failure
 try {

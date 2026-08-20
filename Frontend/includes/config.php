@@ -114,6 +114,10 @@ try {
         require_once $backendPath . 'security.php';
     }
     
+    if (file_exists($backendPath . 'google_oauth.php')) {
+        require_once $backendPath . 'google_oauth.php';
+    }
+    
     // Initialize Database Connection - NEVER let this fail
     if (function_exists('getDatabaseConnection')) {
         try {

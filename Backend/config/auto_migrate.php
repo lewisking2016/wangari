@@ -52,7 +52,8 @@ function runMigrationFile(PDO $pdo, string $file): void
     }
     foreach (splitMigrationSql($sql) as $stmt) {
         try {
-            $pdo->exec($stmt);
+            $translated = translateMySQLToSQLite($stmt);
+            $pdo->exec($translated);
         } catch (Exception $e) {
             // Ignore — already applied, or a transient FK ordering issue.
             // The completeness guard below re-runs on the next request.
@@ -149,6 +150,17 @@ function reconcileLegacySchema(PDO $pdo): void
         $col = $pdo->query("SHOW COLUMNS FROM users LIKE 'role'")->fetch(PDO::FETCH_ASSOC);
         if ($col && str_contains($col['Type'] ?? '', 'enum') && !str_contains($col['Type'], 'sales_staff')) {
             $pdo->exec("ALTER TABLE users MODIFY role ENUM('super_admin','farm_manager','stock_manager','sales_staff','customer') NULL DEFAULT 'customer'");
+        }
+        
+        $add = [];
+        if (!columnExists($pdo, 'users', 'google_id')) {
+            $add[] = 'ADD COLUMN google_id VARCHAR(100) NULL UNIQUE';
+        }
+        if (!columnExists($pdo, 'users', 'profile_pic')) {
+            $add[] = 'ADD COLUMN profile_pic VARCHAR(255) NULL';
+        }
+        if ($add) {
+            $pdo->exec('ALTER TABLE users ' . implode(', ', $add));
         }
     }
 }
@@ -811,6 +823,90 @@ function seedVaccineGuides(PDO $pdo): void
 }
 
 /**
+ * Translate MySQL-specific SQL statements to be SQLite compatible.
+ */
+function translateMySQLToSQLite(string $stmt): string
+{
+    if (!defined('DB_DRIVER') || DB_DRIVER !== 'sqlite') {
+        return $stmt;
+    }
+
+    // Remove ENGINE=InnoDB, character set settings, collations at the end of statements
+    $stmt = preg_replace('/\) ENGINE\s*=\s*\w+.*?/i', ')', $stmt);
+    
+    // Remove ON UPDATE CURRENT_TIMESTAMP
+    $stmt = preg_replace('/ON UPDATE CURRENT_TIMESTAMP/i', '', $stmt);
+    
+    // Convert ENUM(...) to TEXT
+    $stmt = preg_replace('/ENUM\([^)]+\)/i', 'TEXT', $stmt);
+    
+    // Convert INT AUTO_INCREMENT or BIGINT AUTO_INCREMENT to INTEGER PRIMARY KEY AUTOINCREMENT
+    if (preg_match('/(\w+)\s+(INT|INTEGER|BIGINT)\s+AUTO_INCREMENT\s+PRIMARY\s+KEY/i', $stmt, $m)) {
+        $stmt = preg_replace('/' . preg_quote($m[0]) . '/i', $m[1] . ' INTEGER PRIMARY KEY AUTOINCREMENT', $stmt);
+    } else if (preg_match('/(\w+)\s+(INT|INTEGER|BIGINT)\s+PRIMARY\s+KEY\s+AUTO_INCREMENT/i', $stmt, $m)) {
+        $stmt = preg_replace('/' . preg_quote($m[0]) . '/i', $m[1] . ' INTEGER PRIMARY KEY AUTOINCREMENT', $stmt);
+    }
+    
+    // Convert generic AUTO_INCREMENT to AUTOINCREMENT (on integer columns)
+    $stmt = preg_replace('/\bAUTO_INCREMENT\b/i', 'AUTOINCREMENT', $stmt);
+    
+    // Convert INT to INTEGER for types
+    $stmt = preg_replace('/\bINT\b/i', 'INTEGER', $stmt);
+
+    // Remove INDEX/KEY/CONSTRAINT statements inside CREATE TABLE.
+    // SQLite does not support inline indices inside CREATE TABLE.
+    $lines = explode("\n", $stmt);
+    $cleanedLines = [];
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+        if (preg_match('/^(INDEX|KEY|UNIQUE KEY|CONSTRAINT|FOREIGN KEY)\s+/i', $trimmed)) {
+            continue;
+        }
+        $cleanedLines[] = $line;
+    }
+    $stmt = implode("\n", $cleanedLines);
+    
+    // Clean trailing commas left over by deleted INDEX/KEY definitions
+    $stmt = preg_replace('/,\s*(\)\s*;?\s*)$/s', "\n$1", $stmt);
+    
+    return $stmt;
+}
+
+/**
+ * Ensure sync_queue table exists to track changes for cloud synchronization.
+ */
+function ensureSyncSchema(PDO $pdo): void
+{
+    if (!tableExists($pdo, 'sync_queue')) {
+        $isSqlite = (defined('DB_DRIVER') && DB_DRIVER === 'sqlite');
+        if ($isSqlite) {
+            $sql = "CREATE TABLE sync_queue (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                table_name VARCHAR(100) NOT NULL,
+                record_id INTEGER NOT NULL,
+                action_type VARCHAR(20) NOT NULL,
+                payload TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )";
+        } else {
+            $sql = "CREATE TABLE sync_queue (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                table_name VARCHAR(100) NOT NULL,
+                record_id INT NOT NULL,
+                action_type VARCHAR(20) NOT NULL,
+                payload LONGTEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB;";
+        }
+        try {
+            $pdo->exec($sql);
+        } catch (Exception $e) {
+            @error_log("Failed to create sync_queue table: " . $e->getMessage());
+        }
+    }
+}
+
+/**
  * Ensure all module tables exist. No-op when everything is present.
  */
 function ensureBusiaSchema(PDO $pdo): void
@@ -820,9 +916,7 @@ function ensureBusiaSchema(PDO $pdo): void
     $checked = true;
 
     try {
-        // Always reconcile legacy column shapes first (idempotent, cheap) so
-        // existing databases get the columns the current modules read even
-        // when every table already exists.
+        ensureSyncSchema($pdo);
         reconcileLegacySchema($pdo);
         reconcileOpsV2Schema($pdo);
         reconcileOpsV3Schema($pdo);
@@ -833,11 +927,17 @@ function ensureBusiaSchema(PDO $pdo): void
         $businessFile = $configDir . '/migration_v2_business.sql';
         $cropsFile    = $configDir . '/migration_v5_crops.sql';
 
+        $isSqlite = (defined('DB_DRIVER') && DB_DRIVER === 'sqlite');
+
         // Loop until stable: a statement can fail mid-run when its foreign
-        // key target is created later in the same pass (e.g. batches depends
-        // on houses/flocks). Later passes create those, then the dependents.
+        // key target is created later in the same pass.
         for ($pass = 0; $pass < 6; $pass++) {
-            $existing = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) ?: [];
+            if ($isSqlite) {
+                $existing = $pdo->query("SELECT name FROM sqlite_master WHERE type='table'")->fetchAll(PDO::FETCH_COLUMN) ?: [];
+            } else {
+                $existing = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) ?: [];
+            }
+
             $missingPoultry  = array_diff(migrationTableNames($poultryFile),  $existing);
             $missingBusiness = array_diff(migrationTableNames($businessFile), $existing);
             $missingCrops    = array_diff(migrationTableNames($cropsFile),    $existing);
@@ -849,7 +949,6 @@ function ensureBusiaSchema(PDO $pdo): void
             $tableCountBefore = count($existing);
 
             // Order matters: the business tables FK-reference poultry tables
-            // (batches, raw_materials, suppliers, walk_in_customers).
             if ($missingPoultry) {
                 runMigrationFile($pdo, $poultryFile);
             }
@@ -860,7 +959,12 @@ function ensureBusiaSchema(PDO $pdo): void
                 runMigrationFile($pdo, $cropsFile);
             }
 
-            $after = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+            if ($isSqlite) {
+                $after = $pdo->query("SELECT name FROM sqlite_master WHERE type='table'")->fetchAll(PDO::FETCH_COLUMN);
+            } else {
+                $after = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+            }
+
             if (count($after) <= $tableCountBefore) {
                 return; // no progress — give up quietly, retried next request
             }

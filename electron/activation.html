@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
+<title>Activate Wangari</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: linear-gradient(145deg, #071C0F 0%, #0D3320 70%, #14532D 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #F0FDF4;
+    user-select: none;
+    overflow: hidden;
+    -webkit-app-region: drag;
+  }
+
+  .card {
+    width: 460px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 40px 44px;
+    backdrop-filter: blur(20px);
+    -webkit-app-region: no-drag;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .logo svg { width: 36px; height: 36px; }
+  .logo-text h2 { font-size: 20px; font-weight: 700; color: #F0FDF4; }
+  .logo-text p  { font-size: 11px; color: rgba(240,253,244,0.4); margin-top: 1px; }
+
+  h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .sub { font-size: 13px; color: rgba(240,253,244,0.5); margin-bottom: 28px; line-height: 1.5; }
+
+  label {
+    display: block;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: rgba(240,253,244,0.5);
+    margin-bottom: 8px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 16px; font-family: 'Courier New', monospace;
+    color: #F0FDF4;
+    letter-spacing: 1.5px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  input[type="text"]:focus {
+    border-color: #4ADE80;
+    background: rgba(74,222,128,0.06);
+  }
+
+  input[type="text"].error { border-color: #F87171; background: rgba(248,113,113,0.06); }
+  input[type="text"].success { border-color: #4ADE80; background: rgba(74,222,128,0.06); }
+
+  .hint { font-size: 11px; color: rgba(240,253,244,0.3); margin-top: 6px; margin-bottom: 24px; }
+
+  .btn {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, #16A34A, #15803D);
+    border: none; border-radius: 10px;
+    color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .error-msg {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 8px;
+    font-size: 12px; color: #FCA5A5;
+    display: none;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 24px 0; color: rgba(240,253,244,0.2); font-size: 11px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .buy-link {
+    text-align: center; font-size: 12px; color: rgba(240,253,244,0.4);
+  }
+  .buy-link a {
+    color: #4ADE80; text-decoration: none; font-weight: 600;
+    cursor: pointer;
+  }
+  .buy-link a:hover { text-decoration: underline; }
+
+  .close-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; cursor: pointer;
+    color: rgba(240,253,244,0.3); font-size: 20px; line-height: 1;
+    -webkit-app-region: no-drag;
+  }
+  .close-btn:hover { color: rgba(240,253,244,0.7); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+      <path d="M8 12s1-3 4-3 4 3 4 3"/>
+      <path d="M9 17s1.5-2 3-2 3 2 3 2"/>
+      <path d="M12 6v1"/>
+    </svg>
+    <div class="logo-text">
+      <h2>Wangari</h2>
+      <p>Smart Farm Manager</p>
+    </div>
+  </div>
+
+  <h3>Activate Your License</h3>
+  <p class="sub">Enter the license key you received after purchase to unlock Wangari on this device.</p>
+
+  <label for="license-input">License Key</label>
+  <input
+    type="text"
+    id="license-input"
+    placeholder="WGRI-XXXX-XXXX-XXXX-XXXX"
+    maxlength="24"
+    autocomplete="off"
+    spellcheck="false"
+  >
+  <div class="hint">Your license key was emailed to you at purchase. Keep it safe — it's tied to this device.</div>
+
+  <button class="btn" id="activate-btn" onclick="doActivate()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btn-label">Activate License</span>
+  </button>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <div class="divider">or</div>
+
+  <div class="buy-link">
+    Don't have a key? <a onclick="buyNow()">Purchase Wangari →</a>
+  </div>
+</div>
+
+<script>
+  const input      = document.getElementById('license-input');
+  const btn        = document.getElementById('activate-btn');
+  const spinner    = document.getElementById('spinner');
+  const btnLabel   = document.getElementById('btn-label');
+  const errorMsg   = document.getElementById('error-msg');
+
+  // Auto-format key: uppercase, insert dashes at positions 4, 9, 14, 19
+  input.addEventListener('input', () => {
+    let v = input.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 20);
+    const parts = [];
+    for (let i = 0; i < v.length; i += 4) parts.push(v.slice(i, i + 4));
+    input.value = parts.join('-');
+    input.classList.remove('error', 'success');
+    errorMsg.style.display = 'none';
+  });
+
+  async function doActivate() {
+    const key = input.value.trim();
+    if (!key || key.length < 6) {
+      showError('Please enter a valid license key.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await window.wangari.activate(key);
+      if (result.ok) {
+        input.classList.add('success');
+        btnLabel.textContent = '✓ Activated!';
+        setTimeout(() => {
+          window.wangari.confirmActivation(result.jwt);
+        }, 800);
+      } else {
+        showError(result.error || 'Activation failed. Please check your key and try again.');
+      }
+    } catch (e) {
+      showError('Could not reach the license server. Please check your internet connection.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function setLoading(on) {
+    btn.disabled   = on;
+    spinner.style.display = on ? 'block' : 'none';
+    if (on) btnLabel.textContent = 'Verifying…';
+    else if (!input.classList.contains('success')) btnLabel.textContent = 'Activate License';
+  }
+
+  function showError(msg) {
+    input.classList.add('error');
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+
+  function buyNow() {
+    window.wangari.openUrl('https://wangari.app/pricing');
+  }
+
+  // Allow Enter to submit
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') doActivate(); });
+</script>
+</body>
+</html>
+

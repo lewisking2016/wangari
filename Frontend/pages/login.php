@@ -131,6 +131,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 </button>
             </form>
             
+            <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 0.85rem;">
+                <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                <span style="padding: 0 12px;">or</span>
+                <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+            </div>
+            
+            <a href="/Frontend/auth/google/login.php" class="xai-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; text-decoration: none; font-size: 0.95rem; font-weight: 500; padding: 14px; transition: background-color 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4ADE80" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.99 5.99 0 0 1 8 12.5a5.99 5.99 0 0 1 5.99-6.015c1.558 0 2.973.597 4.05 1.576l3.078-3.078A9.97 9.97 0 0 0 13.99 2C8.472 2 4 6.472 4 12s4.472 10 9.99 10c5.305 0 9.774-3.842 10.01-9h-11.76Z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </a>
+            
             <div class="xai-form-footer">
                 Don't have an account? <a href="register.php">Create Account</a>
             </div>
