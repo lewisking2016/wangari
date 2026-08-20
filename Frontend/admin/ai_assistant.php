@@ -84,7 +84,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
     }
 }
 
-include __DIR__ . '/includes/admin_header.php';
+/* Minimal head — AI assistant has its own full-screen dark layout, no admin sidebar/topbar */
+$csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8') ?></title>
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <style>
+        :root {
+            --admin-primary: #166534;
+            --admin-primary-light: #1B7A3D;
+            --admin-accent: #D0F24C;
+            --admin-dark: #0B1220;
+            --admin-body-bg: #FAFBFC;
+            --admin-border: #E7EAF0;
+            --admin-card-bg: #FFFFFF;
+            --admin-text-main: #334155;
+            --admin-text-heading: #0F172A;
+            --admin-text-muted: #64748B;
+            --w2-primary: #166534;
+            --w2-lime: #D0F24C;
+            --w2-ink: #0B1220;
+            --w2-border: #E7EAF0;
+            --w2-shadow: 0 4px 20px rgba(15,23,42,0.04);
+        }
+        body { margin: 0; padding: 0; font-family: 'Inter Tight', sans-serif; background: #0B1220; }
+    </style>
+</head>
+<body>
+<?php
+/* ── Ask handler (page render) ── */
 
 /* ── Ask handler (page render) ── */
 $answer = ''; $asked = ''; $followups = [];
@@ -538,4 +576,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 })();
 </script>
 
-<?php include __DIR__ . '/includes/admin_footer.php'; ?>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(typeof lucide!=='undefined')lucide.createIcons();});</script>
+</body>
+</html>
