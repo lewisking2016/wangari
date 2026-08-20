@@ -20,7 +20,7 @@ $page_title = 'Farm Operations - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'overview';
-$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','poultry'];
+$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','poultry','grazing','farmmap'];
 if (!in_array($tab, $validTabs, true)) $tab = 'overview';
 
 $pdo = getDB();
@@ -150,14 +150,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
             (int)($_POST['group_id'] ?? 0) ?: null,
             $_POST['next_due_date'] ?: null,
         ];
+        $withdrawalDays = (int)($_POST['withdrawal_days'] ?? 0);
+        $withdrawalEnd = null;
+        if ($withdrawalDays > 0 && $_POST['administered_date']) {
+            $withdrawalEnd = date('Y-m-d', strtotime($_POST['administered_date'] . " +{$withdrawalDays} days"));
+        }
         try {
             if ($id > 0) {
-                $pdo->prepare('UPDATE vaccinations SET flock_id=?,vaccine_name=?,scheduled_date=?,administered_date=?,status=?,dosage=?,notes=?,cost=?,species=?,animal_id=?,group_id=?,next_due_date=? WHERE id=?')
-                    ->execute(array_merge($v, [$id]));
+                $pdo->prepare('UPDATE vaccinations SET flock_id=?,vaccine_name=?,scheduled_date=?,administered_date=?,status=?,dosage=?,notes=?,cost=?,species=?,animal_id=?,group_id=?,next_due_date=?,withdrawal_days=?,withdrawal_end_date=? WHERE id=?')
+                    ->execute(array_merge($v, [$withdrawalDays, $withdrawalEnd, [$id]]));
                 $message = 'Vaccination updated.';
             } else {
-                $pdo->prepare('INSERT INTO vaccinations (flock_id,vaccine_name,scheduled_date,administered_date,status,dosage,notes,cost,species,animal_id,group_id,next_due_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
-                    ->execute($v);
+                $pdo->prepare('INSERT INTO vaccinations (flock_id,vaccine_name,scheduled_date,administered_date,status,dosage,notes,cost,species,animal_id,group_id,next_due_date,withdrawal_days,withdrawal_end_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+                    ->execute(array_merge($v, [$withdrawalDays, $withdrawalEnd]));
                 $message = 'Vaccination scheduled.';
             }
         } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -353,7 +358,9 @@ $tabs = [
     'production'   => ['icon'=>'egg',             'label'=>'Production'],
     'breeding'     => ['icon'=>'dna',             'label'=>'Breeding'],
     'feeding'      => ['icon'=>'wheat',           'label'=>'Feeding'],
+    'grazing'      => ['icon'=>'trees',           'label'=>'Grazing & Pasture'],
     'poultry'      => ['icon'=>'bird',            'label'=>'Poultry Tools'],
+    'farmmap'      => ['icon'=>'map-pin',         'label'=>'Farm Map'],
 ];
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
@@ -815,6 +822,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('health-m
             <div class="admin-form-group"><label class="admin-form-label">Status</label><select class="admin-form-control" name="status" id="v-status"><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="missed">Missed</option></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Dosage</label><input class="admin-form-control" name="dosage" id="v-dosage" placeholder="e.g. 3ml"></div>
             <div class="admin-form-group"><label class="admin-form-label">Cost (KES)</label><input class="admin-form-control" type="number" step="0.01" name="cost" id="v-cost" value="0"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Withdrawal Period (days)</label><input class="admin-form-control" type="number" name="withdrawal_days" id="v-withdrawal" min="0" placeholder="e.g. 7 for eggs, 14 for meat"><small style="color:#64748b;font-size:0.75rem;">Days before eggs/meat/milk can be sold after treatment</small></div>
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="v-notes" rows="2"></textarea></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:20px;">
@@ -831,7 +839,7 @@ function openVacModal(d){
     document.getElementById('v-sched').value=d?.scheduled_date||''; document.getElementById('v-admin').value=d?.administered_date||'';
     document.getElementById('v-next').value=d?.next_due_date||''; document.getElementById('v-status').value=d?.status||'scheduled';
     document.getElementById('v-dosage').value=d?.dosage||''; document.getElementById('v-cost').value=d?.cost||'';
-    document.getElementById('v-notes').value=d?.notes||''; document.getElementById('vac-modal').style.display='flex';
+    document.getElementById('v-withdrawal').value=d?.withdrawal_days||''; document.getElementById('v-notes').value=d?.notes||''; document.getElementById('vac-modal').style.display='flex';
 }
 document.addEventListener('click',e=>{ const m=document.getElementById('vac-modal'); if(m&&e.target===m) m.style.display='none'; });
 </script>
@@ -1113,6 +1121,163 @@ document.addEventListener('click',e=>{ const m=document.getElementById('feed-mod
         <a href="egg_grading.php" class="btn btn-primary" style="width:100%;justify-content:center;"><i data-lucide="external-link" style="width:16px;height:16px;"></i> Open Grading Tool</a>
     </div>
 
+</div>
+<!-- ══════ GRAZING & PASTURE TAB ══════ -->
+<?php elseif ($tab === 'grazing'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Grazing & Pasture Management</h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track pasture rotations, grazing schedules, and pasture health for all livestock.</p>
+        </div>
+    </div>
+
+    <?php
+    // Load grazing data from houses (pastures/bomas/paddocks)
+    $pastures = [];
+    if ($pdo) {
+        try {
+            $pastures = $pdo->query("SELECT h.*, 
+                (SELECT COUNT(*) FROM animal_groups ag WHERE ag.housing_id = h.id AND ag.status = 'active') as group_count,
+                (SELECT COALESCE(SUM(ag.head_count), 0) FROM animal_groups ag WHERE ag.housing_id = h.id AND ag.status = 'active') as total_head
+                FROM houses h WHERE h.house_type IN ('pasture','paddock','boma','field','pen') OR h.species IN ('Cattle','Goat','Sheep')
+                ORDER BY h.name")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {}
+    }
+    ?>
+
+    <!-- Grazing Overview -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;">
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon"><i data-lucide="trees"></i></div><div class="stat-card-info"><strong><?= count($pastures) ?></strong><small>Pastures / Paddocks</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon accent"><i data-lucide="users"></i></div><div class="stat-card-info"><strong><?= array_sum(array_map(fn($p) => (int)$p['total_head'], $pastures)) ?></strong><small>Animals on Pasture</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon info"><i data-lucide="home"></i></div><div class="stat-card-info"><strong><?= count(array_filter($pastures, fn($p) => ($p['status'] ?? '') === 'active')) ?></strong><small>Active Pastures</small></div></div>
+    </div>
+
+    <!-- Pasture List -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead><tr><th>Pasture / Paddock</th><th>Species</th><th>Capacity</th><th>Current Animals</th><th>Groups</th><th>Status</th><th>Location</th></tr></thead>
+            <tbody>
+            <?php if (empty($pastures)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No pastures or paddocks registered.</strong><br>Add grazing areas in the Housing tab, then track rotations here.</td></tr>
+            <?php else: foreach ($pastures as $p): ?>
+                <tr>
+                    <td><strong><?= htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><span class="badge-pill badge-pill-info"><?= htmlspecialchars($p['species'] ?? 'Cattle', ENT_QUOTES, 'UTF-8') ?></span></td>
+                    <td><?= (int)($p['capacity'] ?? 0) ?> <?= ($p['species'] ?? '') === 'Chicken' ? 'birds' : 'heads' ?></td>
+                    <td><strong><?= (int)($p['total_head'] ?? 0) ?></strong></td>
+                    <td><?= (int)($p['group_count'] ?? 0) ?></td>
+                    <td><span class="badge-pill <?= ($p['status'] ?? '') === 'active' ? 'badge-pill-success' : 'badge-pill-warning' ?>"><?= htmlspecialchars($p['status'] ?? 'active', ENT_QUOTES, 'UTF-8') ?></span></td>
+                    <td><?= htmlspecialchars($p['location'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Grazing Tips -->
+    <div style="margin-top:20px;padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;">
+        <h4 style="margin:0 0 8px;font-size:0.92rem;color:#166534;"><i data-lucide="lightbulb" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>Grazing Best Practices</h4>
+        <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#166534;line-height:1.7;">
+            <li>Rotate cattle every 3-5 days to prevent overgrazing</li>
+            <li>Allow 60-90 days rest between grazing cycles per paddock</li>
+            <li>Move goats after 1-2 days — they browse faster than cattle graze</li>
+            <li>Monitor FAMACHA scores for sheep/goats during dry season</li>
+            <li>Separate species when possible to reduce parasite cross-contamination</li>
+        </ul>
+    </div>
+</div>
+
+<!-- ══════ FARM MAP TAB ══════ -->
+<?php elseif ($tab === 'farmmap'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Map Overview</h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Visual overview of all farm locations — houses, pastures, fields, and infrastructure.</p>
+        </div>
+    </div>
+
+    <?php
+    // Load all locations
+    $allLocations = [];
+    if ($pdo) {
+        try {
+            // Houses
+            $houses = $pdo->query("SELECT name, species, house_type, capacity, current_occupants, location, status FROM houses ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+            // Fields
+            $fields = $pdo->query("SELECT name, location, size_acres, soil_type, status FROM fields ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+            // Groups
+            $groups = $pdo->query("SELECT ag.name, ag.species, ag.head_count, ag.location, ag.status, h.name as housing_name FROM animal_groups ag LEFT JOIN houses h ON ag.housing_id = h.id WHERE ag.status = 'active' ORDER BY ag.species, ag.name")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {}
+    }
+    ?>
+
+    <!-- Infrastructure Map -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-bottom:24px;">
+        <!-- Houses & Structures -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;">
+            <h4 style="margin:0 0 14px;font-size:0.95rem;color:#0F172A;"><i data-lucide="home" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#3b82f6;"></i>Houses & Structures</h4>
+            <?php if (empty($houses)): ?>
+                <p style="color:#94a3b8;font-size:0.85rem;margin:0;">No houses registered. Add them in the Housing tab.</p>
+            <?php else: foreach ($houses as $h): ?>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                    <div style="width:8px;height:8px;background:<?= ($h['status'] ?? '') === 'active' ? '#16a34a' : '#d97706' ?>;border-radius:50%;"></div>
+                    <div style="flex:1;">
+                        <strong style="font-size:0.88rem;"><?= htmlspecialchars($h['name'], ENT_QUOTES, 'UTF-8') ?></strong>
+                        <span style="font-size:0.78rem;color:#64748b;margin-left:6px;"><?= htmlspecialchars($h['house_type'] ?? 'house', ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
+                    <span style="font-size:0.82rem;color:#475569;"><?= (int)($h['current_occupants'] ?? 0) ?>/<?= (int)($h['capacity'] ?? 0) ?></span>
+                    <span class="badge-pill badge-pill-info" style="font-size:0.7rem;"><?= htmlspecialchars($h['species'] ?? 'Chicken', ENT_QUOTES, 'UTF-8') ?></span>
+                </div>
+            <?php endforeach; endif; ?>
+        </div>
+
+        <!-- Fields & Pastures -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;">
+            <h4 style="margin:0 0 14px;font-size:0.95rem;color:#0F172A;"><i data-lucide="sprout" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#16a34a;"></i>Fields & Pastures</h4>
+            <?php if (empty($fields)): ?>
+                <p style="color:#94a3b8;font-size:0.85rem;margin:0;">No fields registered. Add them in the Crops tab.</p>
+            <?php else: foreach ($fields as $f): ?>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                    <div style="width:8px;height:8px;background:<?= ($f['status'] ?? '') === 'active' ? '#16a34a' : '#94a3b8' ?>;border-radius:50%;"></div>
+                    <div style="flex:1;">
+                        <strong style="font-size:0.88rem;"><?= htmlspecialchars($f['name'], ENT_QUOTES, 'UTF-8') ?></strong>
+                        <span style="font-size:0.78rem;color:#64748b;margin-left:6px;"><?= htmlspecialchars($f['soil_type'] ?? '—', ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
+                    <span style="font-size:0.82rem;color:#475569;"><?= number_format((float)($f['size_acres'] ?? 0), 1) ?> acres</span>
+                </div>
+            <?php endforeach; endif; ?>
+        </div>
+    </div>
+
+    <!-- Animal Distribution -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;">
+        <h4 style="margin:0 0 14px;font-size:0.95rem;color:#0F172A;"><i data-lucide="paw-print" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#d97706;"></i>Animal Distribution by Location</h4>
+        <?php
+        // Group by species
+        $speciesGroups = [];
+        foreach ($groups as $g) {
+            $sp = $g['species'] ?? 'Unknown';
+            $speciesGroups[$sp][] = $g;
+        }
+        if (empty($speciesGroups)): ?>
+            <p style="color:#94a3b8;font-size:0.85rem;margin:0;">No active animal groups. Add groups in the Groups tab.</p>
+        <?php else: foreach ($speciesGroups as $sp => $spGroups): ?>
+            <div style="margin-bottom:16px;">
+                <h5 style="margin:0 0 8px;font-size:0.88rem;color:#475569;"><?= htmlspecialchars($sp) ?></h5>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <?php foreach ($spGroups as $sg): ?>
+                        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;font-size:0.82rem;">
+                            <strong><?= htmlspecialchars($sg['name'], ENT_QUOTES, 'UTF-8') ?></strong>
+                            <span style="color:#64748b;">· <?= (int)$sg['head_count'] ?> head</span>
+                            <?php if ($sg['housing_name']): ?><span style="color:#3b82f6;">@ <?= htmlspecialchars($sg['housing_name'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endforeach; endif; ?>
+    </div>
 </div>
 <?php endif; ?>
 
