@@ -213,8 +213,17 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="xai-container">
         <div class="xai-footer-inner">
             <div>
-                <div class="xai-footer-brand">Wangari<span>.</span></div>
+                <div class="xai-footer-brand">
+                    <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
+                    Wangari<span>.</span>
+                </div>
                 <p class="xai-footer-desc">Smart Farming for a Sustainable Future.</p>
+                <div class="xai-footer-contact">
+                    <a href="mailto:info@imeantech.com" class="xai-footer-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+                        info@imeantech.com
+                    </a>
+                </div>
             </div>
             <div>
                 <h4>Product</h4>
@@ -233,6 +242,9 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="xai-footer-bottom">
             <span>&copy; <?php echo date('Y'); ?> Wangari. All rights reserved.</span>
+            <div class="xai-footer-credits">
+                Built by <a href="https://imeantech.com" target="_blank">iMeanTech</a>
+            </div>
         </div>
     </div>
 </footer>

@@ -360,10 +360,30 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
 <footer class="xai-footer">
     <div class="xai-container">
         <div class="xai-footer-inner">
+            <!-- Brand & Description -->
             <div>
-                <div class="xai-footer-brand">Wangari<span>.</span></div>
-                <p class="xai-footer-desc">Smart Farming for a Sustainable Future. All-in-one farm management system for African agriculture.</p>
+                <div class="xai-footer-brand">
+                    <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
+                    Wangari<span>.</span>
+                </div>
+                <p class="xai-footer-desc">Smart Farming for a Sustainable Future. All-in-one farm management system for poultry, livestock, crops, and finances — built for African agriculture.</p>
+                <div class="xai-footer-contact">
+                    <a href="mailto:info@imeantech.com" class="xai-footer-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+                        info@imeantech.com
+                    </a>
+                    <a href="tel:+254114971070" class="xai-footer-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg>
+                        +254 114 971 070
+                    </a>
+                    <div class="xai-footer-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                        Waris Mall, Ruiru, Kenya
+                    </div>
+                </div>
             </div>
+            
+            <!-- Product Links -->
             <div>
                 <h4>Product</h4>
                 <ul class="xai-footer-links">
@@ -373,25 +393,34 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                     <li><a href="/Frontend/pages/services.php">Services</a></li>
                 </ul>
             </div>
+            
+            <!-- Company Links -->
             <div>
                 <h4>Company</h4>
                 <ul class="xai-footer-links">
+                    <li><a href="https://imeantech.com" target="_blank">iMeanTech</a></li>
                     <li><a href="/Frontend/pages/about.php">About</a></li>
                     <li><a href="/Frontend/pages/contact.php">Contact</a></li>
                     <li><a href="/Frontend/pages/faq.php">FAQ</a></li>
                 </ul>
             </div>
+            
+            <!-- Legal Links -->
             <div>
                 <h4>Legal</h4>
                 <ul class="xai-footer-links">
-                    <li><a href="/Frontend/pages/privacy.php">Privacy</a></li>
-                    <li><a href="/Frontend/pages/terms.php">Terms</a></li>
+                    <li><a href="/Frontend/pages/privacy.php">Privacy Policy</a></li>
+                    <li><a href="/Frontend/pages/terms.php">Terms of Service</a></li>
                 </ul>
             </div>
         </div>
+        
+        <!-- Bottom Bar -->
         <div class="xai-footer-bottom">
             <span>&copy; <?php echo date('Y'); ?> Wangari. All rights reserved.</span>
-            <span>Built for African Agriculture</span>
+            <div class="xai-footer-credits">
+                Built by <a href="https://imeantech.com" target="_blank">iMeanTech</a>
+            </div>
         </div>
     </div>
 </footer>
