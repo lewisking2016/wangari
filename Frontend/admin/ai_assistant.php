@@ -392,6 +392,10 @@ function answerFarmQuestion(PDO $pdo, string $q): array
     <div class="ai-topbar">
         <div class="ai-brand"><i data-lucide="sparkles" style="width:17px;height:17px;"></i> Ask Wangari</div>
         <div class="ai-topright">
+            <a href="<?= BASE_URL ?>admin/dashboard.php" class="ai-toggle-pill" style="text-decoration:none;" title="Back to Dashboard">
+                <i data-lucide="arrow-left" style="width:15px;height:15px;"></i>
+                <span style="font-size:0.78rem;font-weight:700;color:#b7c2cd;">Home</span>
+            </a>
             <?php if ($aiConnected): ?>
             <form method="post" id="thinking-form" style="margin:0;">
                 <input type="hidden" name="_action" value="toggle_thinking">
