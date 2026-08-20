@@ -484,13 +484,20 @@ function reconcileOpsV2Schema(PDO $pdo): void
         if ($add) { try { $pdo->exec('ALTER TABLE breeding_records ' . implode(', ', $add)); } catch (Exception $e) {} }
     }
 
-    // ── 9. feeding_standards — add species column ──
+    // ── 9. feeding_standards — add species column + widen bird_type ──
     if (tableExists($pdo, 'feeding_standards')) {
         if (!columnExists($pdo, 'feeding_standards', 'species')) {
             try {
                 $pdo->exec("ALTER TABLE feeding_standards ADD COLUMN species VARCHAR(80) NOT NULL DEFAULT 'Chicken' AFTER bird_type");
             } catch (Exception $e) {}
         }
+        // bird_type was ENUM('layer','broiler','kienyeji','dual_purpose'); widen to VARCHAR for all species
+        try {
+            $col = $pdo->query("SHOW COLUMNS FROM feeding_standards LIKE 'bird_type'")->fetch(PDO::FETCH_ASSOC);
+            if ($col && str_contains($col['Type'] ?? '', 'enum')) {
+                $pdo->exec("ALTER TABLE feeding_standards MODIFY bird_type VARCHAR(80) NOT NULL");
+            }
+        } catch (Exception $e) {}
     }
 
     // ── 10. Migrate existing flocks → animal_groups (one-time) ──

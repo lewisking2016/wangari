@@ -17,7 +17,7 @@ $page_title = 'Crops & Fields - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'fields';
-$validTabs = ['fields','plantings','activities','harvests','soil'];
+$validTabs = ['fields','plantings','activities','harvests','costs','soil'];
 if (!in_array($tab, $validTabs, true)) $tab = 'fields';
 
 $pdo = getDB();
@@ -128,6 +128,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $tab = 'harvests';
     }
 
+    // Save crop cost
+    if ($postAction === 'save_crop_cost') {
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            $plantingId = (int)($_POST['planting_id'] ?? 0);
+            $costType = trim($_POST['cost_type'] ?? '');
+            $amount = (float)($_POST['amount'] ?? 0);
+            $desc = trim($_POST['description'] ?? '');
+            $costDate = trim($_POST['cost_date'] ?? date('Y-m-d'));
+            if (!$plantingId || !$costType || $amount <= 0) {
+                $error_message = 'Planting, cost type and amount are required.';
+            } else {
+                if ($id > 0) {
+                    $pdo->prepare('UPDATE crop_costs SET planting_id=?,cost_type=?,amount=?,description=?,cost_date=? WHERE id=?')
+                        ->execute([$plantingId,$costType,$amount,$desc,$costDate,$id]);
+                    $message = 'Cost updated.';
+                } else {
+                    $pdo->prepare('INSERT INTO crop_costs (planting_id,cost_type,amount,description,cost_date) VALUES (?,?,?,?,?)')
+                        ->execute([$plantingId,$costType,$amount,$desc,$costDate]);
+                    $message = 'Cost recorded.';
+                }
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'costs';
+    }
+
     // Save soil test
     if ($postAction === 'save_soil_test') {
         $id = (int)($_POST['id'] ?? 0);
@@ -188,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 }
 
 /* ── Load data ── */
-$fields = $plantings = $activities = $harvests = [];
+$fields = $plantings = $activities = $harvests = $cropCosts = [];
 $fieldOptions = [];
 if ($pdo) {
     try {
@@ -197,6 +223,7 @@ if ($pdo) {
         $plantings = $pdo->query('SELECT cp.*, f.name AS field_name FROM crop_plantings cp LEFT JOIN fields f ON f.id=cp.field_id ORDER BY cp.planting_date DESC')->fetchAll();
         $activities = $pdo->query('SELECT ca.*, cp.crop, f.name AS field_name FROM crop_activities ca LEFT JOIN crop_plantings cp ON cp.id=ca.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY ca.activity_date DESC LIMIT 200')->fetchAll();
         $harvests = $pdo->query('SELECT ch.*, cp.crop, f.name AS field_name FROM crop_harvests ch LEFT JOIN crop_plantings cp ON cp.id=ch.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY ch.harvest_date DESC LIMIT 200')->fetchAll();
+        $cropCosts = $pdo->query('SELECT cc.*, cp.crop, f.name AS field_name, f.size_acres FROM crop_costs cc LEFT JOIN crop_plantings cp ON cp.id=cc.planting_id LEFT JOIN fields f ON f.id=cp.field_id ORDER BY cc.cost_date DESC LIMIT 200')->fetchAll();
         $soilTests = $pdo->query('SELECT st.*, f.name AS field_name FROM soil_tests st LEFT JOIN fields f ON f.id=st.field_id ORDER BY st.test_date DESC LIMIT 100')->fetchAll();
         $soilAmendments = $pdo->query('SELECT sa.*, f.name AS field_name FROM soil_amendments sa LEFT JOIN fields f ON f.id=sa.field_id ORDER BY sa.amendment_date DESC LIMIT 100')->fetchAll();
     } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -207,6 +234,7 @@ $tabs = [
     'plantings'  => ['icon' => 'sprout',       'label' => 'Plantings'],
     'activities' => ['icon' => 'clipboard-list','label' => 'Field Activities'],
     'harvests'   => ['icon' => 'wheat',        'label' => 'Harvests'],
+    'costs'      => ['icon' => 'receipt',      'label' => 'Costs'],
     'soil'       => ['icon' => 'layers',       'label' => 'Soil Health'],
 ];
 ?>
@@ -501,6 +529,70 @@ function editField(f) {
         </form>
     </div>
 </div>
+<!-- ══════ CROP COSTS TAB ══════ -->
+<?php elseif ($tab === 'costs'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Crop Cost Tracking</h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track costs per planting to calculate cost per acre and profitability.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCostModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add Cost</button>
+    </div>
+
+    <?php if (!empty($cropCosts)): ?>
+    <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="calculator"></i></div><div class="stat-card-info"><strong>KES <?= number_format(array_sum(array_column($cropCosts, 'amount')), 0) ?></strong><small>Total Costs</small></div></div>
+        <div class="stat-card"><div class="stat-card-icon info"><i data-lucide="receipt"></i></div><div class="stat-card-info"><strong><?= count($cropCosts) ?></strong><small>Cost Entries</small></div></div>
+    </div>
+    <?php endif; ?>
+
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Crop</th><th>Field</th><th>Cost Type</th><th>Amount (KES)</th><th>Cost/Acre</th><th>Description</th></tr></thead>
+            <tbody>
+            <?php if (empty($cropCosts)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;">No costs recorded yet. Click <strong>Add Cost</strong> to start tracking expenses.</td></tr>
+            <?php else: foreach ($cropCosts as $c): ?>
+                <tr>
+                    <td><?= htmlspecialchars($c['cost_date'], ENT_QUOTES) ?></td>
+                    <td><strong><?= htmlspecialchars($c['crop'] ?? '—', ENT_QUOTES) ?></strong></td>
+                    <td><?= htmlspecialchars($c['field_name'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-info"><?= htmlspecialchars($c['cost_type'], ENT_QUOTES) ?></span></td>
+                    <td><?= number_format((float)$c['amount'], 0) ?></td>
+                    <td><?= ($c['size_acres'] > 0) ? number_format((float)$c['amount'] / (float)$c['size_acres'], 0) : '—' ?></td>
+                    <td><?= htmlspecialchars($c['description'] ?? '', ENT_QUOTES) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="cost-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Crop Cost</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_crop_cost"><input type="hidden" name="id" id="c-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting *</label><select class="admin-form-control" name="planting_id" id="c-planting" required><option value="">-- Select Planting --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Cost Type *</label><select class="admin-form-control" name="cost_type" id="c-type" required><option value="Seeds">Seeds</option><option value="Fertilizer">Fertilizer</option><option value="Pesticide">Pesticide</option><option value="Labor">Labor</option><option value="Irrigation">Irrigation</option><option value="Transport">Transport</option><option value="Equipment">Equipment</option><option value="Other">Other</option></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Amount (KES) *</label><input class="admin-form-control" type="number" step="0.01" min="0" name="amount" id="c-amount" required placeholder="0"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="cost_date" id="c-date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Description</label><textarea class="admin-form-control" name="description" id="c-desc" rows="2" placeholder="Optional notes..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('cost-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
+        </div></form>
+    </div>
+</div>
+<script>
+function openCostModal(){
+    document.getElementById('cost-modal').style.display='flex';
+}
+document.addEventListener('click',e=>{ const m=document.getElementById('cost-modal'); if(m&&e.target===m) m.style.display='none'; });
+</script>
+
 <!-- ══════ SOIL HEALTH TAB ══════ -->
 <?php elseif ($tab === 'soil'): ?>
 <div class="admin-card">

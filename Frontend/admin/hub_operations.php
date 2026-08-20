@@ -20,7 +20,7 @@ $page_title = 'Farm Operations - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'overview';
-$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','poultry','grazing','farmmap'];
+$validTabs = ['overview','animals','groups','housing','health','vaccinations','production','breeding','feeding','weights','poultry','grazing','farmmap'];
 if (!in_array($tab, $validTabs, true)) $tab = 'overview';
 
 $pdo = getDB();
@@ -253,6 +253,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'feeding';
     }
+
+    if ($postAction === 'save_weight') {
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            $v = [
+                (int)($_POST['animal_id'] ?? 0) ?: null,
+                (int)($_POST['group_id'] ?? 0) ?: null,
+                trim($_POST['species'] ?? 'Chicken'),
+                (float)($_POST['weight_kg'] ?? 0),
+                trim($_POST['recorded_date'] ?? date('Y-m-d')),
+                trim($_POST['notes'] ?? ''),
+            ];
+            if ($id > 0) {
+                $pdo->prepare('UPDATE animal_weights SET animal_id=?,group_id=?,species=?,weight_kg=?,recorded_date=?,notes=? WHERE id=?')
+                    ->execute(array_merge($v, [$id]));
+                $message = 'Weight record updated.';
+            } else {
+                $pdo->prepare('INSERT INTO animal_weights (animal_id,group_id,species,weight_kg,recorded_date,notes) VALUES (?,?,?,?,?,?)')
+                    ->execute($v);
+                $message = 'Weight recorded.';
+            }
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'weights';
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -342,6 +366,13 @@ if ($pdo) {
             $fsSql .= ' ORDER BY species ASC, week_number ASC';
             $feedStandards = $pdo->query($fsSql)->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        if ($tab === 'weights') {
+            $sql = 'SELECT aw.*, a.name AS aname, a.tag, ag.name AS gname FROM animal_weights aw LEFT JOIN animals a ON aw.animal_id=a.id LEFT JOIN animal_groups ag ON aw.group_id=ag.id';
+            if ($speciesFilter) $sql .= " WHERE aw.species=". $pdo->quote($speciesFilter);
+            $sql .= ' ORDER BY aw.recorded_date DESC LIMIT 200';
+            $weightRecs = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (Exception $e) { /* non-fatal */ }
 }
 
@@ -358,6 +389,7 @@ $tabs = [
     'production'   => ['icon'=>'egg',             'label'=>'Production'],
     'breeding'     => ['icon'=>'dna',             'label'=>'Breeding'],
     'feeding'      => ['icon'=>'wheat',           'label'=>'Feeding'],
+    'weights'      => ['icon'=>'scale',           'label'=>'Weight Tracking'],
     'grazing'      => ['icon'=>'trees',           'label'=>'Grazing & Pasture'],
     'poultry'      => ['icon'=>'bird',            'label'=>'Poultry Tools'],
     'farmmap'      => ['icon'=>'map-pin',         'label'=>'Farm Map'],
@@ -1122,6 +1154,68 @@ document.addEventListener('click',e=>{ const m=document.getElementById('feed-mod
     </div>
 
 </div>
+<!-- ══════ WEIGHT TRACKING TAB ══════ -->
+<?php elseif ($tab === 'weights'): ?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Weight Tracking</h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Record and monitor individual animal or group weights over time.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openWeightModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Weight</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead><tr><th>Date</th><th>Animal</th><th>Group</th><th>Species</th><th>Weight (kg)</th><th>Notes</th></tr></thead>
+            <tbody>
+            <?php if (empty($weightRecs)): ?>
+                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No weight records yet. Click <strong>Record Weight</strong> to start tracking.</td></tr>
+            <?php else: foreach ($weightRecs as $w): ?>
+                <tr>
+                    <td><?= htmlspecialchars($w['recorded_date'], ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars(($w['tag'] ? $w['tag'].' - ' : '').($w['aname'] ?? '—'), ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($w['gname'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><span class="badge badge-info"><?= htmlspecialchars($w['species'], ENT_QUOTES) ?></span></td>
+                    <td><strong><?= number_format((float)$w['weight_kg'], 2) ?></strong></td>
+                    <td><?= htmlspecialchars($w['notes'] ?? '', ENT_QUOTES) ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="weight-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:540px;box-shadow:0 20px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+        <h3 id="weight-modal-title" style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Weight</h3>
+        <form method="POST"><input type="hidden" name="_action" value="save_weight"><input type="hidden" name="id" id="w-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="admin-form-group"><label class="admin-form-label">Animal</label><select class="admin-form-control" name="animal_id" id="w-animal"><option value="">-- Select Animal --</option><?php foreach ($animalList as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Group</label><select class="admin-form-control" name="group_id" id="w-group"><option value="">-- Select Group --</option><?php foreach ($groupList as $g): ?><option value="<?= (int)$g['id'] ?>"><?= htmlspecialchars($g['label'], ENT_QUOTES) ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Species *</label><select class="admin-form-control" name="species" id="w-species" required><?php foreach ($spList as $sp): ?><option><?= $sp ?></option><?php endforeach; ?></select></div>
+            <div class="admin-form-group"><label class="admin-form-label">Weight (kg) *</label><input class="admin-form-control" type="number" step="0.01" min="0" name="weight_kg" id="w-weight" required placeholder="0.00"></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="recorded_date" id="w-date" value="<?= date('Y-m-d') ?>" required></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" id="w-notes" rows="2" placeholder="Optional notes..."></textarea></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('weight-modal').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save</button>
+        </div></form>
+    </div>
+</div>
+<script>
+function openWeightModal(d){
+    document.getElementById('weight-modal-title').textContent=d?.id?'Edit Weight':'Record Weight';
+    document.getElementById('w-id').value=d?.id||''; document.getElementById('w-animal').value=d?.animal_id||'';
+    document.getElementById('w-group').value=d?.group_id||''; document.getElementById('w-species').value=d?.species||'Chicken';
+    document.getElementById('w-weight').value=d?.weight_kg||''; document.getElementById('w-date').value=d?.recorded_date||'<?= date('Y-m-d') ?>';
+    document.getElementById('w-notes').value=d?.notes||'';
+    document.getElementById('weight-modal').style.display='flex';
+}
+document.addEventListener('click',e=>{ const m=document.getElementById('weight-modal'); if(m&&e.target===m) m.style.display='none'; });
+</script>
+
 <!-- ══════ GRAZING & PASTURE TAB ══════ -->
 <?php elseif ($tab === 'grazing'): ?>
 <div class="admin-card">

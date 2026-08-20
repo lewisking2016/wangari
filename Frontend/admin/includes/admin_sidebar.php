@@ -94,7 +94,11 @@ HTML;
             'plantings'  => 'Crop Plantings',
             'activities' => 'Field Activities',
             'harvests'   => 'Harvests',
+            'costs'      => 'Crop Costs',
         ], $tab ?: 'fields') ?>
+
+        <p class="w2-nav-section">Mixed Farming</p>
+        <?= w2NavItem('mixed_farming.php', 'layout-dashboard', 'Mixed Dashboard', w2IsActive('mixed_farming.php')) ?>
 
         <p class="w2-nav-section">Inventory</p>
         <?= w2NavGroup('package', 'Inventory & Store', 'hub_inventory.php', [
