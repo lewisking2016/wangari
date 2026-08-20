@@ -359,6 +359,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
+            overflow-x: hidden;
+            min-width: 0;
         }
 
         /* Top utility bar */
@@ -415,6 +417,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 24px;
             box-sizing: border-box;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            min-width: 0;
         }
 
         .admin-card:hover {
@@ -458,21 +462,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .stat-grid { 
             display: grid; 
-            grid-template-columns: repeat(3, minmax(0, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 32px;
-        }
-
-        .stat-card { 
-            padding: 24px; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 16px; 
+            margin-bottom: 24px;
+        }        .stat-card { 
+            padding: 20px; 
             border-radius: var(--admin-radius); 
             background: var(--admin-card-bg); 
             border: 1px solid var(--admin-border); 
             box-shadow: var(--admin-shadow); 
-            display: flex;
-            align-items: center;
+            display: flex; 
+            align-items: center; 
             justify-content: space-between;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .stat-card:hover {
@@ -526,30 +530,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .table-responsive {
             overflow-x: auto;
             width: 100%;
+            -webkit-overflow-scrolling: touch;
         }
 
         .admin-table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            min-width: 600px;
         }
 
         .admin-table th {
-            padding: 14px 18px;
-            font-size: 0.72rem;
+            padding: 12px 14px;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #64748B;
             text-transform: uppercase;
             letter-spacing: 0.07em;
             border-bottom: 1px solid var(--admin-border);
             background: #F8FAFC;
+            white-space: nowrap;
         }
 
         .admin-table td {
-            padding: 14px 18px;
+            padding: 12px 14px;
             border-bottom: 1px solid #F0F2F6;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--admin-text-main);
+            word-break: break-word;
         }
 
         .admin-table tr:hover td {
@@ -1137,6 +1145,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         @media (max-width: 1024px) {
             .admin-content { padding: 14px; }
             .admin-card { padding: 16px; }
+            .stat-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+            .stat-card { padding: 16px; }
+            .stat-card strong { font-size: 1.5rem; }
+        }
+        @media (max-width: 640px) {
+            .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-card strong { font-size: 1.25rem; }
+            .stat-card small { font-size: 0.65rem; }
+            .stat-card-icon { width: 40px; height: 40px; }
         }
         @media (max-width: 860px) {
             .w2-side {

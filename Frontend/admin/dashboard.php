@@ -258,7 +258,7 @@ try {
 
         .d2-kpis {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -266,12 +266,14 @@ try {
             background: #fff;
             border: 1px solid var(--w2-border);
             border-radius: 16px;
-            padding: 20px;
+            padding: 18px;
             box-shadow: var(--w2-shadow);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
+            min-width: 0;
+            overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
         }
@@ -313,19 +315,22 @@ try {
         }
         .d2-ai-input-wrap input:focus { border-color: #1B7A3D; box-shadow: 0 0 0 4px rgba(22,101,52,0.1); }
 
-        .d2-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; align-items: stretch; }
-        .d2-side { display: flex; flex-direction: column; gap: 16px; }
-        .d2-charts-col { display: flex; flex-direction: column; gap: 16px; }
-        .d2-charts-col .admin-card { flex: 1; display: flex; flex-direction: column; }
+        .d2-main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; align-items: stretch; min-width: 0; }
+        .d2-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .d2-charts-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .d2-charts-col .admin-card { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .d2-charts-col .chart-box { flex: 1; height: auto; min-height: 200px; }
         @media (max-width: 1024px) {
             .d2-kpis { grid-template-columns: repeat(2, 1fr); }
             .d2-main { grid-template-columns: 1fr; }
         }
-        @media (max-width: 560px) {
+        @media (max-width: 640px) {
             .d2-kpis { grid-template-columns: 1fr; }
             .d2-hero { padding: 24px 20px; }
+            .d2-hero h1 { font-size: 1.3rem; }
             .d2-ai-input-wrap { flex-direction: column; }
+            .d2-kpi { padding: 14px; }
+            .d2-kpi strong { font-size: 1.25rem; }
         }
     </style>
 
