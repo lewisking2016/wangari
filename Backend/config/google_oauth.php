@@ -19,7 +19,7 @@ $oauthEnv = function (string $key, string $default = ''): string {
 
 // OAuth credentials
 define('GOOGLE_CLIENT_ID', $oauthEnv('GOOGLE_CLIENT_ID', '130893240175-4uj4716lrfgl3idul3aadu025l8oin46.apps.googleusercontent.com'));
-define('GOOGLE_CLIENT_SECRET', $oauthEnv('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET_HERE'));
+define('GOOGLE_CLIENT_SECRET', $oauthEnv('GOOGLE_CLIENT_SECRET', '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'));
 
 // Redirect URI resolver
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 0) === 443;
