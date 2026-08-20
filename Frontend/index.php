@@ -104,6 +104,38 @@ include 'includes/header.php';
         </div>
     </section>
 
+    <!-- Statement Section (x.ai-style) -->
+    <section class="xai-section">
+        <div class="xai-container">
+            <div class="xai-statement xai-reveal">
+                <div class="xai-statement-text">
+                    <h2>Manage your farm like a <span style="color: var(--xai-lime); font-family: var(--font-serif); font-style: italic;">professional</span></h2>
+                    <p>Wangari replaces your spreadsheets, notebooks, and scattered tools with one connected platform. Track flocks, feed costs, sales, credit, and finances — all in real time, on any device.</p>
+                </div>
+                <div class="xai-statement-visual">
+                    <div class="xai-statement-card">
+                        <div class="xai-statement-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="xai-statement-stat">
+                            <span class="xai-statement-num">12+</span>
+                            <span class="xai-statement-label">Integrated Modules</span>
+                        </div>
+                    </div>
+                    <div class="xai-statement-card">
+                        <div class="xai-statement-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        </div>
+                        <div class="xai-statement-stat">
+                            <span class="xai-statement-num">AI</span>
+                            <span class="xai-statement-label">Smart Assistant Built In</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section class="xai-section" id="features">
         <div class="xai-container">
