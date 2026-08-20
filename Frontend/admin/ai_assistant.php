@@ -310,7 +310,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 
 <style>
 /* ═══ Ask Wangari — Gemini-style minimal chat ═══ */
-.ai-page { background: var(--w2-ink, #0B1220); color: #e7e7e7; margin: -24px; padding: 0; min-height: calc(100vh - 90px); display: flex; flex-direction: column; font-family: 'Inter Tight', 'Google Sans', system-ui, sans-serif; }
+.ai-page { background: var(--w2-ink, #0B1220); color: #e7e7e7; margin: 0; padding: 0; min-height: calc(100vh - 90px); display: flex; flex-direction: column; font-family: 'Inter Tight', 'Google Sans', system-ui, sans-serif; }
 
 /* ── minimal top bar ── */
 .ai-topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; }

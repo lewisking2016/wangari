@@ -88,7 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --admin-shadow-hover: 0 8px 32px rgba(15, 23, 42, 0.08);
         }
 
-        body.admin-layout { 
+        html, body.admin-layout { 
+            overflow-x: hidden;
             background: var(--admin-body-bg); 
             color: var(--admin-text-main);
             font-family: 'Inter Tight', sans-serif;
