@@ -277,7 +277,7 @@ try {
 
         .d2-kpis {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
