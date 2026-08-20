@@ -328,7 +328,8 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 .ai-welcome p { color: #9ca3af; font-size: 0.95rem; margin: 0 auto 28px; max-width: 520px; line-height: 1.55; }
 .ai-chiprow { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .ai-chiprow .ai-suggestion { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.13); color: #d7d7d7; border-radius: 999px; padding: 9px 16px; font-size: 0.8rem; cursor: pointer; transition: all .15s; font-family: inherit; }
-.ai-chiprow .ai-suggestion:hover { background: rgba(208,242,76,0.14); border-color: var(--w2-lime, #D0F24C); color: #fff; box-shadow: 0 0 0 4px rgba(208,242,76,0.1); }
+.ai-chiprow .ai-suggestion:hover { background: var(--w2-lime, #D0F24C); border-color: var(--w2-lime, #D0F24C); color: #0B1220; box-shadow: 0 4px 16px rgba(208,242,76,0.3); }
+.ai-chiprow .ai-suggestion:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(208,242,76,0.2); }
 
 /* ── messages: clean rows, no heavy bubbles (Gemini look) ── */
 .ai-messages { width: 100%; max-width: 760px; margin: 0 auto; padding: 12px 24px 24px; display: flex; flex-direction: column; gap: 22px; }
@@ -343,7 +344,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 /* ── follow-up chips under answers ── */
 .ai-followups { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .ai-followup { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #d7d7d7; border-radius: 999px; padding: 7px 14px; font-size: 0.78rem; cursor: pointer; transition: all .15s; font-family: inherit; }
-.ai-followup:hover { background: rgba(208,242,76,0.14); border-color: var(--w2-lime, #D0F24C); color: #fff; box-shadow: 0 0 0 4px rgba(208,242,76,0.1); }
+.ai-followup:hover { background: var(--w2-lime, #D0F24C); border-color: var(--w2-lime, #D0F24C); color: #0B1220; box-shadow: 0 4px 16px rgba(208,242,76,0.3); }
 
 /* ── composer (rounded, Gemini-like) ── */
 .ai-composer-wrap { padding: 14px 24px 20px; }
