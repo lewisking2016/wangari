@@ -113,16 +113,17 @@ $cfg = [
     'weather_lat'     => $getSetting('weather_lat') ?: '0.5214',
     'weather_lon'     => $getSetting('weather_lon') ?: '35.2697',
 ];
-/* Default provider is Gemini Flash latest — the free, current model. */
-if (empty($cfg['ai_provider'])) $cfg['ai_provider'] = 'gemini';
+/* Default provider is Groq (free, fast, generous limits). */
+if (empty($cfg['ai_provider'])) $cfg['ai_provider'] = 'groq';
 /* Recommended model per provider — auto-filled, but editable later */
 $defaultModels = [
+    'groq'     => 'llama-3.3-70b-versatile',
     'openai'   => 'gpt-4o-mini',
     'gemini'   => 'gemini-flash-latest',
     'deepseek' => 'deepseek-chat',
-    'ollama'   => 'llama3.2',
+    'ollama'   => 'llama3.1:8b',
 ];
-if (empty($cfg['ai_model'])) $cfg['ai_model'] = $defaultModels[$cfg['ai_provider']] ?? 'gpt-4o-mini';
+if (empty($cfg['ai_model'])) $cfg['ai_model'] = $defaultModels[$cfg['ai_provider']] ?? 'llama-3.3-70b-versatile';
 $aiConnected = $cfg['ai_api_key'] !== '';
 $goConnected = $cfg['google_client_id'] !== '';
 $mpConnected = $cfg['mpesa_ck'] !== '';
@@ -145,6 +146,18 @@ function testAIConnection(string $provider, string $key, string $model = ''): ?s
         $res = httpPostJson($url, $body, ['Content-Type: application/json']);
         if ($res === null) return 'Network error — check internet or key.';
         if (isset($res['error'])) return 'Gemini error: ' . ($res['error']['message'] ?? 'unknown');
+        return null;
+    }
+    // Groq — free, fast
+    if ($provider === 'groq') {
+        $model = $model !== '' ? $model : 'llama-3.3-70b-versatile';
+        $res = httpPostJson('https://api.groq.com/openai/v1/chat/completions', json_encode([
+            'model' => $model,
+            'messages' => [['role' => 'user', 'content' => 'Reply with exactly: OK']],
+            'max_tokens' => 5,
+        ]), ['Content-Type: application/json', 'Authorization: Bearer ' . $key]);
+        if ($res === null) return 'Network error — check internet or key.';
+        if (isset($res['error'])) return 'Groq error: ' . ($res['error']['message'] ?? 'unknown');
         return null;
     }
     // OpenAI-compatible (OpenAI / DeepSeek / local Ollama)
@@ -367,12 +380,12 @@ select.cn-input{cursor:pointer;appearance:auto;}
                         <div class="cn-field">
                             <label for="ai-provider">Provider</label>
                             <select id="ai-provider" name="settings[ai_provider]" class="cn-input">
-                                <option value="openai" <?= $cfg['ai_provider']==='openai'?'selected':'' ?>>OpenAI</option>
+                                <option value="groq" <?= $cfg['ai_provider']==='groq'?'selected':'' ?>>Groq (Free, Fast ⚡)</option>
                                 <option value="gemini" <?= $cfg['ai_provider']==='gemini'?'selected':'' ?>>Google Gemini</option>
                                 <option value="deepseek" <?= $cfg['ai_provider']==='deepseek'?'selected':'' ?>>DeepSeek</option>
                                 <option value="ollama" <?= $cfg['ai_provider']==='ollama'?'selected':'' ?>>Local Ollama (free, offline)</option>
                             </select>
-                            <p class="cn-hint">Ollama runs on your own machine — zero cost, data never leaves the farm.</p>
+                            <p class="cn-hint">Groq is free and fast (14,400 requests/day). Ollama runs on your machine — zero cost.</p>
                         </div>
                         <div class="cn-field">
                             <label for="ai-model">Model <span class="cn-autobadge">auto</span></label>
@@ -382,8 +395,7 @@ select.cn-input{cursor:pointer;appearance:auto;}
                     </div>
                     <div class="cn-field" style="margin-top:14px;">
                         <label for="ai-key">API key</label>
-                        <input id="ai-key" name="settings[ai_api_key]" type="password" class="cn-input" placeholder="sk-…" value="<?= htmlspecialchars($cfg['ai_api_key']) ?>" autocomplete="off">
-                        <p class="cn-hint">Get one free: <a href="https://platform.openai.com" target="_blank" rel="noopener">OpenAI</a> · <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> · <a href="https://platform.deepseek.com" target="_blank" rel="noopener">DeepSeek</a></p>
+                        <input id="ai-key" name="settings[ai_api_key]" type="password" class="cn-input" placeholder="sk-…" value="<?= htmlspecialchars($cfg['ai_api_key']) ?>" autocomplete="off">                            <p class="cn-hint">Get a free key: <a href="https://console.groq.com" target="_blank" rel="noopener">Groq</a> (recommended) · <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> · <a href="https://platform.deepseek.com" target="_blank" rel="noopener">DeepSeek</a></p>
                     </div>
                     <div class="cn-actions">
                         <button class="btn btn-primary" type="submit">Save connection</button>

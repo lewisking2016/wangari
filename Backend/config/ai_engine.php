@@ -319,54 +319,76 @@ function aiCalcMath(string $q): array
 
 /* ─────────────────────────────────────────────────────────────
  * 2b. LLM CONNECTOR — optional "Thinking" mode.
- * Called only when: Thinking is ON, a provider key is saved, and the
- * local engine could not answer. Sends the question + a compact farm
- * summary to the configured provider. Returns null if unavailable.
+ * Supports: Groq (free, fast), Gemini, DeepSeek, Ollama (local).
+ * When Thinking is ON, the LLM gets full farm context + can search the web.
  * ───────────────────────────────────────────────────────────── */
 function aiLLM(PDO $pdo, string $q, string $provider = '', string $apiKey = '', string $model = ''): ?array
 {
     $provider = $provider ?: (string)aiSetting($pdo, 'ai_provider');
     $apiKey   = $apiKey   ?: (string)aiSetting($pdo, 'ai_api_key');
     $model    = $model    ?: (string)aiSetting($pdo, 'ai_model');
-    if ($apiKey === '') return null;
-    /* Default provider is Gemini Flash latest — the free, current model. */
-    if ($provider === '') $provider = 'gemini';
-    /* Current model IDs (older IDs like gemini-1.5-flash are retired in 2026). */
-    if ($model === '') $model = $provider === 'gemini' ? 'gemini-flash-latest' : 'gpt-4o-mini';
-    if ($model === 'gemini-1.5-flash' || $model === 'gemini-2.0-flash' || $model === 'gemini-2.5-flash') {
-        $model = 'gemini-flash-latest';
-    }
+    if ($apiKey === '' && $provider !== 'ollama') return null;
+    /* Default provider is Groq (free, fast, generous limits). */
+    if ($provider === '') $provider = 'groq';
+    /* Model defaults per provider */
+    $modelDefaults = [
+        'groq'    => 'llama-3.3-70b-versatile',
+        'gemini'  => 'gemini-flash-latest',
+        'deepseek' => 'deepseek-chat',
+        'ollama'  => 'llama3.1:8b',
+    ];
+    if ($model === '') $model = $modelDefaults[$provider] ?? 'llama-3.3-70b-versatile';
 
     $context = aiFarmContext($pdo);
-    $system = "You are Wangari, a friendly farm assistant for a small Kenyan farm. "
-        . "Answer in plain, simple English a farmer can understand. Be short and practical. "
-        . "Use the farm data below when it is relevant. If you don't know, say so honestly and suggest where to find help in the app.\n\n"
-        . "FARM DATA (from the farmer's own records):\n" . $context;
+    
+    /* Check if the question needs web search */
+    $webResults = '';
+    if (aiNeedsWebSearch($q)) {
+        $webResults = aiWebSearch($q);
+    }
+    
+    $system = "You are Wangari, a smart farm assistant for a Kenyan farm. "
+        . "You have FULL access to the farm's records and can search the internet for current information. "
+        . "Answer in plain, practical English. Be helpful, give advice, and use the data below. "
+        . "If asked about prices, weather, market conditions, or anything needing current info, use the web search results. "
+        . "You can help with: farm planning, financial advice, veterinary guidance, market analysis, and any farming question.\n\n"
+        . "FARM DATA:\n" . $context;
+    if ($webResults !== '') {
+        $system .= "\n\nWEB SEARCH RESULTS:\n" . $webResults;
+    }
 
     try {
+        /* Groq — free, fast, generous limits (14,400 req/day) */
+        if ($provider === 'groq') {
+            $res = aiHttpPost('https://api.groq.com/openai/v1/chat/completions', json_encode([
+                'model' => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $system],
+                    ['role' => 'user', 'content' => $q],
+                ],
+                'temperature' => 0.4,
+                'max_tokens' => 1024,
+            ]), ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKey]);
+            if ($res && isset($res['choices'][0]['message']['content'])) {
+                return ['answer' => $res['choices'][0]['message']['content'], 'suggestions' => aiSmartSuggestions($pdo, $q)];
+            }
+            return null;
+        }
+        
+        /* Gemini */
         if ($provider === 'gemini') {
             $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . urlencode($model) . ':generateContent?key=' . urlencode($apiKey);
             $res = aiHttpPost($url, json_encode([
                 'contents' => [['parts' => [['text' => $system . "\n\nFarmer asks: " . $q]]]],
-                'generationConfig' => ['temperature' => 0.4, 'maxOutputTokens' => 700],
+                'generationConfig' => ['temperature' => 0.4, 'maxOutputTokens' => 1024],
             ]), ['Content-Type: application/json']);
             if ($res && isset($res['candidates'][0]['content']['parts'][0]['text'])) {
-                return ['answer' => $res['candidates'][0]['content']['parts'][0]['text'], 'suggestions' => ['What is coming up this week?', 'How much did I sell this month?']];
-            }
-            /* Transient high-demand (503) — retry once before falling back */
-            if ($res === null) {
-                sleep(2);
-                $res = aiHttpPost($url, json_encode([
-                    'contents' => [['parts' => [['text' => $system . "\n\nFarmer asks: " . $q]]]],
-                    'generationConfig' => ['temperature' => 0.4, 'maxOutputTokens' => 700],
-                ]), ['Content-Type: application/json']);
-                if ($res && isset($res['candidates'][0]['content']['parts'][0]['text'])) {
-                    return ['answer' => $res['candidates'][0]['content']['parts'][0]['text'], 'suggestions' => ['What is coming up this week?', 'How much did I sell this month?']];
-                }
+                return ['answer' => $res['candidates'][0]['content']['parts'][0]['text'], 'suggestions' => aiSmartSuggestions($pdo, $q)];
             }
             return null;
         }
-        // OpenAI-compatible (OpenAI / DeepSeek / Ollama)
+        
+        /* OpenAI-compatible (DeepSeek, Ollama, etc.) */
         $base = 'https://api.openai.com/v1';
         if ($provider === 'deepseek') $base = 'https://api.deepseek.com/v1';
         if ($provider === 'ollama')   $base = 'http://localhost:11434/v1';
@@ -377,13 +399,83 @@ function aiLLM(PDO $pdo, string $q, string $provider = '', string $apiKey = '', 
                 ['role' => 'user', 'content' => $q],
             ],
             'temperature' => 0.4,
-            'max_tokens' => 700,
+            'max_tokens' => 1024,
         ]), ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKey]);
         if ($res && isset($res['choices'][0]['message']['content'])) {
-            return ['answer' => $res['choices'][0]['message']['content'], 'suggestions' => ['What is coming up this week?', 'How much did I sell this month?']];
+            return ['answer' => $res['choices'][0]['message']['content'], 'suggestions' => aiSmartSuggestions($pdo, $q)];
         }
     } catch (Exception $e) { /* fall through */ }
     return null;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 2c. WEB SEARCH — free DuckDuckGo search (no API key needed)
+ * Returns formatted search results for the LLM context.
+ * ───────────────────────────────────────────────────────────── */
+function aiNeedsWebSearch(string $q): bool
+{
+    $q = strtolower($q);
+    /* Search for things that need current/external info */
+    $searchTriggers = ['price', 'market', 'weather', 'current', 'today', 'news', 'trend',
+        'forecast', 'how much does', 'what is the cost', 'where to buy',
+        'supplier', 'recipe', 'tutorial', 'how to make', 'advice', 'recommend',
+        'best practice', 'latest', 'recent', 'online'];
+    foreach ($searchTriggers as $t) {
+        if (str_contains($q, $t)) return true;
+    }
+    return false;
+}
+
+function aiWebSearch(string $q): string
+{
+    /* DuckDuckGo instant answer API — free, no key */
+    $url = 'https://api.duckduckgo.com/?q=' . urlencode($q) . '&format=json&no_html=1&skip_disambig=1';
+    $ctx = stream_context_create(['http' => ['timeout' => 8]]);
+    $json = @file_get_contents($url, false, $ctx);
+    if ($json === false) return '';
+    $data = json_decode($json, true);
+    if (!is_array($data)) return '';
+    
+    $results = [];
+    
+    /* Abstract (main answer) */
+    if (!empty($data['AbstractText'])) {
+        $results[] = "Summary: " . $data['AbstractText'];
+    }
+    
+    /* Related topics */
+    if (!empty($data['RelatedTopics'])) {
+        foreach (array_slice($data['RelatedTopics'], 0, 5) as $topic) {
+            if (isset($topic['Text'])) {
+                $results[] = $topic['Text'];
+            }
+        }
+    }
+    
+    /* Answer (direct answer if available) */
+    if (!empty($data['Answer'])) {
+        $results[] = "Answer: " . $data['Answer'];
+    }
+    
+    return implode("\n", array_slice($results, 0, 5));
+}
+
+/** Generate smart follow-up suggestions based on context */
+function aiSmartSuggestions(PDO $pdo, string $q): array
+{
+    $q = strtolower($q);
+    /* Context-aware suggestions */
+    if (str_contains($q, 'price') || str_contains($q, 'market')) {
+        return ['What are current egg prices in Kenya?', 'How do I set profitable prices?', 'What is my break-even?'];
+    }
+    if (str_contains($q, 'weather') || str_contains($q, 'rain')) {
+        return ['How does weather affect my crops?', 'What should I do before rains?', 'Weather forecast for this week?'];
+    }
+    if (str_contains($q, 'advice') || str_contains($q, 'recommend')) {
+        return ['How can I increase my profits?', 'What are my biggest risks?', 'How to reduce costs?'];
+    }
+    /* Default */
+    return ['How much did I sell this month?', 'What is coming up this week?', 'How can I improve my farm?'];
 }
 
 /** Read a setting from the settings table (safe). */
@@ -396,36 +488,92 @@ function aiSetting(PDO $pdo, string $key): string
     } catch (Exception $e) { return ''; }
 }
 
-/** Compact farm summary used as LLM context. */
+/** Comprehensive farm summary — ALL modules for full AI context. */
 function aiFarmContext(PDO $pdo): string
 {
     $lines = [];
+    $lines[] = '=== FINANCIAL SUMMARY ===';
     try {
         $sales = (float)$pdo->query('SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status IN ("paid","completed")')->fetchColumn();
-        $lines[] = 'All-time sales: KES ' . number_format($sales, 0);
+        $lines[] = 'All-time revenue: KES ' . number_format($sales, 0);
     } catch (Exception $e) {}
     try {
         $month = (float)$pdo->query('SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE DATE_FORMAT(created_at,"%Y-%m")=DATE_FORMAT(CURDATE(),"%Y-%m") AND status IN ("paid","completed")')->fetchColumn();
-        $lines[] = 'This month: KES ' . number_format($month, 0);
+        $lines[] = 'This month revenue: KES ' . number_format($month, 0);
     } catch (Exception $e) {}
     try {
-        $tot = 0; $rows = $pdo->query('SELECT balance, customer_name FROM customer_credits')->fetchAll();
+        $exp = (float)$pdo->query('SELECT COALESCE(SUM(amount),0) FROM expenses WHERE DATE_FORMAT(created_at,"%Y-%m")=DATE_FORMAT(CURDATE(),"%Y-%m")')->fetchColumn();
+        $lines[] = 'This month expenses: KES ' . number_format($exp, 0);
+    } catch (Exception $e) {}
+    try {
+        $tot = 0; $rows = $pdo->query('SELECT balance, customer_name FROM customer_credits WHERE balance > 0')->fetchAll();
         foreach ($rows as $r) { $tot += (float)($r['balance'] ?? 0); }
         $lines[] = 'Outstanding credit: KES ' . number_format($tot, 0);
     } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = '=== LIVESTOCK ===';
     try {
         $f = (int)$pdo->query('SELECT COUNT(*) FROM flocks WHERE status="active"')->fetchColumn();
-        $a = (int)$pdo->query('SELECT COUNT(*) FROM animals WHERE status IN ("alive","Active")')->fetchColumn();
-        $lines[] = "Livestock: $f active flocks, $a animals alive";
+        $lines[] = "Active flocks: $f";
     } catch (Exception $e) {}
     try {
-        $eggs = (float)$pdo->query('SELECT COALESCE(SUM(eggs_collected),0) FROM production_records WHERE DATE(record_date)=CURDATE()')->fetchColumn();
-        $lines[] = 'Eggs collected today: ' . number_format($eggs, 0);
+        $a = (int)$pdo->query('SELECT COUNT(*) FROM animals WHERE status IN ("alive","Active")')->fetchColumn();
+        $lines[] = "Animals alive: $a";
     } catch (Exception $e) {}
+    try {
+        $byType = $pdo->query('SELECT type, COUNT(*) as c FROM animals WHERE status IN ("alive","Active") GROUP BY type ORDER BY c DESC')->fetchAll();
+        if ($byType) $lines[] = 'By species: ' . implode(', ', array_map(fn($r) => $r['type'] . ' x' . $r['c'], $byType));
+    } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = '=== PRODUCTION ===';
+    try {
+        $eggs = (float)$pdo->query('SELECT COALESCE(SUM(eggs_collected),0) FROM production_records WHERE DATE(record_date)=CURDATE()')->fetchColumn();
+        $eggMonth = (float)$pdo->query('SELECT COALESCE(SUM(eggs_collected),0) FROM production_records WHERE DATE_FORMAT(record_date,"%Y-%m")=DATE_FORMAT(CURDATE(),"%Y-%m")')->fetchColumn();
+        $lines[] = "Eggs today: " . number_format($eggs, 0) . ", this month: " . number_format($eggMonth, 0);
+    } catch (Exception $e) {}
+    try {
+        $milk = (float)$pdo->query('SELECT COALESCE(SUM(meat_weight_kg),0) FROM production_records WHERE DATE(record_date)=CURDATE()')->fetchColumn();
+        if ($milk > 0) $lines[] = 'Production weight today: ' . number_format($milk, 1) . ' kg';
+    } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = '=== INVENTORY ===';
+    try {
+        $alerts = (int)$pdo->query('SELECT COUNT(*) FROM system_alerts WHERE alert_type="low_stock" AND status="active"')->fetchColumn();
+        $lines[] = "Low stock alerts: $alerts";
+    } catch (Exception $e) {}
+    try {
+        $items = (int)$pdo->query('SELECT COUNT(*) FROM raw_materials')->fetchColumn();
+        $lines[] = "Raw materials tracked: $items";
+    } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = '=== CROPS ===';
+    try {
+        $fields = (int)$pdo->query('SELECT COUNT(*) FROM fields WHERE status="active"')->fetchColumn();
+        $plantings = (int)$pdo->query('SELECT COUNT(*) FROM crop_plantings')->fetchColumn();
+        $lines[] = "Active fields: $fields, Plantings: $plantings";
+    } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = '=== STAFF ===';
     try {
         $w = (int)$pdo->query('SELECT COUNT(*) FROM workers WHERE status="active"')->fetchColumn();
         $lines[] = "Active workers: $w";
     } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = '=== UPCOMING ===';
+    try {
+        $week = (int)$pdo->query('SELECT COUNT(*) FROM reminders WHERE DATE(remind_at) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)')->fetchColumn();
+        $lines[] = "Reminders this week: $week";
+    } catch (Exception $e) {}
+    
+    $lines[] = '';
+    $lines[] = 'Date: ' . date('Y-m-d H:i') . ' (Kenya time)';
+    
     return implode("\n", $lines) ?: 'No farm data recorded yet.';
 }
 
