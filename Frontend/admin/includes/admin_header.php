@@ -1094,22 +1094,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .w2-nav-sub.active span { opacity: 1; }
 
         .w2-side-foot {
-            padding: 14px;
-            border-top: 1px solid rgba(255,255,255,0.07);
+            padding: 16px 14px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.15);
+            margin-top: auto;
         }
         .w2-user {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 10px;
+            padding: 10px 12px;
             border-radius: 12px;
-            background: rgba(255,255,255,0.04);
+            background: rgba(255,255,255,0.05);
             margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
         }
         .w2-user-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #14532D, #D0F24C);
             color: #fff;
             display: flex;
@@ -1121,22 +1124,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-shrink: 0;
         }
         .w2-user-meta p { margin: 0; font-size: 0.85rem; font-weight: 700; color: #fff; }
-        .w2-user-meta span { font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: capitalize; }
+        .w2-user-meta span { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: capitalize; }
         .w2-signout {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 10px;
+            padding: 10px 16px;
             border-radius: 10px;
-            background: rgba(220,38,38,0.1);
+            background: rgba(220,38,38,0.12);
             color: #FCA5A5;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             transition: all 0.18s;
+            border: 1px solid rgba(220,38,38,0.15);
         }
-        .w2-signout:hover { background: rgba(220,38,38,0.2); color: #FECACA; }
+        .w2-signout:hover { background: rgba(220,38,38,0.25); color: #FECACA; border-color: rgba(220,38,38,0.3); }
 
         /* Hide legacy sidebar if any page still includes it */
         .admin-shell > nav:not(.w2-side) { display: none !important; }
