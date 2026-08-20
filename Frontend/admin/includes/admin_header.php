@@ -951,9 +951,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .w2-side {
             width: 268px;
             flex-shrink: 0;
-            background: linear-gradient(180deg, #0B1220 0%, #0E1B2E 100%);
-            border-right: 1px solid rgba(255,255,255,0.06);
-            color: #C7CDD8;
+            background: #FFFFFF;
+            border-right: 1px solid #E7EAF0;
+            color: #334155;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -968,24 +968,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 11px;
             padding: 20px 20px 16px;
+            border-bottom: 1px solid #E7EAF0;
         }
         .w2-logo {
             height: 42px;
             width: auto;
             border-radius: 10px;
-            box-shadow: 0 4px 14px rgba(208, 242, 76, 0.12);
         }
         .w2-brand-name {
             margin: 0;
             font-family: 'Inter Tight', sans-serif;
             font-size: 1.15rem;
             font-weight: 800;
-            color: #fff;
+            color: #0F172A;
             letter-spacing: -0.3px;
         }
         .w2-brand-sub {
             display: block;
-            color: rgba(255,255,255,0.4);
+            color: #64748B;
             font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -996,7 +996,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow-y: auto;
             padding: 4px 14px 16px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(208,242,76,0.25) transparent;
+            scrollbar-color: #E7EAF0 transparent;
         }
         .w2-nav-section {
             margin: 18px 8px 7px;
@@ -1004,7 +1004,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            color: rgba(255,255,255,0.32);
+            color: #94A3B8;
         }
         .w2-nav-section:first-child { margin-top: 4px; }
         .w2-nav-item {
@@ -1013,7 +1013,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 12px;
             padding: 10px 12px;
             border-radius: 10px;
-            color: #AEB6C4;
+            color: #475569;
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
@@ -1021,18 +1021,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 2px;
         }
         .w2-nav-item:hover {
-            background: rgba(255,255,255,0.06);
-            color: #fff;
+            background: #F1F5F9;
+            color: #0F172A;
         }
         .w2-nav-item.active {
-            background: linear-gradient(135deg, rgba(208,242,76,0.16), rgba(208,242,76,0.05));
-            color: var(--w2-lime);
-            box-shadow: inset 0 0 0 1px rgba(208,242,76,0.25);
+            background: #166534;
+            color: #FFFFFF;
         }
         .w2-nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
         .w2-nav-badge {
             margin-left: auto;
-            background: var(--w2-lime);
+            background: #D0F24C;
             color: #0B1220;
             font-size: 0.62rem;
             font-weight: 800;
@@ -1050,7 +1049,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: none;
             border: none;
             border-radius: 10px;
-            color: #AEB6C4;
+            color: #475569;
             font-weight: 600;
             font-size: 0.9rem;
             font-family: inherit;
@@ -1058,8 +1057,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: left;
             transition: all 0.18s;
         }
-        .w2-nav-parent:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .w2-nav-parent.open { color: var(--w2-lime); }
+        .w2-nav-parent:hover { background: #F1F5F9; color: #0F172A; }
+        .w2-nav-parent.open { color: #166534; }
         .w2-nav-chev {
             margin-left: auto;
             width: 15px;
@@ -1097,8 +1096,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .w2-side-foot {
             padding: 16px 14px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            background: rgba(0,0,0,0.15);
+            border-top: 1px solid #E7EAF0;
+            background: #F8FAFC;
             margin-top: auto;
         }
         .w2-user {
@@ -1107,15 +1106,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 10px;
             padding: 10px 12px;
             border-radius: 12px;
-            background: rgba(255,255,255,0.05);
+            background: #FFFFFF;
             margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid #E7EAF0;
         }
         .w2-user-avatar {
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #14532D, #D0F24C);
+            background: linear-gradient(135deg, #166534, #1B7A3D);
             color: #fff;
             display: flex;
             align-items: center;
@@ -1125,8 +1124,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.95rem;
             flex-shrink: 0;
         }
-        .w2-user-meta p { margin: 0; font-size: 0.85rem; font-weight: 700; color: #fff; }
-        .w2-user-meta span { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: capitalize; }
+        .w2-user-meta p { margin: 0; font-size: 0.85rem; font-weight: 700; color: #0F172A; }
+        .w2-user-meta span { font-size: 0.7rem; color: #64748B; text-transform: capitalize; }
         .w2-signout {
             display: flex;
             align-items: center;
@@ -1134,15 +1133,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 8px;
             padding: 10px 16px;
             border-radius: 10px;
-            background: rgba(220,38,38,0.12);
-            color: #FCA5A5;
+            background: #FEE2E2;
+            color: #B91C1C;
             text-decoration: none;
             font-weight: 600;
             font-size: 0.82rem;
             transition: all 0.18s;
-            border: 1px solid rgba(220,38,38,0.15);
+            border: 1px solid #FECACA;
         }
-        .w2-signout:hover { background: rgba(220,38,38,0.25); color: #FECACA; border-color: rgba(220,38,38,0.3); }
+        .w2-signout:hover { background: #FCA5A5; color: #FFFFFF; }
 
         /* Hide legacy sidebar if any page still includes it */
         .admin-shell > nav:not(.w2-side) { display: none !important; }
