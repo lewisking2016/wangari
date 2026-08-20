@@ -5,10 +5,20 @@
 declare(strict_types=1);
 
 $page_title = 'Wangari — Smart Farming for a Sustainable Future';
-include 'includes/header.php';
 ?>
-
-<link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+</head>
+<body>
 
 <!-- Navigation -->
 <nav class="xai-nav">
@@ -422,4 +432,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>
+</body>
+</html>

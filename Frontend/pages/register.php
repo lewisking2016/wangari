@@ -11,7 +11,7 @@ if (is_writable($temp_dir)) {
 session_start();
 
 $page_title = 'Create Account — Wangari';
-include '../includes/header.php';
+// No header.php include - this page has its own xai-nav navigation
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
 
 $errors = [];
@@ -82,7 +82,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
 }
 ?>
 
-<link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+</head>
+<body>
 
 <div class="xai-auth">
     <!-- Brand Side -->
@@ -196,4 +208,34 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<?php include '../includes/footer.php'; ?>
+<!-- Footer -->
+<footer class="xai-footer">
+    <div class="xai-container">
+        <div class="xai-footer-inner">
+            <div>
+                <div class="xai-footer-brand">Wangari<span>.</span></div>
+                <p class="xai-footer-desc">Smart Farming for a Sustainable Future.</p>
+            </div>
+            <div>
+                <h4>Product</h4>
+                <ul class="xai-footer-links">
+                    <li><a href="/Frontend/index.php#features">Features</a></li>
+                    <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Legal</h4>
+                <ul class="xai-footer-links">
+                    <li><a href="/Frontend/pages/privacy.php">Privacy</a></li>
+                    <li><a href="/Frontend/pages/terms.php">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="xai-footer-bottom">
+            <span>&copy; <?php echo date('Y'); ?> Wangari. All rights reserved.</span>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
