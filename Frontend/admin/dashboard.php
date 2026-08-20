@@ -19,6 +19,44 @@ $page_title = 'Admin Dashboard';
 include __DIR__ . '/includes/admin_header.php';
 
 $deniedModule = isset($_GET['denied']) ? 'that module' : '';
+
+// ── Weather data (open-meteo.com, free, no API key) ──
+$weatherData = null;
+try {
+    $wPdo = getDB();
+    if ($wPdo) {
+        // Check cache first (refresh daily)
+        $cached = $wPdo->query("SELECT * FROM weather_cache WHERE cache_date = CURDATE() AND location = 'default' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        if ($cached && $cached['forecast_json']) {
+            $weatherData = json_decode($cached['forecast_json'], true);
+        } else {
+            // Fetch from open-meteo (Busia, Kenya coords: 0.46, 34.56)
+            $url = 'https://api.open-meteo.com/v1/forecast?latitude=0.46&longitude=34.56&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&timezone=Africa/Nairobi&forecast_days=5';
+            $ctx = stream_context_create(['http' => ['timeout' => 8]]);
+            $json = @file_get_contents($url, false, $ctx);
+            if ($json !== false) {
+                $weatherData = json_decode($json, true);
+                if ($weatherData && isset($weatherData['daily'])) {
+                    $wPdo->prepare('INSERT INTO weather_cache (cache_date, location, temperature_max, temperature_min, rainfall_mm, weather_code, forecast_json) VALUES (CURDATE(),?,?,?,?,?,?) ON DUPLICATE KEY UPDATE forecast_json=VALUES(forecast_json), temperature_max=VALUES(temperature_max), temperature_min=VALUES(temperature_min)')
+                        ->execute(['default', $weatherData['daily']['temperature_2m_max'][0] ?? null, $weatherData['daily']['temperature_2m_min'][0] ?? null, $weatherData['daily']['precipitation_sum'][0] ?? 0, $weatherData['current_weather']['weathercode'] ?? '', $json]);
+                }
+            }
+        }
+    }
+} catch (Exception $e) { /* weather is nice-to-have */ }
+
+// ── Financial Summary (this month) ──
+$financeSummary = ['income' => 0, 'expenses' => 0, 'profit' => 0, 'pending_credit' => 0];
+try {
+    if (!isset($wPdo)) $wPdo = getDB();
+    if ($wPdo) {
+        $month = date('Y-m');
+        $inc = $wPdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='income' AND DATE_FORMAT(transaction_date,'%Y-%m')='$month'")->fetchColumn();
+        $exp = $wPdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='expense' AND DATE_FORMAT(transaction_date,'%Y-%m')='$month'")->fetchColumn();
+        $crd = $wPdo->query("SELECT COALESCE(SUM(balance_owed),0) FROM customer_credits WHERE status='pending'")->fetchColumn();
+        $financeSummary = ['income' => (float)$inc, 'expenses' => (float)$exp, 'profit' => (float)$inc - (float)$exp, 'pending_credit' => (float)$crd];
+    }
+} catch (Exception $e) { /* finance is nice-to-have */ }
 ?>
 
 <?php if (isset($_GET['denied'])): ?>
@@ -388,6 +426,64 @@ $deniedModule = isset($_GET['denied']) ? 'that module' : '';
                             <p style="margin:0;font-size:0.75rem;color:#64748b;">Items needing attention</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Weather Widget -->
+            <div class="admin-card" style="padding:18px !important;">
+                <h4 style="margin:0 0 12px;font-size:0.95rem;color:#0F172A;"><i data-lucide="cloud-sun" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#d97706;"></i>Weather — Busia</h4>
+                <?php if ($weatherData && isset($weatherData["current_weather"])): ?>
+                    <?php $cw = $weatherData["current_weather"]; $temp = $cw["temperature"] ?? 0; $wcode = $cw["weathercode"] ?? 0; $wind = $cw["windspeed"] ?? 0; $wmoMap = [0=>["☀️","Clear"],1=>["🌤","Mainly clear"],2=>["⛅","Partly cloudy"],3=>["☁️","Overcast"],45=>["🌫","Fog"],48=>["🌫","Rime fog"],51=>["🌦","Light drizzle"],53=>["🌦","Drizzle"],55=>["🌧","Dense drizzle"],61=>["🌧","Slight rain"],63=>["🌧","Moderate rain"],65=>["🌧","Heavy rain"],71=>["❄️","Slight snow"],73=>["❄️","Moderate snow"],75=>["❄️","Heavy snow"],80=>["🌦","Slight showers"],81=>["🌧","Moderate showers"],82=>["⛈","Violent showers"],95=>["⛈","Thunderstorm"],96=>["⛈","Thunderstorm+hail"],99=>["⛈","Severe thunderstorm"]]; $wInfo = $wmoMap[$wcode] ?? ["🌡","Unknown"]; ?>
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                        <span style="font-size:2.2rem;line-height:1;"><?= $wInfo[0] ?></span>
+                        <div>
+                            <div style="font-size:1.6rem;font-weight:700;color:#0F172A;"><?= number_format((float)$temp, 1) ?>°C</div>
+                            <div style="font-size:0.8rem;color:#64748b;"><?= $wInfo[1] ?></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:16px;font-size:0.82rem;color:#475569;">
+                        <span>💨 <?= number_format((float)$wind, 0) ?> km/h</span>
+                        <span>💧 <?= number_format((float)($weatherData["daily"]["precipitation_sum"][0] ?? 0), 1) ?> mm</span>
+                    </div>
+                    <?php if (isset($weatherData["daily"])): ?>
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;gap:6px;overflow-x:auto;">
+                        <?php for ($d = 1; $d < min(5, count($weatherData["daily"]["time"])); $d++): $dDate = $weatherData["daily"]["time"][$d]; $dMax = $weatherData["daily"]["temperature_2m_max"][$d] ?? 0; $dMin = $weatherData["daily"]["temperature_2m_min"][$d] ?? 0; $dRain = $weatherData["daily"]["precipitation_sum"][$d] ?? 0; $dayName = date("D", strtotime($dDate)); ?>
+                            <div style="flex:1;min-width:55px;text-align:center;padding:6px;background:#f8fafc;border-radius:8px;">
+                                <div style="font-size:0.7rem;color:#64748b;font-weight:600;"><?= $dayName ?></div>
+                                <div style="font-size:0.85rem;font-weight:700;color:#0F172A;"><?= number_format((float)$dMax, 0) ?>°</div>
+                                <div style="font-size:0.72rem;color:#94a3b8;"><?= number_format((float)$dMin, 0) ?>°</div>
+                                <?php if ($dRain > 0): ?><div style="font-size:0.65rem;color:#3b82f6;">💧<?= number_format((float)$dRain, 1) ?></div><?php endif; ?>
+                            </div>
+                        <?php endfor; ?>
+                    </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <p style="color:#94a3b8;font-size:0.85rem;margin:0;">Weather data will load on next visit.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Financial Summary Widget -->
+            <div class="admin-card" style="padding:18px !important;">
+                <h4 style="margin:0 0 14px;font-size:0.95rem;color:#0F172A;"><i data-lucide="wallet" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#16a34a;"></i>This Month</h4>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#F0FDF4;border-radius:10px;border:1px solid #DCFCE7;">
+                        <span style="font-size:0.85rem;color:#166534;font-weight:500;">Income</span>
+                        <strong style="color:#166534;font-size:0.95rem;">KES <?= number_format($financeSummary["income"], 0) ?></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#FEF2F2;border-radius:10px;border:1px solid #FECACA;">
+                        <span style="font-size:0.85rem;color:#991B1B;font-weight:500;">Expenses</span>
+                        <strong style="color:#991B1B;font-size:0.95rem;">KES <?= number_format($financeSummary["expenses"], 0) ?></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:<?= $financeSummary["profit"] >= 0 ? "#F0FDF4" : "#FEF2F2" ?>;border-radius:10px;border:1px solid <?= $financeSummary["profit"] >= 0 ? "#DCFCE7" : "#FECACA" ?>;">
+                        <span style="font-size:0.85rem;color:<?= $financeSummary["profit"] >= 0 ? "#166534" : "#991B1B" ?>;font-weight:500;">Net Profit</span>
+                        <strong style="color:<?= $financeSummary["profit"] >= 0 ? "#166534" : "#991B1B" ?>;font-size:0.95rem;">KES <?= number_format($financeSummary["profit"], 0) ?></strong>
+                    </div>
+                    <?php if ($financeSummary["pending_credit"] > 0): ?>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#FEF5E0;border-radius:10px;border:1px solid #FDE68A;cursor:pointer;" onclick="window.location.href='credit.php'">
+                        <span style="font-size:0.85rem;color:#92400E;font-weight:500;">Pending Credit</span>
+                        <strong style="color:#92400E;font-size:0.95rem;">KES <?= number_format($financeSummary["pending_credit"], 0) ?></strong>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

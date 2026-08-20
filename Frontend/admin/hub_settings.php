@@ -14,7 +14,7 @@ if (empty($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'super_admin') 
 }
 
 $tab = $_GET['tab'] ?? 'calendar';
-$validTabs = ['calendar','dropdowns','settings','logs'];
+$validTabs = ['calendar','dropdowns','settings','logs','audit'];
 if (!in_array($tab, $validTabs, true)) $tab = 'calendar';
 
 $pdo = getDB();
@@ -70,6 +70,7 @@ $tabs = [
     'dropdowns' => ['icon' => 'list-filter',       'label' => 'Dropdowns'],
     'settings'  => ['icon' => 'sliders-horizontal','label' => 'App Settings'],
     'logs'      => ['icon' => 'terminal',          'label' => 'System Logs'],
+    'audit'     => ['icon' => 'history',           'label' => 'Audit Trail'],
 ];
 ?>
 
@@ -229,6 +230,81 @@ $tabs = [
                     <td><?php echo htmlspecialchars($log['username'] ?? $log['user_id'] ?? 'System', ENT_QUOTES, 'UTF-8'); ?></td>
                     <td><span class="badge-pill badge-pill-warning"><?php echo htmlspecialchars($log['action'] ?? '-', ENT_QUOTES, 'UTF-8'); ?></span></td>
                     <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?php echo htmlspecialchars($log['details'] ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ══════ AUDIT TRAIL TAB ══════ -->
+<?php elseif ($tab === 'audit'): ?>
+<?php
+    // Load audit trail data
+    $auditLogs = [];
+    $auditModule = trim($_GET['module'] ?? '');
+    $auditSearch = trim($_GET['q'] ?? '');
+    if ($pdo) {
+        try {
+            $aq = 'SELECT al.*, u.username, u.first_name, u.last_name FROM activity_log al LEFT JOIN users u ON al.user_id = u.id WHERE 1=1';
+            $aparams = [];
+            if ($auditModule !== '') { $aq .= ' AND al.module = ?'; $aparams[] = $auditModule; }
+            if ($auditSearch !== '') { $aq .= ' AND al.description LIKE ?'; $aparams[] = "%$auditSearch%"; }
+            $aq .= ' ORDER BY al.created_at DESC LIMIT 200';
+            $stmt = $pdo->prepare($aq);
+            $stmt->execute($aparams);
+            $auditLogs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Get unique modules for filter
+            $auditModules = $pdo->query('SELECT DISTINCT module FROM activity_log ORDER BY module')->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) { $error_message = 'Could not load audit trail: ' . $e->getMessage(); }
+    }
+    $moduleIcons = ['auth'=>'log-in','inventory'=>'package','sales'=>'dollar-sign','finance'=>'wallet','operations'=>'tractor','crops'=>'sprout','crm'=>'users','labour'=>'briefcase','settings'=>'settings','system'=>'shield','stock'=>'layers'];
+?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Activity Audit Trail</h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Who did what, when — full activity log across all modules.</p>
+        </div>
+        <form method="GET" style="display:flex;gap:8px;align-items:center;">
+            <input type="hidden" name="tab" value="audit">
+            <select name="module" class="admin-form-control" style="width:auto;padding:8px 12px;font-size:0.85rem;" onchange="this.form.submit()">
+                <option value="">All Modules</option>
+                <?php foreach ($auditModules ?? [] as $am): ?>
+                    <option value="<?= htmlspecialchars($am, ENT_QUOTES, 'UTF-8') ?>" <?= $auditModule === $am ? 'selected': '' ?>><?= htmlspecialchars(ucfirst($am), ENT_QUOTES, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="text" name="q" value="<?= htmlspecialchars($auditSearch, ENT_QUOTES, 'UTF-8') ?>" placeholder="Search activity..." class="admin-form-control" style="width:200px;padding:8px 12px;font-size:0.85rem;">
+            <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="search" style="width:14px;height:14px;"></i></button>
+        </form>
+    </div>
+
+    <!-- KPI Row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon"><i data-lucide="list"></i></div><div class="stat-card-info"><strong><?= count($auditLogs) ?></strong><small>Activities</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon accent"><i data-lucide="users"></i></div><div class="stat-card-info"><strong><?= count(array_unique(array_map(fn($l) => $l['user_id'] ?? 0, $auditLogs))) ?></strong><small>Active Users</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon info"><i data-lucide="layers"></i></div><div class="stat-card-info"><strong><?= count($auditModules ?? []) ?></strong><small>Modules</small></div></div>
+    </div>
+
+    <!-- Audit Log Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Module</th><th>Description</th></tr></thead>
+            <tbody>
+            <?php if (empty($auditLogs)): ?>
+                <tr><td colspan="5" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No activity recorded yet.</strong><br>Actions across the system will appear here automatically.</td></tr>
+            <?php else: foreach ($auditLogs as $al):
+                $userName = trim(($al['first_name'] ?? '') . ' ' . ($al['last_name'] ?? ''));
+                if ($userName === '') $userName = $al['username'] ?? 'System';
+                $actionColors = ['create'=>'#16a34a','update'=>'#d97706','delete'=>'#dc2626','login'=>'#3b82f6','view'=>'#64748b'];
+                $aColor = $actionColors[$al['action']] ?? '#64748b';
+            ?>
+                <tr>
+                    <td style="white-space:nowrap;font-size:0.82rem;color:#64748b;"><?= date('M d, H:i', strtotime($al['created_at'])) ?></td>
+                    <td><strong><?= htmlspecialchars($userName, ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><span style="color:<?= $aColor ?>;font-weight:600;font-size:0.85rem;text-transform:uppercase;"><?= htmlspecialchars($al['action'], ENT_QUOTES, 'UTF-8') ?></span></td>
+                    <td><span class="badge-pill badge-pill-success"><?= htmlspecialchars(ucfirst($al['module'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></span></td>
+                    <td style="font-size:0.85rem;color:#475569;"><?= htmlspecialchars($al['description'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>

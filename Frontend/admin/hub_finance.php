@@ -16,7 +16,7 @@ $page_title = 'Sales & Finance - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'orders';
-$validTabs = ['orders', 'sales', 'payments', 'expenses', 'reports'];
+$validTabs = ['orders', 'sales', 'payments', 'expenses', 'reports', 'budgets'];
 if (!in_array($tab, $validTabs, true)) $tab = 'orders';
 
 $pdo = getDB();
@@ -63,6 +63,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } else { $error_message = 'Category and amount are required.'; }
         $tab = 'payments';
     }
+
+    // Save budget entry
+    if ($postAction === 'save_budget') {
+        $id = (int)($_POST['id'] ?? 0);
+        $year = (int)($_POST['budget_year'] ?? date('Y'));
+        $month = (int)($_POST['budget_month'] ?? date('n'));
+        $cat = trim($_POST['category'] ?? '');
+        $subcat = trim($_POST['subcategory'] ?? '');
+        $planned = (float)($_POST['planned_amount'] ?? 0);
+        $dept = trim($_POST['department'] ?? 'general');
+        $bnotes = trim($_POST['notes'] ?? '');
+        if (!$cat) { $error_message = 'Category is required.'; }
+        else {
+            try {
+                $pdo->prepare('INSERT INTO farm_budgets (budget_year,budget_month,category,subcategory,planned_amount,department,notes) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE planned_amount=VALUES(planned_amount),notes=VALUES(notes)')
+                    ->execute([$year,$month,$cat,$subcat,$planned,$dept,$bnotes]);
+                $message = 'Budget entry saved.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'budgets';
+    }
+
+    // Delete budget entry
+    if ($postAction === 'delete_budget') {
+        try {
+            $pdo->prepare('DELETE FROM farm_budgets WHERE id=?')->execute([(int)($_POST['id'] ?? 0)]);
+            $message = 'Budget entry deleted.';
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'budgets';
+    }
 }
 
 /* ── Load PHP-based tab data ── */
@@ -98,12 +128,28 @@ if ($pdo) {
     }
 }
 
+// Budget data
+$budgetEntries = [];
+$budgetSummary = ['total_planned' => 0, 'total_actual' => 0];
+if ($pdo && $tab === 'budgets') {
+    try {
+        $budgetYear = (int)($_GET['year'] ?? date('Y'));
+        $budgetMonth = (int)($_GET['month'] ?? date('n'));
+        $budgetEntries = safeQueryAll($pdo, 'SELECT * FROM farm_budgets WHERE budget_year=? AND budget_month=? ORDER BY category, subcategory', [$budgetYear, $budgetMonth]);
+        $sumRow = $pdo->prepare('SELECT COALESCE(SUM(planned_amount),0) as tp, COALESCE(SUM(actual_amount),0) as ta FROM farm_budgets WHERE budget_year=? AND budget_month=?');
+        $sumRow->execute([$budgetYear, $budgetMonth]);
+        $sr = $sumRow->fetch(PDO::FETCH_ASSOC);
+        $budgetSummary = ['total_planned' => (float)($sr['tp'] ?? 0), 'total_actual' => (float)($sr['ta'] ?? 0)];
+    } catch (Exception $e) { error_log('Budget query error: ' . $e->getMessage()); }
+}
+
 $tabs = [
     'orders'   => ['icon' => 'shopping-bag',  'label' => 'Customer Orders'],
     'sales'    => ['icon' => 'receipt',       'label' => 'Sales Summary'],
     'payments' => ['icon' => 'wallet',        'label' => 'Incoming Payments'],
     'expenses' => ['icon' => 'minus-circle',  'label' => 'Outgoing Expenses'],
     'reports'  => ['icon' => 'bar-chart-3',   'label' => 'Reports & Analytics'],
+    'budgets'  => ['icon' => 'target',        'label' => 'Budgets & Forecasting'],
 ];
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
@@ -339,6 +385,120 @@ document.addEventListener('click',e=>{ const m=document.getElementById('payment-
 <div class="admin-card" style="padding:0; overflow:hidden;">
     <iframe src="reports.php" style="width:100%; height:800px; border:none; display:block;"></iframe>
 </div>
+<!-- ══════ BUDGETS TAB ══════ -->
+<?php elseif ($tab === 'budgets'): ?>
+<?php
+    $budgetYear = $budgetYear ?? (int)date('Y');
+    $budgetMonth = $budgetMonth ?? (int)date('n');
+    $monthNames = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+    $prevMonth = $budgetMonth > 1 ? $budgetMonth - 1 : 12;
+    $prevYear = $budgetMonth > 1 ? $budgetYear : $budgetYear - 1;
+    $nextMonth = $budgetMonth < 12 ? $budgetMonth + 1 : 1;
+    $nextYear = $budgetMonth < 12 ? $budgetYear : $budgetYear + 1;
+    $utilization = $budgetSummary['total_planned'] > 0 ? round(($budgetSummary['total_actual'] / $budgetSummary['total_planned']) * 100) : 0;
+?>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Budget & Forecasting — <?= $monthNames[$budgetMonth] ?> <?= $budgetYear ?></h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Set planned budgets per category and track actual spend vs plan.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <a href="?tab=budgets&year=<?= $prevYear ?>&month=<?= $prevMonth ?>" class="btn btn-trans btn-sm"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></a>
+            <span style="font-weight:600;font-size:0.9rem;min-width:120px;text-align:center;"><?= $monthNames[$budgetMonth] ?> <?= $budgetYear ?></span>
+            <a href="?tab=budgets&year=<?= $nextYear ?>&month=<?= $nextMonth ?>" class="btn btn-trans btn-sm"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></a>
+            <button class="btn btn-primary" onclick="document.getElementById('budget-modal').style.display='flex'"><i data-lucide="plus-circle" style="width:15px;height:15px;"></i> Add Budget</button>
+        </div>
+    </div>
+
+    <!-- Budget KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon"><i data-lucide="target"></i></div><div class="stat-card-info"><strong>KES <?= number_format($budgetSummary['total_planned'], 0) ?></strong><small>Planned Budget</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon accent"><i data-lucide="trending-up"></i></div><div class="stat-card-info"><strong>KES <?= number_format($budgetSummary['total_actual'], 0) ?></strong><small>Actual Spend</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon" style="background:<?= $utilization <= 100 ? '#dcfce7' : '#fee2e2' ?>;color:<?= $utilization <= 100 ? '#16a34a' : '#dc2626' ?>;"><i data-lucide="pie-chart"></i></div><div class="stat-card-info"><strong><?= $utilization ?>%</strong><small>Utilization</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon info"><i data-lucide="hash"></i></div><div class="stat-card-info"><strong><?= count($budgetEntries) ?></strong><small>Budget Lines</small></div></div>
+    </div>
+
+    <!-- Utilization Bar -->
+    <?php if ($budgetSummary['total_planned'] > 0): ?>
+    <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;">
+            <span style="color:#64748b;">Budget Utilization</span>
+            <span style="font-weight:600;color:<?= $utilization <= 100 ? '#16a34a' : '#dc2626' ?>;"><?= $utilization ?>%</span>
+        </div>
+        <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:<?= min($utilization, 100) ?>%;background:<?= $utilization <= 80 ? '#16a34a' : ($utilization <= 100 ? '#d97706' : '#dc2626') ?>;border-radius:4px;transition:width 0.5s;"></div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Budget Table -->
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead><tr><th>Category</th><th>Subcategory</th><th>Planned (KES)</th><th>Actual (KES)</th><th>Variance</th><th>Department</th><th>Actions</th></tr></thead>
+            <tbody>
+            <?php if (empty($budgetEntries)): ?>
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No budget entries for this month.</strong><br>Click <strong>+ Add Budget</strong> to plan spending per category.</td></tr>
+            <?php else: foreach ($budgetEntries as $be):
+                $variance = (float)$be['planned_amount'] - (float)$be['actual_amount'];
+                $vColor = $variance >= 0 ? '#16a34a' : '#dc2626';
+            ?>
+                <tr>
+                    <td><strong><?= htmlspecialchars($be['category'], ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><?= htmlspecialchars($be['subcategory'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= number_format((float)$be['planned_amount'], 0) ?></td>
+                    <td><?= number_format((float)$be['actual_amount'], 0) ?></td>
+                    <td style="color:<?= $vColor ?>;font-weight:600;"><?= $variance >= 0 ? '+' : '' ?><?= number_format($variance, 0) ?></td>
+                    <td><span class="badge-pill badge-pill-success"><?= htmlspecialchars(ucfirst($be['department'] ?? 'general'), ENT_QUOTES, 'UTF-8') ?></span></td>
+                    <td>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this budget entry?')">
+                            <input type="hidden" name="_action" value="delete_budget">
+                            <input type="hidden" name="id" value="<?= $be['id'] ?>">
+                            <button type="submit" class="btn btn-trans btn-sm" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Budget Modal -->
+<div id="budget-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px;border-radius:12px;width:100%;max-width:480px;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+        <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Budget Entry</h3>
+        <form method="POST">
+            <input type="hidden" name="_action" value="save_budget">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div class="admin-form-group"><label class="admin-form-label">Year</label><input class="admin-form-control" type="number" name="budget_year" value="<?= $budgetYear ?>"></div>
+                <div class="admin-form-group"><label class="admin-form-label">Month</label>
+                    <select class="admin-form-control" name="budget_month">
+                        <?php for ($m=1;$m<=12;$m++): ?><option value="<?= $m ?>" <?= $m===$budgetMonth?'selected':'' ?>><?= $monthNames[$m] ?></option><?php endfor; ?>
+                    </select>
+                </div>
+                <div class="admin-form-group"><label class="admin-form-label">Category *</label>
+                    <select class="admin-form-control" name="category" required>
+                        <option value="">Select...</option><option>Feed</option><option>Vet & Vaccines</option><option>Labour</option><option>Equipment</option><option>Utilities</option><option>Seeds & Fertilizer</option><option>Fuel & Transport</option><option>Marketing</option><option>Admin & Office</option><option>Maintenance</option><option>Other</option>
+                    </select>
+                </div>
+                <div class="admin-form-group"><label class="admin-form-label">Subcategory</label><input class="admin-form-control" name="subcategory" placeholder="e.g. Chicken feed, Vet visits"></div>
+                <div class="admin-form-group"><label class="admin-form-label">Planned Amount (KES) *</label><input class="admin-form-control" type="number" step="0.01" name="planned_amount" required min="0"></div>
+                <div class="admin-form-group"><label class="admin-form-label">Department</label>
+                    <select class="admin-form-control" name="department"><option value="general">General</option><option value="poultry">Poultry</option><option value="crops">Crops</option><option value="livestock">Livestock</option><option value="admin">Admin</option></select>
+                </div>
+                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Notes</label><textarea class="admin-form-control" name="notes" rows="2"></textarea></div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:20px;">
+                <button type="button" class="btn btn-outline" style="flex:1;" onclick="document.getElementById('budget-modal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save" style="width:15px;height:15px;"></i> Save Budget</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('click', e => { const m = document.getElementById('budget-modal'); if (m && e.target === m) m.style.display = 'none'; });
+</script>
 <?php endif; ?>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>

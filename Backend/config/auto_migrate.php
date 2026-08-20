@@ -554,6 +554,190 @@ function reconcileOpsV2Schema(PDO $pdo): void
 }
 
 /**
+ * Ops V3: Equipment maintenance, soil health, budgeting, weather, audit trail.
+ * Adds missing tables and columns to support Farmbrite-level features.
+ */
+function reconcileOpsV3Schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    // ── 1. equipment_maintenance — preventive maintenance, service records ──
+    if (!tableExists($pdo, 'equipment_maintenance')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS equipment_maintenance (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                equipment_id INT NOT NULL,
+                maintenance_type ENUM('preventive','corrective','inspection','calibration') NOT NULL DEFAULT 'preventive',
+                title VARCHAR(200) NOT NULL,
+                description TEXT,
+                scheduled_date DATE NOT NULL,
+                completed_date DATE NULL,
+                status ENUM('scheduled','overdue','completed','skipped') NOT NULL DEFAULT 'scheduled',
+                cost DECIMAL(10,2) DEFAULT 0,
+                performed_by VARCHAR(150),
+                next_due_date DATE NULL,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_em_equip (equipment_id),
+                INDEX idx_em_status (status),
+                INDEX idx_em_date (scheduled_date)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 2. equipment_usage — track usage hours/days for depreciation ──
+    if (!tableExists($pdo, 'equipment_usage')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS equipment_usage (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                equipment_id INT NOT NULL,
+                usage_date DATE NOT NULL,
+                hours_used DECIMAL(6,2) DEFAULT 0,
+                task VARCHAR(200),
+                operator VARCHAR(150),
+                fuel_cost DECIMAL(10,2) DEFAULT 0,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_eu_equip (equipment_id),
+                INDEX idx_eu_date (usage_date)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 3. soil_tests — soil health tracking per field ──
+    if (!tableExists($pdo, 'soil_tests')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS soil_tests (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                field_id INT NULL,
+                test_date DATE NOT NULL,
+                ph_level DECIMAL(4,2),
+                nitrogen_ppm DECIMAL(8,2),
+                phosphorus_ppm DECIMAL(8,2),
+                potassium_ppm DECIMAL(8,2),
+                organic_matter_pct DECIMAL(5,2),
+                moisture_pct DECIMAL(5,2),
+                electrical_conductivity DECIMAL(6,3),
+                texture VARCHAR(50),
+                lab_name VARCHAR(150),
+                recommendations TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_st_field (field_id),
+                INDEX idx_st_date (test_date)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 4. soil_amendments — amendment applications per field ──
+    if (!tableExists($pdo, 'soil_amendments')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS soil_amendments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                field_id INT NULL,
+                amendment_date DATE NOT NULL,
+                amendment_type VARCHAR(100) NOT NULL,
+                product_name VARCHAR(150),
+                quantity_kg DECIMAL(10,2),
+                application_method VARCHAR(100),
+                cost DECIMAL(10,2) DEFAULT 0,
+                purpose TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_sa_field (field_id),
+                INDEX idx_sa_date (amendment_date)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 5. farm_budgets — monthly/annual budgets per category ──
+    if (!tableExists($pdo, 'farm_budgets')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS farm_budgets (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                budget_year INT NOT NULL,
+                budget_month INT NOT NULL,
+                category VARCHAR(100) NOT NULL,
+                subcategory VARCHAR(100),
+                planned_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+                actual_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+                department VARCHAR(50) DEFAULT 'general',
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uk_budget (budget_year, budget_month, category, subcategory),
+                INDEX idx_fb_year (budget_year)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 6. weather_cache — local weather data cache ──
+    if (!tableExists($pdo, 'weather_cache')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS weather_cache (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                cache_date DATE NOT NULL,
+                location VARCHAR(200) DEFAULT 'default',
+                temperature_max DECIMAL(5,2),
+                temperature_min DECIMAL(5,2),
+                humidity INT,
+                rainfall_mm DECIMAL(6,2) DEFAULT 0,
+                wind_speed_kph DECIMAL(5,2),
+                weather_code VARCHAR(20),
+                description VARCHAR(200),
+                forecast_json TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uk_weather (cache_date, location)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 7. activity_log — audit trail of all actions ──
+    if (!tableExists($pdo, 'activity_log')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS activity_log (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NULL,
+                action VARCHAR(50) NOT NULL,
+                module VARCHAR(50) NOT NULL,
+                description TEXT,
+                record_id INT NULL,
+                record_type VARCHAR(50),
+                ip_address VARCHAR(45),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_al_user (user_id),
+                INDEX idx_al_module (module),
+                INDEX idx_al_date (created_at)
+            ) ENGINE=InnoDB
+        ");
+    }
+
+    // ── 8. Add withdrawal fields to vaccinations ──
+    if (tableExists($pdo, 'vaccinations')) {
+        if (!columnExists($pdo, 'vaccinations', 'withdrawal_days')) {
+            try { $pdo->exec('ALTER TABLE vaccinations ADD COLUMN withdrawal_days INT NULL'); } catch (Exception $e) {}
+        }
+        if (!columnExists($pdo, 'vaccinations', 'withdrawal_end_date')) {
+            try { $pdo->exec('ALTER TABLE vaccinations ADD COLUMN withdrawal_end_date DATE NULL'); } catch (Exception $e) {}
+        }
+    }
+
+    // ── 9. Add last_service fields to farm_equipment ──
+    if (tableExists($pdo, 'farm_equipment')) {
+        if (!columnExists($pdo, 'farm_equipment', 'last_service_date')) {
+            try { $pdo->exec('ALTER TABLE farm_equipment ADD COLUMN last_service_date DATE NULL'); } catch (Exception $e) {}
+        }
+        if (!columnExists($pdo, 'farm_equipment', 'next_service_date')) {
+            try { $pdo->exec('ALTER TABLE farm_equipment ADD COLUMN next_service_date DATE NULL'); } catch (Exception $e) {}
+        }
+        if (!columnExists($pdo, 'farm_equipment', 'total_usage_hours')) {
+            try { $pdo->exec('ALTER TABLE farm_equipment ADD COLUMN total_usage_hours DECIMAL(10,2) DEFAULT 0'); } catch (Exception $e) {}
+        }
+    }
+}
+
+/**
  * Seed vaccine guides for all supported species.
  * Idempotent — INSERT IGNORE prevents duplicates.
  */
@@ -634,6 +818,7 @@ function ensureBusiaSchema(PDO $pdo): void
         // when every table already exists.
         reconcileLegacySchema($pdo);
         reconcileOpsV2Schema($pdo);
+        reconcileOpsV3Schema($pdo);
         seedMasterData($pdo);
 
         $configDir = __DIR__;
