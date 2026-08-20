@@ -229,13 +229,13 @@ try {
             width: 320px;
             height: 320px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(208,242,76,0.18) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 65%);
         }
         .d2-hero-eyebrow {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: #D0F24C;
+            color: #22C55E;
             font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -249,11 +249,11 @@ try {
             color: #fff;
             letter-spacing: -0.4px;
         }
-        .d2-hero h1 .w2-serif { color: #D0F24C; font-family: 'Instrument Serif', serif; font-weight: 400; font-style: italic; }
+        .d2-hero h1 .w2-serif { color: #22C55E; font-family: 'Instrument Serif', serif; font-weight: 400; font-style: italic; }
         .d2-hero p { margin: 0 0 20px; color: rgba(255,255,255,0.72); font-size: 0.95rem; max-width: 560px; }
         .d2-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 2; }
         .d2-hero-actions .btn { border-radius: 999px; }
-        .d2-hero-actions .btn-lime { background: #D0F24C; color: #0B1220; font-weight: 700; }
+        .d2-hero-actions .btn-lime { background: #22C55E; color: #0B1220; font-weight: 700; }
         .d2-hero-actions .btn-ghost { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
 
         .d2-kpis {
@@ -291,7 +291,7 @@ try {
         }
         .d2-kpi:hover { 
             transform: translateY(-6px) scale(1.02); 
-            box-shadow: 0 20px 40px rgba(15,23,42,0.12), 0 0 20px rgba(208,242,76,0.1); 
+            box-shadow: 0 20px 40px rgba(15,23,42,0.12), 0 0 20px rgba(34,197,94,0.1); 
         }
         .d2-kpi:hover::before { opacity: 1; }
         .d2-kpi:hover .d2-kpi-icon { 
@@ -317,7 +317,7 @@ try {
 
         .d2-ai {
             background: linear-gradient(135deg, #ffffff 0%, #F7FBF2 100%);
-            border: 1px solid rgba(208,242,76,0.55);
+            border: 1px solid rgba(34,197,94,0.55);
             border-radius: 16px;
             padding: 22px 24px;
             margin-bottom: 24px;
@@ -403,7 +403,7 @@ try {
     <div class="d2-ai">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
             <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:42px;height:42px;border-radius:13px;background:#0B1220;color:#D0F24C;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(11,18,32,0.2);">
+                <div style="width:42px;height:42px;border-radius:13px;background:#0B1220;color:#22C55E;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(11,18,32,0.2);">
                     <i data-lucide="sparkles" style="width:20px;height:20px;"></i>
                 </div>
                 <div>
@@ -597,7 +597,7 @@ async function loadDashboard() {
                 fill: true,
                 tension: 0.32,
                 pointRadius: 3,
-                pointBackgroundColor: '#D0F24C',
+                pointBackgroundColor: '#22C55E',
             }],
         },
         options: {
@@ -618,7 +618,7 @@ async function loadDashboard() {
             datasets: [{
                 label: 'Orders',
                 data: orders.map((item) => item.value),
-                backgroundColor: '#D0F24C',
+                backgroundColor: '#22C55E',
                 borderRadius: 0,
                 maxBarThickness: 28,
             }],

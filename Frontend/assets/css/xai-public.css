@@ -12,8 +12,8 @@
     --xai-text: #0F172A;
     --xai-text-secondary: #475569;
     --xai-text-muted: #94A3B8;
-    --xai-lime: #D0F24C;
-    --xai-lime-dark: #B8D943;
+    --xai-lime: #22C55E;
+    --xai-lime-dark: #16A34A;
     --xai-green: #166534;
     --xai-green-light: #1B7A3D;
     
@@ -217,13 +217,13 @@ a {
     border-radius: 100px;
     text-decoration: none;
     transition: all 0.25s ease;
-    box-shadow: 0 2px 12px rgba(208, 242, 76, 0.3);
+    box-shadow: 0 2px 12px rgba(34, 197, 94, 0.3);
 }
 
 .xai-nav-actions .xai-btn-primary:hover {
     background: var(--xai-lime-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(208, 242, 76, 0.4);
+    box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -254,7 +254,7 @@ a {
 .xai-btn-primary:hover {
     background: var(--xai-lime-dark);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(208, 242, 76, 0.25);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.25);
 }
 
 .xai-btn-secondary {
@@ -319,7 +319,7 @@ a {
     transform: translateX(-50%);
     width: 1200px;
     height: 1200px;
-    background: radial-gradient(circle, rgba(208, 242, 76, 0.08) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -334,8 +334,8 @@ a {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: rgba(208, 242, 76, 0.1);
-    border: 1px solid rgba(208, 242, 76, 0.2);
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
     border-radius: var(--radius-pill);
     font-size: 0.8rem;
     font-weight: 600;
@@ -510,15 +510,15 @@ a {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(208, 242, 76, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
     opacity: 0;
     transition: opacity 0.4s ease;
 }
 
 .xai-statement-card:hover {
-    border-color: rgba(208, 242, 76, 0.4);
+    border-color: rgba(34, 197, 94, 0.4);
     transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(208, 242, 76, 0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(34, 197, 94, 0.15);
 }
 
 .xai-statement-card:hover::before {
@@ -528,12 +528,12 @@ a {
 .xai-statement-card:hover .xai-statement-icon {
     transform: scale(1.2) rotate(10deg);
     color: var(--xai-lime);
-    filter: drop-shadow(0 0 12px rgba(208, 242, 76, 0.5));
+    filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.5));
 }
 
 .xai-statement-card:hover .xai-statement-num {
     color: var(--xai-lime);
-    text-shadow: 0 0 20px rgba(208, 242, 76, 0.3);
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
 }
 
 .xai-statement-icon {
@@ -600,9 +600,9 @@ a {
 }
 
 .xai-feature:hover {
-    border-color: rgba(208, 242, 76, 0.3);
+    border-color: rgba(34, 197, 94, 0.3);
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 0 40px rgba(208, 242, 76, 0.1);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 0 40px rgba(34, 197, 94, 0.1);
 }
 
 .xai-feature:hover::before {
@@ -610,9 +610,9 @@ a {
 }
 
 .xai-feature:hover .xai-feature-icon {
-    background: rgba(208, 242, 76, 0.2);
+    background: rgba(34, 197, 94, 0.2);
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 20px rgba(208, 242, 76, 0.3);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
 }
 
 .xai-feature:hover h3 {
@@ -623,7 +623,7 @@ a {
     width: 48px;
     height: 48px;
     border-radius: var(--radius-md);
-    background: rgba(208, 242, 76, 0.1);
+    background: rgba(34, 197, 94, 0.1);
     color: var(--xai-lime);
     display: flex;
     align-items: center;
@@ -708,25 +708,25 @@ a {
     right: 24px;
     font-size: 4rem;
     font-family: var(--font-serif);
-    color: rgba(208, 242, 76, 0.15);
+    color: rgba(34, 197, 94, 0.15);
     line-height: 1;
     transition: all 0.4s ease;
 }
 
 .xai-testimonial:hover {
-    border-color: rgba(208, 242, 76, 0.25);
+    border-color: rgba(34, 197, 94, 0.25);
     transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(208, 242, 76, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(34, 197, 94, 0.08);
 }
 
 .xai-testimonial:hover::after {
-    color: rgba(208, 242, 76, 0.3);
+    color: rgba(34, 197, 94, 0.3);
     transform: scale(1.1);
 }
 
 .xai-testimonial:hover .xai-testimonial-avatar {
     transform: scale(1.15);
-    box-shadow: 0 0 20px rgba(208, 242, 76, 0.4);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
 }
 
 .xai-testimonial:hover .xai-testimonial-stars svg {
@@ -809,7 +809,7 @@ a {
     right: -100px;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(208, 242, 76, 0.15) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -854,7 +854,7 @@ a {
 }
 
 .xai-faq-item:hover {
-    background: rgba(208, 242, 76, 0.02);
+    background: rgba(34, 197, 94, 0.02);
     border-radius: 8px;
 }
 
@@ -930,7 +930,7 @@ a {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(208, 242, 76, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent);
 }
 
 .xai-footer::after {
@@ -941,7 +941,7 @@ a {
     transform: translateX(-50%);
     width: 600px;
     height: 300px;
-    background: radial-gradient(ellipse, rgba(208, 242, 76, 0.06) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(34, 197, 94, 0.06) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -1098,7 +1098,7 @@ a {
     right: -100px;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(208, 242, 76, 0.1) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -1169,7 +1169,7 @@ a {
 .xai-form-input:focus {
     outline: none;
     border-color: var(--xai-lime);
-    box-shadow: 0 0 0 4px rgba(208, 242, 76, 0.1);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
 }
 
 .xai-form-input::placeholder {
@@ -1253,8 +1253,8 @@ a {
 
 /* Glow pulse for cards */
 @keyframes xaiGlowPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(208, 242, 76, 0.1); }
-    50% { box-shadow: 0 0 40px rgba(208, 242, 76, 0.25); }
+    0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.1); }
+    50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.25); }
 }
 
 /* Shimmer effect */
@@ -1334,7 +1334,7 @@ a {
 
 .xai-nav-links a.active {
     color: var(--xai-text);
-    background: rgba(208, 242, 76, 0.12);
+    background: rgba(34, 197, 94, 0.12);
 }
 
 .xai-nav-ghost {
@@ -1371,13 +1371,13 @@ a {
     border-radius: 100px;
     text-decoration: none;
     transition: all 0.25s ease;
-    box-shadow: 0 2px 16px rgba(208, 242, 76, 0.4);
+    box-shadow: 0 2px 16px rgba(34, 197, 94, 0.4);
 }
 
 .xai-nav-cta:hover {
     background: #E5FF6E;
     transform: translateY(-2px);
-    box-shadow: 0 6px 28px rgba(208, 242, 76, 0.5);
+    box-shadow: 0 6px 28px rgba(34, 197, 94, 0.5);
 }
 
 /* ═══════════════════════════════════════════════════════════════ */

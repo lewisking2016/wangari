@@ -103,7 +103,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
         :root {
             --admin-primary: #166534;
             --admin-primary-light: #1B7A3D;
-            --admin-accent: #D0F24C;
+            --admin-accent: #22C55E;
             --admin-dark: #0B1220;
             --admin-body-bg: #FAFBFC;
             --admin-border: #E7EAF0;
@@ -112,7 +112,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
             --admin-text-heading: #0F172A;
             --admin-text-muted: #64748B;
             --w2-primary: #166534;
-            --w2-lime: #D0F24C;
+            --w2-lime: #22C55E;
             --w2-ink: #0B1220;
             --w2-border: #E7EAF0;
             --w2-shadow: 0 4px 20px rgba(15,23,42,0.04);
@@ -315,7 +315,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 /* ── minimal top bar ── */
 .ai-topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; }
 .ai-brand { display: flex; align-items: center; gap: 9px; font-size: 0.92rem; font-weight: 700; color: #f1f1f1; letter-spacing: -0.01em; }
-.ai-brand i { color: var(--w2-lime, #D0F24C); }
+.ai-brand i { color: var(--w2-lime, #22C55E); }
 .ai-topright { display: flex; align-items: center; gap: 10px; }
 .ai-conn-badge { display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, #14532D 0%, #1B7A3D 100%); border: none; color: #fff; font-size: 0.78rem; font-weight: 700; padding: 9px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(22,101,52,0.25); transition: all .2s; }
 
@@ -328,8 +328,8 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 .ai-welcome p { color: #9ca3af; font-size: 0.95rem; margin: 0 auto 28px; max-width: 520px; line-height: 1.55; }
 .ai-chiprow { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .ai-chiprow .ai-suggestion { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.13); color: #d7d7d7; border-radius: 999px; padding: 9px 16px; font-size: 0.8rem; cursor: pointer; transition: all .15s; font-family: inherit; }
-.ai-chiprow .ai-suggestion:hover { background: var(--w2-lime, #D0F24C); border-color: var(--w2-lime, #D0F24C); color: #0B1220; box-shadow: 0 4px 16px rgba(208,242,76,0.3); }
-.ai-chiprow .ai-suggestion:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(208,242,76,0.2); }
+.ai-chiprow .ai-suggestion:hover { background: var(--w2-lime, #22C55E); border-color: var(--w2-lime, #22C55E); color: #0B1220; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
+.ai-chiprow .ai-suggestion:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(34,197,94,0.2); }
 
 /* ── messages: clean rows, no heavy bubbles (Gemini look) ── */
 .ai-messages { width: 100%; max-width: 760px; margin: 0 auto; padding: 12px 24px 24px; display: flex; flex-direction: column; gap: 22px; }
@@ -344,7 +344,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 /* ── follow-up chips under answers ── */
 .ai-followups { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .ai-followup { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #d7d7d7; border-radius: 999px; padding: 7px 14px; font-size: 0.78rem; cursor: pointer; transition: all .15s; font-family: inherit; }
-.ai-followup:hover { background: var(--w2-lime, #D0F24C); border-color: var(--w2-lime, #D0F24C); color: #0B1220; box-shadow: 0 4px 16px rgba(208,242,76,0.3); }
+.ai-followup:hover { background: var(--w2-lime, #22C55E); border-color: var(--w2-lime, #22C55E); color: #0B1220; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
 
 /* ── composer (rounded, Gemini-like) ── */
 .ai-composer-wrap { padding: 14px 24px 20px; }
@@ -364,18 +364,18 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 .ai-disc { color: #5b6472; font-size: 0.72rem; }
 
 /* ── LLM / Thinking mode: Wangari lime accent (brand system color) ── */
-.ai-page.llm-mode .ai-composer { border-color: rgba(208,242,76,0.5); box-shadow: 0 0 0 4px rgba(208,242,76,0.12), 0 6px 30px rgba(208,242,76,0.14); }
-.ai-page.llm-mode .ai-composer:focus-within { border-color: var(--w2-lime, #D0F24C); }
-.ai-page.llm-mode .ai-mode-badge { background: rgba(208,242,76,0.14); border-color: rgba(208,242,76,0.4); color: var(--w2-lime, #D0F24C); }
-.ai-page.llm-mode .ai-brand i { color: var(--w2-lime, #D0F24C); }
+.ai-page.llm-mode .ai-composer { border-color: rgba(34,197,94,0.5); box-shadow: 0 0 0 4px rgba(34,197,94,0.12), 0 6px 30px rgba(34,197,94,0.14); }
+.ai-page.llm-mode .ai-composer:focus-within { border-color: var(--w2-lime, #22C55E); }
+.ai-page.llm-mode .ai-mode-badge { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.4); color: var(--w2-lime, #22C55E); }
+.ai-page.llm-mode .ai-brand i { color: var(--w2-lime, #22C55E); }
 
 /* ── thinking toggle (minimal pill in top bar) ── */
 .ai-toggle-pill { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.13); padding: 7px 14px; border-radius: 999px; cursor: pointer; user-select: none; transition: all .2s; }
 .ai-toggle-pill:hover { background: rgba(255,255,255,0.1); }
 .ai-toggle-pill .ai-toggle-ic { color: #9ca3af; font-size: 0.8rem; font-weight: 700; }
-.ai-toggle-pill.on .ai-toggle-ic { color: var(--w2-lime, #D0F24C); }
+.ai-toggle-pill.on .ai-toggle-ic { color: var(--w2-lime, #22C55E); }
 .ai-toggle-pill .ai-toggle-track { position: relative; width: 34px; height: 18px; background: rgba(255,255,255,0.18); border-radius: 999px; transition: background .2s; }
-.ai-toggle-pill.on .ai-toggle-track { background: linear-gradient(135deg, var(--w2-primary, #166534), var(--w2-lime, #D0F24C)); }
+.ai-toggle-pill.on .ai-toggle-track { background: linear-gradient(135deg, var(--w2-primary, #166534), var(--w2-lime, #22C55E)); }
 .ai-toggle-pill .ai-toggle-track span { position: absolute; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: all .2s; }
 .ai-toggle-pill.on .ai-toggle-track span { right: 2px; }
 .ai-toggle-pill .ai-toggle-track span.off { left: 2px; }
@@ -402,7 +402,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
                 <input type="hidden" name="thinking" id="thinking-val" value="<?= $thinkingEnabled ? '1' : '0' ?>">
                 <label class="ai-toggle-pill<?= $thinkingEnabled ? ' on' : '' ?>" id="ai-toggle-pill">
                     <i data-lucide="brain" class="ai-toggle-ic" style="width:15px;height:15px;"></i>
-                    <span style="font-size:0.78rem;font-weight:700;color:<?= $thinkingEnabled ? '#D0F24C' : '#b7c2cd' ?>;">Thinking</span>
+                    <span style="font-size:0.78rem;font-weight:700;color:<?= $thinkingEnabled ? '#22C55E' : '#b7c2cd' ?>;">Thinking</span>
                     <span class="ai-toggle-track"><span class="<?= $thinkingEnabled ? '' : 'off' ?>"></span></span>
                 </label>
             </form>
@@ -547,13 +547,13 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         if (label) label.textContent = on
             ? '🧠 LLM active — <?= htmlspecialchars(ucfirst($aiProvider)) ?><?= $aiModel !== '' ? ' (' . htmlspecialchars($aiModel) . ')' : '' ?>'
             : '🌱 Local engine — offline, instant & private';
-        if (badge) badge.style.background = on ? 'rgba(208,242,76,0.14)' : '';
+        if (badge) badge.style.background = on ? 'rgba(34,197,94,0.14)' : '';
         if (pill) {
             pill.classList.toggle('on', on);
             var knob = pill.querySelector('.ai-toggle-track span');
             if (knob) knob.className = on ? '' : 'off';
             var txt = pill.querySelector('span[style*="font-size:0.78rem"]');
-            if (txt) txt.style.color = on ? '#D0F24C' : '#b7c2cd';
+            if (txt) txt.style.color = on ? '#22C55E' : '#b7c2cd';
         }
     }
     if (thinkingForm) {

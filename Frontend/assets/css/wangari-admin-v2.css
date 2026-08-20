@@ -8,7 +8,7 @@
 :root {
     --w2-primary: #166534;
     --w2-primary-light: #1B7A3D;
-    --w2-lime: #D0F24C;
+    --w2-lime: #22C55E;
     --w2-ink: #0B1220;
     --w2-cream: #F5F6F8;
     --w2-card: #FFFFFF;
@@ -50,7 +50,7 @@
     width: 280px;
     height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(208,242,76,0.18) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 65%);
     pointer-events: none;
 }
 .dashboard-hero-card h1,

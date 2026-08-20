@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
         :root {
             --admin-primary: #166534;
             --admin-primary-light: #1B7A3D;
-            --admin-accent: #D0F24C;
+            --admin-accent: #22C55E;
             --admin-text-main: #334155;
             --admin-text-heading: #0F172A;
             --admin-text-muted: #64748B;
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
             flex: 1.2;
             position: relative;
             background:
-                radial-gradient(900px 480px at 80% -10%, rgba(208, 242, 76, 0.16) 0%, transparent 60%),
+                radial-gradient(900px 480px at 80% -10%, rgba(34, 197, 94, 0.16) 0%, transparent 60%),
                 radial-gradient(700px 500px at -10% 110%, rgba(0, 0, 0, 0.45) 0%, transparent 55%),
                 linear-gradient(160deg, #04101f 0%, #0B2B1D 55%, #06190F 100%);
             display: flex;

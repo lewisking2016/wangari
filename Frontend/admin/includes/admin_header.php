@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --admin-primary: #166534;
             --admin-primary-light: #1B7A3D;
             --admin-primary-hover: #145214;
-            --admin-accent: #D0F24C;
+            --admin-accent: #22C55E;
             --admin-accent-dark: #9DBF2E;
             --admin-dark: #0B1220;
             --admin-body-bg: #FAFBFC;
@@ -131,11 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             z-index: 100;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: rgba(208, 242, 76, 0.35) transparent;
+            scrollbar-color: rgba(34, 197, 94, 0.35) transparent;
         }
 
         .admin-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(208, 242, 76, 0.35);
+            background: rgba(34, 197, 94, 0.35);
         }
 
         .admin-sidebar-brand p {
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .admin-sidebar-nav a.active {
             background: var(--admin-accent);
             color: #0B1220;
-            box-shadow: 0 4px 16px rgba(208, 242, 76, 0.25);
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
         }
 
         .admin-sidebar-nav .sidebar-dropdown a {
@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .admin-sidebar-nav .sidebar-dropdown a.active {
-            background: rgba(208, 242, 76, 0.12);
+            background: rgba(34, 197, 94, 0.12);
             color: var(--admin-accent);
         }
 
@@ -813,7 +813,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         :root {
             --w2-primary: #166534;
             --w2-primary-light: #1B7A3D;
-            --w2-lime: #D0F24C;
+            --w2-lime: #22C55E;
             --w2-ink: #0B1220;
             --w2-cream: #F5F6F8;
             --w2-card: #FFFFFF;
@@ -1061,7 +1061,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .w2-nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
         .w2-nav-badge {
             margin-left: auto;
-            background: #D0F24C;
+            background: #22C55E;
             color: #0B1220;
             font-size: 0.62rem;
             font-weight: 800;
@@ -1098,7 +1098,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .w2-nav-parent.open .w2-nav-chev { transform: rotate(180deg); }
         .w2-nav-subs {
             padding: 4px 0 6px 26px;
-            border-left: 2px solid rgba(208,242,76,0.18);
+            border-left: 2px solid rgba(34,197,94,0.18);
             margin-left: 21px;
         }
         .w2-nav-sub {
@@ -1314,7 +1314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i data-lucide="sparkles" style="width:20px;height:20px;"></i>
                 </a>
                 <div class="admin-profile-badge" style="display:flex;align-items:center;gap:10px;background:#F8FAFC;border:1px solid var(--w2-border);border-radius:999px;padding:5px 14px 5px 6px;">
-                    <div class="admin-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#14532D,#D0F24C);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Inter Tight',sans-serif;font-size:0.9rem;">
+                    <div class="admin-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#14532D,#22C55E);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Inter Tight',sans-serif;font-size:0.9rem;">
                         <?php 
                         $initial = strtoupper(substr($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'A', 0, 1));
                         echo $initial;
