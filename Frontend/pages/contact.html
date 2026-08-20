@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- SEO -->
+    <meta name="description" content="Wangari, smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one platform. Inspired by Prof. Wangari Maathai.">
+    <meta name="theme-color" content="#000B22">
+
+    <title>Contact Us - Wangari</title>
+
+    <!-- Google Fonts: Inter Tight + Instrument Serif (Growvi type system) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="/Frontend/assets/vendor/swiper/swiper-bundle.min.css">
+
+    <!-- Stylesheets (growvi.css loaded last to override legacy) -->
+    <link rel="stylesheet" href="/Frontend/assets/css/style.css">
+    <link rel="stylesheet" href="/Frontend/assets/css/components.css">
+    <link rel="stylesheet" href="/Frontend/assets/css/animations.css">
+    <link rel="stylesheet" href="/Frontend/assets/css/responsive.css">
+    <link rel="stylesheet" href="/Frontend/assets/css/growvi.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- NAVBAR, Growvi ink style                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<nav class="g-nav" id="gNav">
+    <div class="g-nav-inner">
+        <a href="/Frontend/" class="g-logo">
+            <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
+            <span>Wangari<em>.</em></span>
+        </a>
+
+        <ul class="g-nav-links" id="gNavLinks">
+            <li><a class=" active" href="/">Home</a></li>
+            <li><a class="" href="/Frontend/pages/about.html">About</a></li>
+            <li><a class="" href="/Frontend/pages/services.html">Services</a></li>
+            <li><a class="" href="/Frontend/pages/pricing.html">Pricing</a></li>
+            <li><a class="" href="/Frontend/pages/contact.html">Contact</a></li>
+        </ul>
+
+        <div class="g-nav-right">
+                            <a class="g-btn g-btn-outline g-nav-cta" href="/Frontend/pages/login.html">Login</a>
+                <a class="g-btn g-btn-lime g-nav-cta" href="/Frontend/pages/register.html">Get Started</a>
+            
+            <button class="g-hamburger" id="gHamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<script>
+(function () {
+    var nav = document.getElementById('gNav');
+    var links = document.getElementById('gNavLinks');
+    var burger = document.getElementById('gHamburger');
+
+    function onScroll() {
+        if (nav && window.scrollY > 30) { nav.classList.add('scrolled'); }
+        else if (nav) { nav.classList.remove('scrolled'); }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    if (burger && links) {
+        burger.addEventListener('click', function () {
+            burger.classList.toggle('open');
+            links.classList.toggle('open');
+        });
+    }
+})();
+</script>
+
+
+<main class="g-main">
+
+    <section class="g-page-hero">
+        <div class="g-container">
+            <h1>Get In <span class="g-serif">Touch</span></h1>
+            <p>Have questions about our products or want to discuss a bulk order? We're here to help.</p>
+        </div>
+    </section>
+
+    <section class="g-section">
+        <div class="g-container g-stack-mobile" style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 3rem; align-items: start;">
+
+            <!-- Contact information -->
+            <div>
+                <div class="g-section-head" style="margin-bottom: 2rem;">
+                    <span class="g-eyebrow">Contact Info</span>
+                    <h2 style="font-size: 1.9rem;">Reach us <span class="g-serif">anytime</span></h2>
+                </div>
+
+                <div style="display: flex; gap: 1.1rem; margin-bottom: 1.6rem;">
+                    <div style="width: 52px; height: 52px; background: var(--g-lime-soft); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-ink); flex-shrink: 0;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.2rem;">Phone</h4>
+                        <p style="margin-bottom: 0.2rem;"><a href="tel:+254727585599" style="color: var(--g-ink); font-weight: 600; font-size: 1.05rem;">+254 727 585 599</a></p>
+                        <p style="color: var(--g-muted); font-size: 0.9rem; margin: 0;">Mon - Fri, 8:00 AM - 6:00 PM EAT</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1.1rem; margin-bottom: 1.6rem;">
+                    <div style="width: 52px; height: 52px; background: var(--g-lime-soft); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-ink); flex-shrink: 0;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.2rem;">Email</h4>
+                        <p style="margin-bottom: 0.2rem;"><a href="mailto:info@wangari.farm" style="color: var(--g-ink); font-weight: 600; font-size: 1.05rem;">info@wangari.farm</a></p>
+                        <p style="color: var(--g-muted); font-size: 0.9rem; margin: 0;">We aim to respond within 24 hours</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1.1rem; margin-bottom: 1.6rem;">
+                    <div style="width: 52px; height: 52px; background: var(--g-lime-soft); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-ink); flex-shrink: 0;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 0.2rem;">Location</h4>
+                        <p style="color: var(--g-text); font-weight: 600; margin-bottom: 0.2rem;">Busibwabo, Bungoma County</p>
+                        <p style="color: var(--g-muted); font-size: 0.9rem; margin: 0;">Bungoma, Kenya</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem;">Follow Us</h4>
+                    <div style="display: flex; gap: 0.8rem;">
+                        <a href="#" aria-label="Facebook" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">FB</a>
+                        <a href="#" aria-label="X" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">X</a>
+                        <a href="#" aria-label="Instagram" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">IG</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact form -->
+            <div>
+                <div class="g-form-card">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1.6rem;">Send us a message</h3>
+
+                    
+                    <form method="POST" class="g-form">
+                        <div class="g-field">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="g-field">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="g-field">
+                                <label for="phone">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                        </div>
+
+                        <div class="g-field">
+                            <label for="subject">Subject *</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Select a subject</option><option value="General Inquiry">General Inquiry</option><option value="Bulk Order Inquiry">Bulk Order Inquiry</option><option value="Partnership / Wholesale">Partnership / Wholesale</option><option value="Feedback &amp; Support">Feedback &amp; Support</option><option value="Stock Availability">Stock Availability</option>                            </select>
+                        </div>
+
+                        <div class="g-field">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" required></textarea>
+                        </div>
+
+                        <button type="submit" name="contact_submit" value="1" class="g-btn g-btn-lime" style="width: 100%;">
+                            Send Message →
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="g-section g-section-cream" style="padding-top: 2rem;">
+        <div class="g-container">
+            <div class="g-section-head center">
+                <span class="g-eyebrow">Find Us</span>
+                <h2>Visit our <span class="g-serif">farm</span></h2>
+                <p>Open for scheduled visits and pickups.</p>
+            </div>
+            <div style="border-radius: var(--g-radius); overflow: hidden; height: 420px; border: 1px solid var(--g-line);">
+                <iframe
+                    width="100%"
+                    height="100%"
+                    frameborder="0"
+                    style="border:0"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3981.5234567890!2d34.1234567!3d0.4567890!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sWangari%20Farm!5e0!3m2!1sen!2ske!4v1234567890"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- FOOTER, Growvi ink style                       -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <footer class="g-footer">
+        <div class="g-container">
+            <div class="g-footer-top">
+                <!-- Brand -->
+                <div class="g-footer-brand">
+                    <a href="/" class="g-logo">
+                        <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
+                        <span>Wangari<em>.</em></span>
+                    </a>
+                    <p>Smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one place, inspired by Prof. Wangari Maathai.</p>
+                    <p style="margin-top: 1rem; color: rgba(255,255,255,0.8);">
+                        +254 700 000 000<br>
+                        info@wangari.farm                    </p>
+                </div>
+
+                <!-- Menus -->
+                <div>
+                    <h4>Menus</h4>
+                    <ul class="g-footer-links">
+                        <li><a href="/Frontend/pages/about.html">About Us</a></li>
+                        <li><a href="/Frontend/pages/pricing.html">Pricing</a></li>
+                        <li><a href="/Frontend/pages/contact.html">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- CMS Pages -->
+                <div>
+                    <h4>Explore</h4>
+                    <ul class="g-footer-links">
+                        <li><a href="/Frontend/pages/services.html">Services</a></li>
+                        <li><a href="/Frontend/pages/faq.html">FAQ</a></li>
+                        <li><a href="/wangariadmin">System Login</a></li>
+                    </ul>
+                </div>
+
+                <!-- Stay Up To Date -->
+                <div class="g-subscribe">
+                    <h4>Stay Up To Date</h4>
+                    <p>Get the latest farming tips, insights, and updates delivered straight to your inbox.</p>
+                    <form class="g-subscribe-form" id="gSubscribeForm" action="../pages/newsletter.php" method="post">
+                        <input type="email" name="email" placeholder="you@farm.co.ke" required aria-label="Email address">
+                        <button type="submit" aria-label="Subscribe">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="g-footer-bottom">
+                <p>&copy; 2026 Wangari. All rights reserved.</p>
+                <div style="display: flex; gap: 1.5rem;">
+                    <a href="/Frontend/pages/privacy.html">Privacy Policy</a>
+                    <a href="/Frontend/pages/terms.html">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Javascript Files -->
+    <script src="/Frontend/assets/vendor/gsap/gsap.min.js"></script>
+    <script src="/Frontend/assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="/Frontend/assets/vendor/lucide/lucide.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lucide icons (legacy pages)
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // GSAP hero + scroll reveals (kept safe, no ScrollTrigger plugin required)
+            if (typeof gsap !== 'undefined') {
+                const heroContent = document.querySelectorAll('.hero-content > *');
+                if (heroContent.length > 0) {
+                    gsap.fromTo(heroContent,
+                        { opacity: 0, y: 30 },
+                        { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power2.out" }
+                    );
+                }
+
+                const revealObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            gsap.fromTo(entry.target,
+                                { opacity: 0, y: 40 },
+                                { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+                            );
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { rootMargin: '0px 0px -80px 0px', threshold: 0.1 });
+
+                document.querySelectorAll('section:not(:first-of-type)').forEach(section => {
+                    section.style.opacity = '0';
+                    revealObserver.observe(section);
+                });
+            }
+        });
+    </script>
+
+    <script src="/Frontend/assets/js/main.js" defer></script>
+    <script src="/Frontend/assets/js/hero-slider.js" defer></script>
+    <script src="/Frontend/assets/js/professional-animations.js" defer></script>
+    <script src="/Frontend/assets/js/growvi-animations.js" defer></script>
+</body>
+</html>

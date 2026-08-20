@@ -1,0 +1,133 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign In — Wangari</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+</head>
+<body>
+
+<div class="xai-auth">
+    <!-- Brand Side -->
+    <div class="xai-auth-brand">
+        <a href="/" class="xai-nav-brand" style="margin-bottom: 60px;">
+            <img src="/Frontend/images/wangari-logo.png" alt="Wangari" style="height: 48px;">
+            Wangari<span>.</span>
+        </a>
+        <h2>Welcome <span style="font-family: var(--font-serif); font-style: italic;">back</span> to your farm</h2>
+        <p>Track poultry, livestock, crops, feed production, sales and finances — all in one place.</p>
+    </div>
+    
+    <!-- Form Side -->
+    <div class="xai-auth-form">
+        <div class="xai-auth-card">
+            <h1>Sign In</h1>
+            <p>Enter your credentials to access your account.</p>
+            
+                        
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="">
+                
+                <div class="xai-form-group">
+                    <label class="xai-form-label">Username or Email</label>
+                    <input type="text" name="username" class="xai-form-input" required value="" placeholder="you@farm.co.ke">
+                </div>
+                
+                <div class="xai-form-group">
+                    <label class="xai-form-label">Password</label>
+                    <input type="password" name="password" class="xai-form-input" required placeholder="••••••••">
+                </div>
+                
+                <div class="xai-form-row">
+                    <label>
+                        <input type="checkbox" name="remember" style="accent-color: var(--xai-lime);">
+                        Remember me
+                    </label>
+                    <a href="forgot-password.html">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" name="login_submit" value="1" class="xai-btn xai-btn-primary xai-btn-lg" style="width: 100%;">
+                    Sign In
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </form>
+            
+            <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 0.85rem;">
+                <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                <span style="padding: 0 12px;">or</span>
+                <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+            </div>
+            
+            <a href="/Frontend/auth/google/login.php" class="xai-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; text-decoration: none; font-size: 0.95rem; font-weight: 500; padding: 14px; transition: background-color 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4ADE80" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.99 5.99 0 0 1 8 12.5a5.99 5.99 0 0 1 5.99-6.015c1.558 0 2.973.597 4.05 1.576l3.078-3.078A9.97 9.97 0 0 0 13.99 2C8.472 2 4 6.472 4 12s4.472 10 9.99 10c5.305 0 9.774-3.842 10.01-9h-11.76Z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </a>
+            
+            <div class="xai-form-footer">
+                Don't have an account? <a href="register.html">Create Account</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+
+<!-- Footer -->
+<footer class="xai-footer">
+    <div class="xai-container">
+        <div class="xai-footer-inner">
+            <div>
+                <div class="xai-footer-brand">
+                    <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
+                    Wangari<span>.</span>
+                </div>
+                <p class="xai-footer-desc">Smart Farming for a Sustainable Future.</p>
+                <div class="xai-footer-contact">
+                    <a href="mailto:info@imeantech.com" class="xai-footer-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+                        info@imeantech.com
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h4>Product</h4>
+                <ul class="xai-footer-links">
+                    <li><a href="/Frontend/index.php#features">Features</a></li>
+                    <li><a href="/Frontend/pages/pricing.html">Pricing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Legal</h4>
+                <ul class="xai-footer-links">
+                    <li><a href="/Frontend/pages/privacy.html">Privacy</a></li>
+                    <li><a href="/Frontend/pages/terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="xai-footer-bottom">
+            <span>&copy; 2026 Wangari. All rights reserved.</span>
+            <div class="xai-footer-credits">
+                Built by <a href="https://imeantech.com" target="_blank">iMeanTech</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
