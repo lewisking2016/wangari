@@ -480,7 +480,7 @@ function editField(f) {
 
 <?php elseif ($tab === 'plantings'): ?>
 <div class="admin-card">
-    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Crop Plantings</h3>
+    <h3 style="margin:0 0 16px;font-family:'Outfit',sans-serif;font-size:1.1rem;">Crop Plantings <?= helpTip('A record of what crop you planted, where, when, and how much area. Track from planting to harvest.') ?></h3>
     <div class="table-responsive">
         <table class="admin-table">
             <thead><tr><th>Crop</th><th>Variety</th><th>Field</th><th>Planted</th><th>Area (acres)</th><th>Expected Harvest</th><th>Status</th><th>Actions</th></tr></thead>
@@ -661,7 +661,7 @@ function editField(f) {
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Crop Cost Tracking</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Crop Cost Tracking <?= helpTip('Track every shilling spent on a crop: seeds, fertilizer, labor, transport. This tells you if the crop made money.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track costs per planting to calculate cost per acre and profitability.</p>
         </div>
         <button class="btn btn-primary" onclick="openCostModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add Cost</button>
@@ -724,7 +724,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('cost-mod
 <?php elseif ($tab === 'irrigation'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Irrigation Management</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Irrigation <?= helpTip('Record when and how you water your crops. Track water source, amount, and cost to save money on water.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track water usage, methods, and costs.</p></div>
         <button class="btn btn-primary" onclick="openIrrigationModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Irrigation</button>
     </div>
@@ -777,7 +777,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('irrigatio
 <?php elseif ($tab === 'pest_control'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Pest & Disease Management</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Pest & Disease <?= helpTip('Track insects, diseases, and weeds that damage your crops. Record what spray you used and the cost.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Scouting, outbreaks, and treatment records.</p></div>
         <button class="btn btn-primary" onclick="openPestModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Pest/Disease</button>
     </div>
@@ -830,7 +830,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('pest-moda
 <?php elseif ($tab === 'growth'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Growth Monitoring</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Growth Monitoring <?= helpTip('Check how your crops are growing: measure plant height and health. Catches problems early.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track plant height, canopy, and crop stage over time.</p></div>
         <button class="btn btn-primary" onclick="openGrowthModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Growth</button>
     </div>
@@ -881,7 +881,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('growth-mo
 <?php elseif ($tab === 'seed_inventory'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Seed Inventory</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Seed Inventory <?= helpTip('Track all the seeds you have in store. Know when they expire and how many are left.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track seed stocks, expiry dates, and germination rates.</p></div>
         <button class="btn btn-primary" onclick="openSeedModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add Seed</button>
     </div>
@@ -939,7 +939,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('seed-moda
 <?php elseif ($tab === 'post_harvest'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Post-Harvest Handling</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Post-Harvest <?= helpTip('What happens after you pick the crop: drying, grading by size, packaging, and storage.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Drying, grading, storage, and loss tracking.</p></div>
         <button class="btn btn-primary" onclick="openPostHarvestModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Post-Harvest</button>
     </div>
@@ -999,7 +999,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('postharve
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Soil Health Management</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Soil Health <?= helpTip('Test your soil to know what nutrients it needs. Good soil = healthy crops = more money.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track soil tests, amendments, pH levels, and nutrient profiles per field.</p>
         </div>
         <div style="display:flex;gap:8px;">

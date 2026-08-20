@@ -158,7 +158,7 @@ $netCropProfit = $totalCropRevenue - $totalCropCosts;
 
 <div class="admin-page-header">
     <div>
-        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.4rem;">Mixed Farming Dashboard</h1>
+        <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.4rem;">Mixed Farming Dashboard <?= helpTip('See your whole farm in one view: livestock, crops, money, and upcoming tasks.') ?></h1>
         <p style="margin:4px 0 0;font-size:0.9rem;color:#64748B;">Combined overview of livestock and crop operations</p>
     </div>
     <div style="display:flex;gap:8px;">
@@ -223,7 +223,7 @@ $netCropProfit = $totalCropRevenue - $totalCropCosts;
 
 <!-- ═══════ LIVESTOCK OVERVIEW ═══════ -->
 <div class="mf-section">
-    <h3><i data-lucide="paw-print" style="width:20px;height:20px;color:#22C55E;"></i> Livestock Summary</h3>
+    <h3><i data-lucide="paw-print" style="width:20px;height:20px;color:#22C55E;"></i> Livestock Summary <?= helpTip('All your animals counted by type. See how many chickens, cattle, goats, etc. you have.') ?></h3>
     
     <?php if (!empty($livestockSummary) || !empty($groupSummary)): ?>
     <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;">
@@ -282,7 +282,7 @@ $netCropProfit = $totalCropRevenue - $totalCropCosts;
 
 <!-- ═══════ CROP OVERVIEW ═══════ -->
 <div class="mf-section">
-    <h3><i data-lucide="wheat" style="width:20px;height:20px;color:#3B82F6;"></i> Crop Overview</h3>
+    <h3><i data-lucide="wheat" style="width:20px;height:20px;color:#3B82F6;"></i> Crop Overview <?= helpTip('What crops are growing now, where they are, and how much they cost so far.') ?></h3>
     
     <?php if (!empty($activePlantings)): ?>
     <div style="overflow-x:auto;">
@@ -325,7 +325,7 @@ $netCropProfit = $totalCropRevenue - $totalCropCosts;
 
 <!-- ═══════ HOUSING UTILIZATION ═══════ -->
 <div class="mf-section">
-    <h3><i data-lucide="home" style="width:20px;height:20px;color:#8B5CF6;"></i> Housing by Species</h3>
+    <h3><i data-lucide="home" style="width:20px;height:20px;color:#8B5CF6;"></i> Housing by Species <?= helpTip('All buildings and pens on your farm, grouped by which animal lives there.') ?></h3>
     
     <?php if (!empty($housingUtil)): ?>
     <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
@@ -357,7 +357,7 @@ $netCropProfit = $totalCropRevenue - $totalCropCosts;
 
 <!-- ═══════ UPCOMING TASKS ═══════ -->
 <div class="mf-section">
-    <h3><i data-lucide="calendar-check" style="width:20px;height:20px;color:#F59E0B;"></i> Upcoming Tasks</h3>
+    <h3><i data-lucide="calendar-check" style="width:20px;height:20px;color:#F59E0B;"></i> Upcoming Tasks <?= helpTip('Vaccinations due, harvests coming, and health alerts that need your attention.') ?></h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:16px;">
         <div style="background:#FEF3C7;border-radius:12px;padding:16px;border:1px solid #FCD34D;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">

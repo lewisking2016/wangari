@@ -705,7 +705,7 @@ $tabs = [
 <?php elseif ($tab === 'animals'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Registry</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Registry <?= helpTip('A list of every individual animal on your farm. Add animals here with their tag, name, breed, gender, and birth date.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">All individual animals across every species — cows, goats, sheep, pigs, rabbits, and more.</p></div>
         <button class="btn btn-primary" onclick="openAnimalModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Animal</button>
     </div>
@@ -771,7 +771,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('animal-m
 <?php elseif ($tab === 'groups'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Groups</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Groups <?= helpTip('Groups let you manage many animals at once instead of one by one. Example: all your Layer chickens in one group.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Unified flocks, herds and pens — all species in one place.</p></div>
         <button class="btn btn-primary" onclick="openGroupModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Group</button>
     </div>
@@ -837,7 +837,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('group-mo
 <?php elseif ($tab === 'housing'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Housing</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Housing <?= helpTip('Buildings and enclosures where your animals live. Different species need different housing: coops for chickens, barns for cattle, pens for goats.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Houses, pens, bomas, coops — all species in one place.</p></div>
         <button class="btn btn-primary" onclick="openHousingModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Add Housing</button>
     </div>
@@ -899,7 +899,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('housing-
 <?php elseif ($tab === 'health'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Health Records</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Health Records <?= helpTip('Track every time an animal gets sick, receives treatment, or needs medicine. This helps you spot problems early.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Treatments, vaccinations, deworming, checkups — all species.</p></div>
         <button class="btn btn-primary" onclick="openHealthModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Health Record</button>
     </div>
@@ -1007,7 +1007,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('health-m
 <!-- Vaccination Schedule -->
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Vaccination Schedule</h3></div>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Vaccination Schedule <?= helpTip('Planned injections that protect your animals from diseases. Schedule them here and mark them done when given.') ?></h3></div>
         <button class="btn btn-primary" onclick="openVacModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Schedule Vaccine</button>
     </div>
     <div class="table-responsive"><table class="admin-table">
@@ -1076,7 +1076,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('vac-moda
 <?php elseif ($tab === 'production'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Production Log</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Production Log <?= helpTip('Record what your animals produce each day: eggs from chickens, milk from cows, weight gain, etc.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Record eggs, milk, weight, feed and mortality — all species.</p></div>
         <button class="btn btn-primary" onclick="openProdModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Production</button>
     </div>
@@ -1146,7 +1146,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('prod-mod
 <?php elseif ($tab === 'breeding'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Breeding Records</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Breeding Records <?= helpTip('Track when animals mate, become pregnant, and give birth. Helps you plan for new babies on the farm.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Mating events, expected births, and offspring for all species.</p></div>
         <button class="btn btn-primary" onclick="openBreedingModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Record Breeding</button>
     </div>
@@ -1243,7 +1243,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('breeding
 <!-- Feed Log -->
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Feed Log</h3></div>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Daily Feed Log <?= helpTip('Record what and how much you feed your animals each day. This helps you track feed costs and make sure animals eat the right amount.') ?></h3></div>
         <button class="btn btn-primary" onclick="openFeedModal()"><i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Log Feeding</button>
     </div>
     <div class="table-responsive"><table class="admin-table">
@@ -1352,7 +1352,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('feed-mod
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Weight Tracking</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Weight Tracking <?= helpTip('Weigh your animals regularly to make sure they are growing well. If weight drops, something may be wrong.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Record and monitor individual animal or group weights over time.</p>
         </div>
         <button class="btn btn-primary" onclick="openWeightModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Weight</button>
@@ -1413,7 +1413,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('weight-m
 <?php elseif ($tab === 'milking'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Milking Records</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Milking Records <?= helpTip('Track how much milk each cow (or goat) gives every milking session. Helps you see which animals produce the most.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track daily milk production by animal and session.</p></div>
         <button class="btn btn-primary" onclick="openMilkingModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Milking</button>
     </div>
@@ -1477,7 +1477,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('milking-m
 <?php elseif ($tab === 'mortality'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Mortality Records</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Mortality Records <?= helpTip('Record when animals die. Track the cause (disease, predator, accident) so you can prevent it from happening again.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track animal deaths, causes, and disposal.</p></div>
         <button class="btn btn-primary" onclick="openMortalityModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Mortality</button>
     </div>
@@ -1530,7 +1530,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('mortality
 <?php elseif ($tab === 'quarantine'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Quarantine Management</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Quarantine Management <?= helpTip('Isolate sick animals here so they do not infect the healthy ones. Track their treatment and recovery.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Isolate and treat sick animals.</p></div>
         <button class="btn btn-primary" onclick="openQuarantineModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add to Quarantine</button>
     </div>
@@ -1584,7 +1584,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('quarantin
 <?php elseif ($tab === 'ai_records'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Artificial Insemination Records</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">AI & Breeding Records <?= helpTip('Track artificial insemination (AI) and natural breeding. Record which bull was used and whether the animal got pregnant.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track AI services, semen usage, and pregnancy results.</p></div>
         <button class="btn btn-primary" onclick="openAIModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record AI</button>
     </div>
@@ -1638,7 +1638,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('ai-modal'
 <?php elseif ($tab === 'body_condition'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Body Condition Scoring</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Body Condition Scoring <?= helpTip('Score how fat or thin an animal looks (1 to 5). A score of 3 is ideal. Too thin = not enough food. Too fat = health problems.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Monitor animal health through visual body condition assessment (1-5 scale).</p></div>
         <button class="btn btn-primary" onclick="openBCSModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Score</button>
     </div>
@@ -1690,7 +1690,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('bcs-modal
 <?php elseif ($tab === 'transport'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Transport</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Animal Transport <?= helpTip('Record when you move animals from one place to another. Track transporter details, cost, and delivery status.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track animal movements between locations.</p></div>
         <button class="btn btn-primary" onclick="openTransportModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Record Transport</button>
     </div>
@@ -1746,7 +1746,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('transport
 <?php elseif ($tab === 'preventive_care'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Preventive Care Schedule</h3>
+        <div><h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Preventive Care <?= helpTip('Regular treatments to keep animals healthy: deworming every 3 months, hoof trimming, shearing for sheep.') ?></h3>
         <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Deworming, hoof trimming, shearing, and other routine care.</p></div>
     </div>
     <div style="overflow-x:auto;">
@@ -1775,7 +1775,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('transport
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Grazing & Pasture Management</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Grazing & Pasture <?= helpTip('Manage where your animals eat grass. Rotate them between fields so the grass can regrow.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Track pasture rotations, grazing schedules, and pasture health for all livestock.</p>
         </div>
     </div>
@@ -1841,7 +1841,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('transport
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
         <div>
-            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Map Overview</h3>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Farm Map <?= helpTip('See a visual layout of your farm buildings, fields, and animal houses.') ?></h3>
             <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Visual overview of all farm locations — houses, pastures, fields, and infrastructure.</p>
         </div>
     </div>

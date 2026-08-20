@@ -1243,6 +1243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             document.head.appendChild(style);
         }
     </script>
+    <?php include __DIR__ . '/help_tooltips.php'; ?>
 </head>
 <body class="admin-layout">
 <script>
