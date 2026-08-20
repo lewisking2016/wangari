@@ -1,26 +1,4 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "routes": [
-    {
-      "src": "/Frontend/assets/(.*)",
-      "dest": "/Frontend/assets/$1"
-    },
-    {
-      "src": "/Frontend/images/(.*)",
-      "dest": "/Frontend/images/$1"
-    },
-    {
-      "src": "/logo/(.*)",
-      "dest": "/logo/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "outputDirectory": "."
 }
