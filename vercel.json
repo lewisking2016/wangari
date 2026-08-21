@@ -92,6 +92,16 @@
       "source": "/wangariadmin/(.*)",
       "destination": "/Frontend/wangariadmin/index.html",
       "permanent": false
+    },
+    {
+      "source": "/Frontend/pages/support.php",
+      "destination": "/Frontend/pages/support.html",
+      "permanent": true
+    },
+    {
+      "source": "/support",
+      "destination": "/Frontend/pages/support.html",
+      "permanent": false
     }
   ]
 }

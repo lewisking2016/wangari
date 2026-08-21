@@ -71,7 +71,7 @@
                 btn.disabled = true; btn.innerHTML = 'Signing in...';
                 errDiv.style.display = 'none'; okDiv.style.display = 'none';
                 try {
-                    const res = await fetch(API_BASE + '/Backend/api/auth.php', {
+                    const res = await fetch(API_BASE + '/api/auth.php', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({
