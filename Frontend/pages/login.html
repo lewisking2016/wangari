@@ -61,6 +61,10 @@
                 </button>
             </form>
             <script>
+            // If served from Vercel (HTTPS), redirect to VPS for login
+            if (window.location.protocol === 'https:') {
+                window.location.href = 'http://20.164.18.34/Frontend/pages/login.html';
+            }
             const API_BASE = window.location.origin;
                     const ADMIN_BASE = window.location.origin;
             document.getElementById('loginForm').addEventListener('submit', async function(e) {
