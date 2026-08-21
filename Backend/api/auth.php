@@ -73,7 +73,7 @@ try {
             'role' => $user['role'],
             'full_name' => $user['full_name'] ?? $user['username'],
         ],
-        'redirect' => '/Frontend/admin/dashboard.php',
+        'redirect' => 'http://20.164.18.34:8080/Frontend/admin/dashboard.php',
         'session_id' => $session_id,
     ]);
 
