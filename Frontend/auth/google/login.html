@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Signing in with Google... | Wangari</title>
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <meta http-equiv="refresh" content="0;url=http://20.164.18.34/Frontend/auth/google/login.html">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -40,9 +41,9 @@
     <script>
     (function() {
         const CLIENT_ID = '130893240175-4uj4716lrfgl3idul3aadu025l8oin46.apps.googleusercontent.com';
-        // Use the backend VPS callback when running on wangari.imeantech.com
-        // Otherwise fall back to same-origin (local dev)
-        let REDIRECT_URI = window.location.protocol + '//' + window.location.host + '/Frontend/auth/google/callback.php';
+        // Always use VPS for OAuth callback (no SSL yet)
+        const VPS = 'http://20.164.18.34';
+        let REDIRECT_URI = VPS + '/Frontend/auth/google/callback.php';
 
         // Generate a random CSRF state and store in sessionStorage
         const array = new Uint8Array(16);

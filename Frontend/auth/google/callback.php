@@ -130,8 +130,9 @@ try {
         $_SESSION['email']       = $email;
     }
     
-    // Redirect to Admin Dashboard
-    header("Location: /Frontend/admin/dashboard.php");
+    // Redirect to Admin Dashboard (on VPS)
+    $vpsBase = 'http://20.164.18.34';
+    header("Location: {$vpsBase}/Frontend/admin/app.html");
     exit;
     
 } catch (Exception $e) {
