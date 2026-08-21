@@ -9,9 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/platform-admin.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <meta http-equiv="refresh" content="0;url=http://20.164.18.34/wangariadmin/">
 </head>
 <body>
-<script>if(window.location.protocol==='https:')window.location.href='http://20.164.18.34/wangariadmin/';</script>
+<script>
+if(window.location.protocol==='https:'||window.location.hostname==='wangari.imeantech.com'){
+  document.documentElement.innerHTML='<head></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#f8fafc;"><div style="text-align:center"><h2>Redirecting to app...</h2><p>Opening the Wangari app on our server.</p></div></body></html>';
+  window.location.href='http://20.164.18.34/wangariadmin/';
+}
+</script>
 <!-- Login Screen -->
 <div id="login-screen" class="login-screen">
     <div class="login-card">
