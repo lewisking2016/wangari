@@ -32,17 +32,19 @@
             <p>Enter your credentials to access your account.</p>
             
                         
-            <form method="POST">
+            <div id="login-error" style="display:none;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;padding:10px 14px;margin-bottom:16px;font-size:0.85rem;"></div>
+            <div id="login-success" style="display:none;background:#dcfce7;border:1px solid #bbf7d0;border-radius:8px;color:#166534;padding:10px 14px;margin-bottom:16px;font-size:0.85rem;"></div>
+            <form id="loginForm">
                 <input type="hidden" name="csrf_token" value="">
                 
                 <div class="xai-form-group">
                     <label class="xai-form-label">Username or Email</label>
-                    <input type="text" name="username" class="xai-form-input" required value="" placeholder="you@farm.co.ke">
+                    <input type="text" name="username" id="login-username" class="xai-form-input" required value="" placeholder="you@farm.co.ke">
                 </div>
                 
                 <div class="xai-form-group">
                     <label class="xai-form-label">Password</label>
-                    <input type="password" name="password" class="xai-form-input" required placeholder="••••••••">
+                    <input type="password" name="password" id="login-password" class="xai-form-input" required placeholder="••••••••">
                 </div>
                 
                 <div class="xai-form-row">
@@ -53,11 +55,46 @@
                     <a href="forgot-password.html">Forgot Password?</a>
                 </div>
                 
-                <button type="submit" name="login_submit" value="1" class="xai-btn xai-btn-primary xai-btn-lg" style="width: 100%;">
+                <button type="submit" id="login-btn" class="xai-btn xai-btn-primary xai-btn-lg" style="width: 100%;">
                     Sign In
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
             </form>
+            <script>
+            const API_BASE = 'http://20.164.18.34:8080';
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('login-btn');
+                const errDiv = document.getElementById('login-error');
+                const okDiv = document.getElementById('login-success');
+                btn.disabled = true; btn.innerHTML = 'Signing in...';
+                errDiv.style.display = 'none'; okDiv.style.display = 'none';
+                try {
+                    const res = await fetch(API_BASE + '/Backend/api/auth.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            username: document.getElementById('login-username').value,
+                            password: document.getElementById('login-password').value
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        okDiv.textContent = 'Login successful! Redirecting...';
+                        okDiv.style.display = 'block';
+                        window.location.href = API_BASE + data.redirect;
+                    } else {
+                        errDiv.textContent = data.error || 'Login failed';
+                        errDiv.style.display = 'block';
+                        btn.disabled = false; btn.innerHTML = 'Sign In <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+                    }
+                } catch(err) {
+                    errDiv.textContent = 'Cannot connect to server. Please try again.';
+                    errDiv.style.display = 'block';
+                    btn.disabled = false; btn.innerHTML = 'Sign In <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+                }
+            });
+            </script>
             
             <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: rgba(255,255,255,0.4); font-size: 0.85rem;">
                 <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.15);"></span>
