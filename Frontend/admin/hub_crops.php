@@ -23,7 +23,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'overview';
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ΓöÇΓöÇ POST handlers ΓöÇΓöÇ */
+/* ═══ POST handlers ═══ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
@@ -330,7 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-/* ΓöÇΓöÇ Load data ΓöÇΓöÇ */
+/* ═══ Load data ═══ */
 $fields = $plantings = $activities = $harvests = $cropCosts = $irrigationRecs = $pestRecs = $growthRecs = $seedInventory = $postHarvestRecs = [];
 $fieldOptions = [];
 if ($pdo) {
@@ -563,9 +563,9 @@ $tabs = [
             <?php else: foreach ($fields as $f): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($f['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($f['location'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($f['location'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= number_format((float)$f['size_acres'], 1) ?></td>
-                    <td><?= htmlspecialchars($f['soil_type'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($f['soil_type'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill <?= $f['status']==='active' ? 'badge-pill-success' : ($f['status']==='fallow' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= ucfirst($f['status']) ?></span></td>
                     <td><?= (int)$f['planting_count'] ?></td>
                     <td>
@@ -637,15 +637,15 @@ function editField(f) {
             <thead><tr><th>Crop</th><th>Variety</th><th>Field</th><th>Planted</th><th>Area (acres)</th><th>Expected Harvest</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
             <?php if (empty($plantings)): ?>
-                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No plantings yet.</strong><br>Record what you planted and when with <strong>+ New Planting</strong> ΓÇö seed type, field and expected harvest date.</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No plantings yet.</strong><br>Record what you planted and when with <strong>+ New Planting</strong> — seed type, field and expected harvest date.</td></tr>
             <?php else: foreach ($plantings as $p): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($p['crop'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($p['variety'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($p['field_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['variety'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['field_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($p['planting_date'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= number_format((float)$p['area_acres'], 2) ?></td>
-                    <td><?= htmlspecialchars($p['expected_harvest_date'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['expected_harvest_date'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill <?= $p['status']==='growing' ? 'badge-pill-success' : ($p['status']==='harvested' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= ucfirst($p['status']) ?></span></td>
                     <td>
                         <div class="tbl-actions">
@@ -667,7 +667,7 @@ function editField(f) {
             <input type="hidden" name="_action" value="save_planting">
             <div class="admin-form-group"><label class="admin-form-label">Field *</label>
                 <select class="admin-form-control" name="field_id" required>
-                    <option value="">Select fieldΓÇª</option>
+                    <option value="">Select field…</option>
                     <?php foreach ($fieldOptions as $fid => $fname): ?><option value="<?= $fid ?>"><?= htmlspecialchars($fname, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Crop *</label>
@@ -708,11 +708,11 @@ function editField(f) {
             <?php else: foreach ($activities as $a): ?>
                 <tr>
                     <td><?= htmlspecialchars($a['activity_date'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($a['field_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($a['crop'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['field_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['crop'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-success" style="text-transform:capitalize;"><?= htmlspecialchars($a['activity_type'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= $a['cost'] > 0 ? 'KES ' . number_format((float)$a['cost'], 0) : 'ΓÇö' ?></td>
-                    <td><?= htmlspecialchars($a['description'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= $a['cost'] > 0 ? 'KES ' . number_format((float)$a['cost'], 0) : '—' ?></td>
+                    <td><?= htmlspecialchars($a['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -728,8 +728,8 @@ function editField(f) {
             <input type="hidden" name="_action" value="save_activity">
             <div class="admin-form-group"><label class="admin-form-label">Planting *</label>
                 <select class="admin-form-control" name="planting_id" required>
-                    <option value="">Select plantingΓÇª</option>
-                    <?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>" <?= isset($_GET['planting']) && (int)$_GET['planting']===(int)$p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['crop'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($p['field_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?>)</option><?php endforeach; ?>
+                    <option value="">Select planting…</option>
+                    <?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>" <?= isset($_GET['planting']) && (int)$_GET['planting']===(int)$p['id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['crop'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($p['field_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?>)</option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Activity Type *</label>
                 <select class="admin-form-control" name="activity_type" required>
@@ -764,12 +764,12 @@ function editField(f) {
             <?php else: foreach ($harvests as $h): ?>
                 <tr>
                     <td><?= htmlspecialchars($h['harvest_date'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($h['field_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><strong><?= htmlspecialchars($h['crop'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><?= htmlspecialchars($h['field_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><strong><?= htmlspecialchars($h['crop'] ?: '—', ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><?= number_format((float)$h['quantity'], 1) ?> <?= htmlspecialchars($h['unit'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= number_format((float)$h['price_per_unit'], 0) ?></td>
                     <td><strong>KES <?= number_format((float)$h['revenue'], 0) ?></strong></td>
-                    <td><?= htmlspecialchars($h['buyer'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($h['buyer'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -785,8 +785,8 @@ function editField(f) {
             <input type="hidden" name="_action" value="save_harvest">
             <div class="admin-form-group"><label class="admin-form-label">Planting *</label>
                 <select class="admin-form-control" name="planting_id" required>
-                    <option value="">Select plantingΓÇª</option>
-                    <?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($p['field_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?>)</option><?php endforeach; ?>
+                    <option value="">Select planting…</option>
+                    <?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($p['field_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?>)</option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Harvest Date</label>
                 <input class="admin-form-control" type="date" name="harvest_date" value="<?= date('Y-m-d') ?>"></div>
@@ -834,11 +834,11 @@ function editField(f) {
             <?php else: foreach ($cropCosts as $c): ?>
                 <tr>
                     <td><?= htmlspecialchars($c['cost_date'], ENT_QUOTES) ?></td>
-                    <td><strong><?= htmlspecialchars($c['crop'] ?? 'ΓÇö', ENT_QUOTES) ?></strong></td>
-                    <td><?= htmlspecialchars($c['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><strong><?= htmlspecialchars($c['crop'] ?? '—', ENT_QUOTES) ?></strong></td>
+                    <td><?= htmlspecialchars($c['field_name'] ?? '—', ENT_QUOTES) ?></td>
                     <td><span class="badge badge-info"><?= htmlspecialchars($c['cost_type'], ENT_QUOTES) ?></span></td>
                     <td><?= number_format((float)$c['amount'], 0) ?></td>
-                    <td><?= ($c['size_acres'] > 0) ? number_format((float)$c['amount'] / (float)$c['size_acres'], 0) : 'ΓÇö' ?></td>
+                    <td><?= ($c['size_acres'] > 0) ? number_format((float)$c['amount'] / (float)$c['size_acres'], 0) : '—' ?></td>
                     <td><?= htmlspecialchars($c['description'] ?? '', ENT_QUOTES) ?></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -852,7 +852,7 @@ function editField(f) {
         <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Add Crop Cost</h3>
         <form method="POST"><input type="hidden" name="_action" value="save_crop_cost"><input type="hidden" name="id" id="c-id">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting *</label><select class="admin-form-control" name="planting_id" id="c-planting" required><option value="">-- Select Planting --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting *</label><select class="admin-form-control" name="planting_id" id="c-planting" required><option value="">-- Select Planting --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Cost Type *</label><select class="admin-form-control" name="cost_type" id="c-type" required><option value="Seeds">Seeds</option><option value="Fertilizer">Fertilizer</option><option value="Pesticide">Pesticide</option><option value="Labor">Labor</option><option value="Irrigation">Irrigation</option><option value="Transport">Transport</option><option value="Equipment">Equipment</option><option value="Other">Other</option></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Amount (KES) *</label><input class="admin-form-control" type="number" step="0.01" min="0" name="amount" id="c-amount" required placeholder="0"></div>
             <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="cost_date" id="c-date" value="<?= date('Y-m-d') ?>" required></div>
@@ -888,9 +888,9 @@ document.addEventListener('click',e=>{ const m=document.getElementById('cost-mod
             <?php else: foreach ($irrigationRecs as $ir): ?>
                 <tr>
                     <td><?= htmlspecialchars($ir['irrigation_date'], ENT_QUOTES) ?></td>
-                    <td><?= htmlspecialchars($ir['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($ir['field_name'] ?? '—', ENT_QUOTES) ?></td>
                     <td><span class="badge badge-info"><?= ucfirst($ir['method']) ?></span></td>
-                    <td><?= $ir['duration_minutes'] ? $ir['duration_minutes'].' min' : 'ΓÇö' ?></td>
+                    <td><?= $ir['duration_minutes'] ? $ir['duration_minutes'].' min' : '—' ?></td>
                     <td><?= number_format((float)$ir['water_volume_litres'], 0) ?></td>
                     <td><?= ucfirst($ir['water_source']) ?></td>
                     <td>KES <?= number_format((float)$ir['cost'], 0) ?></td>
@@ -941,11 +941,11 @@ document.addEventListener('click',e=>{const m=document.getElementById('irrigatio
             <?php else: foreach ($pestRecs as $p): ?>
                 <tr>
                     <td><?= htmlspecialchars($p['record_date'], ENT_QUOTES) ?></td>
-                    <td><?= htmlspecialchars($p['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?></td>
                     <td><span class="badge badge-info"><?= ucfirst(str_replace('_',' ',$p['record_type'])) ?></span></td>
                     <td><strong><?= htmlspecialchars($p['pest_or_disease'], ENT_QUOTES) ?></strong></td>
                     <td><span class="badge badge-<?= $p['severity']==='critical'||$p['severity']==='high' ? 'danger' : ($p['severity']==='medium' ? 'warning' : 'success') ?>"><?= ucfirst($p['severity']) ?></span></td>
-                    <td><?= htmlspecialchars($p['product_used'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($p['product_used'] ?? '—', ENT_QUOTES) ?></td>
                     <td>KES <?= number_format((float)$p['cost'], 0) ?></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -994,11 +994,11 @@ document.addEventListener('click',e=>{const m=document.getElementById('pest-moda
             <?php else: foreach ($growthRecs as $g): ?>
                 <tr>
                     <td><?= htmlspecialchars($g['monitoring_date'], ENT_QUOTES) ?></td>
-                    <td><strong><?= htmlspecialchars($g['crop'] ?? 'ΓÇö', ENT_QUOTES) ?></strong></td>
-                    <td><?= htmlspecialchars($g['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
-                    <td><?= $g['plant_height_cm'] ? number_format((float)$g['plant_height_cm'], 1).' cm' : 'ΓÇö' ?></td>
-                    <td><?= $g['canopy_width_cm'] ? number_format((float)$g['canopy_width_cm'], 1).' cm' : 'ΓÇö' ?></td>
-                    <td><?= htmlspecialchars($g['crop_stage'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><strong><?= htmlspecialchars($g['crop'] ?? '—', ENT_QUOTES) ?></strong></td>
+                    <td><?= htmlspecialchars($g['field_name'] ?? '—', ENT_QUOTES) ?></td>
+                    <td><?= $g['plant_height_cm'] ? number_format((float)$g['plant_height_cm'], 1).' cm' : '—' ?></td>
+                    <td><?= $g['canopy_width_cm'] ? number_format((float)$g['canopy_width_cm'], 1).' cm' : '—' ?></td>
+                    <td><?= htmlspecialchars($g['crop_stage'] ?? '—', ENT_QUOTES) ?></td>
                     <td><span class="badge badge-<?= $g['health_rating']==='excellent'||$g['health_rating']==='good' ? 'success' : ($g['health_rating']==='fair' ? 'warning' : 'danger') ?>"><?= ucfirst($g['health_rating']) ?></span></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -1011,7 +1011,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('pest-moda
         <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Growth Data</h3>
         <form method="POST"><input type="hidden" name="_action" value="save_growth">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting *</label><select class="admin-form-control" name="planting_id" required><option value="">-- Select --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting *</label><select class="admin-form-control" name="planting_id" required><option value="">-- Select --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="monitoring_date" value="<?= date('Y-m-d') ?>" required></div>
             <div class="admin-form-group"><label class="admin-form-label">Health Rating</label><select class="admin-form-control" name="health_rating"><option value="excellent">Excellent</option><option value="good" selected>Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="critical">Critical</option></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Plant Height (cm)</label><input class="admin-form-control" type="number" step="0.1" name="plant_height_cm"></div>
@@ -1045,13 +1045,13 @@ document.addEventListener('click',e=>{const m=document.getElementById('growth-mo
             <?php else: foreach ($seedInventory as $s): ?>
                 <tr style="<?= ($s['expiry_date'] && $s['expiry_date'] <= date('Y-m-d')) ? 'background:#FEE2E2;' : '' ?>">
                     <td><strong><?= htmlspecialchars($s['seed_name'], ENT_QUOTES) ?></strong></td>
-                    <td><?= htmlspecialchars($s['variety'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($s['variety'] ?? '—', ENT_QUOTES) ?></td>
                     <td><?= htmlspecialchars($s['crop_type'], ENT_QUOTES) ?></td>
                     <td><?= number_format((float)$s['quantity_kg'], 1) ?></td>
                     <td>KES <?= number_format((float)$s['unit_cost'], 0) ?></td>
-                    <td><?= htmlspecialchars($s['lot_number'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
-                    <td style="<?= ($s['expiry_date'] && $s['expiry_date'] <= date('Y-m-d')) ? 'color:#EF4444;font-weight:700;' : '' ?>"><?= $s['expiry_date'] ? htmlspecialchars($s['expiry_date'], ENT_QUOTES) : 'ΓÇö' ?></td>
-                    <td><?= $s['germination_rate'] ? $s['germination_rate'].'%' : 'ΓÇö' ?></td>
+                    <td><?= htmlspecialchars($s['lot_number'] ?? '—', ENT_QUOTES) ?></td>
+                    <td style="<?= ($s['expiry_date'] && $s['expiry_date'] <= date('Y-m-d')) ? 'color:#EF4444;font-weight:700;' : '' ?>"><?= $s['expiry_date'] ? htmlspecialchars($s['expiry_date'], ENT_QUOTES) : '—' ?></td>
+                    <td><?= $s['germination_rate'] ? $s['germination_rate'].'%' : '—' ?></td>
                     <td><span class="badge badge-<?= $s['status']==='active' ? 'success' : 'danger' ?>"><?= ucfirst($s['status']) ?></span></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -1103,14 +1103,14 @@ document.addEventListener('click',e=>{const m=document.getElementById('seed-moda
             <?php else: foreach ($postHarvestRecs as $ph): ?>
                 <tr>
                     <td><?= htmlspecialchars($ph['record_date'], ENT_QUOTES) ?></td>
-                    <td><strong><?= htmlspecialchars($ph['crop'] ?? 'ΓÇö', ENT_QUOTES) ?></strong></td>
+                    <td><strong><?= htmlspecialchars($ph['crop'] ?? '—', ENT_QUOTES) ?></strong></td>
                     <td><?= number_format((float)$ph['quantity'], 1) ?> <?= htmlspecialchars($ph['unit'], ENT_QUOTES) ?></td>
-                    <td><?= $ph['moisture_pct'] ? $ph['moisture_pct'].'%' : 'ΓÇö' ?></td>
+                    <td><?= $ph['moisture_pct'] ? $ph['moisture_pct'].'%' : '—' ?></td>
                     <td><?= number_format((float)$ph['grade_a_qty'], 1) ?></td>
                     <td><?= number_format((float)$ph['grade_b_qty'], 1) ?></td>
                     <td style="<?= $ph['rejected_qty'] > 0 ? 'color:#EF4444;' : '' ?>"><?= number_format((float)$ph['rejected_qty'], 1) ?></td>
                     <td style="<?= $ph['loss_qty'] > 0 ? 'color:#EF4444;' : '' ?>"><?= number_format((float)$ph['loss_qty'], 1) ?></td>
-                    <td><?= htmlspecialchars($ph['storage_location'] ?? 'ΓÇö', ENT_QUOTES) ?></td>
+                    <td><?= htmlspecialchars($ph['storage_location'] ?? '—', ENT_QUOTES) ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -1122,7 +1122,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('seed-moda
         <h3 style="margin:0 0 22px;font-family:'Outfit',sans-serif;">Record Post-Harvest</h3>
         <form method="POST"><input type="hidden" name="_action" value="save_post_harvest">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting</label><select class="admin-form-control" name="planting_id"><option value="">-- Select --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? 'ΓÇö', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
+            <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Planting</label><select class="admin-form-control" name="planting_id"><option value="">-- Select --</option><?php foreach ($plantings as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['crop'], ENT_QUOTES) ?> (<?= htmlspecialchars($p['field_name'] ?? '—', ENT_QUOTES) ?>)</option><?php endforeach; ?></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Crop *</label><input class="admin-form-control" name="crop" required placeholder="e.g. Maize"></div>
             <div class="admin-form-group"><label class="admin-form-label">Date *</label><input class="admin-form-control" type="date" name="record_date" value="<?= date('Y-m-d') ?>" required></div>
             <div class="admin-form-group"><label class="admin-form-label">Quantity *</label><input class="admin-form-control" type="number" step="0.1" name="quantity" required></div>
@@ -1161,7 +1161,7 @@ document.addEventListener('click',e=>{const m=document.getElementById('postharve
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;">
         <div class="stat-card" style="min-width:0;"><div class="stat-card-icon"><i data-lucide="flask-conical"></i></div><div class="stat-card-info"><strong><?= count($soilTests ?? []) ?></strong><small>Soil Tests</small></div></div>
         <div class="stat-card" style="min-width:0;"><div class="stat-card-icon accent"><i data-lucide="droplets"></i></div><div class="stat-card-info"><strong><?= count($soilAmendments ?? []) ?></strong><small>Amendments</small></div></div>
-        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon info"><i data-lucide="test-tube"></i></div><div class="stat-card-info"><strong><?= (!empty($soilTests) && isset($soilTests[0]['ph_level'])) ? number_format((float)$soilTests[0]['ph_level'], 1) : 'ΓÇö' ?></strong><small>Latest pH</small></div></div>
+        <div class="stat-card" style="min-width:0;"><div class="stat-card-icon info"><i data-lucide="test-tube"></i></div><div class="stat-card-info"><strong><?= (!empty($soilTests) && isset($soilTests[0]['ph_level'])) ? number_format((float)$soilTests[0]['ph_level'], 1) : '—' ?></strong><small>Latest pH</small></div></div>
     </div>
     <h4 style="margin:0 0 12px;font-size:0.95rem;">Soil Test Results</h4>
     <div class="table-responsive" style="margin-bottom:24px;">
@@ -1174,12 +1174,12 @@ document.addEventListener('click',e=>{const m=document.getElementById('postharve
                 <tr>
                     <td><?= $st['test_date'] ?></td>
                     <td><strong><?= htmlspecialchars($st['field_name'] ?? 'All Fields', ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?php $ph = (float)($st['ph_level'] ?? 0); $pc = ($ph >= 6.0 && $ph <= 7.5) ? '#16a34a' : '#d97706'; ?><span style="font-weight:700;color:<?= $pc ?>;"><?= $ph > 0 ? number_format($ph, 1) : 'ΓÇö' ?></span></td>
-                    <td><?= $st['nitrogen_ppm'] ? number_format((float)$st['nitrogen_ppm'], 1) : 'ΓÇö' ?></td>
-                    <td><?= $st['phosphorus_ppm'] ? number_format((float)$st['phosphorus_ppm'], 1) : 'ΓÇö' ?></td>
-                    <td><?= $st['potassium_ppm'] ? number_format((float)$st['potassium_ppm'], 1) : 'ΓÇö' ?></td>
-                    <td><?= $st['organic_matter_pct'] ? number_format((float)$st['organic_matter_pct'], 1).'%' : 'ΓÇö' ?></td>
-                    <td><?= htmlspecialchars($st['texture'] ?? 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?php $ph = (float)($st['ph_level'] ?? 0); $pc = ($ph >= 6.0 && $ph <= 7.5) ? '#16a34a' : '#d97706'; ?><span style="font-weight:700;color:<?= $pc ?>;"><?= $ph > 0 ? number_format($ph, 1) : '—' ?></span></td>
+                    <td><?= $st['nitrogen_ppm'] ? number_format((float)$st['nitrogen_ppm'], 1) : '—' ?></td>
+                    <td><?= $st['phosphorus_ppm'] ? number_format((float)$st['phosphorus_ppm'], 1) : '—' ?></td>
+                    <td><?= $st['potassium_ppm'] ? number_format((float)$st['potassium_ppm'], 1) : '—' ?></td>
+                    <td><?= $st['organic_matter_pct'] ? number_format((float)$st['organic_matter_pct'], 1).'%' : '—' ?></td>
+                    <td><?= htmlspecialchars($st['texture'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -1197,9 +1197,9 @@ document.addEventListener('click',e=>{const m=document.getElementById('postharve
                     <td><?= $sa['amendment_date'] ?></td>
                     <td><strong><?= htmlspecialchars($sa['field_name'] ?? 'All Fields', ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><span class="badge-pill badge-pill-success"><?= htmlspecialchars($sa['amendment_type'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= htmlspecialchars($sa['product_name'] ?? 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= $sa['quantity_kg'] ? number_format((float)$sa['quantity_kg'], 1) : 'ΓÇö' ?></td>
-                    <td><?= $sa['cost'] > 0 ? 'KES '.number_format((float)$sa['cost'], 2) : 'ΓÇö' ?></td>
+                    <td><?= htmlspecialchars($sa['product_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= $sa['quantity_kg'] ? number_format((float)$sa['quantity_kg'], 1) : '—' ?></td>
+                    <td><?= $sa['cost'] > 0 ? 'KES '.number_format((float)$sa['cost'], 2) : '—' ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>

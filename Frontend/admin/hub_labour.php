@@ -23,7 +23,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'workers';
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ΓöÇΓöÇ POST handlers ΓöÇΓöÇ */
+/* ═══ POST handlers ═══ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-/* ΓöÇΓöÇ Load data ΓöÇΓöÇ */
+/* ═══ Load data ═══ */
 $workers = $attendance = $payments = [];
 $workerOptions = [];
 if ($pdo) {
@@ -155,8 +155,8 @@ $tabs = [
             <?php else: foreach ($workers as $w): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($w['name'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($w['phone'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($w['role'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($w['phone'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($w['role'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span style="text-transform:capitalize;"><?= htmlspecialchars($w['wage_type'], ENT_QUOTES, 'UTF-8') ?></span> ┬╖ KES <?= number_format((float)$w['wage_rate'], 0) ?></td>
                     <td><span class="badge-pill <?= $w['status']==='active' ? 'badge-pill-success' : 'badge-pill-danger' ?>"><?= ucfirst($w['status']) ?></span></td>
                     <td>
@@ -223,15 +223,15 @@ function editWorker(w) {
             <thead><tr><th>Date</th><th>Worker</th><th>Hours</th><th>Task</th><th>Location</th><th>Notes</th></tr></thead>
             <tbody>
             <?php if (empty($attendance)): ?>
-                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No attendance yet.</strong><br>Record who worked, hours and task with <strong>+ Record Attendance</strong> ΓÇö wages calculate automatically from rates.</td></tr>
+                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;"><strong>No attendance yet.</strong><br>Record who worked, hours and task with <strong>+ Record Attendance</strong> — wages calculate automatically from rates.</td></tr>
             <?php else: foreach ($attendance as $a): ?>
                 <tr>
                     <td><?= htmlspecialchars($a['work_date'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><strong><?= htmlspecialchars($a['worker_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><strong><?= htmlspecialchars($a['worker_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><?= number_format((float)$a['hours_worked'], 1) ?></td>
-                    <td><?= htmlspecialchars($a['task'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($a['location'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($a['notes'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['task'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['location'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['notes'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -246,7 +246,7 @@ function editWorker(w) {
             <input type="hidden" name="_action" value="save_attendance">
             <div class="admin-form-group"><label class="admin-form-label">Worker *</label>
                 <select class="admin-form-control" name="worker_id" required>
-                    <option value="">Select workerΓÇª</option>
+                    <option value="">Select worker…</option>
                     <?php foreach ($workerOptions as $wid => $wname): ?><option value="<?= $wid ?>"><?= htmlspecialchars($wname, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Date</label>
@@ -282,11 +282,11 @@ function editWorker(w) {
             <?php else: foreach ($payments as $p): ?>
                 <tr>
                     <td><?= htmlspecialchars(substr($p['paid_at'], 0, 10), ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><strong><?= htmlspecialchars($p['worker_name'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><strong><?= htmlspecialchars($p['worker_name'] ?: '—', ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><strong>KES <?= number_format((float)$p['amount'], 0) ?></strong></td>
-                    <td><?= htmlspecialchars($p['period_start'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?><?= $p['period_end'] ? ' ΓåÆ ' . htmlspecialchars($p['period_end'], ENT_QUOTES, 'UTF-8') : '' ?></td>
+                    <td><?= htmlspecialchars($p['period_start'] ?: '—', ENT_QUOTES, 'UTF-8') ?><?= $p['period_end'] ? ' ΓåÆ ' . htmlspecialchars($p['period_end'], ENT_QUOTES, 'UTF-8') : '' ?></td>
                     <td><span class="badge-pill badge-pill-warning" style="text-transform:capitalize;"><?= htmlspecialchars($p['method'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= htmlspecialchars($p['notes'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($p['notes'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -301,7 +301,7 @@ function editWorker(w) {
             <input type="hidden" name="_action" value="save_payment">
             <div class="admin-form-group"><label class="admin-form-label">Worker *</label>
                 <select class="admin-form-control" name="worker_id" required>
-                    <option value="">Select workerΓÇª</option>
+                    <option value="">Select worker…</option>
                     <?php foreach ($workerOptions as $wid => $wname): ?><option value="<?= $wid ?>"><?= htmlspecialchars($wname, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                 </select></div>
             <div class="admin-form-group"><label class="admin-form-label">Amount (KES) *</label>

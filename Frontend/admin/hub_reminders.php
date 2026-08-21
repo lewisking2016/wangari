@@ -23,7 +23,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'reminders';
 $pdo = getDB();
 $message = ''; $error_message = '';
 
-/* ΓöÇΓöÇ POST handlers ΓöÇΓöÇ */
+/* ═══ POST handlers ═══ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-/* ΓöÇΓöÇ Load data ΓöÇΓöÇ */
+/* ═══ Load data ═══ */
 $reminders = $alerts = [];
 $upcoming = [];
 if ($pdo) {
@@ -165,7 +165,7 @@ $tabs = [
                 <tr>
                     <td><strong><?= htmlspecialchars(date('M j, Y H:i', strtotime($r['remind_at'])), ENT_QUOTES, 'UTF-8') ?></strong><?= $isPast ? ' <span class="badge-pill badge-pill-danger">Now</span>' : '' ?></td>
                     <td><?= htmlspecialchars($r['title'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($r['description'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($r['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning" style="text-transform:capitalize;"><?= htmlspecialchars($r['channel'], ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><span class="badge-pill <?= $r['status']==='done' ? 'badge-pill-success' : ($r['status']==='dismissed' ? 'badge-pill-danger' : 'badge-pill-warning') ?>"><?= ucfirst($r['status']) ?></span></td>
                     <td>
@@ -175,7 +175,7 @@ $tabs = [
                             <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                             <button class="btn btn-outline btn-sm"><i data-lucide="check" style="width:13px;height:13px;"></i> Dismiss</button>
                         </form>
-                        <?php else: ?><span style="color:#94a3b8;">ΓÇö</span><?php endif; ?>
+                        <?php else: ?><span style="color:#94a3b8;">—</span><?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -226,7 +226,7 @@ $tabs = [
                     <td><?= htmlspecialchars($a['alert_date'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning" style="text-transform:capitalize;"><?= htmlspecialchars($a['alert_type'], ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><strong><?= htmlspecialchars($a['title'], ENT_QUOTES, 'UTF-8') ?></strong></td>
-                    <td><?= htmlspecialchars($a['description'] ?: 'ΓÇö', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($a['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill <?= $a['status']==='active' ? 'badge-pill-danger' : 'badge-pill-success' ?>"><?= ucfirst($a['status']) ?></span></td>
                     <td>
                         <?php if ($a['status'] === 'active'): ?>
@@ -235,7 +235,7 @@ $tabs = [
                             <input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
                             <button class="btn btn-success btn-sm"><i data-lucide="check" style="width:13px;height:13px;"></i> Resolve</button>
                         </form>
-                        <?php else: ?><span style="color:#94a3b8;">ΓÇö</span><?php endif; ?>
+                        <?php else: ?><span style="color:#94a3b8;">—</span><?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
