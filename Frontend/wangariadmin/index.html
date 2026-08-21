@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wangari Platform Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/assets/css/platform-admin.css">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+</head>
+<body>
+<!-- Login Screen -->
+<div id="login-screen" class="login-screen">
+    <div class="login-card">
+        <img src="/Frontend/images/wangari-logo.png" alt="Wangari" style="height:48px;margin-bottom:24px;">
+        <h1>Platform Admin</h1>
+        <p style="color:#64748b;margin-bottom:24px;">Manage your platform, users & subscriptions</p>
+        <div id="login-error" style="display:none;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;padding:10px;margin-bottom:16px;font-size:0.85rem;"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="login-user" class="form-input" required placeholder="admin">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-pass" class="form-input" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Sign In</button>
+        </form>
+    </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-panel" class="admin-panel" style="display:none;">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/Frontend/images/wangari-logo.png" alt="W" style="height:28px;">
+            <span>Wangari Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" onclick="load('dashboard')" class="active" data-mod="dashboard">📊 Dashboard</a>
+            <a href="#" onclick="load('users')" data-mod="users">👥 Users</a>
+            <a href="#" onclick="load('codes')" data-mod="codes">🔑 Codes</a>
+            <a href="#" onclick="load('subscriptions')" data-mod="subscriptions">💳 Subscriptions</a>
+            <a href="#" onclick="load('revenue')" data-mod="revenue">💰 Revenue</a>
+            <a href="#" onclick="load('tickets')" data-mod="tickets">🎫 Tickets</a>
+            <a href="#" onclick="load('emergency')" data-mod="emergency">🚨 Emergency</a>
+            <a href="#" onclick="load('activity')" data-mod="activity">📋 Activity Log</a>
+            <a href="#" onclick="load('settings')" data-mod="settings">⚙️ Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/" class="sl">← Public Site</a>
+            <a href="#" onclick="logout()" class="sl" style="color:#ef4444;">Logout</a>
+        </div>
+    </aside>
+    <main class="main">
+        <header class="topbar">
+            <h1 id="pageTitle">Dashboard</h1>
+            <span id="adminName" style="color:#64748b;font-size:0.85rem;"></span>
+        </header>
+        <div id="content" class="content"></div>
+    </main>
+</div>
+
+<!-- Modals -->
+<div id="modal-overlay" class="modal-overlay" style="display:none;" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 id="modalTitle">Modal</h3>
+            <button onclick="closeModal()" class="btn-close">&times;</button>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+    </div>
+</div>
+
+<script>
+const API = 'http://20.164.18.34/api/platform.php';
+let currentMod = 'dashboard';
+let adminUser = null;
+
+async function api(mod, action='get', params={}, body=null) {
+    const u = new URL(API);
+    u.searchParams.set('module', mod);
+    u.searchParams.set('action', action);
+    Object.entries(params).forEach(([k,v]) => { if(v!==undefined && v!==null && v!=='') u.searchParams.set(k,v); });
+    const opts = body ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)} : {};
+    const r = await fetch(u, opts);
+    return r.json();
+}
+
+function load(mod) {
+    currentMod = mod;
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    document.querySelector(`[data-mod="${mod}"]`)?.classList.add('active');
+    document.getElementById('pageTitle').textContent = mod.charAt(0).toUpperCase()+mod.slice(1);
+    const fn = window['render_'+mod];
+    if(fn) fn(); else document.getElementById('content').innerHTML = '<p>Coming soon...</p>';
+}
+
+function logout() { localStorage.removeItem('platform_admin'); location.reload(); }
+
+function openModal(title, html) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = html;
+    document.getElementById('modal-overlay').style.display = 'flex';
+}
+function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+function toast(msg, type='success') {
+    const t = document.createElement('div');
+    t.className = 'toast toast-'+type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// ════ LOGIN ════
+document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errDiv = document.getElementById('login-error');
+    errDiv.style.display = 'none';
+    try {
+        const d = await api('auth','login',{},{username:document.getElementById('login-user').value,password:document.getElementById('login-pass').value});
+        if(d.success) {
+            adminUser = d.user;
+            localStorage.setItem('platform_admin', JSON.stringify(d.user));
+            init();
+        } else {
+            errDiv.textContent = d.error||'Login failed';
+            errDiv.style.display = 'block';
+        }
+    } catch(err) {
+        errDiv.textContent = 'Connection failed';
+        errDiv.style.display = 'block';
+    }
+});
+
+function init() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'flex';
+    document.getElementById('adminName').textContent = adminUser.full_name||adminUser.username;
+    load('dashboard');
+}
+
+// ════ DASHBOARD ════
+async function render_dashboard() {
+    const d = await api('dashboard');
+    document.getElementById('content').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card accent"><div class="stat-label">Total Users</div><div class="stat-value">${d.total_users}</div></div>
+            <div class="stat-card green"><div class="stat-label">Active Subscriptions</div><div class="stat-value">${d.active_users}</div></div>
+            <div class="stat-card info"><div class="stat-label">Trial Users</div><div class="stat-value">${d.trial_users}</div></div>
+            <div class="stat-card warning"><div class="stat-label">Expired</div><div class="stat-value">${d.expired_users}</div></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(d.total_revenue).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value">KES ${Number(d.month_revenue).toLocaleString()}</div></div>
+            <div class="stat-card info"><div class="stat-label">Available Codes</div><div class="stat-value">${d.unused_codes}</div></div>
+            <div class="stat-card ${d.critical_tickets?'warning':''}"><div class="stat-label">Open Tickets</div><div class="stat-value">${d.open_tickets}${d.critical_tickets?' ('+d.critical_tickets+' critical)':''}</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="card"><div class="card-header"><h3>Recent Users</h3></div>
+                <table class="table"><thead><tr><th>User</th><th>Status</th><th>Joined</th></tr></thead><tbody>
+                ${d.recent_users.map(u=>`<tr><td>${u.full_name||u.username}<br><small style="color:#64748b">${u.email}</small></td><td><span class="badge badge-${u.subscription_status}">${u.subscription_status}</span></td><td>${u.created_at?.split(' ')[0]||''}</td></tr>`).join('')}
+                </tbody></table></div>
+            <div class="card"><div class="card-header"><h3>Recent Tickets</h3></div>
+                <table class="table"><thead><tr><th>Code</th><th>Subject</th><th>Priority</th><th>Status</th></tr></thead><tbody>
+                ${d.recent_tickets.map(t=>`<tr><td>${t.ticket_code}</td><td>${t.subject}</td><td><span class="badge badge-${t.priority}">${t.priority}</span></td><td><span class="badge badge-${t.status}">${t.status}</span></td></tr>`).join('')}
+                </tbody></table></div>
+        </div>
+        ${d.revenue_by_month.length?`<div class="card"><div class="card-header"><h3>Revenue by Month</h3></div>
+            <table class="table"><thead><tr><th>Month</th><th>Revenue</th><th>Transactions</th></tr></thead><tbody>
+            ${d.revenue_by_month.map(r=>`<tr><td>${r.month}</td><td>KES ${Number(r.total).toLocaleString()}</td><td>${r.count}</td></tr>`).join('')}
+            </tbody></table></div>`:''}`;
+}
+
+// ════ USERS ════
+async function render_users() {
+    const d = await api('users','list');
+    document.getElementById('content').innerHTML = `
+        <div class="card-header" style="margin-bottom:16px;">
+            <div style="display:flex;gap:8px;">
+                <select id="userFilter" class="form-select" onchange="filterUsers()">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="trial">Trial</option>
+                    <option value="expired">Expired</option>
+                    <option value="free">Free</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+                <input type="text" id="userSearch" class="form-input" placeholder="Search..." onkeyup="filterUsers()" style="width:200px;">
+            </div>
+            <button onclick="showCreateUser()" class="btn btn-primary">+ Add User</button>
+        </div>
+        <div class="card"><div class="table-responsive"><table class="table" id="usersTable">
+            <thead><tr><th>User</th><th>Farm</th><th>County</th><th>Status</th><th>Expires</th><th>Last Login</th><th>Actions</th></tr></thead>
+            <tbody>${d.map(u=>`<tr data-status="${u.subscription_status}" data-search="${(u.username+u.email+u.full_name+u.farm_name).toLowerCase()}">
+                <td><strong>${u.full_name||u.username}</strong><br><small style="color:#64748b">${u.email}</small></td>
+                <td>${u.farm_name||'-'}<br><small>${u.farm_type||''}</small></td>
+                <td>${u.county||'-'}</td>
+                <td><span class="badge badge-${u.subscription_status}">${u.subscription_status}</span></td>
+                <td>${u.subscription_expires||'-'}</td>
+                <td><small>${u.last_login?.split(' ')[0]||'Never'}<br>${u.total_login_count} logins</small></td>
+                <td style="white-space:nowrap;">
+                    <button onclick="editUser(${u.id})" class="btn-sm btn-outline">Edit</button>
+                    ${u.is_active?`<button onclick="deactivateUser(${u.id})" class="btn-sm btn-danger">Suspend</button>`:`<button onclick="activateUser(${u.id})" class="btn-sm btn-success">Activate</button>`}
+                    <button onclick="resetPassword(${u.id})" class="btn-sm btn-outline">Reset Pass</button>
+                </td>
+            </tr>`).join('')}
+            </tbody></table></div></div>`;
+}
+function filterUsers() {
+    const status = document.getElementById('userFilter').value;
+    const search = document.getElementById('userSearch').value.toLowerCase();
+    document.querySelectorAll('#usersTable tbody tr').forEach(r => {
+        const s = r.dataset.status;
+        const q = r.dataset.search;
+        r.style.display = (!status||s===status) && (!search||q.includes(search)) ? '' : 'none';
+    });
+}
+
+function showCreateUser() {
+    openModal('Create New User', `
+        <form onsubmit="createUser(event)">
+            <div class="form-row"><div class="form-group"><label>Username *</label><input id="cu-user" class="form-input" required></div>
+            <div class="form-group"><label>Email *</label><input id="cu-email" class="form-input" type="email" required></div></div>
+            <div class="form-row"><div class="form-group"><label>Full Name</label><input id="cu-name" class="form-input"></div>
+            <div class="form-group"><label>Phone</label><input id="cu-phone" class="form-input"></div></div>
+            <div class="form-row"><div class="form-group"><label>Farm Name</label><input id="cu-farm" class="form-input"></div>
+            <div class="form-group"><label>Farm Type</label><select id="cu-type" class="form-select"><option>Poultry</option><option>Dairy</option><option>Crop</option><option>Livestock</option><option>Mixed</option><option>Other</option></select></div></div>
+            <div class="form-group"><label>County</label><input id="cu-county" class="form-input"></div>
+            <div class="form-row"><div class="form-group"><label>Max Animals</label><input id="cu-animals" class="form-input" type="number" value="100"></div>
+            <div class="form-group"><label>Max Fields</label><input id="cu-fields" class="form-input" type="number" value="10"></div>
+            <div class="form-group"><label>Max Users</label><input id="cu-users" class="form-input" type="number" value="3"></div></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Create User</button>
+        </form>`);
+}
+async function createUser(e) {
+    e.preventDefault();
+    await api('users','create',{},{username:v('cu-user'),email:v('cu-email'),password:'changeme',full_name:v('cu-name'),phone:v('cu-phone'),farm_name:v('cu-farm'),farm_type:v('cu-type'),county:v('cu-county'),max_animals:v('cu-animals'),max_fields:v('cu-fields'),max_users:v('cu-users')});
+    closeModal(); toast('User created'); render_users();
+}
+
+async function editUser(id) {
+    const d = await api('users','get',{id});
+    openModal('Edit User', `
+        <form onsubmit="updateUser(event,${id})">
+            <div class="form-row"><div class="form-group"><label>Full Name</label><input id="eu-name" class="form-input" value="${d.full_name||''}"></div>
+            <div class="form-group"><label>Phone</label><input id="eu-phone" class="form-input" value="${d.phone||''}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Farm Name</label><input id="eu-farm" class="form-input" value="${d.farm_name||''}"></div>
+            <div class="form-group"><label>Farm Type</label><input id="eu-type" class="form-input" value="${d.farm_type||''}"></div></div>
+            <div class="form-group"><label>County</label><input id="eu-county" class="form-input" value="${d.county||''}"></div>
+            <div class="form-group"><label>Status</label><select id="eu-status" class="form-select">
+                ${['active','trial','expired','free','suspended'].map(s=>`<option value="${s}" ${d.subscription_status===s?'selected':''}>${s}</option>`).join('')}
+            </select></div>
+            <div class="form-row"><div class="form-group"><label>Expires</label><input id="eu-expires" class="form-input" type="date" value="${d.subscription_expires||''}"></div>
+            <div class="form-group"><label>Trial Ends</label><input id="eu-trial" class="form-input" type="date" value="${d.trial_ends||''}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Max Animals</label><input id="eu-animals" class="form-input" type="number" value="${d.max_animals||100}"></div>
+            <div class="form-group"><label>Max Fields</label><input id="eu-fields" class="form-input" type="number" value="${d.max_fields||10}"></div>
+            <div class="form-group"><label>Max Users</label><input id="eu-users" class="form-input" type="number" value="${d.max_users||3}"></div></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Save Changes</button>
+        </form>`);
+}
+async function updateUser(e,id) {
+    e.preventDefault();
+    await api('users','update',{},{id,full_name:v('eu-name'),phone:v('eu-phone'),farm_name:v('eu-farm'),farm_type:v('eu-type'),county:v('eu-county'),subscription_status:v('eu-status'),subscription_expires:v('eu-expires'),trial_ends:v('eu-trial'),max_animals:v('eu-animals'),max_fields:v('eu-fields'),max_users:v('eu-users'),is_active:v('eu-status')!=='suspended'?1:0});
+    closeModal(); toast('User updated'); render_users();
+}
+
+async function deactivateUser(id) { if(!confirm('Suspend this user?'))return; await api('users','deactivate',{},{id}); toast('User suspended'); render_users(); }
+async function activateUser(id) { await api('users','activate',{},{id}); toast('User activated'); render_users(); }
+async function resetPassword(id) { const p=prompt('New password:','changeme'); if(!p)return; await api('users','reset_password',{},{id,password:p}); toast('Password reset to: '+p); }
+
+// ════ CODES ════
+async function render_codes() {
+    const d = await api('codes','list');
+    document.getElementById('content').innerHTML = `
+        <div class="card-header" style="margin-bottom:16px;">
+            <div style="display:flex;gap:8px;">
+                <button onclick="filterCodes('')" class="btn btn-outline btn-sm">All</button>
+                <button onclick="filterCodes('unused')" class="btn btn-outline btn-sm">Unused</button>
+                <button onclick="filterCodes('used')" class="btn btn-outline btn-sm">Used</button>
+            </div>
+            <button onclick="showGenCodes()" class="btn btn-primary">+ Generate Codes</button>
+        </div>
+        <div class="card"><div class="table-responsive"><table class="table">
+            <thead><tr><th>Code</th><th>Type</th><th>Duration</th><th>Limits</th><th>Used By</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="codesTableBody">${d.map(c=>`<tr data-filter="${c.is_revoked?'revoked':c.is_used?'used':'unused'}">
+                <td><code style="background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:0.85rem;">${c.code}</code></td>
+                <td>${c.type}</td>
+                <td>${c.duration_days}d</td>
+                <td><small>${c.max_animals}A / ${c.max_fields}F / ${c.max_users}U</small></td>
+                <td>${c.used_by_name||'-'}</td>
+                <td><small>${c.expires_at?.split(' ')[0]||'-'}</small></td>
+                <td>${c.is_revoked?'<span class="badge badge-revoked">Revoked</span>':c.is_used?'<span class="badge badge-used">Used</span>':'<span class="badge badge-active">Available</span>'}</td>
+                <td>${!c.is_used&&!c.is_revoked?`<button onclick="revokeCode(${c.id})" class="btn-sm btn-danger">Revoke</button>`:''}</td>
+            </tr>`).join('')}</tbody></table></div></div>`;
+}
+function filterCodes(f) {
+    document.querySelectorAll('#codesTableBody tr').forEach(r => r.style.display = (!f||r.dataset.filter===f)?'':'none');
+}
+function showGenCodes() {
+    openModal('Generate Subscription Codes', `
+        <form onsubmit="genCodes(event)">
+            <div class="form-row"><div class="form-group"><label>Count</label><input id="gc-count" class="form-input" type="number" value="5" min="1" max="50"></div>
+            <div class="form-group"><label>Type</label><select id="gc-type" class="form-select"><option value="trial">Trial</option><option value="monthly" selected>Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option><option value="free">Free</option><option value="custom">Custom</option></select></div></div>
+            <div class="form-row"><div class="form-group"><label>Duration (days)</label><input id="gc-days" class="form-input" type="number" value="30"></div>
+            <div class="form-group"><label>Expires</label><input id="gc-expires" class="form-input" type="date" value="${new Date(Date.now()+365*86400000).toISOString().split('T')[0]}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Max Animals</label><input id="gc-animals" class="form-input" type="number" value="100"></div>
+            <div class="form-group"><label>Max Fields</label><input id="gc-fields" class="form-input" type="number" value="10"></div>
+            <div class="form-group"><label>Max Users</label><input id="gc-users" class="form-input" type="number" value="3"></div></div>
+            <div class="form-group"><label>Description</label><input id="gc-desc" class="form-input" placeholder="e.g. Free trial for 2 months"></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Generate</button>
+        </form>`);
+}
+async function genCodes(e) {
+    e.preventDefault();
+    const d = await api('codes','generate',{},{count:v('gc-count'),type:v('gc-type'),duration_days:v('gc-days'),expires_at:v('gc-expires')+' 23:59:59',max_animals:v('gc-animals'),max_fields:v('gc-fields'),max_users:v('gc-users'),description:v('gc-desc')});
+    if(d.success) {
+        closeModal();
+        openModal('Codes Generated', `<p style="margin-bottom:12px;"><strong>${d.count} codes generated:</strong></p><div style="background:#f8fafc;padding:12px;border-radius:8px;font-family:monospace;font-size:0.9rem;max-height:300px;overflow:auto;">${d.codes.join('<br>')}</div><button onclick="navigator.clipboard.writeText('${d.codes.join('\\n')}');toast('Copied!')" class="btn btn-primary" style="margin-top:12px;width:100%;">Copy All</button>`);
+        render_codes();
+    }
+}
+async function revokeCode(id) { if(!confirm('Revoke this code?'))return; await api('codes','revoke',{},{id}); toast('Code revoked'); render_codes(); }
+
+// ════ SUBSCRIPTIONS ════
+async function render_subscriptions() {
+    const d = await api('subscriptions','list');
+    document.getElementById('content').innerHTML = `
+        <div class="card-header" style="margin-bottom:16px;"><h3>All Subscriptions</h3>
+            <button onclick="showNewSub()" class="btn btn-primary">+ Record Subscription</button></div>
+        <div class="card"><div class="table-responsive"><table class="table">
+            <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Method</th><th>M-Pesa Ref</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+            <tbody>${d.map(s=>`<tr>
+                <td>${s.username||'-'}<br><small style="color:#64748b">${s.email||''}</small></td>
+                <td><span class="badge badge-info">${s.plan}</span></td>
+                <td>KES ${Number(s.amount).toLocaleString()}</td>
+                <td>${s.payment_method}</td>
+                <td><small>${s.mpesa_receipt||'-'}</small></td>
+                <td>${s.start_date}</td>
+                <td>${s.end_date}</td>
+                <td><span class="badge badge-${s.status}">${s.status}</span></td>
+            </tr>`).join('')}</tbody></table></div></div>`;
+}
+function showNewSub() {
+    openModal('Record Subscription', `
+        <form onsubmit="createSub(event)">
+            <div class="form-group"><label>User ID</label><input id="ns-user" class="form-input" type="number" required></div>
+            <div class="form-row"><div class="form-group"><label>Plan</label><select id="ns-plan" class="form-select"><option>monthly</option><option>quarterly</option><option>annual</option><option>free</option></select></div>
+            <div class="form-group"><label>Amount (KES)</label><input id="ns-amount" class="form-input" type="number" value="2500"></div></div>
+            <div class="form-row"><div class="form-group"><label>Payment Method</label><select id="ns-method" class="form-select"><option value="mpesa">M-Pesa</option><option value="bank">Bank</option><option value="cash">Cash</option><option value="free">Free</option><option value="code">Code</option><option value="manual">Manual</option></select></div>
+            <div class="form-group"><label>M-Pesa Receipt</label><input id="ns-receipt" class="form-input"></div></div>
+            <div class="form-row"><div class="form-group"><label>Start Date</label><input id="ns-start" class="form-input" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+            <div class="form-group"><label>End Date</label><input id="ns-end" class="form-input" type="date" value="${new Date(Date.now()+30*86400000).toISOString().split('T')[0]}"></div></div>
+            <div class="form-group"><label>Notes</label><textarea id="ns-notes" class="form-input" rows="2"></textarea></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Record</button>
+        </form>`);
+}
+async function createSub(e) {
+    e.preventDefault();
+    await api('subscriptions','create',{},{user_id:v('ns-user'),plan:v('ns-plan'),amount:v('ns-amount'),payment_method:v('ns-method'),mpesa_receipt:v('ns-receipt'),start_date:v('ns-start'),end_date:v('ns-end'),notes:v('ns-notes')});
+    closeModal(); toast('Subscription recorded'); render_subscriptions();
+}
+
+// ════ REVENUE ════
+async function render_revenue() {
+    const [list, summary] = await Promise.all([api('revenue','list'), api('revenue','summary')]);
+    document.getElementById('content').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(summary.total).toLocaleString()}</div></div>
+            <div class="stat-card accent"><div class="stat-label">This Month</div><div class="stat-value">KES ${Number(summary.this_month).toLocaleString()}</div></div>
+            <div class="stat-card info"><div class="stat-label">This Year</div><div class="stat-value">KES ${Number(summary.this_year).toLocaleString()}</div></div>
+        </div>
+        <div class="card-header" style="margin-bottom:16px;"><h3>Revenue Records</h3>
+            <button onclick="showRecordRevenue()" class="btn btn-primary">+ Record Payment</button></div>
+        <div class="card"><div class="table-responsive"><table class="table">
+            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Type</th><th>Method</th><th>M-Pesa Ref</th><th>Description</th></tr></thead>
+            <tbody>${list.map(r=>`<tr>
+                <td>${r.recorded_at?.split(' ')[0]||''}</td>
+                <td>${r.username||'-'}</td>
+                <td><strong>KES ${Number(r.amount).toLocaleString()}</strong></td>
+                <td><span class="badge badge-info">${r.type}</span></td>
+                <td>${r.payment_method}</td>
+                <td><small>${r.mpesa_receipt||'-'}</small></td>
+                <td>${r.description||'-'}</td>
+            </tr>`).join('')}</tbody></table></div></div>`;
+}
+function showRecordRevenue() {
+    openModal('Record Payment', `
+        <form onsubmit="recordRevenue(event)">
+            <div class="form-row"><div class="form-group"><label>User ID (optional)</label><input id="rv-user" class="form-input" type="number"></div>
+            <div class="form-group"><label>Amount (KES) *</label><input id="rv-amount" class="form-input" type="number" required></div></div>
+            <div class="form-row"><div class="form-group"><label>Type</label><select id="rv-type" class="form-select"><option>subscription</option><option>setup_fee</option><option>custom</option><option>refund</option></select></div>
+            <div class="form-group"><label>Method</label><select id="rv-method" class="form-select"><option value="mpesa">M-Pesa</option><option value="bank">Bank</option><option value="cash">Cash</option></select></div></div>
+            <div class="form-group"><label>M-Pesa Receipt</label><input id="rv-receipt" class="form-input"></div>
+            <div class="form-group"><label>Description</label><input id="rv-desc" class="form-input"></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Record</button>
+        </form>`);
+}
+async function recordRevenue(e) {
+    e.preventDefault();
+    await api('revenue','record',{},{user_id:v('rv-user'),amount:v('rv-amount'),type:v('rv-type'),payment_method:v('rv-method'),mpesa_receipt:v('rv-receipt'),description:v('rv-desc')});
+    closeModal(); toast('Payment recorded'); render_revenue();
+}
+
+// ════ TICKETS ════
+async function render_tickets() {
+    const d = await api('tickets','list');
+    document.getElementById('content').innerHTML = `
+        <div class="card-header" style="margin-bottom:16px;">
+            <div style="display:flex;gap:8px;">
+                <select id="ticketFilter" class="form-select" onchange="filterTickets()"><option value="">All</option><option value="open">Open</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
+                <select id="ticketPriority" class="form-select" onchange="filterTickets()"><option value="">All Priority</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+            </div>
+            <button onclick="showNewTicket()" class="btn btn-primary">+ New Ticket</button>
+        </div>
+        <div class="card"><div class="table-responsive"><table class="table" id="ticketsTable">
+            <thead><tr><th>Code</th><th>Subject</th><th>Category</th><th>Priority</th><th>User</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
+            <tbody>${d.map(t=>`<tr data-status="${t.status}" data-priority="${t.priority}">
+                <td><code>${t.ticket_code}</code></td>
+                <td>${t.subject}</td>
+                <td><span class="badge badge-info">${t.category}</span></td>
+                <td><span class="badge badge-${t.priority}">${t.priority}</span></td>
+                <td>${t.is_anonymous?'Anonymous':t.username||t.reporter_name||'-'}</td>
+                <td><span class="badge badge-${t.status}">${t.status}</span></td>
+                <td><small>${t.created_at?.split(' ')[0]||''}</small></td>
+                <td><button onclick="viewTicket(${t.id})" class="btn-sm btn-outline">View</button></td>
+            </tr>`).join('')}</tbody></table></div></div>`;
+}
+function filterTickets() {
+    const s = document.getElementById('ticketFilter').value;
+    const p = document.getElementById('ticketPriority').value;
+    document.querySelectorAll('#ticketsTable tbody tr').forEach(r => {
+        r.style.display = (!s||r.dataset.status===s) && (!p||r.dataset.priority===p) ? '' : 'none';
+    });
+}
+function showNewTicket() {
+    openModal('New Support Ticket', `
+        <form onsubmit="createTicket(event)">
+            <div class="form-group"><label>Subject *</label><input id="tk-subject" class="form-input" required></div>
+            <div class="form-row"><div class="form-group"><label>Category</label><select id="tk-cat" class="form-select"><option>bug</option><option>feature</option><option>urgent</option><option>billing</option><option>account</option><option>other</option></select></div>
+            <div class="form-group"><label>Priority</label><select id="tk-pri" class="form-select"><option>low</option><option selected>medium</option><option>high</option><option>critical</option></select></div></div>
+            <div class="form-group"><label><input type="checkbox" id="tk-anon"> Anonymous report</label></div>
+            <div class="form-group"><label>Reporter Name</label><input id="tk-name" class="form-input"></div>
+            <div class="form-group"><label>Description</label><textarea id="tk-desc" class="form-input" rows="4" required></textarea></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Submit Ticket</button>
+        </form>`);
+}
+async function createTicket(e) {
+    e.preventDefault();
+    await api('tickets','create',{},{subject:v('tk-subject'),category:v('tk-cat'),priority:v('tk-pri'),is_anonymous:document.getElementById('tk-anon').checked?1:0,reporter_name:v('tk-name'),description:v('tk-desc')});
+    closeModal(); toast('Ticket created'); render_tickets();
+}
+async function viewTicket(id) {
+    const t = await api('tickets','get',{id});
+    openModal('Ticket: '+t.ticket_code, `
+        <div style="margin-bottom:16px;">
+            <strong>${t.subject}</strong> <span class="badge badge-${t.priority}">${t.priority}</span> <span class="badge badge-${t.status}">${t.status}</span>
+            <p style="color:#64748b;margin-top:4px;font-size:0.85rem;">${t.description}</p>
+            <p style="color:#64748b;font-size:0.85rem;">Reporter: ${t.is_anonymous?'Anonymous':t.username||t.reporter_name||'Unknown'} | ${t.reporter_email||''} | ${t.reporter_phone||''}</p>
+        </div>
+        <div style="margin-bottom:16px;"><strong>Messages:</strong></div>
+        ${(t.messages||[]).map(m=>`<div style="background:#f8fafc;padding:10px;border-radius:8px;margin-bottom:8px;"><small style="color:#64748b;">${m.sender_type} - ${m.created_at}</small><p style="margin-top:4px;">${m.message}</p></div>`).join('')}
+        <form onsubmit="respondTicket(event,${t.id})" style="margin-top:16px;">
+            <div class="form-group"><label>Reply</label><textarea id="tk-reply" class="form-input" rows="3" required></textarea></div>
+            <div class="form-row"><div class="form-group"><label>Status</label><select id="tk-status" class="form-select">
+                ${['open','in_progress','waiting','resolved','closed'].map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+            </select></div>
+            <div class="form-group" style="display:flex;align-items:flex-end;"><button type="submit" class="btn btn-primary">Send Reply</button></div></div>
+        </form>`);
+}
+async function respondTicket(e,id) {
+    e.preventDefault();
+    await api('tickets','respond',{},{ticket_id:id,message:v('tk-reply'),status:v('tk-status')});
+    closeModal(); toast('Reply sent'); render_tickets();
+}
+
+// ════ EMERGENCY ════
+async function render_emergency() {
+    const contacts = await api('emergency','contacts');
+    document.getElementById('content').innerHTML = `
+        <div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:12px;padding:20px;margin-bottom:24px;">
+            <h2 style="color:#dc2626;margin-bottom:8px;">🚨 Emergency CTA</h2>
+            <p style="color:#991b1b;margin-bottom:16px;">For immediate farm emergencies, contact these specialists directly.</p>
+            <button onclick="showEmergencyReport()" class="btn btn-danger">Report Emergency Now</button>
+        </div>
+        <div class="card"><div class="card-header"><h3>Emergency Contacts</h3></div>
+            <table class="table"><thead><tr><th>Name</th><th>Role</th><th>Specialty</th><th>Phone</th><th>Email</th><th>County</th></tr></thead>
+            <tbody>${contacts.map(c=>`<tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.role||'-'}</td>
+                <td>${c.specialty||'-'}</td>
+                <td><a href="tel:${c.phone}">${c.phone}</a></td>
+                <td>${c.email||'-'}</td>
+                <td>${c.county||'-'}</td>
+            </tr>`).join('')}</tbody></table></div>`;
+}
+function showEmergencyReport() {
+    openModal('🚨 Report Emergency', `
+        <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px;margin-bottom:16px;color:#991b1b;font-size:0.9rem;">This will create a CRITICAL priority ticket and alert our team immediately.</div>
+        <form onsubmit="reportEmergency(event)">
+            <div class="form-group"><label>Subject *</label><input id="emg-subject" class="form-input" value="EMERGENCY" required></div>
+            <div class="form-group"><label>Your Name</label><input id="emg-name" class="form-input"></div>
+            <div class="form-group"><label>Phone *</label><input id="emg-phone" class="form-input" required></div>
+            <div class="form-group"><label>What happened? *</label><textarea id="emg-desc" class="form-input" rows="4" required placeholder="Describe the emergency..."></textarea></div>
+            <button type="submit" class="btn btn-danger" style="width:100%;margin-top:12px;">🚨 SUBMIT EMERGENCY</button>
+        </form>`);
+}
+async function reportEmergency(e) {
+    e.preventDefault();
+    const d = await api('emergency','report',{},{subject:v('emg-subject'),reporter_name:v('emg-name'),reporter_phone:v('emg-phone'),description:v('emg-desc'),is_anonymous:0});
+    closeModal(); toast('Emergency reported! Code: '+d.ticket_code, 'warning');
+}
+
+// ════ ACTIVITY LOG ════
+async function render_activity() {
+    const d = await api('activity','list',{limit:100});
+    document.getElementById('content').innerHTML = `
+        <div class="card"><div class="table-responsive"><table class="table">
+            <thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+            <tbody>${d.map(l=>`<tr>
+                <td><small>${l.created_at||''}</small></td>
+                <td>${l.admin_name||'System'}</td>
+                <td><span class="badge badge-info">${l.action}</span></td>
+                <td>${l.target_type||''} #${l.target_id||''}</td>
+                <td><small>${l.details||'-'}</small></td>
+            </tr>`).join('')}</tbody></table></div></div>`;
+}
+
+// ════ SETTINGS ════
+async function render_settings() {
+    const d = await api('settings','list');
+    document.getElementById('content').innerHTML = `
+        <div class="card"><div class="card-header"><h3>Platform Settings</h3></div>
+        <form onsubmit="saveSettings(event)">
+            <table class="table"><thead><tr><th>Setting</th><th>Value</th><th>Description</th></tr></thead>
+            <tbody>${d.map(s=>`<tr>
+                <td><strong>${s.setting_key}</strong></td>
+                <td><input class="form-input" data-key="${s.setting_key}" value="${s.setting_value||''}" style="width:300px;"></td>
+                <td><small style="color:#64748b;">${s.description||''}</small></td>
+            </tr>`).join('')}</tbody></table>
+            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save All Settings</button>
+        </form></div>`;
+}
+async function saveSettings(e) {
+    e.preventDefault();
+    document.querySelectorAll('[data-key]').forEach(async el => {
+        await api('settings','update',{},{key:el.dataset.key, value:el.value});
+    });
+    toast('Settings saved');
+}
+
+// ════ HELPERS ════
+function v(id) { return document.getElementById(id)?.value||''; }
+
+// ════ INIT ════
+const saved = localStorage.getItem('platform_admin');
+if(saved) {
+    adminUser = JSON.parse(saved);
+    init();
+}
+</script>
+</body>
+</html>

@@ -82,6 +82,16 @@
       "source": "/Frontend/auth/(.*)\\.php",
       "destination": "/Frontend/auth/google/login.html",
       "permanent": false
+    },
+    {
+      "source": "/wangariadmin",
+      "destination": "/Frontend/wangariadmin/index.html",
+      "permanent": false
+    },
+    {
+      "source": "/wangariadmin/(.*)",
+      "destination": "/Frontend/wangariadmin/index.html",
+      "permanent": false
     }
   ]
 }

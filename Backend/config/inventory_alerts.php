@@ -462,14 +462,14 @@ class InventoryAlerts {
         
         // Estimate daily usage based on category
         if (!$dailyUsage) {
-            $dailyUsage = match($item['unit']) {
-                'kg' => 10,
-                'doses' => 5,
-                'tablets' => 2,
-                'capsules' => 1,
-                'bags' => 0.5,
-                default => 1
-            };
+            switch($item['unit']) {
+                case 'kg': $dailyUsage = 10; break;
+                case 'doses': $dailyUsage = 5; break;
+                case 'tablets': $dailyUsage = 2; break;
+                case 'capsules': $dailyUsage = 1; break;
+                case 'bags': $dailyUsage = 0.5; break;
+                default: $dailyUsage = 1; break;
+            }
         }
         
         $daysUntilStockout = floor($item['current_stock'] / $dailyUsage);
