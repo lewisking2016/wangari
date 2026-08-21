@@ -5,6 +5,23 @@
  */
 declare(strict_types=1);
 
+// PHP 8.0 Polyfills for PHP 7.4 compatibility
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool {
+        return '' === $needle || false !== strpos($haystack, $needle);
+    }
+}
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool {
+        return 0 === strpos($haystack, $needle);
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        return '' === $needle || $needle === substr($haystack, -strlen($needle));
+    }
+}
+
 // License guard — validates JWT in desktop mode, no-op on web
 require_once __DIR__ . '/../license/guard.php';
 
