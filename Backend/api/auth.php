@@ -73,7 +73,7 @@ try {
             'role' => $user['role'],
             'full_name' => $user['full_name'] ?? $user['username'],
         ],
-        'redirect' => 'http://20.164.18.34:8080/Frontend/admin/dashboard.php',
+        'redirect' => 'https://wangari.imeantech.com/Frontend/admin/app.html',
         'session_id' => $session_id,
     ]);
 

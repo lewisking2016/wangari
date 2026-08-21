@@ -1,10 +1,8 @@
 <?php
 /**
- * Wangari REST API v2 — comprehensive single entry point.
- * All frontend (Vercel) calls this API on the VPS backend.
- *
- * Usage: GET /api/v2.php?module=X&action=Y
- *        POST /api/v2.php?module=X&action=Y  with JSON body
+ * Wangari REST API v2 — single entry point.
+ * All frontend on Vercel calls this API on the VPS.
+ * Columns verified against actual DB schema.
  */
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
@@ -21,7 +19,6 @@ $module = $_GET['module'] ?? '';
 $action = $_GET['action'] ?? 'list';
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 
-// ── Helper: run a paginated list query ──
 function listQuery(PDO $pdo, string $sql, array $params = []): array {
     $limit = min((int)($_GET['limit'] ?? 200), 500);
     $stmt = $pdo->prepare("$sql ORDER BY 1 DESC LIMIT $limit");
@@ -29,7 +26,6 @@ function listQuery(PDO $pdo, string $sql, array $params = []): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// ── Helper: generic save ──
 function genericSave(PDO $pdo, string $table, array $fields, int $id = 0): int {
     if ($id > 0) {
         $sets = []; $vals = [];
@@ -63,9 +59,9 @@ try {
             $d['upcoming_vaccinations'] = (int) $pdo->query("SELECT COUNT(*) FROM vaccinations WHERE status='scheduled' AND scheduled_date BETWEEN '$today' AND DATE_ADD('$today', INTERVAL 7 DAY)")->fetchColumn();
             $d['pending_births']  = (int) $pdo->query("SELECT COUNT(*) FROM breeding_records WHERE status='Pending' AND due_date BETWEEN '$today' AND DATE_ADD('$today', INTERVAL 14 DAY)")->fetchColumn();
             $d['total_users']     = (int) $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-            $d['total_revenue']   = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='income' AND MONTH(record_date)=MONTH(CURDATE()) AND YEAR(record_date)=YEAR(CURDATE())")->fetchColumn();
-            $d['total_expenses']  = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='expense' AND MONTH(record_date)=MONTH(CURDATE()) AND YEAR(record_date)=YEAR(CURDATE())")->fetchColumn();
-            $d['open_orders']     = (int) $pdo->query("SELECT COUNT(*) FROM orders WHERE status IN ('pending','processing')")->fetchColumn();
+            $d['total_revenue']   = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='income' AND MONTH(transaction_date)=MONTH(CURDATE()) AND YEAR(transaction_date)=YEAR(CURDATE())")->fetchColumn();
+            $d['total_expenses']  = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='expense' AND MONTH(transaction_date)=MONTH(CURDATE()) AND YEAR(transaction_date)=YEAR(CURDATE())")->fetchColumn();
+            $d['open_orders']     = (int) $pdo->query("SELECT COUNT(*) FROM orders WHERE status IN ('pending','paid')")->fetchColumn();
             $d['low_stock']       = (int) $pdo->query("SELECT COUNT(*) FROM products WHERE stock_quantity < 10")->fetchColumn();
             $d['recent_health']   = $pdo->query("SELECT hr.*, a.name AS aname FROM health_records hr LEFT JOIN animals a ON hr.animal_id=a.id ORDER BY hr.created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($d);
@@ -74,9 +70,7 @@ try {
         // ════ ANIMALS ════
         case 'animals':
             if ($action === 'list') {
-                $sp = $_GET['species'] ?? '';
                 $sql = 'SELECT a.*, ag.name AS group_name FROM animals a LEFT JOIN animal_groups ag ON a.group_id=ag.id';
-                if ($sp) $sql .= " WHERE a.type=" . $pdo->quote($sp);
                 echo json_encode(listQuery($pdo, $sql));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
@@ -116,8 +110,7 @@ try {
         // ════ HOUSING ════
         case 'housing':
             if ($action === 'list') {
-                $sql = 'SELECT h.* FROM houses h WHERE h.is_active=1';
-                echo json_encode(listQuery($pdo, $sql));
+                echo json_encode(listQuery($pdo, 'SELECT h.* FROM houses h WHERE h.is_active=1'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'houses', [
@@ -179,10 +172,7 @@ try {
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             } elseif ($action === 'guides') {
-                $sp = $_GET['species'] ?? '';
-                $sql = 'SELECT * FROM vaccine_guides WHERE is_active=1';
-                if ($sp) $sql .= " WHERE species=" . $pdo->quote($sp);
-                echo json_encode(listQuery($pdo, $sql));
+                echo json_encode(listQuery($pdo, 'SELECT * FROM vaccine_guides WHERE is_active=1'));
             }
             break;
 
@@ -215,8 +205,7 @@ try {
         // ════ BREEDING ════
         case 'breeding':
             if ($action === 'list') {
-                $sql = 'SELECT br.*, ad.name AS dam_name, asir.name AS sire_name FROM breeding_records br LEFT JOIN animals ad ON br.dam_id=ad.id LEFT JOIN animals asir ON br.sire_id=asir.id';
-                echo json_encode(listQuery($pdo, $sql));
+                echo json_encode(listQuery($pdo, 'SELECT br.*, ad.name AS dam_name, asir.name AS sire_name FROM breeding_records br LEFT JOIN animals ad ON br.dam_id=ad.id LEFT JOIN animals asir ON br.sire_id=asir.id'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'breeding_records', [
@@ -255,7 +244,7 @@ try {
             }
             break;
 
-        // ════ MILKING ════
+        // ════ MILKING ════ (uses milking_date, fat_pct, milking_time)
         case 'milking':
             if ($action === 'list') {
                 echo json_encode(listQuery($pdo, 'SELECT mr.*, a.name AS animal_name FROM milking_records mr LEFT JOIN animals a ON mr.animal_id=a.id'));
@@ -263,24 +252,25 @@ try {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'milking_records', [
                     'animal_id'=>(int)($input['animal_id']??0)?:null,
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
+                    'species'=>$input['species']??'Cattle',
+                    'milking_date'=>$input['record_date']??$input['milking_date']??date('Y-m-d'),
+                    'milking_time'=>$input['session']??$input['milking_time']??'morning',
                     'litres'=>(float)($input['litres']??0),
-                    'fat_percentage'=>(float)($input['fat_percentage']??0),
-                    'session'=>$input['session']??'morning',
+                    'fat_pct'=>(float)($input['fat_percentage']??$input['fat_pct']??0),
                     'notes'=>$input['notes']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
             break;
 
-        // ════ MORTALITY ════
+        // ════ MORTALITY ════ (uses death_date)
         case 'mortality':
             if ($action === 'list') {
                 echo json_encode(listQuery($pdo, 'SELECT mr.*, a.name AS animal_name, ag.name AS group_name FROM mortality_records mr LEFT JOIN animals a ON mr.animal_id=a.id LEFT JOIN animal_groups ag ON mr.group_id=ag.id'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'mortality_records', [
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
+                    'death_date'=>$input['record_date']??$input['death_date']??date('Y-m-d'),
                     'species'=>$input['species']??'Chicken',
                     'animal_id'=>(int)($input['animal_id']??0)?:null,
                     'group_id'=>(int)($input['group_id']??0)?:null,
@@ -292,27 +282,27 @@ try {
             }
             break;
 
-        // ════ QUARANTINE ════
+        // ════ QUARANTINE ════ (uses quarantine_start, quarantine_end, treatment_given, diagnosis)
         case 'quarantine':
             if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT qr.*, a.name AS animal_name, h.house_name FROM quarantine_records qr LEFT JOIN animals a ON qr.animal_id=a.id LEFT JOIN houses h ON qr.housing_id=h.id'));
+                echo json_encode(listQuery($pdo, 'SELECT qr.*, a.name AS animal_name FROM quarantine_records qr LEFT JOIN animals a ON qr.animal_id=a.id'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'quarantine_records', [
                     'animal_id'=>(int)($input['animal_id']??0)?:null,
-                    'housing_id'=>(int)($input['housing_id']??0)?:null,
+                    'species'=>$input['species']??'',
+                    'quarantine_start'=>$input['start_date']??$input['quarantine_start']??date('Y-m-d'),
+                    'quarantine_end'=>$input['end_date']??$input['quarantine_end']??null,
                     'reason'=>$input['reason']??'',
-                    'start_date'=>$input['start_date']??date('Y-m-d'),
-                    'end_date'=>$input['end_date']??null,
                     'status'=>$input['status']??'active',
-                    'treatment'=>$input['treatment']??'',
+                    'treatment_given'=>$input['treatment']??$input['treatment_given']??'',
                     'notes'=>$input['notes']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
             break;
 
-        // ════ WEIGHTS ════
+        // ════ WEIGHTS ════ (uses recorded_date)
         case 'weights':
             if ($action === 'list') {
                 echo json_encode(listQuery($pdo, 'SELECT aw.*, a.name AS animal_name, a.tag FROM animal_weights aw LEFT JOIN animals a ON aw.animal_id=a.id'));
@@ -320,16 +310,16 @@ try {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'animal_weights', [
                     'animal_id'=>(int)($input['animal_id']??0)?:null,
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
+                    'species'=>$input['species']??'',
+                    'recorded_date'=>$input['record_date']??$input['recorded_date']??date('Y-m-d'),
                     'weight_kg'=>(float)($input['weight_kg']??0),
-                    'body_condition_score'=>(float)($input['body_condition_score']??0),
                     'notes'=>$input['notes']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
             break;
 
-        // ════ BODY CONDITION ════
+        // ════ BODY CONDITION ════ (uses score_date)
         case 'body_condition':
             if ($action === 'list') {
                 echo json_encode(listQuery($pdo, 'SELECT bcs.*, a.name AS animal_name FROM body_condition_scores bcs LEFT JOIN animals a ON bcs.animal_id=a.id'));
@@ -337,7 +327,8 @@ try {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'body_condition_scores', [
                     'animal_id'=>(int)($input['animal_id']??0)?:null,
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
+                    'species'=>$input['species']??'',
+                    'score_date'=>$input['record_date']??$input['score_date']??date('Y-m-d'),
                     'score'=>(float)($input['score']??3),
                     'notes'=>$input['notes']??''
                 ], $id);
@@ -345,40 +336,60 @@ try {
             }
             break;
 
-        // ════ PREVENTIVE CARE ════
+        // ════ PREVENTIVE CARE ════ (uses next_due, cost_per_event, last_done)
         case 'preventive_care':
             if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT pc.*, a.name AS animal_name FROM preventive_care pc LEFT JOIN animals a ON pc.animal_id=a.id'));
+                echo json_encode(listQuery($pdo, 'SELECT * FROM preventive_care'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'preventive_care', [
                     'species'=>$input['species']??'Chicken',
                     'care_type'=>$input['care_type']??'deworming',
-                    'product_name'=>$input['product_name']??'',
-                    'scheduled_date'=>$input['scheduled_date']??date('Y-m-d'),
-                    'completed_date'=>$input['completed_date']??null,
-                    'status'=>$input['status']??'scheduled',
+                    'target_group'=>$input['target_group']??'',
+                    'frequency'=>$input['frequency']??'',
+                    'next_due'=>$input['scheduled_date']??$input['next_due']??date('Y-m-d'),
+                    'cost_per_event'=>(float)($input['cost']??$input['cost_per_event']??0),
+                    'responsible_person'=>$input['vet_name']??$input['responsible_person']??'',
                     'notes'=>$input['notes']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
             break;
 
-        // ════ TRANSPORT ════
+        // ════ TRANSPORT ════ (uses transport_cost, transporter_name)
         case 'transport':
             if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT at.*, a.name AS animal_name FROM animal_transports at LEFT JOIN animals a ON at.animal_id=a.id'));
+                echo json_encode(listQuery($pdo, 'SELECT * FROM animal_transports'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'animal_transports', [
-                    'animal_id'=>(int)($input['animal_id']??0)?:null,
-                    'transport_date'=>$input['transport_date']??date('Y-m-d'),
+                    'transport_date'=>$input['record_date']??$input['transport_date']??date('Y-m-d'),
+                    'species'=>$input['species']??'',
+                    'animal_count'=>(int)($input['animal_count']??1),
                     'from_location'=>$input['from_location']??'',
                     'to_location'=>$input['to_location']??'',
-                    'vehicle'=>$input['vehicle']??'',
-                    'cost'=>(float)($input['cost']??0),
+                    'transporter_name'=>$input['vehicle']??$input['transporter_name']??'',
+                    'transport_cost'=>(float)($input['cost']??$input['transport_cost']??0),
                     'reason'=>$input['reason']??'',
                     'notes'=>$input['notes']??''
+                ], $id);
+                echo json_encode(['success'=>true, 'id'=>$fid]);
+            }
+            break;
+
+        // ════ GROWTH MONITORING ════ (uses monitoring_date, planting_id)
+        case 'growth':
+            if ($action === 'list') {
+                echo json_encode(listQuery($pdo, 'SELECT gm.*, cp.crop_name FROM growth_monitoring gm LEFT JOIN crop_plantings cp ON gm.planting_id=cp.id'));
+            } elseif ($action === 'save') {
+                $id = (int)($input['id'] ?? 0);
+                $fid = genericSave($pdo, 'growth_monitoring', [
+                    'planting_id'=>(int)($input['planting_id']??0),
+                    'monitoring_date'=>$input['record_date']??$input['monitoring_date']??date('Y-m-d'),
+                    'growth_stage'=>$input['growth_stage']??'',
+                    'plant_height_cm'=>(float)($input['plant_height_cm']??0),
+                    'general_health'=>$input['general_health']??'good',
+                    'observations'=>$input['notes']??$input['observations']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
@@ -398,10 +409,6 @@ try {
                 echo json_encode(listQuery($pdo, 'SELECT cc.*, cp.crop_name FROM crop_costs cc LEFT JOIN crop_plantings cp ON cc.planting_id=cp.id'));
             } elseif ($action === 'list_irrigation') {
                 echo json_encode(listQuery($pdo, 'SELECT ir.*, cp.crop_name FROM irrigation_records ir LEFT JOIN crop_plantings cp ON ir.planting_id=cp.id'));
-            } elseif ($action === 'list_pest_control') {
-                echo json_encode(listQuery($pdo, 'SELECT pd.*, cp.crop_name FROM pest_disease_records pd LEFT JOIN crop_plantings cp ON pd.planting_id=cp.id'));
-            } elseif ($action === 'list_soil') {
-                echo json_encode(listQuery($pdo, 'SELECT sa.*, f.name AS field_name FROM soil_amendments sa LEFT JOIN fields f ON sa.field_id=f.id'));
             } elseif ($action === 'list_seeds') {
                 echo json_encode(listQuery($pdo, 'SELECT * FROM seed_inventory'));
             } elseif ($action === 'save_field') {
@@ -440,31 +447,32 @@ try {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'crop_costs', [
                     'planting_id'=>(int)($input['planting_id']??0),
-                    'cost_date'=>$input['cost_date']??date('Y-m-d'),
-                    'category'=>$input['category']??'',
+                    'cost_type'=>$input['category']??$input['cost_type']??'',
                     'amount'=>(float)($input['amount']??0),
-                    'description'=>$input['description']??''
+                    'description'=>$input['description']??'',
+                    'cost_date'=>$input['cost_date']??date('Y-m-d')
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             } elseif ($action === 'save_irrigation') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'irrigation_records', [
-                    'planting_id'=>(int)($input['planting_id']??0),
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
-                    'method'=>$input['method']??'',
+                    'planting_id'=>(int)($input['planting_id']??0)?:null,
+                    'field_id'=>(int)($input['field_id']??0)?:null,
+                    'irrigation_date'=>$input['record_date']??$input['irrigation_date']??date('Y-m-d'),
+                    'method'=>$input['method']??'manual',
                     'duration_hours'=>(float)($input['duration_hours']??0),
-                    'water_volume_litres'=>(float)($input['water_volume_litres']??0),
+                    'water_volume_m3'=>(float)($input['water_volume_litres']??$input['water_volume_m3']??0),
                     'notes'=>$input['notes']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             } elseif ($action === 'save_seed') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'seed_inventory', [
-                    'crop_name'=>$input['crop_name']??'', 'variety'=>$input['variety']??'',
-                    'quantity'=>(float)($input['quantity']??0),
-                    'unit'=>$input['unit']??'kg',
+                    'seed_name'=>$input['crop_name']??$input['seed_name']??'',
+                    'variety'=>$input['variety']??'',
+                    'quantity_kg'=>(float)($input['quantity']??$input['quantity_kg']??0),
                     'supplier'=>$input['supplier']??'',
-                    'cost'=>(float)($input['cost']??0),
+                    'cost_per_kg'=>(float)($input['cost']??$input['cost_per_kg']??0),
                     'purchase_date'=>$input['purchase_date']??null,
                     'expiry_date'=>$input['expiry_date']??null
                 ], $id);
@@ -472,10 +480,10 @@ try {
             }
             break;
 
-        // ════ FINANCE ════
+        // ════ FINANCE ════ (financial_records uses transaction_date)
         case 'finance':
             if ($action === 'list_orders') {
-                echo json_encode(listQuery($pdo, 'SELECT o.*, c.full_name AS customer_name FROM orders o LEFT JOIN users c ON o.user_id=c.id'));
+                echo json_encode(listQuery($pdo, 'SELECT o.*, u.full_name AS customer_name FROM orders o LEFT JOIN users c ON o.user_id=c.id'));
             } elseif ($action === 'list_transactions') {
                 $type = $_GET['type'] ?? '';
                 $sql = 'SELECT * FROM financial_records';
@@ -484,40 +492,31 @@ try {
             } elseif ($action === 'summary') {
                 $month = $_GET['month'] ?? date('Y-m');
                 $d = [];
-                $d['income']  = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='income' AND DATE_FORMAT(record_date,'%Y-%m')='$month'")->fetchColumn();
-                $d['expense'] = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='expense' AND DATE_FORMAT(record_date,'%Y-%m')='$month'")->fetchColumn();
+                $d['income']  = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='income' AND DATE_FORMAT(transaction_date,'%Y-%m')='$month'")->fetchColumn();
+                $d['expense'] = (float)$pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='expense' AND DATE_FORMAT(transaction_date,'%Y-%m')='$month'")->fetchColumn();
                 $d['profit']  = $d['income'] - $d['expense'];
                 echo json_encode($d);
-            } elseif ($action === 'save_order') {
-                $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'orders', [
-                    'user_id'=>(int)($input['user_id']??0)?:null,
-                    'total_amount'=>(float)($input['total_amount']??0),
-                    'status'=>$input['status']??'pending',
-                    'payment_method'=>$input['payment_method']??'cash',
-                    'notes'=>$input['notes']??''
-                ], $id);
-                echo json_encode(['success'=>true, 'id'=>$fid]);
             } elseif ($action === 'save_transaction') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'financial_records', [
                     'type'=>$input['type']??'expense', 'category'=>$input['category']??'',
                     'amount'=>(float)($input['amount']??0), 'description'=>$input['description']??'',
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
-                    'payment_method'=>$input['payment_method']??'cash',
-                    'reference'=>$input['reference']??''
+                    'transaction_date'=>$input['record_date']??$input['transaction_date']??date('Y-m-d'),
+                    'payment_method'=>$input['payment_method']??'cash'
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             } elseif ($action === 'list_credit') {
-                echo json_encode(listQuery($pdo, 'SELECT cc.*, u.full_name AS customer_name FROM customer_credits cc LEFT JOIN users u ON cc.user_id=u.id'));
+                echo json_encode(listQuery($pdo, 'SELECT * FROM customer_credits'));
             } elseif ($action === 'save_credit') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'customer_credits', [
-                    'user_id'=>(int)($input['user_id']??0)?:null,
-                    'amount'=>(float)($input['amount']??0),
-                    'type'=>$input['type']??'credit',
-                    'description'=>$input['description']??'',
-                    'record_date'=>$input['record_date']??date('Y-m-d')
+                    'customer_name'=>$input['customer_name']??'',
+                    'customer_phone'=>$input['phone']??'',
+                    'credit_date'=>$input['record_date']??$input['credit_date']??date('Y-m-d'),
+                    'item_description'=>$input['description']??$input['item_description']??'',
+                    'total_amount'=>(float)($input['amount']??$input['total_amount']??0),
+                    'balance'=>(float)($input['amount']??$input['total_amount']??0),
+                    'status'=>$input['status']??'unpaid'
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             } elseif ($action === 'list_cashbook') {
@@ -525,12 +524,11 @@ try {
             } elseif ($action === 'save_cashbook') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'cashbook_entries', [
-                    'entry_date'=>$input['entry_date']??date('Y-m-d'),
-                    'type'=>$input['type']??'income',
-                    'category'=>$input['category']??'',
+                    'entry_date'=>$input['record_date']??$input['entry_date']??date('Y-m-d'),
+                    'direction'=>$input['type']??$input['direction']??'out',
+                    'money_source'=>$input['category']??$input['money_source']??'other_out',
                     'amount'=>(float)($input['amount']??0),
-                    'description'=>$input['description']??'',
-                    'payment_method'=>$input['payment_method']??'cash'
+                    'description'=>$input['description']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
@@ -546,8 +544,6 @@ try {
                 echo json_encode(listQuery($pdo, 'SELECT rm.*, s.name AS supplier_name FROM raw_materials rm LEFT JOIN suppliers s ON rm.supplier_id=s.id'));
             } elseif ($action === 'list_equipment') {
                 echo json_encode(listQuery($pdo, 'SELECT * FROM farm_equipment'));
-            } elseif ($action === 'list_feed_recipes') {
-                echo json_encode(listQuery($pdo, 'SELECT * FROM feed_recipes'));
             } elseif ($action === 'save_product') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'products', [
@@ -627,16 +623,31 @@ try {
         case 'crm':
             if ($action === 'list_contacts') {
                 echo json_encode(listQuery($pdo, 'SELECT * FROM crm_contacts'));
-            } elseif ($action === 'list_segments') {
-                echo json_encode(listQuery($pdo, 'SELECT * FROM crm_segments'));
-            } elseif ($action === 'list_followups') {
-                echo json_encode(listQuery($pdo, 'SELECT cf.*, cc.name AS contact_name FROM crm_followups cf LEFT JOIN crm_contacts cc ON cf.contact_id=cc.id'));
             } elseif ($action === 'save_contact') {
                 $id = (int)($input['id'] ?? 0);
                 $fid = genericSave($pdo, 'crm_contacts', [
                     'name'=>$input['name']??'', 'phone'=>$input['phone']??'',
                     'email'=>$input['email']??'', 'company'=>$input['company']??'',
                     'type'=>$input['type']??'customer',
+                    'notes'=>$input['notes']??''
+                ], $id);
+                echo json_encode(['success'=>true, 'id'=>$fid]);
+            }
+            break;
+
+        // ════ LPO ════ (uses doc_number, doc_type)
+        case 'lpo':
+            if ($action === 'list') {
+                echo json_encode(listQuery($pdo, 'SELECT * FROM lpo_documents'));
+            } elseif ($action === 'save') {
+                $id = (int)($input['id'] ?? 0);
+                $fid = genericSave($pdo, 'lpo_documents', [
+                    'doc_number'=>$input['lpo_number']??$input['doc_number']??'',
+                    'doc_type'=>$input['doc_type']??'lpo',
+                    'customer_name'=>$input['customer_name']??'',
+                    'issue_date'=>$input['order_date']??$input['issue_date']??date('Y-m-d'),
+                    'total_amount'=>(float)($input['total_amount']??0),
+                    'status'=>$input['status']??'draft',
                     'notes'=>$input['notes']??''
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
@@ -652,7 +663,6 @@ try {
                 $fid = genericSave($pdo, 'purchase_orders', [
                     'supplier_id'=>(int)($input['supplier_id']??0),
                     'order_date'=>$input['order_date']??date('Y-m-d'),
-                    'expected_date'=>$input['expected_date']??null,
                     'total_amount'=>(float)($input['total_amount']??0),
                     'status'=>$input['status']??'pending',
                     'notes'=>$input['notes']??''
@@ -661,19 +671,73 @@ try {
             }
             break;
 
-        // ════ GROWTH MONITORING ════
-        case 'growth':
+        // ════ EGG GRADING ════ (uses grade_id, batch_id, total_eggs, damaged)
+        case 'egg_grading':
             if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT gm.*, ag.name AS group_name FROM growth_monitoring gm LEFT JOIN animal_groups ag ON gm.group_id=ag.id'));
+                echo json_encode(listQuery($pdo, 'SELECT * FROM daily_egg_grading'));
             } elseif ($action === 'save') {
                 $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'growth_monitoring', [
-                    'group_id'=>(int)($input['group_id']??0),
+                $fid = genericSave($pdo, 'daily_egg_grading', [
                     'record_date'=>$input['record_date']??date('Y-m-d'),
-                    'average_weight_kg'=>(float)($input['average_weight_kg']??0),
-                    'sample_size'=>(int)($input['sample_size']??0),
-                    'age_days'=>(int)($input['age_days']??0),
+                    'total_eggs'=>$input['total_collected']??$input['total_eggs']??0,
+                    'damaged'=>$input['broken']??$input['damaged']??0,
                     'notes'=>$input['notes']??''
+                ], $id);
+                echo json_encode(['success'=>true, 'id'=>$fid]);
+            }
+            break;
+
+        // ════ HATCHERY ════ (uses setting_date, chicks_hatched, fertile_eggs)
+        case 'hatchery':
+            if ($action === 'list') {
+                echo json_encode(listQuery($pdo, 'SELECT * FROM hatchery_batches'));
+            } elseif ($action === 'save') {
+                $id = (int)($input['id'] ?? 0);
+                $fid = genericSave($pdo, 'hatchery_batches', [
+                    'setting_date'=>$input['batch_date']??$input['setting_date']??date('Y-m-d'),
+                    'expected_hatch_date'=>$input['expected_hatch']??date('Y-m-d', strtotime('+21 days')),
+                    'breed'=>$input['breed']??'',
+                    'eggs_set'=>(int)($input['eggs_set']??0),
+                    'chicks_hatched'=>(int)($input['hatched']??$input['chicks_hatched']??0),
+                    'notes'=>$input['notes']??''
+                ], $id);
+                echo json_encode(['success'=>true, 'id'=>$fid]);
+            }
+            break;
+
+        // ════ FEED PRODUCTION ════ (uses production_date, recipe_id, total_kg)
+        case 'feed_production':
+            if ($action === 'list') {
+                echo json_encode(listQuery($pdo, 'SELECT fpb.*, fr.name AS recipe_name FROM feed_production_batches fpb LEFT JOIN feed_recipes fr ON fpb.recipe_id=fr.id'));
+            } elseif ($action === 'save') {
+                $id = (int)($input['id'] ?? 0);
+                $fid = genericSave($pdo, 'feed_production_batches', [
+                    'production_date'=>$input['batch_date']??$input['production_date']??date('Y-m-d'),
+                    'recipe_id'=>(int)($input['recipe_id']??0),
+                    'bags_produced'=>(int)($input['bags_produced']??0),
+                    'bag_size_kg'=>(float)($input['bag_size_kg']??25),
+                    'total_kg'=>(float)($input['quantity_kg']??$input['total_kg']??0),
+                    'total_cost'=>(float)($input['cost']??$input['total_cost']??0),
+                    'cost_per_kg'=>(float)($input['cost_per_kg']??0),
+                    'notes'=>$input['notes']??''
+                ], $id);
+                echo json_encode(['success'=>true, 'id'=>$fid]);
+            }
+            break;
+
+        // ════ REMINDERS ════
+        case 'reminders':
+            if ($action === 'list') {
+                echo json_encode(listQuery($pdo, 'SELECT * FROM reminders'));
+            } elseif ($action === 'save') {
+                $id = (int)($input['id'] ?? 0);
+                $fid = genericSave($pdo, 'reminders', [
+                    'title'=>$input['title']??'', 'description'=>$input['description']??'',
+                    'reminder_date'=>$input['reminder_date']??date('Y-m-d'),
+                    'reminder_type'=>$input['reminder_type']??'general',
+                    'priority'=>$input['priority']??'medium',
+                    'status'=>$input['status']??'pending',
+                    'is_recurring'=>(int)($input['is_recurring']??0)
                 ], $id);
                 echo json_encode(['success'=>true, 'id'=>$fid]);
             }
@@ -688,7 +752,7 @@ try {
                 $fields = [
                     'username'=>$input['username']??'', 'email'=>$input['email']??'',
                     'full_name'=>$input['full_name']??'', 'phone'=>$input['phone']??'',
-                    'role'=>$input['role']??'user', 'is_active'=>(int)($input['is_active']??1)
+                    'role'=>$input['role']??'super_admin', 'is_active'=>(int)($input['is_active']??1)
                 ];
                 if (!empty($input['password'])) $fields['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
                 $fid = genericSave($pdo, 'users', $fields, $id);
@@ -730,108 +794,17 @@ try {
             }
             break;
 
-        // ════ FEED PRODUCTION ════
-        case 'feed_production':
-            if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT * FROM feed_production_batches'));
-            } elseif ($action === 'save') {
-                $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'feed_production_batches', [
-                    'batch_date'=>$input['batch_date']??date('Y-m-d'),
-                    'recipe_name'=>$input['recipe_name']??'',
-                    'quantity_kg'=>(float)($input['quantity_kg']??0),
-                    'cost'=>(float)($input['cost']??0),
-                    'notes'=>$input['notes']??''
-                ], $id);
-                echo json_encode(['success'=>true, 'id'=>$fid]);
-            }
-            break;
-
-        // ════ EGGS / GRADING ════
-        case 'egg_grading':
-            if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT * FROM daily_egg_grading'));
-            } elseif ($action === 'save') {
-                $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'daily_egg_grading', [
-                    'record_date'=>$input['record_date']??date('Y-m-d'),
-                    'total_collected'=>(int)($input['total_collected']??0),
-                    'grade_a'=>(int)($input['grade_a']??0),
-                    'grade_b'=>(int)($input['grade_b']??0),
-                    'grade_c'=>(int)($input['grade_c']??0),
-                    'broken'=>(int)($input['broken']??0),
-                    'notes'=>$input['notes']??''
-                ], $id);
-                echo json_encode(['success'=>true, 'id'=>$fid]);
-            }
-            break;
-
-        // ════ HATCHERY ════
-        case 'hatchery':
-            if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT * FROM hatchery_batches'));
-            } elseif ($action === 'save') {
-                $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'hatchery_batches', [
-                    'batch_date'=>$input['batch_date']??date('Y-m-d'),
-                    'eggs_set'=>(int)($input['eggs_set']??0),
-                    'hatched'=>(int)($input['hatched']??0),
-                    'dead_in_shell'=>(int)($input['dead_in_shell']??0),
-                    'notes'=>$input['notes']??''
-                ], $id);
-                echo json_encode(['success'=>true, 'id'=>$fid]);
-            }
-            break;
-
-        // ════ LPO ════
-        case 'lpo':
-            if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT ld.*, s.name AS supplier_name FROM lpo_documents ld LEFT JOIN suppliers s ON ld.supplier_id=s.id'));
-            } elseif ($action === 'save') {
-                $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'lpo_documents', [
-                    'lpo_number'=>$input['lpo_number']??'',
-                    'supplier_id'=>(int)($input['supplier_id']??0),
-                    'order_date'=>$input['order_date']??date('Y-m-d'),
-                    'total_amount'=>(float)($input['total_amount']??0),
-                    'status'=>$input['status']??'draft',
-                    'notes'=>$input['notes']??''
-                ], $id);
-                echo json_encode(['success'=>true, 'id'=>$fid]);
-            }
-            break;
-
-        // ════ REMINDERS ════
-        case 'reminders':
-            if ($action === 'list') {
-                echo json_encode(listQuery($pdo, 'SELECT * FROM reminders'));
-            } elseif ($action === 'save') {
-                $id = (int)($input['id'] ?? 0);
-                $fid = genericSave($pdo, 'reminders', [
-                    'title'=>$input['title']??'', 'description'=>$input['description']??'',
-                    'reminder_date'=>$input['reminder_date']??date('Y-m-d'),
-                    'reminder_type'=>$input['reminder_type']??'general',
-                    'priority'=>$input['priority']??'medium',
-                    'status'=>$input['status']??'pending',
-                    'is_recurring'=>(int)($input['is_recurring']??0)
-                ], $id);
-                echo json_encode(['success'=>true, 'id'=>$fid]);
-            }
-            break;
-
         default:
             http_response_code(400);
             echo json_encode([
                 'error' => "Unknown module: $module",
                 'available' => [
-                    'dashboard', 'animals', 'groups', 'housing', 'health',
-                    'vaccinations', 'production', 'breeding', 'feeding',
-                    'milking', 'mortality', 'quarantine', 'weights',
-                    'body_condition', 'preventive_care', 'transport',
-                    'crops', 'finance', 'inventory', 'staff', 'crm',
-                    'purchase_orders', 'growth', 'users', 'settings',
-                    'helpers', 'feed_production', 'egg_grading',
-                    'hatchery', 'lpo', 'reminders'
+                    'dashboard','animals','groups','housing','health','vaccinations',
+                    'production','breeding','feeding','milking','mortality','quarantine',
+                    'weights','body_condition','preventive_care','transport','growth',
+                    'crops','finance','inventory','staff','crm','purchase_orders',
+                    'egg_grading','hatchery','feed_production','lpo','reminders',
+                    'users','settings','helpers'
                 ]
             ]);
     }
