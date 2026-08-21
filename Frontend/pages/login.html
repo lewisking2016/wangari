@@ -11,13 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
-    <meta http-equiv="refresh" content="0;url=http://20.164.18.34/Frontend/pages/login.html">
-    <script>
-    if(window.location.protocol==='https:'||window.location.hostname==='wangari.imeantech.com'){
-        document.documentElement.innerHTML='<head></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#f8fafc;"><div style="text-align:center"><h2>Redirecting to app...</h2><p>Opening the Wangari app on our server.</p></div></body></html>';
-        window.location.href='http://20.164.18.34/Frontend/pages/login.html';
-    }
-    </script>
 </head>
 <body>
 
@@ -68,10 +61,6 @@
                 </button>
             </form>
             <script>
-            // If served from Vercel (HTTPS), redirect to VPS for login
-            if (window.location.protocol === 'https:') {
-                window.location.href = 'http://20.164.18.34/Frontend/pages/login.html';
-            }
             const API_BASE = window.location.origin;
                     const ADMIN_BASE = window.location.origin;
             document.getElementById('loginForm').addEventListener('submit', async function(e) {

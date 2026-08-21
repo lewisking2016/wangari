@@ -2,6 +2,12 @@
   "version": 2,
   "outputDirectory": ".",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://20.164.18.34/api/:path*"
+    }
+  ],
   "redirects": [
     {
       "source": "/Frontend/auth/google/login.php",
@@ -10,7 +16,7 @@
     },
     {
       "source": "/Frontend/auth/google/callback.php",
-      "destination": "/Frontend/pages/login.html",
+      "destination": "/Frontend/auth/google/callback.html",
       "permanent": false
     },
     {
