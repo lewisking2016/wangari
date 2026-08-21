@@ -61,8 +61,8 @@
                 </button>
             </form>
             <script>
-            const API_BASE = 'http://20.164.18.34';
-                    const ADMIN_BASE = 'http://20.164.18.34:8080';
+            const API_BASE = window.location.origin;
+                    const ADMIN_BASE = window.location.origin;
             document.getElementById('loginForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const btn = document.getElementById('login-btn');
@@ -83,7 +83,7 @@
                     if (data.success) {
                         okDiv.textContent = 'Login successful! Redirecting...';
                         okDiv.style.display = 'block';
-                        window.location.href = 'http://20.164.18.34/Frontend/admin/app.html';
+                        window.location.href = '/Frontend/admin/app.html';
                     } else {
                         errDiv.textContent = data.error || 'Login failed';
                         errDiv.style.display = 'block';

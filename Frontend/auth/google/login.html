@@ -42,14 +42,7 @@
         const CLIENT_ID = '130893240175-4uj4716lrfgl3idul3aadu025l8oin46.apps.googleusercontent.com';
         // Use the backend VPS callback when running on wangari.imeantech.com
         // Otherwise fall back to same-origin (local dev)
-        const host = window.location.hostname;
-        let REDIRECT_URI;
-        if (host === 'wangari.imeantech.com') {
-            // Vercel frontend -> backend VPS handles callback
-            REDIRECT_URI = 'http://20.164.18.34/wangari/Frontend/auth/google/callback.php';
-        } else {
-            REDIRECT_URI = window.location.protocol + '//' + window.location.host + '/Frontend/auth/google/callback.php';
-        }
+        let REDIRECT_URI = window.location.protocol + '//' + window.location.host + '/Frontend/auth/google/callback.php';
 
         // Generate a random CSRF state and store in sessionStorage
         const array = new Uint8Array(16);
