@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wangari Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/assets/css/admin.css">
+    <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+</head>
+<body>
+<div id="app" style="display:flex;min-height:100vh;">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/Frontend/images/wangari-logo.png" alt="Wangari" style="height:32px;">
+            <span>Wangari</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" onclick="loadModule('dashboard')" class="active" data-module="dashboard">
+                <i class="icon">📊</i> Dashboard
+            </a>
+            <a href="#" onclick="loadModule('animals')" data-module="animals">
+                <i class="icon">🐄</i> Animals
+            </a>
+            <a href="#" onclick="loadModule('groups')" data-module="groups">
+                <i class="icon">👥</i> Groups
+            </a>
+            <a href="#" onclick="loadModule('housing')" data-module="housing">
+                <i class="icon">🏠</i> Housing
+            </a>
+            <a href="#" onclick="loadModule('health')" data-module="health">
+                <i class="icon">💊</i> Health
+            </a>
+            <a href="#" onclick="loadModule('vaccinations')" data-module="vaccinations">
+                <i class="icon">💉</i> Vaccinations
+            </a>
+            <a href="#" onclick="loadModule('production')" data-module="production">
+                <i class="icon">🥚</i> Production
+            </a>
+            <a href="#" onclick="loadModule('crops')" data-module="crops">
+                <i class="icon">🌾</i> Crops
+            </a>
+            <a href="#" onclick="loadModule('finance')" data-module="finance">
+                <i class="icon">💰</i> Finance
+            </a>
+            <a href="#" onclick="loadModule('inventory')" data-module="inventory">
+                <i class="icon">📦</i> Inventory
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="/" class="sidebar-link">← Back to Site</a>
+            <a href="#" onclick="logout()" class="sidebar-link" style="color:#ef4444;">Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main" class="main-content">
+        <header class="top-bar">
+            <h1 id="page-title">Dashboard</h1>
+            <div class="top-bar-actions">
+                <span id="user-info" style="color:#64748b;font-size:0.85rem;"></span>
+            </div>
+        </header>
+        <div id="content" class="content-area"></div>
+    </main>
+</div>
+
+<script>
+const API = 'http://20.164.18.34/api/v2.php';
+let currentModule = 'dashboard';
+
+// ── API Helper ──
+async function api(module, action = 'get', params = {}, body = null) {
+    const url = new URL(API);
+    url.searchParams.set('module', module);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
+    const opts = body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {};
+    const res = await fetch(url, opts);
+    return res.json();
+}
+
+// ── Navigation ──
+function loadModule(mod) {
+    currentModule = mod;
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    document.querySelector(`[data-module="${mod}"]`)?.classList.add('active');
+    document.getElementById('page-title').textContent = mod.charAt(0).toUpperCase() + mod.slice(1);
+    
+    switch(mod) {
+        case 'dashboard': renderDashboard(); break;
+        case 'animals': renderAnimals(); break;
+        case 'groups': renderGroups(); break;
+        case 'housing': renderHousing(); break;
+        case 'health': renderHealth(); break;
+        case 'vaccinations': renderVaccinations(); break;
+        case 'production': renderProduction(); break;
+        case 'crops': renderCrops(); break;
+        case 'finance': renderFinance(); break;
+        case 'inventory': renderInventory(); break;
+        default: document.getElementById('content').innerHTML = '<p>Module coming soon...</p>';
+    }
+}
+
+// ── Dashboard ──
+async function renderDashboard() {
+    const d = await api('dashboard');
+    const speciesHtml = (d.species_counts || []).map(s => 
+        `<div class="stat-card"><div class="stat-label">${s.species}</div><div class="stat-value">${s.cnt}</div></div>`
+    ).join('');
+    
+    document.getElementById('content').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card accent"><div class="stat-label">Total Animals</div><div class="stat-value">${d.total_animals}</div></div>
+            <div class="stat-card"><div class="stat-label">Groups</div><div class="stat-value">${d.total_groups}</div></div>
+            <div class="stat-card info"><div class="stat-label">Fields</div><div class="stat-value">${d.total_fields}</div></div>
+            <div class="stat-card accent"><div class="stat-label">Active Plantings</div><div class="stat-value">${d.active_plantings}</div></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Today's Eggs</div><div class="stat-value">${d.today_eggs}</div></div>
+            <div class="stat-card"><div class="stat-label">Today's Milk (L)</div><div class="stat-value">${d.today_milk}</div></div>
+            <div class="stat-card warning"><div class="stat-label">Mortality</div><div class="stat-value">${d.today_mortality}</div></div>
+            <div class="stat-card info"><div class="stat-label">Upcoming Vaccinations</div><div class="stat-value">${d.upcoming_vaccinations}</div></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Pending Births</div><div class="stat-value">${d.pending_births}</div></div>
+            <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value">${d.total_users}</div></div>
+        </div>
+        ${speciesHtml ? '<h3 style="margin:20px 0 12px;">By Species</h3><div class="stats-grid">' + speciesHtml + '</div>' : ''}
+    `;
+}
+
+// ── Generic List Renderer ──
+function renderList(title, data, columns, module) {
+    if (!data.length) return `<div class="card"><h3>${title}</h3><p style="color:#94a3b8;">No records yet. Click "Add" to create one.</p></div>`;
+    const thead = columns.map(c => `<th>${c.label}</th>`).join('');
+    const rows = data.map(row => {
+        const cells = columns.map(c => `<td>${row[c.key] ?? '-'}</td>`).join('');
+        return `<tr>${cells}<td><button onclick="deleteRecord('${module}',${row.id})" class="btn-sm btn-danger">Delete</button></td></tr>`;
+    }).join('');
+    return `<div class="card"><div class="card-header"><h3>${title}</h3><button onclick="showAddForm('${module}')" class="btn btn-primary">+ Add</button></div>
+    <div class="table-responsive"><table class="table"><thead><tr>${thead}<th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+// ── Animals ──
+async function renderAnimals() {
+    const data = await api('animals', 'list');
+    document.getElementById('content').innerHTML = renderList('Animal Registry', data, [
+        { key: 'tag', label: 'Tag' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Species' },
+        { key: 'breed', label: 'Breed' },
+        { key: 'gender', label: 'Gender' },
+        { key: 'status', label: 'Status' },
+    ], 'animals');
+}
+
+// ── Groups ──
+async function renderGroups() {
+    const data = await api('groups', 'list');
+    document.getElementById('content').innerHTML = renderList('Animal Groups', data, [
+        { key: 'name', label: 'Name' },
+        { key: 'species', label: 'Species' },
+        { key: 'group_type', label: 'Type' },
+        { key: 'head_count', label: 'Head Count' },
+        { key: 'status', label: 'Status' },
+    ], 'groups');
+}
+
+// ── Housing ──
+async function renderHousing() {
+    const data = await api('housing', 'list');
+    document.getElementById('content').innerHTML = renderList('Housing', data, [
+        { key: 'house_name', label: 'Name' },
+        { key: 'species', label: 'Species' },
+        { key: 'house_type', label: 'Type' },
+        { key: 'capacity', label: 'Capacity' },
+        { key: 'location', label: 'Location' },
+    ], 'housing');
+}
+
+// ── Health ──
+async function renderHealth() {
+    const data = await api('health', 'list');
+    document.getElementById('content').innerHTML = renderList('Health Records', data, [
+        { key: 'record_date', label: 'Date' },
+        { key: 'species', label: 'Species' },
+        { key: 'subject', label: 'Subject' },
+        { key: 'record_type', label: 'Type' },
+        { key: 'vet_name', label: 'Vet' },
+        { key: 'cost', label: 'Cost' },
+    ], 'health');
+}
+
+// ── Vaccinations ──
+async function renderVaccinations() {
+    const data = await api('vaccinations', 'list');
+    document.getElementById('content').innerHTML = renderList('Vaccinations', data, [
+        { key: 'vaccine_name', label: 'Vaccine' },
+        { key: 'species', label: 'Species' },
+        { key: 'scheduled_date', label: 'Scheduled' },
+        { key: 'administered_date', label: 'Given' },
+        { key: 'status', label: 'Status' },
+    ], 'vaccinations');
+}
+
+// ── Production ──
+async function renderProduction() {
+    const data = await api('production', 'list');
+    document.getElementById('content').innerHTML = renderList('Production Records', data, [
+        { key: 'record_date', label: 'Date' },
+        { key: 'species', label: 'Species' },
+        { key: 'eggs_collected', label: 'Eggs' },
+        { key: 'milk_litres', label: 'Milk (L)' },
+        { key: 'mortality', label: 'Mortality' },
+    ], 'production');
+}
+
+// ── Crops ──
+async function renderCrops() {
+    const [fields, plantings] = await Promise.all([api('crops', 'list_fields'), api('crops', 'list_plantings')]);
+    let html = renderList('Fields', fields, [
+        { key: 'name', label: 'Name' },
+        { key: 'size_acres', label: 'Size (acres)' },
+        { key: 'soil_type', label: 'Soil Type' },
+        { key: 'location', label: 'Location' },
+    ], 'fields');
+    html += renderList('Crop Plantings', plantings, [
+        { key: 'crop_name', label: 'Crop' },
+        { key: 'variety', label: 'Variety' },
+        { key: 'field_name', label: 'Field' },
+        { key: 'planting_date', label: 'Planted' },
+        { key: 'status', label: 'Status' },
+    ], 'plantings');
+    document.getElementById('content').innerHTML = html;
+}
+
+// ── Finance ──
+async function renderFinance() {
+    const [summary, transactions] = await Promise.all([api('finance', 'summary'), api('finance', 'list_transactions')]);
+    let html = `<div class="stats-grid">
+        <div class="stat-card accent"><div class="stat-label">Income</div><div class="stat-value">KES ${summary.income?.toLocaleString() || 0}</div></div>
+        <div class="stat-card warning"><div class="stat-label">Expenses</div><div class="stat-value">KES ${summary.expense?.toLocaleString() || 0}</div></div>
+        <div class="stat-card"><div class="stat-label">Profit</div><div class="stat-value">KES ${summary.profit?.toLocaleString() || 0}</div></div>
+    </div>`;
+    html += renderList('Transactions', transactions, [
+        { key: 'record_date', label: 'Date' },
+        { key: 'type', label: 'Type' },
+        { key: 'category', label: 'Category' },
+        { key: 'amount', label: 'Amount' },
+        { key: 'description', label: 'Description' },
+    ], 'transactions');
+    document.getElementById('content').innerHTML = html;
+}
+
+// ── Inventory ──
+async function renderInventory() {
+    const data = await api('inventory', 'list_products');
+    document.getElementById('content').innerHTML = renderList('Products', data, [
+        { key: 'name', label: 'Name' },
+        { key: 'category', label: 'Category' },
+        { key: 'unit', label: 'Unit' },
+        { key: 'price', label: 'Price' },
+        { key: 'stock_quantity', label: 'Stock' },
+    ], 'products');
+}
+
+// ── Delete ──
+async function deleteRecord(module, id) {
+    if (!confirm('Delete this record?')) return;
+    await api(module, 'delete', {}, { id });
+    loadModule(currentModule);
+}
+
+// ── Placeholder Add Form ──
+function showAddForm(module) {
+    alert('Add form for ' + module + ' — coming soon!');
+}
+
+// ── Logout ──
+function logout() {
+    localStorage.removeItem('wangari_user');
+    window.location.href = '/';
+}
+
+// ── Init ──
+const user = JSON.parse(localStorage.getItem('wangari_user') || 'null');
+if (!user) { window.location.href = '/Frontend/pages/login.html'; }
+else {
+    document.getElementById('user-info').textContent = user.full_name || user.username;
+    loadModule('dashboard');
+}
+</script>
+</body>
+</html>

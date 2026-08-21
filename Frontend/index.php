@@ -103,9 +103,9 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                     Get Started Free
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
-                <a href="#preview" class="xai-btn xai-btn-secondary xai-btn-lg">
-                    See the System
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg>
+                <a href="/Frontend/pages/login.html" class="xai-btn xai-btn-secondary xai-btn-lg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download App
                 </a>
             </div>
             <div class="xai-hero-stats">
@@ -625,7 +625,11 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                         Get Started Free
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
-                    <a href="/Frontend/pages/contact.php" class="xai-btn xai-btn-secondary xai-btn-lg">Book a Demo</a>
+                    <a href="/Frontend/pages/login.html" class="xai-btn xai-btn-secondary xai-btn-lg">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download App
+                    </a>
+                    <a href="/Frontend/pages/contact.php" class="xai-btn xai-btn-ghost xai-btn-lg">Book a Demo</a>
                 </div>
             </div>
         </div>

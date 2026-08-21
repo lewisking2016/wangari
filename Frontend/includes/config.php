@@ -5,6 +5,23 @@
  */
 declare(strict_types=1);
 
+// PHP 8.0 Polyfills for PHP 7.4 compatibility
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool {
+        return '' === $needle || false !== strpos($haystack, $needle);
+    }
+}
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool {
+        return 0 === strpos($haystack, $needle);
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        return '' === $needle || $needle === substr($haystack, -strlen($needle));
+    }
+}
+
 // Start session
 if (session_status() === PHP_SESSION_NONE) {
     $temp_dir = sys_get_temp_dir();
@@ -167,7 +184,7 @@ function safeQueryAll(PDO $pdo, string $sql, array $params = []): array {
 /**
  * Execute a scalar query safely and return a single value.
  */
-function safeQueryScalar(PDO $pdo, string $sql, array $params = [], mixed $default = null): mixed {
+function safeQueryScalar(PDO $pdo, string $sql, array $params = [], $default = null) {
     try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);

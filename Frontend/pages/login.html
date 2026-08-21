@@ -83,7 +83,7 @@
                     if (data.success) {
                         okDiv.textContent = 'Login successful! Redirecting...';
                         okDiv.style.display = 'block';
-                        window.location.href = data.redirect.startsWith('http') ? data.redirect : ADMIN_BASE + data.redirect;
+                        window.location.href = '/Frontend/admin/app.html';
                     } else {
                         errDiv.textContent = data.error || 'Login failed';
                         errDiv.style.display = 'block';

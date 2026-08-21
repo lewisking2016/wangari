@@ -132,7 +132,7 @@ function wangari_license_deny(string $reason): never
 /**
  * Base64url decode (JWT-compatible, no padding required)
  */
-function base64url_decode(string $data): string|false
+function base64url_decode(string $data)
 {
     $padded = $data . str_repeat('=', (4 - strlen($data) % 4) % 4);
     return base64_decode(strtr($padded, '-_', '+/'));

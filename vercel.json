@@ -75,7 +75,7 @@
     },
     {
       "source": "/Frontend/admin/(.*)\\.php",
-      "destination": "/Frontend/pages/login.html",
+      "destination": "/Frontend/admin/app.html",
       "permanent": false
     },
     {

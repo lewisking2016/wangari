@@ -45,7 +45,7 @@ function safe_query_all(PDO $pdo, string $sql, array $params = []): array {
     }
 }
 
-function safe_query_one(PDO $pdo, string $sql, array $params = []): mixed {
+function safe_query_one(PDO $pdo, string $sql, array $params = []) {
     try {
         if (count($params) === 0) {
             $res = $pdo->query($sql);
@@ -53,13 +53,14 @@ function safe_query_one(PDO $pdo, string $sql, array $params = []): mixed {
         }
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $returnVal = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $returnVal !== false ? $returnVal : null;
     } catch (PDOException $e) {
         return null;
     }
 }
 
-function safe_scalar(PDO $pdo, string $sql, array $params = []): mixed {
+function safe_scalar(PDO $pdo, string $sql, array $params = []) {
     try {
         if (count($params) === 0) {
             $res = $pdo->query($sql);
