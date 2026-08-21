@@ -8,14 +8,6 @@
       "destination": "http://20.164.18.34/api/:path*"
     },
     {
-      "source": "/Frontend/admin/:path*",
-      "destination": "http://20.164.18.34/Frontend/admin/:path*"
-    },
-    {
-      "source": "/Frontend/includes/:path*",
-      "destination": "http://20.164.18.34/Frontend/includes/:path*"
-    },
-    {
       "source": "/Frontend/assets/:path*",
       "destination": "http://20.164.18.34/Frontend/assets/:path*"
     },
@@ -25,6 +17,11 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/Frontend/admin/:path*",
+      "destination": "http://20.164.18.34/Frontend/admin/:path*",
+      "permanent": false
+    },
     {
       "source": "/Frontend/auth/google/login.php",
       "destination": "/Frontend/auth/google/login.html",
