@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
     <script>
-    // If on Vercel (HTTPS), redirect to VPS
     if (window.location.protocol === 'https:') {
         window.location.href = 'http://20.164.18.34/Frontend/pages/login.html';
     }
@@ -35,23 +34,23 @@
             <h1>Sign In</h1>
             <p class="xai-auth-subtitle">Enter your credentials to access your account.</p>
 
-            <div id="login-error" class="xai-auth-error" style="display:none;"></div>
-            <div id="login-success" class="xai-auth-success" style="display:none;"></div>
+            <div id="login-error" style="display:none;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;padding:10px;margin-bottom:16px;font-size:0.85rem;"></div>
+            <div id="login-success" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;padding:10px;margin-bottom:16px;font-size:0.85rem;"></div>
 
             <form id="loginForm">
-                <div class="form-group">
-                    <label for="login-username">Username or Email</label>
-                    <input type="text" id="login-username" class="form-input" placeholder="you@farm.co.ke" required>
+                <div class="xai-form-group">
+                    <label class="xai-form-label" for="login-username">Username or Email</label>
+                    <input type="text" id="login-username" class="xai-form-input" placeholder="you@farm.co.ke" required>
                 </div>
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+                <div class="xai-form-group">
+                    <label class="xai-form-label" for="login-password">Password</label>
+                    <input type="password" id="login-password" class="xai-form-input" placeholder="••••••••" required>
                 </div>
-                <div class="form-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:#94a3b8;cursor:pointer;">
+                <div class="xai-form-row">
+                    <label>
                         <input type="checkbox" style="accent-color:#16a34a;"> Remember me
                     </label>
-                    <a href="forgot-password.html" style="font-size:0.85rem;color:#16a34a;text-decoration:none;">Forgot Password?</a>
+                    <a href="forgot-password.html">Forgot Password?</a>
                 </div>
                 
                 <button type="submit" id="login-btn" class="xai-btn xai-btn-primary xai-btn-lg" style="width: 100%;">
@@ -87,20 +86,20 @@
                     } else {
                         errDiv.textContent = data.error || 'Login failed';
                         errDiv.style.display = 'block';
-                        btn.disabled = false; btn.innerHTML = 'Sign In';
+                        btn.disabled = false; btn.innerHTML = 'Sign In →';
                     }
                 } catch(err) {
                     errDiv.textContent = 'Cannot connect to server. Please try again.';
                     errDiv.style.display = 'block';
-                    btn.disabled = false; btn.innerHTML = 'Sign In';
+                    btn.disabled = false; btn.innerHTML = 'Sign In →';
                 }
             });
             </script>
 
-            <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: rgba(255,255,255,0.4); font-size: 0.85rem;">
-                <div style="flex:1;height:1px;background:rgba(255,255,255,0.15);"></div>
+            <div style="display: flex; align-items: center; margin: 24px 0; color: var(--xai-text-muted); font-size: 0.85rem;">
+                <div style="flex:1;height:1px;background:var(--xai-border);"></div>
                 <span style="padding:0 12px;">or</span>
-                <div style="flex:1;height:1px;background:rgba(255,255,255,0.15);"></div>
+                <div style="flex:1;height:1px;background:var(--xai-border);"></div>
             </div>
 
             <a href="/Frontend/auth/google/login.html" class="xai-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: #000000; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-size: 0.95rem; font-weight: 600; padding: 14px; transition: all 0.2s ease;">
@@ -108,8 +107,8 @@
                 <span>Continue with Google</span>
             </a>
 
-            <p style="text-align:center;margin-top:24px;font-size:0.85rem;color:#64748b;">
-                Don't have an account? <a href="register.html" style="color:#16a34a;text-decoration:none;font-weight:600;">Create one</a>
+            <p class="xai-form-footer">
+                Don't have an account? <a href="register.html">Create one</a>
             </p>
         </div>
     </div>

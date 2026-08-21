@@ -30,8 +30,15 @@ try {
         if ($cached && $cached['forecast_json']) {
             $weatherData = json_decode($cached['forecast_json'], true);
         } else {
-            // Fetch from open-meteo (Busia, Kenya coords: 0.46, 34.56)
-            $url = 'https://api.open-meteo.com/v1/forecast?latitude=0.46&longitude=34.56&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&timezone=Africa/Nairobi&forecast_days=5';
+            // Read farm location from settings (editable in Connectors → Weather tab)
+            $wLat = '0.46'; $wLon = '34.56';
+            try {
+                $wSet = $wPdo->query("SELECT setting_value FROM farm_settings WHERE setting_key='weather_lat' LIMIT 1")->fetchColumn();
+                if ($wSet) $wLat = $wSet;
+                $wSet2 = $wPdo->query("SELECT setting_value FROM farm_settings WHERE setting_key='weather_lon' LIMIT 1")->fetchColumn();
+                if ($wSet2) $wLon = $wSet2;
+            } catch (Exception $e) {}
+            $url = "https://api.open-meteo.com/v1/forecast?latitude=" . urlencode($wLat) . '&longitude=' . urlencode($wLon) . '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&current_weather=true&timezone=Africa/Nairobi&forecast_days=5';
             $ctx = stream_context_create(['http' => ['timeout' => 8]]);
             $json = @file_get_contents($url, false, $ctx);
             if ($json !== false) {
