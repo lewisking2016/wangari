@@ -6,6 +6,22 @@
     {
       "source": "/api/:path*",
       "destination": "http://20.164.18.34/api/:path*"
+    },
+    {
+      "source": "/Frontend/admin/:path*",
+      "destination": "http://20.164.18.34/Frontend/admin/:path*"
+    },
+    {
+      "source": "/Frontend/includes/:path*",
+      "destination": "http://20.164.18.34/Frontend/includes/:path*"
+    },
+    {
+      "source": "/Frontend/assets/:path*",
+      "destination": "http://20.164.18.34/Frontend/assets/:path*"
+    },
+    {
+      "source": "/Frontend/images/:path*",
+      "destination": "http://20.164.18.34/Frontend/images/:path*"
     }
   ],
   "redirects": [
@@ -78,11 +94,6 @@
       "source": "/Frontend/pages/(.*)\\.php",
       "destination": "/Frontend/pages/$1.html",
       "permanent": true
-    },
-    {
-      "source": "/Frontend/admin/(.*)\\.php",
-      "destination": "/Frontend/admin/app.html",
-      "permanent": false
     },
     {
       "source": "/Frontend/auth/(.*)\\.php",

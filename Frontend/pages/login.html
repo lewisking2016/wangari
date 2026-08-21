@@ -85,7 +85,7 @@
                         if (data.session_id) localStorage.setItem('wangari_session', data.session_id);
                         okDiv.textContent = 'Login successful! Redirecting...';
                         okDiv.style.display = 'block';
-                        window.location.href = '/Frontend/admin/app.html';
+                        window.location.href = '/Frontend/admin/hub_operations.php';
                     } else {
                         errDiv.textContent = data.error || 'Login failed';
                         errDiv.style.display = 'block';
