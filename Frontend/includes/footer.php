@@ -40,6 +40,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
                         <li><a href="/Frontend/pages/about.php">About Us</a></li>
                         <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
                         <li><a href="/Frontend/pages/contact.php">Contact Us</a></li>
+                        <li><a href="/Frontend/pages/services.php">Services</a></li>
                     </ul>
                 </div>
 
@@ -69,6 +70,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
                 <div style="display: flex; gap: 1.5rem;">
                     <a href="/Frontend/pages/privacy.php">Privacy Policy</a>
                     <a href="/Frontend/pages/terms.php">Terms of Service</a>
+                    <a href="/Frontend/pages/contact.php">Contact</a>
                 </div>
             </div>
         </div>

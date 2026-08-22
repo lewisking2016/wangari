@@ -115,7 +115,7 @@ if ($action === 'generate_code') {
     $maxUses = max(1, min(100, (int)($input['max_uses'] ?? 1)));
     $expiresDays = max(0, min(90, (int)($input['expires_days'] ?? 7)));
 
-    $validRoles = ['farm_manager', 'stock_manager', 'sales_staff', 'field_worker', 'veterinarian', 'accountant', 'auditor'];
+    $validRoles = ['farm_manager', 'stock_manager', 'sales_staff', 'field_worker', 'veterinarian', 'accountant', 'auditor', 'guest'];
     if (!in_array($role, $validRoles)) {
         http_response_code(400);
         echo json_encode(['error' => 'Invalid role. Valid roles: ' . implode(', ', $validRoles)]);
