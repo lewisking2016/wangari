@@ -7,7 +7,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/config.php';
 
 // Admin access check - allow all authenticated users
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager', 'stock_manager', 'sales_staff', 'customer'], true)) {
+if (empty($_SESSION['user_id']) || !wangariIsFarmSystemRole((string)($_SESSION['role'] ?? ''))) {
     header('Location: /Frontend/pages/login.php');
     exit;
 }

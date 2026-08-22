@@ -172,6 +172,19 @@ function getDB(): ?PDO {
 }
 
 /**
+ * Return whether a signed-in account may enter the farm system.
+ * Keep this list aligned with Backend/config/role_permissions.php so OAuth,
+ * password login, and direct dashboard requests behave consistently.
+ */
+function wangariIsFarmSystemRole(string $role): bool {
+    return in_array($role, [
+        'super_admin', 'farm_manager', 'farm_owner', 'stock_manager',
+        'sales_staff', 'customer', 'field_worker', 'veterinarian',
+        'accountant', 'auditor', 'guest',
+    ], true);
+}
+
+/**
  * Execute a SELECT query safely and return rows.
  */
 function safeQueryAll(PDO $pdo, string $sql, array $params = []): array {

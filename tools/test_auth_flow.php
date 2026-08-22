@@ -34,8 +34,9 @@ $dashboard = file_get_contents($root . '/Frontend/admin/dashboard.php');
 $loginHtml = file_get_contents($root . '/Frontend/pages/login.html');
 $registerHtml = file_get_contents($root . '/Frontend/pages/register.html');
 $configPhp = file_get_contents($root . '/Frontend/includes/config.php');
+$adminHeader = file_get_contents($root . '/Frontend/admin/includes/admin_header.php');
 
-if ($loginPhp === false || $registerPhp === false || $adminLogin === false || $googleLogin === false || $googleCallback === false || $apiAuth === false || $emailPolicy === false || $dashboard === false || $loginHtml === false || $registerHtml === false || $configPhp === false) {
+if ($loginPhp === false || $registerPhp === false || $adminLogin === false || $googleLogin === false || $googleCallback === false || $apiAuth === false || $emailPolicy === false || $dashboard === false || $loginHtml === false || $registerHtml === false || $configPhp === false || $adminHeader === false) {
     fail('FAIL: Could not read one or more auth files');
 }
 
@@ -73,5 +74,9 @@ assertNotContains($googleCallback, 'INSERT INTO users (username, email, password
 assertContains($googleCallback, 'google_registration_profile', 'google callback');
 assertContains($loginPhp, 'No local account matches this Google email', 'public login page');
 assertContains($loginPhp, 'wangariEmailVariants', 'public login page');
+assertContains($configPhp, 'function wangariIsFarmSystemRole', 'shared farm role guard');
+assertContains($dashboard, 'wangariIsFarmSystemRole', 'admin dashboard role guard');
+assertContains($adminHeader, 'wangariIsFarmSystemRole', 'admin header role guard');
+assertContains($googleCallback, 'session_write_close();', 'Google callback session persistence');
 
 echo "Auth flow checks passed." . PHP_EOL;

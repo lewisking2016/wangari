@@ -128,9 +128,15 @@ try {
         exit;
     }
     
-    // All users go to the real farm system
     unset($_SESSION['oauth_flow']);
-    header("Location: /Frontend/admin/dashboard.php");
+    // Persist the authenticated session before the browser follows the redirect.
+    session_write_close();
+
+    // All authenticated farm roles go to the real farm system.
+    $redirect = ($_SESSION['role'] ?? '') === 'customer'
+        ? '/Frontend/index.php'
+        : '/Frontend/admin/dashboard.php';
+    header('Location: ' . $redirect);
     exit;
     
 } catch (Exception $e) {

@@ -15,7 +15,7 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!isset($page_title)) $page_title = 'Admin Console';
 // Admin access check (Basic authentication for ANY admin area)
 // Admin access check (Basic authentication for ANY admin area)
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff', 'customer'], true)) {
+if (empty($_SESSION['user_id']) || !wangariIsFarmSystemRole((string)($_SESSION['role'] ?? ''))) {
     header('Location: /Frontend/pages/login.php');
     exit;
 }
