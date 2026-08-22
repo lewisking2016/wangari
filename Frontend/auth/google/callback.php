@@ -138,13 +138,8 @@ try {
         $_SESSION['email']       = $email;
     }
     
-    // Role-based redirect — check the ACTUAL role (might be new user where $user is null)
-    $role = $user['role'] ?? $_SESSION['role'] ?? 'farm_manager';
-    $redirect = '/Frontend/pages/dashboard.php'; // default: customer dashboard
-    if ($role === 'super_admin') {
-        $redirect = '/Frontend/admin/dashboard.php';
-    }
-    header("Location: {$redirect}");
+    // All users go to the real farm system
+    header("Location: /Frontend/admin/dashboard.php");
     exit;
     
 } catch (Exception $e) {

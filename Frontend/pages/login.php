@@ -48,11 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 $_SESSION['first_name'] = explode(' ', $user['full_name'] ?? $user['username'] ?? '')[0] ?? '';
                 $_SESSION['full_name'] = $user['full_name'] ?? $user['username'];
                 
-                // Route by role
-                $redirect = '/Frontend/pages/dashboard.php'; // default: customer dashboard
-                if ($user['role'] === 'super_admin') {
-                    $redirect = '/Frontend/admin/dashboard.php';
-                }
+                // Route by role — everyone goes to the real farm system
+                $redirect = '/Frontend/admin/dashboard.php';
                 
                 echo "<script>window.location.href = '$redirect';</script>";
                 exit;
