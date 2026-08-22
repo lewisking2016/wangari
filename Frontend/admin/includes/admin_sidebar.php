@@ -150,6 +150,11 @@ HTML;
         <?= w2NavItem('/Frontend/admin/bulk_import_export.php', 'database', 'Bulk Import/Export', w2IsActive('bulk_import_export.php')) ?>
         <?= w2NavItem('/Frontend/admin/connectors.php', 'plug', 'Connectors', w2IsActive('connectors.php')) ?>
 
+        <?php if (($_SESSION['role'] ?? '') === 'super_admin'): ?>
+        <p class="w2-nav-section">Platform</p>
+        <?= w2NavItem('/Frontend/admin/super_admin.php', 'shield', 'Control Center', w2IsActive('super_admin.php')) ?>
+        <?php endif; ?>
+
         <p class="w2-nav-section">System</p>
         <?= w2NavGroup('settings', 'Settings', 'hub_settings.php', [
             'calendar'    => 'Calendar View',

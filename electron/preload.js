@@ -7,16 +7,16 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('wangari', {
-  /** Activate a license key against the license server */
+  // License
   activate: (key) => ipcRenderer.invoke('license:activate', key),
-
-  /** Get current license validity status */
   licenseStatus: () => ipcRenderer.invoke('license:status'),
-
-  /** Signal main process that activation succeeded and app should open */
   confirmActivation: (jwt) => ipcRenderer.send('license:confirmed', jwt),
-
-  /** Open an external HTTPS URL in the system browser */
   openUrl: (url) => ipcRenderer.invoke('app:open-url', url),
+
+  // Offline Sync
+  syncStatus: () => ipcRenderer.invoke('sync:status'),
+  syncPush: (action) => ipcRenderer.invoke('sync:push', action),
+  syncPull: () => ipcRenderer.invoke('sync:pull'),
+  onSyncComplete: (cb) => ipcRenderer.on('sync:complete', (_e, data) => cb(data)),
 });
 

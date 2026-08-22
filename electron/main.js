@@ -17,12 +17,16 @@ const os     = require('os');
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
-const APP_VERSION    = '1.0.0';
+const APP_VERSION    = '1.1.0';
 const PHP_PORT       = 18432; // obscure internal port
 const LICENSE_DIR    = path.join(os.homedir(), '.wangari');
 const LICENSE_FILE   = path.join(LICENSE_DIR, '.lic');
 const GRACE_MS       = 14 * 24 * 60 * 60 * 1000; // 14-day offline grace
 const LICENSE_SERVER = 'https://license.wangari.app';
+const SYNC_SERVER    = 'https://wangari.imeantech.com';
+const SYNC_DIR       = path.join(LICENSE_DIR, 'sync');
+const SYNC_QUEUE     = path.join(SYNC_DIR, 'queue.json');
+const SYNC_INTERVAL  = 5 * 60 * 1000; // sync every 5 minutes when online
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HARDWARE FINGERPRINT  (MAC + CPU + Disk serial)
@@ -312,6 +316,8 @@ function createMainWindow(jwtToken) {
 
   // Heartbeat every 6 hours
   setInterval(heartbeat, 6 * 60 * 60 * 1000);
+  // Start offline sync service
+  startSyncService();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -360,6 +366,172 @@ ipcMain.handle('app:open-url', (_e, url) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// OFFLINE SYNC SERVICE
+// ─────────────────────────────────────────────────────────────────────────────
+let syncTimer = null;
+
+function ensureSyncDir() {
+  if (!fs.existsSync(SYNC_DIR)) fs.mkdirSync(SYNC_DIR, { recursive: true });
+  if (!fs.existsSync(SYNC_QUEUE)) fs.writeFileSync(SYNC_QUEUE, '[]', 'utf8');
+}
+
+function getSyncQueue() {
+  ensureSyncDir();
+  try {
+    return JSON.parse(fs.readFileSync(SYNC_QUEUE, 'utf8'));
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveSyncQueue(queue) {
+  ensureSyncDir();
+  fs.writeFileSync(SYNC_QUEUE, JSON.stringify(queue, null, 2), 'utf8');
+}
+
+function addToSyncQueue(action) {
+  const queue = getSyncQueue();
+  queue.push({
+    id: crypto.randomUUID(),
+    timestamp: Date.now(),
+    ...action,
+  });
+  saveSyncQueue(queue);
+  console.log(`[sync] Queued: ${action.type} ${action.table || ''} (queue: ${queue.length})`);
+}
+
+async function isOnline() {
+  return new Promise((resolve) => {
+    const req = http.get(`${SYNC_SERVER}/api/health.php`, { timeout: 5000 }, (res) => {
+      resolve(res.statusCode === 200);
+      res.resume();
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+  });
+}
+
+async function processSyncQueue() {
+  const queue = getSyncQueue();
+  if (queue.length === 0) return;
+
+  const online = await isOnline();
+  if (!online) {
+    console.log('[sync] Offline — skipping sync (' + queue.length + ' pending)');
+    return;
+  }
+
+  console.log(`[sync] Online — processing ${queue.length} queued changes...`);
+  const remaining = [];
+
+  for (const item of queue) {
+    try {
+      const payload = JSON.stringify({
+        action: item.type,
+        table: item.table,
+        data: item.data,
+        id: item.record_id,
+        hardware_id: HARDWARE_ID,
+      });
+
+      const url = new URL('/api/v2.php?module=sync&action=push', SYNC_SERVER);
+      await new Promise((resolve, reject) => {
+        const req = https.request({
+          hostname: url.hostname,
+          port: 443,
+          path: url.pathname + url.search,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+          timeout: 15000,
+        }, (res) => {
+          let data = '';
+          res.on('data', d => data += d);
+          res.on('end', () => {
+            if (res.statusCode >= 200 && res.statusCode < 300) resolve();
+            else reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+          });
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+        req.write(payload);
+        req.end();
+      });
+      console.log(`[sync] Pushed: ${item.type} ${item.table || ''} #${item.record_id || ''}`);
+    } catch (e) {
+      console.warn(`[sync] Failed to push ${item.type}: ${e.message} — will retry`);
+      remaining.push(item);
+    }
+  }
+
+  saveSyncQueue(remaining);
+  console.log(`[sync] Done — ${queue.length - remaining.length} pushed, ${remaining.length} remaining`);
+
+  // Notify renderer
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('sync:complete', {
+      pushed: queue.length - remaining.length,
+      remaining: remaining.length,
+    });
+  }
+}
+
+function startSyncService() {
+  ensureSyncDir();
+  // Process queue immediately on start
+  processSyncQueue();
+  // Then every 5 minutes
+  syncTimer = setInterval(processSyncQueue, SYNC_INTERVAL);
+  console.log('[sync] Service started (interval: ' + SYNC_INTERVAL / 1000 + 's)');
+}
+
+function stopSyncService() {
+  if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+}
+
+// IPC: sync operations
+ipcMain.handle('sync:status', () => {
+  const queue = getSyncQueue();
+  return { pending: queue.length, lastSync: queue.length > 0 ? queue[0].timestamp : null };
+});
+
+ipcMain.handle('sync:push', async (_e, action) => {
+  addToSyncQueue(action);
+  await processSyncQueue();
+  return { success: true, pending: getSyncQueue().length };
+});
+
+ipcMain.handle('sync:pull', async () => {
+  // Pull latest data from server
+  const online = await isOnline();
+  if (!online) return { success: false, error: 'Offline' };
+  try {
+    const payload = JSON.stringify({ hardware_id: HARDWARE_ID });
+    const url = new URL('/api/v2.php?module=sync&action=pull', SYNC_SERVER);
+    return new Promise((resolve) => {
+      const req = https.request({
+        hostname: url.hostname, port: 443,
+        path: url.pathname + url.search, method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+        timeout: 30000,
+      }, (res) => {
+        let data = '';
+        res.on('data', d => data += d);
+        res.on('end', () => {
+          try { resolve({ success: true, data: JSON.parse(data) }); }
+          catch (_) { resolve({ success: false, error: 'Invalid response' }); }
+        });
+      });
+      req.on('error', (e) => resolve({ success: false, error: e.message }));
+      req.on('timeout', () => { req.destroy(); resolve({ success: false, error: 'Timeout' }); });
+      req.write(payload);
+      req.end();
+    });
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // APP LIFECYCLE
 // ─────────────────────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
@@ -390,6 +562,7 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   stopPhpServer();
+  stopSyncService();
   if (process.platform !== 'darwin') app.quit();
 });
 
