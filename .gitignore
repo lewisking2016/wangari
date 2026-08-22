@@ -46,6 +46,7 @@ uploads/*
 # Session files
 sessions/*
 !sessions/.gitkeep
+Backend/storage/sessions/sess_*
 
 # Build files
 node_modules/
