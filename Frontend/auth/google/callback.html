@@ -89,9 +89,9 @@
                 statusEl.textContent = 'Welcome! Redirecting to your farm…';
                 spinnerEl.style.display = 'none';
 
-                // Redirect to admin
+                // Redirect based on role
                 setTimeout(function() {
-                    window.location.href = '/Frontend/admin/app.html';
+                    window.location.href = data.redirect || '/Frontend/admin/dashboard.php';
                 }, 500);
             } else {
                 showError(data.error || 'Login failed. Please try again.');

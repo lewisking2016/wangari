@@ -65,9 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
                     $_SESSION['first_name'] = explode(' ', $user['full_name'] ?? $user['username'] ?? '')[0] ?? '';
                     logActivity($pdo, 'login', 'auth', "{$user['username']} logged in", (int)$user['id'], 'user');
 
-                    $next = $_GET['next'] ?? '/Frontend/admin/dashboard.php';
-                    if (!isSafeAdminRedirect($next)) {
-                        $next = '/Frontend/admin/dashboard.php';
+                    // Role-based redirect
+                    $next = $_GET['next'] ?? '';
+                    if (empty($next) || !isSafeAdminRedirect($next)) {
+                        $next = ($user['role'] === 'super_admin')
+                            ? '/Frontend/admin/super_admin.php'
+                            : '/Frontend/admin/dashboard.php';
                     }
                     header('Location: ' . $next);
                     exit;

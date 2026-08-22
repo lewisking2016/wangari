@@ -46,8 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['first_name'] = explode(' ', $user['full_name'] ?? $user['username'] ?? '')[0] ?? '';
+                $_SESSION['full_name'] = $user['full_name'] ?? $user['username'];
                 
-                echo "<script>window.location.href = '/Frontend/admin/dashboard.php';</script>";
+                // Route by role
+                $redirect = '/Frontend/index.php';
+                if (in_array($user['role'], ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff'])) {
+                    $redirect = '/Frontend/admin/dashboard.php';
+                }
+                
+                echo "<script>window.location.href = '$redirect';</script>";
                 exit;
             } else {
                 $errors[] = 'Invalid username/email or password';

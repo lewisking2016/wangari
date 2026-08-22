@@ -4,11 +4,7 @@
  */
 declare(strict_types=1);
 
-$temp_dir = sys_get_temp_dir();
-if (is_writable($temp_dir)) {
-    session_save_path($temp_dir);
-}
-session_start();
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 require_once __DIR__ . '/../../includes/config.php';
 
@@ -82,7 +78,7 @@ try {
         $_SESSION['user_id']     = $user['id'];
         $_SESSION['username']    = $user['username'];
         $_SESSION['role']        = $user['role'];
-        $_SESSION['first_name']  = $user['first_name'];
+        $_SESSION['full_name']  = $user['full_name'] ?? $user['username'];
         $_SESSION['profile_pic'] = $picture ?: ($user['profile_pic'] ?? '');
         $_SESSION['email']       = $email;
         
@@ -105,16 +101,15 @@ try {
         
         // Insert user
         $insertStmt = $pdo->prepare("
-            INSERT INTO users (username, email, password_hash, role, first_name, last_name, google_id, profile_pic, created_at)
-            VALUES (?, ?, ?, 'farm_manager', ?, ?, ?, ?, NOW())
+            INSERT INTO users (username, email, password, full_name, role, google_id, profile_pic, created_at)
+            VALUES (?, ?, ?, ?, 'farm_manager', ?, ?, NOW())
         ");
         
         $insertStmt->execute([
             $username,
             $email,
             $passwordHash,
-            $firstName,
-            $lastName,
+            trim($firstName . ' ' . $lastName),
             $googleId,
             $picture
         ]);
@@ -125,14 +120,19 @@ try {
         $_SESSION['user_id']     = $newUserId;
         $_SESSION['username']    = $username;
         $_SESSION['role']        = 'farm_manager';
-        $_SESSION['first_name']  = $firstName;
+        $_SESSION['full_name']  = trim($firstName . ' ' . $lastName);
         $_SESSION['profile_pic'] = $picture;
         $_SESSION['email']       = $email;
     }
     
-    // Redirect to Admin Dashboard (on VPS)
-    $vpsBase = 'https://wangari.imeantech.com';
-    header("Location: {$vpsBase}/Frontend/admin/app.html");
+    // Role-based redirect
+    $redirect = '/Frontend/admin/dashboard.php';
+    if (($user['role'] ?? '') === 'super_admin') {
+        $redirect = '/Frontend/admin/super_admin.php';
+    } elseif (($user['role'] ?? '') === 'customer') {
+        $redirect = '/Frontend/index.php';
+    }
+    header("Location: {$redirect}");
     exit;
     
 } catch (Exception $e) {

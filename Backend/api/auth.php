@@ -115,16 +115,22 @@ if (!empty($googleCode)) {
             ];
         }
 
-        // Start session
-        $temp_dir = sys_get_temp_dir();
-        if (is_writable($temp_dir)) session_save_path($temp_dir);
-        session_start();
+        // Start session (do NOT override Redis session path)
+        if (session_status() === PHP_SESSION_NONE) session_start();
 
         $_SESSION['user_id']    = $user['id'];
         $_SESSION['username']   = $user['username'];
         $_SESSION['email']      = $user['email'];
         $_SESSION['role']       = $user['role'];
         $_SESSION['full_name']  = $user['full_name'] ?? $user['username'];
+
+        // Role-based redirect
+        $redirect = '/Frontend/admin/dashboard.php';
+        if (($user['role'] ?? '') === 'super_admin') {
+            $redirect = '/Frontend/admin/super_admin.php';
+        } elseif (($user['role'] ?? '') === 'customer') {
+            $redirect = '/Frontend/index.php';
+        }
 
         echo json_encode([
             'success' => true,
@@ -136,7 +142,7 @@ if (!empty($googleCode)) {
                 'full_name'  => $user['full_name'] ?? $user['username'],
                 'profile_pic'=> $picture ?: ($user['profile_pic'] ?? ''),
             ],
-            'redirect' => '/Frontend/admin/app.html',
+            'redirect' => $redirect,
             'session_id' => session_id(),
         ]);
 
@@ -169,10 +175,8 @@ try {
         exit;
     }
 
-    // Start a session on the VPS for the admin panel
-    $temp_dir = sys_get_temp_dir();
-    if (is_writable($temp_dir)) session_save_path($temp_dir);
-    session_start();
+    // Start session (do NOT override Redis session path)
+    if (session_status() === PHP_SESSION_NONE) session_start();
 
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
@@ -181,6 +185,14 @@ try {
     $_SESSION['full_name'] = $user['full_name'] ?? $user['username'];
 
     $session_id = session_id();
+
+    // Role-based redirect
+    $redirect = '/Frontend/admin/dashboard.php';
+    if (($user['role'] ?? '') === 'super_admin') {
+        $redirect = '/Frontend/admin/super_admin.php';
+    } elseif (($user['role'] ?? '') === 'customer') {
+        $redirect = '/Frontend/index.php';
+    }
 
     echo json_encode([
         'success' => true,
@@ -191,7 +203,7 @@ try {
             'role' => $user['role'],
             'full_name' => $user['full_name'] ?? $user['username'],
         ],
-        'redirect' => '/Frontend/admin/app.html',
+        'redirect' => $redirect,
         'session_id' => $session_id,
     ]);
 
