@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     header('Location: /Frontend/admin/dashboard.php?welcome=1');
                     exit;
                 } else {
-                    // Worker: join farm via code
+                    // Worker: join farm via code (they go to the farm system, not admin)
                     $stmt = $pdo->prepare("SELECT fc.*, f.id as farm_id, f.name as farm_name FROM farm_codes fc JOIN farms f ON fc.farm_id = f.id WHERE fc.code = ? AND fc.is_active = 1");
                     $stmt->execute([$code]);
                     $farmCode = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -126,6 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                         $_SESSION['role'] = $roleForFarm;
                     }
 
+                    // Workers go to the farm system, not admin dashboard
                     header('Location: /Frontend/admin/dashboard.php?welcome=1');
                     exit;
                 }

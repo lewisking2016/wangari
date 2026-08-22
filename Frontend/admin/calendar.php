@@ -11,7 +11,7 @@ session_start();
 $page_title = 'Calendar - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
-if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff'], true)) {
+if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff', 'customer'], true)) {
     header('Location: /Frontend/pages/login.php');
     exit;
 }
