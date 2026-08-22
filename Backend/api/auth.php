@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require __DIR__ . '/../config/database.php';
+require __DIR__ . '/../config/email_policy.php';
 $pdo = getDatabaseConnection();
 
 if (!$pdo) {
@@ -58,13 +59,33 @@ if (!empty($googleCode)) {
     $lastName  = $profile['family_name'] ?? '';
     $picture   = $profile['picture'] ?? '';
 
+    if (!wangariIsAllowedEmail($email)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Only Gmail and Outlook email addresses are allowed.']);
+        exit;
+    }
+
     try {
-        // Find existing user by Google ID or email
-        $stmt = $pdo->prepare('SELECT id, username, email, role, full_name, google_id, profile_pic FROM users WHERE google_id = ? OR email = ? LIMIT 1');
-        $stmt->execute([$googleId, $email]);
+        // Find existing user by Google ID first, then by email variants
+        $stmt = $pdo->prepare('SELECT id, username, email, role, full_name, google_id, profile_pic, is_active FROM users WHERE google_id = ? LIMIT 1');
+        $stmt->execute([$googleId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        if (!$user) {
+            $variants = wangariEmailVariants($email);
+            $placeholders = implode(',', array_fill(0, count($variants), '?'));
+            $stmt = $pdo->prepare("SELECT id, username, email, role, full_name, google_id, profile_pic, is_active FROM users WHERE LOWER(email) IN ($placeholders) LIMIT 1");
+            $stmt->execute($variants);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
         if ($user) {
+            if (!empty($user['is_active']) && (int)$user['is_active'] !== 1) {
+                http_response_code(403);
+                echo json_encode(['error' => 'This account is inactive.']);
+                exit;
+            }
+
             // Update Google ID and profile pic if missing
             $updates = [];
             $params = [];
@@ -81,38 +102,26 @@ if (!empty($googleCode)) {
                 $pdo->prepare('UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($params);
             }
         } else {
-            // Create new user from Google profile
-            $username = strtolower(str_replace(['@', '.'], ['', ''], explode('@', $email)[0]));
-            $username = preg_replace('/[^a-z0-9]/', '', $username);
-
-            $checkStmt = $pdo->prepare('SELECT id FROM users WHERE username = ?');
-            $checkStmt->execute([$username]);
-            if ($checkStmt->fetch()) {
-                $username .= rand(100, 999);
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
             }
-
-            $passwordHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
-
-            $insertStmt = $pdo->prepare(
-                "INSERT INTO users (username, email, password, full_name, role, google_id, profile_pic, created_at)
-                 VALUES (?, ?, ?, ?, 'farm_manager', ?, ?, NOW())"
-            );
-            $insertStmt->execute([
-                $username,
-                $email,
-                $passwordHash,
-                trim($firstName . ' ' . $lastName),
-                $googleId,
-                $picture,
-            ]);
-
-            $user = [
-                'id' => $pdo->lastInsertId(),
-                'username' => $username,
+            $_SESSION['google_registration_profile'] = [
+                'google_id' => $googleId,
                 'email' => $email,
-                'role' => 'farm_manager',
                 'full_name' => trim($firstName . ' ' . $lastName),
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'profile_pic' => $picture,
+                'flow' => 'register',
             ];
+
+            http_response_code(401);
+            echo json_encode([
+                'error' => 'No local account matches this Google email. Please register first, then choose Farm Owner or Join as Worker to finish connecting your Google account.',
+                'register_required' => true,
+                'redirect' => '/Frontend/pages/register.php?google=required',
+            ]);
+            exit;
         }
 
         // Start session (do NOT override Redis session path)
@@ -123,6 +132,7 @@ if (!empty($googleCode)) {
         $_SESSION['email']      = $user['email'];
         $_SESSION['role']       = $user['role'];
         $_SESSION['full_name']  = $user['full_name'] ?? $user['username'];
+        unset($_SESSION['google_registration_profile']);
 
         // Role-based redirect
         $redirect = '/Frontend/admin/dashboard.php';
@@ -165,9 +175,17 @@ if (!$username || !$password) {
 
 try {
     // Try to find user by email or username
-    $stmt = $pdo->prepare('SELECT id, username, email, password, role, full_name FROM users WHERE email = ? OR username = ? LIMIT 1');
-    $stmt->execute([$username, $username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (filter_var($username, FILTER_VALIDATE_EMAIL)) {
+        $variants = wangariEmailVariants($username);
+        $placeholders = implode(',', array_fill(0, count($variants), '?'));
+        $stmt = $pdo->prepare("SELECT id, username, email, password, role, full_name FROM users WHERE LOWER(email) IN ($placeholders) LIMIT 1");
+        $stmt->execute($variants);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $pdo->prepare('SELECT id, username, email, password, role, full_name FROM users WHERE username = ? LIMIT 1');
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     if (!$user || !password_verify($password, $user['password'])) {
         http_response_code(401);

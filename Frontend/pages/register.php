@@ -8,6 +8,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/config.php';
 require_once dirname(__DIR__, 2) . '/Backend/config/security.php';
+require_once dirname(__DIR__, 2) . '/Backend/config/email_policy.php';
 
 $page_title = 'Create Account — Wangari';
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
@@ -27,6 +28,21 @@ $errors = [];
 $step = (int)($_GET['step'] ?? 1);
 $role_choice = $_GET['role'] ?? '';
 $code = $_GET['code'] ?? '';
+$googleRegistration = $_SESSION['google_registration_profile'] ?? [];
+$googleNotice = '';
+$googlePrefillName = trim((string)($googleRegistration['full_name'] ?? ''));
+$googlePrefillEmail = trim((string)($googleRegistration['email'] ?? ''));
+$googlePrefillId = trim((string)($googleRegistration['google_id'] ?? ''));
+$googlePrefillPicture = trim((string)($googleRegistration['profile_pic'] ?? ''));
+
+if (!empty($_SESSION['google_login_error'])) {
+    $googleNotice = (string) $_SESSION['google_login_error'];
+    unset($_SESSION['google_login_error']);
+} elseif (($_GET['google'] ?? '') === 'required') {
+    $googleNotice = 'Your Google account is not linked yet. Pick Farm Owner or Join as Worker to finish creating your account.';
+} elseif ($googlePrefillEmail !== '') {
+    $googleNotice = 'Google connected. Complete the form below and choose Farm Owner or Join as Worker to finish linking this account.';
+}
 
 // ── Handle form submission ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
@@ -42,9 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
     $password = $_POST['password'] ?? '';
     $passwordConfirm = $_POST['password_confirm'] ?? '';
     $farmName = trim($_POST['farm_name'] ?? '');
+    $googleId = trim($_POST['google_id'] ?? ($googlePrefillId ?? ''));
+    $googlePicture = trim($_POST['google_picture'] ?? ($googlePrefillPicture ?? ''));
+    $googleEmail = $googlePrefillEmail !== '' ? $googlePrefillEmail : '';
 
     if (empty($fullName)) $errors[] = 'Full name is required';
     if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required';
+    if (empty($errors) && !wangariIsAllowedEmail($email)) $errors[] = 'Only Gmail and Outlook email addresses are allowed';
+    if (empty($errors) && !empty($googleId) && $googleEmail !== '' && wangariNormalizeEmail($email) !== wangariNormalizeEmail($googleEmail)) {
+        $errors[] = 'Please use the same Google email to complete this account';
+    }
     if (empty($phone)) $errors[] = 'Phone number is required';
     if (strlen($password) < 6) $errors[] = 'Password must be at least 6 characters';
     if ($password !== $passwordConfirm) $errors[] = 'Passwords do not match';
@@ -62,8 +85,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
         $pdo = getDB();
         try {
             // Check email
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-            $stmt->execute([$email]);
+            $emailVariants = wangariEmailVariants($email);
+            $placeholders = implode(',', array_fill(0, count($emailVariants), '?'));
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) IN ($placeholders)");
+            $stmt->execute($emailVariants);
+            if (!empty($googleId)) {
+                $googleStmt = $pdo->prepare("SELECT id FROM users WHERE google_id = ? LIMIT 1");
+                $googleStmt->execute([$googleId]);
+                if ($googleStmt->fetch()) {
+                    $errors[] = 'This Google account is already linked to an account';
+                }
+            }
             if ($stmt->fetch()) {
                 $errors[] = 'An account with this email already exists';
             } else {
@@ -78,8 +110,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 $mappedRole = $role_choice === 'owner' ? 'farm_manager' : 'customer';
 
                 // Insert user
-                $stmt = $pdo->prepare("INSERT INTO users (username, email, password, full_name, phone, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, NOW())");
-                $stmt->execute([$username, $email, $password_hash, $fullName, $phone, $mappedRole]);
+                $stmt = $pdo->prepare("INSERT INTO users (username, email, password, full_name, phone, role, google_id, profile_pic, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())");
+                $stmt->execute([
+                    $username,
+                    wangariNormalizeEmail($email),
+                    $password_hash,
+                    $fullName,
+                    $phone,
+                    $mappedRole,
+                    $googleId !== '' ? $googleId : null,
+                    $googlePicture !== '' ? $googlePicture : null,
+                ]);
                 $userId = $pdo->lastInsertId();
 
                 // Start session
@@ -88,7 +129,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 $_SESSION['username'] = $username;
                 $_SESSION['role'] = $mappedRole;
                 $_SESSION['full_name'] = $fullName;
-                $_SESSION['email'] = $email;
+                $_SESSION['email'] = wangariNormalizeEmail($email);
+                unset($_SESSION['google_registration_profile']);
 
                 if ($role_choice === 'owner') {
                     // Create farm
@@ -230,6 +272,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 <div class="step-dot <?php echo $step >= 2 ? 'active' : ''; ?>" id="dot2"></div>
             </div>
 
+            <?php if (!empty($googleNotice)): ?>
+                <div style="padding: 16px; background: #ECFDF5; border: 1px solid #86EFAC; border-radius: 12px; color: #166534; margin-bottom: 24px; font-size: 0.9rem;">
+                    <?php echo htmlspecialchars($googleNotice, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
+            <?php endif; ?>
+
             <?php if (!empty($errors)): ?>
                 <div style="padding: 16px; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 12px; color: #991B1B; margin-bottom: 24px; font-size: 0.9rem;">
                     <?php foreach ($errors as $e): ?>
@@ -258,6 +306,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     </div>
                 </div>
 
+                <a href="/Frontend/auth/google/login.php?flow=register" class="xai-btn" style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:#000000;border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;color:#ffffff;text-decoration:none;font-size:0.95rem;font-weight:600;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,0.4);transition:all 0.2s ease;margin-bottom:12px;" onmouseover="this.style.background='#18181b'; this.style.borderColor='rgba(255,255,255,0.4)';" onmouseout="this.style.background='#000000'; this.style.borderColor='rgba(255,255,255,0.25)';">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </a>
+                <p style="font-size:0.82rem;color:#64748B;margin:0 0 18px 0;">We will prefill your name and email, then you choose Farm Owner or Join as Worker.</p>
+
                 <button class="xai-btn xai-btn-primary xai-btn-lg" style="width:100%;" onclick="goToStep2()" id="step1-btn">
                     Continue
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -281,6 +340,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <input type="hidden" name="role_choice" value="owner" id="rc-owner">
                     <input type="hidden" name="farm_code" value="" id="fc-owner">
+                    <input type="hidden" name="google_id" value="<?php echo htmlspecialchars($googlePrefillId, ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="google_picture" value="<?php echo htmlspecialchars($googlePrefillPicture, ENT_QUOTES, 'UTF-8'); ?>">
 
                     <div class="xai-form-group">
                         <label class="xai-form-label">Farm Name</label>
@@ -288,12 +349,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     </div>
                     <div class="xai-form-group">
                         <label class="xai-form-label">Full Name</label>
-                        <input type="text" name="full_name" class="xai-form-input" placeholder="Your full name" required>
+                        <input type="text" name="full_name" class="xai-form-input" placeholder="Your full name" required value="<?php echo htmlspecialchars($googlePrefillName, ENT_QUOTES, 'UTF-8'); ?>">
                     </div>
                     <div class="form-row">
                         <div class="xai-form-group">
                             <label class="xai-form-label">Email</label>
-                            <input type="email" name="email" class="xai-form-input" placeholder="you@email.com" required>
+                            <input type="email" name="email" class="xai-form-input" placeholder="you@email.com" required value="<?php echo htmlspecialchars($googlePrefillEmail, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $googlePrefillEmail !== '' ? 'readonly' : ''; ?>>
+                            <?php if ($googlePrefillEmail !== ''): ?><small style="display:block;margin-top:8px;color:#64748B;">This email came from your Google account.</small><?php endif; ?>
                         </div>
                         <div class="xai-form-group">
                             <label class="xai-form-label">Phone</label>
@@ -352,15 +414,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <input type="hidden" name="role_choice" value="worker" id="rc-worker">
                     <input type="hidden" name="farm_code" value="" id="fc-worker">
+                    <input type="hidden" name="google_id" value="<?php echo htmlspecialchars($googlePrefillId, ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="google_picture" value="<?php echo htmlspecialchars($googlePrefillPicture, ENT_QUOTES, 'UTF-8'); ?>">
 
                     <div class="xai-form-group">
                         <label class="xai-form-label">Full Name</label>
-                        <input type="text" name="full_name" class="xai-form-input" placeholder="Your full name" required>
+                        <input type="text" name="full_name" class="xai-form-input" placeholder="Your full name" required value="<?php echo htmlspecialchars($googlePrefillName, ENT_QUOTES, 'UTF-8'); ?>">
                     </div>
                     <div class="form-row">
                         <div class="xai-form-group">
                             <label class="xai-form-label">Email</label>
-                            <input type="email" name="email" class="xai-form-input" placeholder="you@email.com" required>
+                            <input type="email" name="email" class="xai-form-input" placeholder="you@email.com" required value="<?php echo htmlspecialchars($googlePrefillEmail, ENT_QUOTES, 'UTF-8'); ?>" <?php echo $googlePrefillEmail !== '' ? 'readonly' : ''; ?>>
+                            <?php if ($googlePrefillEmail !== ''): ?><small style="display:block;margin-top:8px;color:#64748B;">This email came from your Google account.</small><?php endif; ?>
                         </div>
                         <div class="xai-form-group">
                             <label class="xai-form-label">Phone</label>

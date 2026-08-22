@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require __DIR__ . '/../config/database.php';
+require __DIR__ . '/../config/email_policy.php';
 $pdo = getDatabaseConnection();
 if (!$pdo) {
     http_response_code(500);
@@ -120,6 +121,11 @@ try {
             } elseif ($action === 'create') {
                 $username = trim($input['username'] ?? '');
                 $email = trim($input['email'] ?? '');
+                if ($email === '' || !wangariIsAllowedEmail($email)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Only Gmail and Outlook email addresses are allowed']);
+                    exit;
+                }
                 $password = password_hash($input['password'] ?? 'changeme', PASSWORD_DEFAULT);
                 $stmt = $pdo->prepare('INSERT INTO platform_users (username, email, password, full_name, phone, farm_name, farm_type, county, role, subscription_status, subscription_expires, trial_ends, max_animals, max_fields, max_users) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
                 $trialEnd = date('Y-m-d', strtotime('+30 days'));

@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/config.php';
+require_once dirname(__DIR__, 3) . '/Backend/config/email_policy.php';
 
 $errors = [];
 
@@ -21,9 +22,11 @@ setcookie('oauth_state', '', time() - 3600, '/'); // clear cookie
 // Verify state matches session OR cookie
 $stateValid = (!empty($savedState) && $state === $savedState) || (!empty($cookieState) && $state === $cookieState);
 
-if (!$stateValid && !empty($state)) {
-    // State mismatch but allow proceeding - Google already validated the user
-    @error_log('Google OAuth: State mismatch — allowing proceed anyway');
+if (!$stateValid) {
+    @error_log('Google OAuth: State mismatch - blocking callback');
+    $_SESSION['google_login_error'] = 'Your Google sign-in could not be verified. Please try again.';
+    header('Location: /Frontend/pages/login.php?google=state');
+    exit;
 }
 
 // 2. Exchange code for Google Access Token
@@ -48,6 +51,13 @@ $email     = $profile['email'];
 $firstName = $profile['given_name'] ?? '';
 $lastName  = $profile['family_name'] ?? '';
 $picture   = $profile['picture'] ?? '';
+$oauthFlow = $_SESSION['oauth_flow'] ?? 'login';
+
+if (!wangariIsAllowedEmail($email)) {
+    $_SESSION['google_login_error'] = 'Only Gmail and Outlook email addresses are allowed. Please register with one of those addresses.';
+    header('Location: /Frontend/pages/login.php?google=restricted');
+    exit;
+}
 
 // 4. Log in existing user only
 $pdo = getDB();
@@ -56,10 +66,17 @@ if (!$pdo) {
 }
 
 try {
-    // Find user by Google ID or Email
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE google_id = ? OR email = ?");
-    $stmt->execute([$googleId, $email]);
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE google_id = ? LIMIT 1");
+    $stmt->execute([$googleId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        $variants = wangariEmailVariants($email);
+        $placeholders = implode(',', array_fill(0, count($variants), '?'));
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE LOWER(email) IN ($placeholders) LIMIT 1");
+        $stmt->execute($variants);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     if ($user) {
         if (!empty($user['is_active']) && (int)$user['is_active'] !== 1) {
@@ -85,6 +102,8 @@ try {
             $updateSql = "UPDATE users SET " . implode(', ', $updateFields) . " WHERE id = ?";
             $pdo->prepare($updateSql)->execute($params);
         }
+
+        unset($_SESSION['google_registration_profile'], $_SESSION['oauth_flow']);
         
         // Log in the user by updating session variables
         $_SESSION['user_id']     = $user['id'];
@@ -95,12 +114,22 @@ try {
         $_SESSION['email']       = $email;
         
     } else {
-        $_SESSION['google_login_error'] = 'No local account matches this Google email. Please register first using the same email, or ask an admin to create your account.';
-        header('Location: /Frontend/pages/login.php?google=required');
+        $_SESSION['google_registration_profile'] = [
+            'google_id' => $googleId,
+            'email' => $email,
+            'full_name' => trim($firstName . ' ' . $lastName),
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'profile_pic' => $picture,
+            'flow' => $oauthFlow,
+        ];
+        $_SESSION['google_login_error'] = 'No local account matches this Google email. Please register first, then choose Farm Owner or Join as Worker to finish connecting your Google account.';
+        header('Location: /Frontend/pages/register.php?google=required');
         exit;
     }
     
     // All users go to the real farm system
+    unset($_SESSION['oauth_flow']);
     header("Location: /Frontend/admin/dashboard.php");
     exit;
     

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Load config (handles Redis sessions, DB connection, security functions)
 require_once __DIR__ . '/../includes/config.php';
 require_once dirname(__DIR__, 2) . '/Backend/config/security.php';
+require_once dirname(__DIR__, 2) . '/Backend/config/email_policy.php';
 
 $page_title = 'Sign In — Wangari';
 // No header.php include - this page has its own xai-nav navigation
@@ -47,8 +48,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
         if (!$pdo) { $errors[] = 'Database connection failed'; }
         
         try {
-            $stmt = $pdo->prepare("SELECT id, username, password, role, full_name, email FROM users WHERE username = ? OR email = ?");
-            $stmt->execute([$username, $username]);
+            if (filter_var($username, FILTER_VALIDATE_EMAIL)) {
+                $variants = wangariEmailVariants($username);
+                $placeholders = implode(',', array_fill(0, count($variants), '?'));
+                $stmt = $pdo->prepare("SELECT id, username, password, role, full_name, email FROM users WHERE LOWER(email) IN ($placeholders) LIMIT 1");
+                $stmt->execute($variants);
+            } else {
+                $stmt = $pdo->prepare("SELECT id, username, password, role, full_name, email FROM users WHERE username = ? LIMIT 1");
+                $stmt->execute([$username]);
+            }
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user && password_verify($password, $user['password'])) {

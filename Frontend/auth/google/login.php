@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/config.php';
 
+$_SESSION['oauth_flow'] = (($_GET['flow'] ?? 'login') === 'register') ? 'register' : 'login';
+
 // Generate a secure state token to prevent CSRF attacks
 $state = bin2hex(random_bytes(16));
 $_SESSION['oauth_state'] = $state;
