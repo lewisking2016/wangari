@@ -84,6 +84,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
             <li><a class="<?php echo navActive('services', $currentPage); ?>" href="/Frontend/pages/services.php">Services</a></li>
             <li><a class="<?php echo navActive('pricing', $currentPage); ?>" href="/Frontend/pages/pricing.php">Pricing</a></li>
             <li><a class="<?php echo navActive('contact', $currentPage); ?>" href="/Frontend/pages/contact.php">Contact</a></li>
+            <li><a class="<?php echo navActive('download', $currentPage); ?>" href="/Frontend/pages/download.php" style="color: var(--xai-lime, #4ADE80);">Download App</a></li>
         </ul>
 
         <div class="g-nav-right">
