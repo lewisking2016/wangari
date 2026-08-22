@@ -1,6 +1,6 @@
 <?php
 /**
- * Auth API — handles login for the Vercel frontend.
+ * Auth API — handles login for the Wangari frontend.
  * Supports both username/password AND Google OAuth code exchange.
  */
 declare(strict_types=1);

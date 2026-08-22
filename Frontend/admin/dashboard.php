@@ -574,7 +574,7 @@ try {
 
             <!-- Weather Widget -->
             <div class="admin-card" style="padding:18px !important;">
-                <h4 style="margin:0 0 12px;font-size:0.95rem;color:#0F172A;"><i data-lucide="cloud-sun" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#d97706;"></i>Weather — Busia</h4>
+                <h4 style="margin:0 0 12px;font-size:0.95rem;color:#0F172A;"><i data-lucide="cloud-sun" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;color:#d97706;"></i>Weather — Wangari</h4>
                 <?php if ($weatherData && isset($weatherData["current_weather"])): ?>
                     <?php $cw = $weatherData["current_weather"]; $temp = $cw["temperature"] ?? 0; $wcode = $cw["weathercode"] ?? 0; $wind = $cw["windspeed"] ?? 0; $wmoMap = [0=>["☀️","Clear"],1=>["🌤","Mainly clear"],2=>["⛅","Partly cloudy"],3=>["☁️","Overcast"],45=>["🌫","Fog"],48=>["🌫","Rime fog"],51=>["🌦","Light drizzle"],53=>["🌦","Drizzle"],55=>["🌧","Dense drizzle"],61=>["🌧","Slight rain"],63=>["🌧","Moderate rain"],65=>["🌧","Heavy rain"],71=>["❄️","Slight snow"],73=>["❄️","Moderate snow"],75=>["❄️","Heavy snow"],80=>["🌦","Slight showers"],81=>["🌧","Moderate showers"],82=>["⛈","Violent showers"],95=>["⛈","Thunderstorm"],96=>["⛈","Thunderstorm+hail"],99=>["⛈","Severe thunderstorm"]]; $wInfo = $wmoMap[$wcode] ?? ["🌡","Unknown"]; ?>
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
@@ -665,7 +665,7 @@ try {
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="/Frontend/assets/js/busia-charts.js"></script>
+<script src="/Frontend/assets/js/wangari-charts.js"></script>
 <script>
 let dashCharts = {};
 async function loadDashboard() {
@@ -685,7 +685,7 @@ async function loadDashboard() {
     const orders = (data.data.orders || []).map((item) => ({ date: item.day, value: Number(item.cnt) }));
     const topProducts = data.data.top_products || [];
 
-    const labels = sales.map((item) => BusiaCharts.dayLabel(item.date));
+    const labels = sales.map((item) => WangariCharts.dayLabel(item.date));
 
     new Chart(document.getElementById('chart-sales'), {
         type: 'line',
@@ -738,11 +738,11 @@ async function loadDashboard() {
 
     // Top products (horizontal bar)
     if (document.getElementById('chart-top-products') && topProducts.length) {
-        dashCharts.top = BusiaCharts.hBarChart(
+        dashCharts.top = WangariCharts.hBarChart(
             document.getElementById('chart-top-products'),
             topProducts.map(p => p.name || ''),
             topProducts.map(p => +p.qty || 0),
-            { color: BusiaCharts.C.primary }
+            { color: WangariCharts.C.primary }
         );
     }
 
@@ -774,7 +774,7 @@ async function loadDashboard() {
     if (kpiAvgEl) kpiAvgEl.textContent = 'KES ' + fmt(avgOrder);
 
     // Update small KPI numbers with count-up
-    if (typeof BusiaCharts !== 'undefined') BusiaCharts.countUpAll();
+    if (typeof WangariCharts !== 'undefined') WangariCharts.countUpAll();
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 function escapeHtml(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }

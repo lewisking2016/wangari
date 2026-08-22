@@ -65,7 +65,7 @@ try {
     switch ($module) {
 
         // ─────────────────────────────────────────────────────────
-        // ORDERS — matches "busia_orders_report_YYYY-MM-DD.csv"
+        // ORDERS — matches "wangari_orders_report_YYYY-MM-DD.csv"
         // ─────────────────────────────────────────────────────────
         case 'orders':
             $sql = "SELECT o.id, o.order_number,

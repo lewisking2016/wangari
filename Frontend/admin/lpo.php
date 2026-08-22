@@ -87,7 +87,7 @@ if ($pdo) {
                 <div class="admin-form-group"><label class="admin-form-label">Customer Name *</label><input class="admin-form-control" id="d-cust" required placeholder="e.g. Kariuki Wholesalers"></div>
                 <div class="admin-form-group"><label class="admin-form-label">Phone</label><input class="admin-form-control" id="d-phone" placeholder="07xx xxx xxx"></div>
                 <div class="admin-form-group"><label class="admin-form-label">Email</label><input class="admin-form-control" type="email" id="d-email" placeholder="customer@email.com"></div>
-                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Address / Location</label><input class="admin-form-control" id="d-addr" placeholder="e.g. Busia Town, Block B"></div>
+                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Address / Location</label><input class="admin-form-control" id="d-addr" placeholder="e.g. Wangari Town, Block B"></div>
                 <div class="admin-form-group"><label class="admin-form-label">Due / Valid Until</label><input class="admin-form-control" type="date" id="d-due"></div>
             </div>
 

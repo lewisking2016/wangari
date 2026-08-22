@@ -1,6 +1,6 @@
-# Busia Chicken Farm — Website Design & Vision Document
+# Wangari Farm — Website Design & Vision Document
 
-> **Project:** Complete rebuild of busiachicken.com
+> **Project:** Complete rebuild of wangari.farm
 > **Tech Stack:** PHP (cPanel-hosted), Vanilla CSS, JavaScript
 > **Status:** Pre-development — Design Bible
 > **Last Updated:** July 16, 2026
@@ -9,15 +9,15 @@
 
 ## Project Overview
 
-Rebuild the Busia Chicken Farm website from the ground up into a premium, modern poultry business website with a small e-commerce component. The current site is a basic Bootstrap 3 single-page layout with a login form — it needs to become a world-class, visually stunning agricultural brand site that rivals Kenchic.com in quality.
+Rebuild the Wangari Farm website from the ground up into a premium, modern poultry business website with a small e-commerce component. The current site is a basic Bootstrap 3 single-page layout with a login form — it needs to become a world-class, visually stunning agricultural brand site that rivals Kenchic.com in quality.
 
 The admin dashboard must be designed to be simple and minimalistic, accessible enough for a Grade 7 student to operate easily, yet look extremely professional with smooth, animated charts and interactive data entry.
 
 ### Business Info
-- **Company:** Busia Chicken Farm (Busia Chicken Ltd)
+- **Company:** Wangari Farm (Wangari Systems)
 - **Location:** Nasira AC sub-location, Busibwabo Location, Busia, Kenya
 - **Phone:** +254-727 585599
-- **Email:** info@busiachicken.com
+- **Email:** info@wangari.farm
 - **Services:** Poultry farming, egg production, chick sales, consulting, farm management software
 
 ---
@@ -194,7 +194,7 @@ Slide 4: "Trusted by Thousands" — Aerial farm view
 
 #### Section 3: About Preview
 - Split layout: Left = large feature image (farmer with chickens), Right = text content
-- Section title: "Why Busia Chicken?"
+- Section title: "Why Wangari?"
 - 3-4 key differentiators with animated icons
 - "Learn More About Us" CTA link
 - Image has a rounded corner with a decorative green accent border on one edge
@@ -297,7 +297,7 @@ Slide 4: "Trusted by Thousands" — Aerial farm view
 
 ### Directory Structure
 ```
-busia-chicken-website/
+wangari/
 ├── index.php                    # Home page
 ├── .htaccess                    # URL rewriting + security
 ├── config/

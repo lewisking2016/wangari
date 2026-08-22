@@ -172,7 +172,7 @@ if (!in_array($tab, $validTabs, true)) $tab = 'ingredients';
 </div>
 
 <script>
-const CSRF = window.BusiaAdmin?.csrfToken || '';
+const CSRF = window.WangariAdmin?.csrfToken || '';
 const currentTab = '<?= $tab ?>';
 let allMaterials = [];
 

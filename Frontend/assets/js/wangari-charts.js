@@ -1,5 +1,5 @@
 /**
- * Busia Chicken — Charts Library
+ * Wangari Chicken — Charts Library
  * Reusable animated Chart.js helpers + count-up stat cards.
  * All charts share the same color palette and animation timing.
  */
@@ -436,7 +436,7 @@
     }
 
     // Export
-    global.BusiaCharts = {
+    global.WangariCharts = {
         C,
         lineChart, barChart, hBarChart, stackedBar, donutChart, areaChart, comboChart,
         sparkline, countUp, countUpAll, animateCards,

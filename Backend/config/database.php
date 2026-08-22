@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Connection & Configuration
- * PDO-based database management for Busia Chicken Farm
+ * PDO-based database management for Wangari
  */
 declare(strict_types=1);
 
@@ -31,7 +31,7 @@ require_once __DIR__ . '/../license/guard.php';
 // Credentials are resolved in this order:
 //   1. Backend/config/database.local.php  (gitignored — never commit this)
 //   2. Environment variables DB_HOST / DB_NAME / DB_USER / DB_PASS
-//   3. Local development defaults (root / empty password / busia_chicken_db)
+//   3. Local development defaults (root / empty password / wangari_db)
 //   4. Legacy production fallback (kept ONLY so the live site keeps
 //      connecting during migration — see note below)
 //
@@ -84,8 +84,8 @@ if ($isDesktop) {
 } else {
     // Per-environment defaults for MySQL.
     $defaults = $isLocalhost
-        ? ['localhost', 'busia_chicken_db', 'root', '']
-        : ['localhost', 'mrhzdunf_busiachicken', 'mrhzdunf_busia_user', 'busia_user'];
+        ? ['localhost', 'wangari_db', 'root', '']
+        : ['localhost', 'wangari_db', 'wangari', 'Wangari2026!'];
 
     define('DB_HOST', $DB_HOST ?? $dbEnv('DB_HOST') ?? $defaults[0]);
     define('DB_NAME', $DB_NAME ?? $dbEnv('DB_NAME') ?? $defaults[1]);
@@ -130,9 +130,9 @@ function getDatabaseConnection(): ?PDO {
             ]);
         }
 
-        if (function_exists('ensureBusiaSchema')) {
+        if (function_exists('ensureWangariSchema')) {
             try {
-                ensureBusiaSchema($pdo);
+                ensureWangariSchema($pdo);
             } catch (Exception $e) {
                 @error_log('Auto schema ensure failed: ' . $e->getMessage());
             }

@@ -5,7 +5,7 @@ The Bulk Import/Export module allows your boss to manage large amounts of data u
 
 ## Location
 Access the feature from the admin sidebar:
-**https://new.decapoli.co.ke/busiaadmin** → Click "Bulk Import/Export"
+**https://new.decapoli.co.ke/wangariadmin** → Click "Bulk Import/Export"
 
 ## What Can Be Imported/Exported
 

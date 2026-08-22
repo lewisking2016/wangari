@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         try {
             $upsert = $pdo->prepare('INSERT INTO role_permissions (role, module_key, can_view, can_edit) VALUES (?,?,?,?)
                                      ON DUPLICATE KEY UPDATE can_view=VALUES(can_view), can_edit=VALUES(can_edit)');
-            $moduleKeys = busiaModuleKeys();
+            $moduleKeys = wangariModuleKeys();
             $changed = 0;
             foreach ($moduleKeys as $m) {
                 $view = isset($_POST['view'][$role][$m]) ? 1 : 0;
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     }
 }
 
-$matrix = function_exists('busiaRolePermissions') ? busiaRolePermissions($pdo) : [];
+$matrix = function_exists('wangariRolePermissions') ? wangariRolePermissions($pdo) : [];
 ?>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 

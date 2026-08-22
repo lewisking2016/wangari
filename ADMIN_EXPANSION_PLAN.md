@@ -1,8 +1,8 @@
-# Busia Farm Admin Expansion Plan
+# Wangari Farm Admin Expansion Plan
 
 ## Goal
 Build a user-friendly farm management admin system suitable for a Grade 7 student.
-Use simple language, short module names, clear buttons, and the current Busia Admin design style.
+Use simple language, short module names, clear buttons, and the current Wangari Admin design style.
 
 ## New module names
 - Home

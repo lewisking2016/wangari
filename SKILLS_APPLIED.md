@@ -1,6 +1,6 @@
-# Skills Applied to Busia Chicken Website - Phase 1 & 2
+# Skills Applied to Wangari Website - Phase 1 & 2
 
-**Project:** Busia Chicken Farm Website Rebuild  
+**Project:** Wangari Farm Website Rebuild  
 **Phases:** 1 & 2 Complete  
 **Skills Applied:** Professional Grade - Production Ready  
 

@@ -1,4 +1,4 @@
-# Busia Chicken Website — AI Development Skills Guide
+# Wangari Website — AI Development Skills Guide
 
 > **Purpose:** This file tells any AI model (Claude, Gemini, GPT, etc.) which skills to install and reference before developing this website.
 > **Skills Repo:** C:\Users\lewis\Desktop\antigravity-skills-repo
@@ -108,7 +108,7 @@ cp "C:\Users\lewis\Desktop\antigravity-skills-repo\skills\high-end-visual-design
 If your AI tool uses an AGENTS.md or similar project-level rules file, include these rules:
 
 ```markdown
-# Busia Chicken Website — Development Rules
+# Wangari Website — Development Rules
 
 ## Tech Stack
 - PHP 8.1+ (cPanel-hosted, no frameworks — vanilla PHP with PDO)
@@ -172,7 +172,7 @@ If your AI tool uses an AGENTS.md or similar project-level rules file, include t
 When starting a new conversation with any AI about this project, use this prompt template:
 
 ```
-I'm building the Busia Chicken Farm website. Before doing anything:
+I'm building the Wangari Farm website. Before doing anything:
 
 1. Read WEBSITE_DESIGN.md for the complete design vision and specifications
 2. Read SKILLS.md for the required development skills and rules

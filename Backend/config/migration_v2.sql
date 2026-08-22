@@ -1,7 +1,7 @@
 -- Migration V2: Feed Manufacturing Enhancements
 -- Adds: expanded order pipeline, recurring schedules, production batch notes
 
-USE busia_chicken_db;
+USE wangari_db;
 
 -- 1. Expand order status pipeline with fulfillment stages
 ALTER TABLE orders 

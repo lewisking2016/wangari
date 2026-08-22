@@ -1,6 +1,6 @@
 # General Farming Platform — Research & Redesign Blueprint
 
-> Prepared for the transformation of the Busia Chicken Farm system into a full **general farming platform**
+> Prepared for the transformation of the Wangari Farm system into a full **general farming platform**
 > (ERP + CRM + management + AI). This is a research + design document only — **no code has been changed.**
 > Research sources: Reddit (r/farming, r/Agriculture, r/Homesteading, r/RegenerativeAg), YouTube (farmers in
 > Africa), Google/Exa web research, FarmPortal & Agri Solutions farmer surveys, IDinsight, FAO, ICTWorks,
@@ -58,7 +58,7 @@ I logged in as admin (admin/admin) and walked the site like a user. Findings by 
 | # | Issue | Detail |
 |---|-------|--------|
 | M1 | **Product-card clicks are fragile** | Clicking a shop card sometimes does nothing because GSAP transforms shift layout mid-scroll; the click lands on the wrong element. Users scrolling fast + clicking may hit dead clicks. |
-| M2 | **7 admin pages have wrong page titles** | feed_stock, stock_dashboard, stock_formula_center, stock_alerts, animals, breeding, farm_items show the public site title ("Busia Chicken Farm – Premium Poultry…") instead of an admin title. Breaks bookmarks/SEO. |
+| M2 | **7 admin pages have wrong page titles** | feed_stock, stock_dashboard, stock_formula_center, stock_alerts, animals, breeding, farm_items show the public site title ("Wangari Farm – Premium Poultry…") instead of an admin title. Breaks bookmarks/SEO. |
 | M3 | **Date entry UX** | Add-Flock modal uses Month/Day/Year spin buttons instead of a native date picker — slow and error-prone (this caused a failed save during my test). |
 | M4 | **Error feedback** | The flock-save 400 returned "Please fill in all required fields" — correct, but it's a generic message; users can't tell which field. |
 

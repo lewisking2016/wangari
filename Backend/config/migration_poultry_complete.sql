@@ -1,12 +1,12 @@
 -- ══════════════════════════════════════════════════════════════
--- Busia Chicken Farm — Complete Poultry Management System
+-- Wangari Farm — Complete Poultry Management System
 -- Migration: Full Feature Set for Poultry & Feeds + Online Shop
 -- Includes: Health, Batches/Houses, Daily Reconciliation,
 --           Egg Grading, Stores Tracking, Feed Production,
 --           Bulk Sales, Walk-in Customers, Online Orders
 -- ══════════════════════════════════════════════════════════════
 
-USE busia_chicken_db;
+USE wangari_db;
 
 -- ─────────────────────────────────────────────────────────────
 -- 1. HOUSES — Each physical chicken house (e.g. "Long House",
@@ -406,10 +406,10 @@ CREATE TABLE IF NOT EXISTS settings (
 ) ENGINE=InnoDB;
 
 INSERT IGNORE INTO settings (setting_key, setting_value, setting_group, description) VALUES
-('farm_name',            'Busia Chicken Farm',  'general', 'Display name of the farm'),
+('farm_name',            'Wangari Farm',  'general', 'Display name of the farm'),
 ('farm_phone',           '+254 727 585 599',    'general', 'Primary contact phone'),
-('farm_email',           'info@busiachicken.com','general','Contact email'),
-('farm_address',         'Nasira AC Sub-location, Busibwabo, Busia, Kenya', 'general', 'Physical address'),
+('farm_email',           'info@wangari.farm','general','Contact email'),
+('farm_address',         'Nasira AC Sub-location, Busibwabo, Wangari, Kenya', 'general', 'Physical address'),
 ('currency_code',        'KES',                'general', 'Currency code'),
 ('default_crate_price',  '380',                'sales',   'Default price per crate of eggs'),
 ('mortality_alert_threshold', '10',             'health',  'Alert when daily mortality exceeds this number'),

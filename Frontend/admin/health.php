@@ -208,7 +208,7 @@ $tabs = [
 </div>
 
 <script>
-const CSRF = window.BusiaAdmin?.csrfToken || '';
+const CSRF = window.WangariAdmin?.csrfToken || '';
 let allHealth = [];
 let currentTab = '<?= $tab ?>';
 

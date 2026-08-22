@@ -1,10 +1,10 @@
-# Busia Chicken Farm Website
+# Wangari Farm Website
 
 Premium poultry e-commerce website with farm management system.
 
 ## 🐔 About
 
-Busia Chicken Farm is a modern, production-ready website for a premium poultry business based in Busia, Kenya. The platform provides:
+Wangari Farm is a modern, production-ready website for a premium poultry business based in Busia, Kenya. The platform provides:
 
 - **E-commerce store** for chickens, eggs, and feeds
 - **Farm management dashboard** for tracking flocks, production, and finances
@@ -51,14 +51,14 @@ Busia Chicken Farm is a modern, production-ready website for a premium poultry b
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/YOUR_USERNAME/busia-chicken-website.git
-cd busia-chicken-website
+git clone https://github.com/YOUR_USERNAME/wangari.git
+cd wangari
 ```
 
 2. **Set up the database**
 ```bash
 # Create database
-mysql -u root -p -e "CREATE DATABASE busia_chicken_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p -e "CREATE DATABASE wangari_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # Import schema and sample data
 php setup_database.php
@@ -69,7 +69,7 @@ Copy `Backend/config/database.local.example.php` to `Backend/config/database.loc
 and set your credentials (this file is gitignored — never commit real credentials):
 ```php
 $DB_HOST = 'localhost';
-$DB_NAME = 'busia_chicken_db';
+$DB_NAME = 'wangari_db';
 $DB_USER = 'root';
 $DB_PASS = 'your_password';
 ```
@@ -89,7 +89,7 @@ php -S localhost:8000
 ## 🗂️ Project Structure
 
 ```
-busia-chicken-website/
+wangari/
 ├── Backend/
 │   ├── api/                    # AJAX endpoints
 │   │   ├── cart.php
@@ -213,7 +213,7 @@ This is a private commercial project. For issues or feature requests, please con
 
 ## 📄 License
 
-Proprietary - All rights reserved © 2026 Busia Chicken Farm
+Proprietary - All rights reserved © 2026 Wangari Farm
 
 ## 👨‍💻 Development
 
@@ -230,7 +230,7 @@ Version: 1.0.0
 
 ## 📞 Contact
 
-- **Email**: info@busiachicken.com
+- **Email**: info@wangari.farm
 - **Phone**: +254 727 585 599
 - **Address**: Nasira AC Sub-location, Busibwabo, Busia County, Kenya
 

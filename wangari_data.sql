@@ -1,10 +1,10 @@
 -- =====================================================
--- Busia Chicken Farm - Full Database Export
+-- Wangari Farm - Full Database Export
 -- Complete schema and data for import via phpMyAdmin
 -- =====================================================
 
 -- Use the production database
-USE mrhzdunf_busiachicken;
+USE wangari_db;
 
 -- Disable foreign key checks for clean import
 SET FOREIGN_KEY_CHECKS=0;
@@ -42,9 +42,9 @@ CREATE TABLE `users` (
 
 -- Insert users
 INSERT INTO `users` (`username`, `email`, `password_hash`, `role`, `first_name`, `last_name`) VALUES
-('admin', 'admin@busiachicken.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'super_admin', 'Admin', 'User'),
+('admin', 'admin@wangari.farm', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'super_admin', 'Admin', 'User'),
 ('demo', 'demo@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'customer', 'Demo', 'User'),
-('manager', 'manager@busiachicken.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'farm_manager', 'Farm', 'Manager');
+('manager', 'manager@wangari.farm', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'farm_manager', 'Farm', 'Manager');
 
 -- =====================================================
 -- TABLE: categories
@@ -116,7 +116,7 @@ INSERT INTO `products` (`id`, `category_id`, `name`, `slug`, `description`, `pro
 (13, 4, 'Grower Feed (4-8 weeks)', 'grower-feed', 'Balanced formula for growing chicks. 20% crude protein with essential amino acids. 50kg bags.', 'feed', 2800.00, 120, 1, 1),
 (14, 4, 'Layer Mash (16 weeks+)', 'layer-mash', 'Premium feed for laying hens. 18% crude protein with calcium for strong eggshells. 50kg bags.', 'feed', 2500.00, 150, 1, 1),
 (15, 4, 'Broiler Finisher (6-8 weeks)', 'broiler-finisher', 'Final stage feed for broilers. High energy formula for rapid weight gain. 50kg bags.', 'feed', 2900.00, 110, 1, 0),
-(16, 4, 'Busia Premium Mix', 'busia-premium-mix', 'Our signature blend. Multi-purpose feed suitable for all poultry types. 50kg bags.', 'feed', 3100.00, 200, 1, 1),
+(16, 4, 'Wangari Premium Mix', 'wangari-premium-mix', 'Our signature blend. Multi-purpose feed suitable for all poultry types. 50kg bags.', 'feed', 3100.00, 200, 1, 1),
 (17, 4, 'Vitamin & Mineral Supplements', 'vitamin-mineral-supplements', 'Complete vitamin complex and mineral pack for all poultry. Boosts immunity and productivity. 5kg bags.', 'feed', 1200.00, 80, 1, 0),
 (18, 4, 'Chick Mash (0-4 weeks)', 'chick-mash', 'Fine mash feed for young chicks. Easy to digest with high energy content. 25kg bags.', 'feed', 1800.00, 90, 1, 1);
 
@@ -287,7 +287,7 @@ CREATE TABLE `testimonials` (
 
 -- Insert sample testimonials
 INSERT INTO `testimonials` (`customer_name`, `customer_role`, `rating`, `content`, `is_approved`) VALUES
-('John Kamau', 'Commercial Farmer, Nairobi', 5, 'Busia Chicken Farm has been my go-to supplier for the past 3 years. Their day-old chicks have excellent survival rates and their feeds produce outstanding results.', 1),
+('John Kamau', 'Commercial Farmer, Nairobi', 5, 'Wangari Farm has been my go-to supplier for the past 3 years. Their day-old chicks have excellent survival rates and their feeds produce outstanding results.', 1),
 ('Mary Akinyi', 'Small-Scale Farmer, Kisumu', 5, 'The quality of their layers is exceptional. My hens are producing 290+ eggs per year. The support team is also very helpful with advice.', 1),
 ('Peter Ochieng', 'Farm Manager, Bungoma', 4, 'Great products and reliable delivery. Their broilers reach market weight faster than other breeds I have tried. Highly recommended!', 1);
 

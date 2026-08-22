@@ -1,6 +1,6 @@
 <?php
 /**
- * Busia Chicken Farm — Complete System Setup
+ * Wangari Farm — Complete System Setup
  * Runs the full poultry management migration on the configured database.
  *
  * Usage: php setup_complete.php
@@ -10,7 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/Backend/config/database.php';
 
 echo "═══════════════════════════════════════════════════════════════\n";
-echo "  Busia Chicken Farm — Complete Poultry System Setup\n";
+echo "  Wangari Farm — Complete Poultry System Setup\n";
 echo "═══════════════════════════════════════════════════════════════\n\n";
 
 try {

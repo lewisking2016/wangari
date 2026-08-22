@@ -2,8 +2,8 @@
 -- Engine: InnoDB
 -- Charset: utf8mb4_unicode_ci
 
-CREATE DATABASE IF NOT EXISTS busia_chicken_db DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;
-USE busia_chicken_db;
+CREATE DATABASE IF NOT EXISTS wangari_db DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;
+USE wangari_db;
 
 -- 1. Users & Authentication
 CREATE TABLE IF NOT EXISTS users (

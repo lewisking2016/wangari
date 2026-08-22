@@ -350,9 +350,9 @@ include __DIR__ . '/includes/admin_header.php';
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="/Frontend/assets/js/busia-charts.js"></script>
+<script src="/Frontend/assets/js/wangari-charts.js"></script>
 <script>
-const C = BusiaCharts.C;
+const C = WangariCharts.C;
 let charts = {};
 
 function destroyAll() {
@@ -384,8 +384,8 @@ async function loadAll() {
         renderBirdTrend(d.bird_trend);
         renderTopDebtors(d.top_debtors);
         renderRevenue7d(d.sales);
-        BusiaCharts.countUpAll();
-        BusiaCharts.animateCards('.chart-card');
+        WangariCharts.countUpAll();
+        WangariCharts.animateCards('.chart-card');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch (e) { console.error(e); }
     finally { btn.classList.remove('loading'); }
@@ -452,7 +452,7 @@ function renderKpis(d) {
 }
 
 function renderProfitChart(profit) {
-    const labels = (profit || []).map(p => BusiaCharts.monthLabel(p.month));
+    const labels = (profit || []).map(p => WangariCharts.monthLabel(p.month));
     const rev = (profit || []).map(p => +p.revenue || 0);
     const cost = (profit || []).map(p => +p.cost || 0);
     const ctx = document.getElementById('chart-profit');
@@ -474,14 +474,14 @@ function renderProfitChart(profit) {
             },
             scales: {
                 x: { grid: { display: false }, ticks: { color: C.text } },
-                y: { grid: { color: C.grid }, ticks: { color: C.text, callback: v => BusiaCharts.kes(v) }, beginAtZero: true },
+                y: { grid: { color: C.grid }, ticks: { color: C.text, callback: v => WangariCharts.kes(v) }, beginAtZero: true },
             },
         },
     });
 }
 
 function renderCashFlowChart(cashbook) {
-    const labels = (cashbook || []).map(c => BusiaCharts.dayLabel(c.day));
+    const labels = (cashbook || []).map(c => WangariCharts.dayLabel(c.day));
     const min = (cashbook || []).map(c => +c.money_in || 0);
     const mout = (cashbook || []).map(c => -+c.money_out || 0);
     const ctx = document.getElementById('chart-cashflow');
@@ -499,24 +499,24 @@ function renderCashFlowChart(cashbook) {
             },
             scales: {
                 x: { grid: { display: false }, ticks: { color: C.text } },
-                y: { grid: { color: C.grid }, ticks: { color: C.text, callback: v => BusiaCharts.kes(v) } },
+                y: { grid: { color: C.grid }, ticks: { color: C.text, callback: v => WangariCharts.kes(v) } },
             },
         },
     });
 }
 
 function renderProductionChart(prod) {
-    const labels = (prod || []).map(p => BusiaCharts.dayLabel(p.day));
+    const labels = (prod || []).map(p => WangariCharts.dayLabel(p.day));
     const eggs = (prod || []).map(p => +p.eggs || 0);
     const ctx = document.getElementById('chart-production');
-    charts.production = BusiaCharts.areaChart(ctx, labels, eggs, { color: C.amber });
+    charts.production = WangariCharts.areaChart(ctx, labels, eggs, { color: C.amber });
 }
 
 function renderTopProductsChart(top) {
     const labels = (top || []).map(p => p.name || '');
     const values = (top || []).map(p => +p.qty || 0);
     const ctx = document.getElementById('chart-top-products');
-    charts.top = BusiaCharts.hBarChart(ctx, labels, values, { color: C.primary });
+    charts.top = WangariCharts.hBarChart(ctx, labels, values, { color: C.primary });
 }
 
 function renderMortalityChart(m) {
@@ -568,7 +568,7 @@ function renderGrowthChart(growth, batchName) {
     const labels = (growth || []).map(g => 'Day ' + g.day_number);
     const values = (growth || []).map(g => +g.avg_weight_kg || 0);
     const ctx = document.getElementById('chart-growth');
-    charts.growth = BusiaCharts.lineChart(ctx, labels, [{ data: values, label: 'Avg Weight (kg)', color: C.primary }], {});
+    charts.growth = WangariCharts.lineChart(ctx, labels, [{ data: values, label: 'Avg Weight (kg)', color: C.primary }], {});
 }
 
 function renderCreditAging(ca) {
@@ -579,49 +579,49 @@ function renderCreditAging(ca) {
     };
     const colors = [C.green, C.amber, C.red];
     const ctx = document.getElementById('chart-credit-aging');
-    charts.credit = BusiaCharts.donutChart(ctx, data.labels, data.values, { colors, legendPos: 'bottom' });
+    charts.credit = WangariCharts.donutChart(ctx, data.labels, data.values, { colors, legendPos: 'bottom' });
 }
 
 function renderLowStockChart(items) {
     const labels = (items || []).map(i => i.material_name || '');
     const values = (items || []).map(i => +i.current_stock || 0);
     const ctx = document.getElementById('chart-low-stock');
-    charts.lowstock = BusiaCharts.hBarChart(ctx, labels, values, { color: C.red });
+    charts.lowstock = WangariCharts.hBarChart(ctx, labels, values, { color: C.red });
 }
 
 function renderProductMix(items) {
     const labels = (items || []).map(i => i.product_type || 'Other');
     const values = (items || []).map(i => +i.qty || 0);
     const ctx = document.getElementById('chart-product-mix');
-    charts.productmix = BusiaCharts.donutChart(ctx, labels, values, { legendPos: 'bottom' });
+    charts.productmix = WangariCharts.donutChart(ctx, labels, values, { legendPos: 'bottom' });
 }
 
 function renderCustomerTypes(items) {
     const labels = (items || []).map(i => i.customer_type || 'Other');
     const values = (items || []).map(i => +i.cnt || 0);
     const ctx = document.getElementById('chart-customer-types');
-    charts.customertypes = BusiaCharts.donutChart(ctx, labels, values, { legendPos: 'bottom' });
+    charts.customertypes = WangariCharts.donutChart(ctx, labels, values, { legendPos: 'bottom' });
 }
 
 function renderBirdTrend(bt) {
-    const labels = (bt || []).map(b => BusiaCharts.dayLabel(b.day));
+    const labels = (bt || []).map(b => WangariCharts.dayLabel(b.day));
     const values = (bt || []).map(b => +b.birds || 0);
     const ctx = document.getElementById('chart-bird-trend');
-    charts.birdtrend = BusiaCharts.lineChart(ctx, labels, [{ data: values, label: 'Live Birds', color: C.green }], {});
+    charts.birdtrend = WangariCharts.lineChart(ctx, labels, [{ data: values, label: 'Live Birds', color: C.green }], {});
 }
 
 function renderTopDebtors(td) {
     const labels = (td || []).map(d => d.customer_name || '');
     const values = (td || []).map(d => +d.total_owed || 0);
     const ctx = document.getElementById('chart-top-debtors');
-    charts.topdebtors = BusiaCharts.hBarChart(ctx, labels, values, { color: C.amber });
+    charts.topdebtors = WangariCharts.hBarChart(ctx, labels, values, { color: C.amber });
 }
 
 function renderRevenue7d(sales) {
-    const labels = (sales || []).map(s => BusiaCharts.dayLabel(s.day));
+    const labels = (sales || []).map(s => WangariCharts.dayLabel(s.day));
     const values = (sales || []).map(s => +s.total || 0);
     const ctx = document.getElementById('chart-revenue-7d');
-    charts.revenue7d = BusiaCharts.barChart(ctx, labels, values, { color: C.green, radius: 6 });
+    charts.revenue7d = WangariCharts.barChart(ctx, labels, values, { color: C.green, radius: 6 });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

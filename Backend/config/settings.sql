@@ -1,5 +1,5 @@
 -- Site Settings Table
-USE busia_chicken_db;
+USE wangari_db;
 
 CREATE TABLE IF NOT EXISTS site_settings (
     setting_key VARCHAR(100) PRIMARY KEY,
@@ -9,10 +9,10 @@ CREATE TABLE IF NOT EXISTS site_settings (
 
 -- Insert default settings
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
-('farm_name', 'Busia Chicken Farm'),
-('farm_email', 'info@busiachicken.com'),
+('farm_name', 'Wangari Farm'),
+('farm_email', 'info@wangari.farm'),
 ('farm_phone', '+254 700 000 000'),
-('farm_address', 'Busia, Kenya'),
+('farm_address', 'Wangari, Kenya'),
 ('currency', 'KES'),
 ('mpesa_shortcode', '174379'),
 ('mpesa_passkey', 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'),

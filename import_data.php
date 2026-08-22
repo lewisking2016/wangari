@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 // Database credentials
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'mrhzdunf_busiachicken');
-define('DB_USER', 'mrhzdunf_busia_user');
-define('DB_PASS', 'busia_user');
+define('DB_NAME', 'wangari_db');
+define('DB_USER', 'wangari');
+define('DB_PASS', 'Wangari2026!');
 
 header('Content-Type: text/html; charset=UTF-8');
 echo "<!DOCTYPE html><html><head><title>Data Import</title>";

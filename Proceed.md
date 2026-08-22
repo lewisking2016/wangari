@@ -1,6 +1,6 @@
 # Proceed
 
-> **Workspace:** c:\Users\lewis\Desktop\busia-chicken-website
+> **Workspace:** c:\Users\lewis\Desktop\wangari
 
 ---
 
@@ -37,12 +37,12 @@ I have successfully completed the UI overhaul and animation enhancements for the
 - **Live demonstrating:** Added a subtle "pulse" animation to featured cards to make the site feel more dynamic and "alive."
 
 **2. Global Animation System**
-- **Staggered Reveals:** Integrated GSAP-powered staggered entrance animations in [footer.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/footer.php) for all cards (`.product-card`, `.stat-box`, etc.) across the site.
+- **Staggered Reveals:** Integrated GSAP-powered staggered entrance animations in [footer.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/footer.php) for all cards (`.product-card`, `.stat-box`, etc.) across the site.
 - **Interactive Hover States:** All cards now feature hardware-accelerated hover effects, including a smooth vertical lift and subtle image scaling.
 - **Scroll Observer:** Refined the Intersection Observer to ensure animations only trigger when elements enter the viewport, maintaining 60fps performance.
 
 **3. Admin & Auth Pages Overhaul**
-- **Unified Minimalist Aesthetic:** Redesigned the [Register](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/register.php) page and all Admin management pages ([Products](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/admin/products.php), [Orders](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/admin/orders.php), [Reports](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/admin/reports.php), and [Settings](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/admin/settings.php)) to match the new design tokens:
+- **Unified Minimalist Aesthetic:** Redesigned the [Register](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/register.php) page and all Admin management pages ([Products](file:///c:/Users/lewis/Desktop/wangari/Frontend/admin/products.php), [Orders](file:///c:/Users/lewis/Desktop/wangari/Frontend/admin/orders.php), [Reports](file:///c:/Users/lewis/Desktop/wangari/Frontend/admin/reports.php), and [Settings](file:///c:/Users/lewis/Desktop/wangari/Frontend/admin/settings.php)) to match the new design tokens:
     - Sharper, more professional square corners (`border-radius: 2px` & `4px`).
     - Clean, spacious layouts with high-contrast typography.
     - Consistent use of the Forest Green (`#0F3D1C`) and Gold (`#E6A300`) brand palette.
@@ -75,9 +75,9 @@ I have researched the latest 2026 web design trends and implemented a **Unique C
 
 **Code References**
 
-- **Structure:** The new slider layout is defined in [index.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/index.php).
-- **Styling:** Advanced 3D and parallax styles are in [style.css](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/css/style.css).
-- **Interactions:** The GSAP and Swiper logic is handled in [professional-animations.js](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/js/professional-animations.js).
+- **Structure:** The new slider layout is defined in [index.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/index.php).
+- **Styling:** Advanced 3D and parallax styles are in [style.css](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/css/style.css).
+- **Interactions:** The GSAP and Swiper logic is handled in [professional-animations.js](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/js/professional-animations.js).
 
 The result is a highly polished, interactive showcase that feels significantly more premium and "live" than a standard e-commerce slider.
 
@@ -88,7 +88,7 @@ The result is a highly polished, interactive showcase that feels significantly m
 remove the tilt 
  plus make the cards minimalistic 
  
- plus the cards in the Why Choose Busia Chicken? section animate them too and make them live dont add the flip animation
+ plus the cards in the Why Choose Wangari? section animate them too and make them live dont add the flip animation
 
 **Assistant**
 
@@ -96,12 +96,12 @@ I have updated the website with a cleaner, minimalistic design and refined anima
 
 **Key Improvements Implemented**
 
-- **Removed 3D Tilt:** Stripped the `rotateX/Y` tilt effect and parallax image movement from the product cards in [professional-animations.js](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/js/professional-animations.js) for a more stable and professional feel.
-- **Minimalistic Card Design:** Redesigned the slider cards in [style.css](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/css/style.css) to be cleaner. I removed heavy borders and shadows, opting for a very subtle `0 4px 20px rgba(0, 0, 0, 0.04)` shadow and a clean, borderless layout.
-- **"Why Choose Busia Chicken?" Animation:** 
+- **Removed 3D Tilt:** Stripped the `rotateX/Y` tilt effect and parallax image movement from the product cards in [professional-animations.js](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/js/professional-animations.js) for a more stable and professional feel.
+- **Minimalistic Card Design:** Redesigned the slider cards in [style.css](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/css/style.css) to be cleaner. I removed heavy borders and shadows, opting for a very subtle `0 4px 20px rgba(0, 0, 0, 0.04)` shadow and a clean, borderless layout.
+- **"Why Choose Wangari?" Animation:** 
     - Added a new `.feature-card` class with a custom `.live-float` animation.
     - These cards now feature a gentle, synchronized floating effect that makes them feel "alive" without using jarring flip animations.
-    - Updated the icons in this section to use [Lucide](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/index.php#L78-100) (`shield-check`, `truck`, `book-open`) for a more consistent look.
+    - Updated the icons in this section to use [Lucide](file:///c:/Users/lewis/Desktop/wangari/Frontend/index.php#L78-100) (`shield-check`, `truck`, `book-open`) for a more consistent look.
 - **Refined Navigation:** Simplified the slider navigation arrows and progress bar to match the new minimalist aesthetic.
 
 The result is a more sophisticated, high-end user experience that focuses on clarity and smooth, subtle interactions.
@@ -118,7 +118,7 @@ I have successfully defined and implemented the **Project Design Standards** to 
 
 **Design Standards Defined**
 
-I have introduced a dedicated `DESIGN STANDARDS & UTILITIES` section in [style.css](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/css/style.css) which codifies the following:
+I have introduced a dedicated `DESIGN STANDARDS & UTILITIES` section in [style.css](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/css/style.css) which codifies the following:
 
 - **Standard Grid System:** Defined `.grid-2`, `.grid-3`, and `.grid-4` with responsive breakpoints to replace ad-hoc layouts.
 - **Form Controls:** Standardized `.form-group`, `.form-label`, and `.form-control` to ensure all inputs across the site share the same minimalist, focused aesthetic.
@@ -127,10 +127,10 @@ I have introduced a dedicated `DESIGN STANDARDS & UTILITIES` section in [style.c
 
 **Implementation & Documentation**
 
-- **Auth Pages:** Standardized [register.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/register.php) and [login.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/login.php) to use these new utility classes, removing brittle inline styles.
-- **Project Tracking:** Updated the [Analyze, Redesign, and Deploy Website.md](file:///c:/Users/lewis/Desktop/busia-chicken-website/Analyze%2C%20Redesign%2C%20and%20Deploy%20Website.md) file to document these standards as a formal reference for future development.
+- **Auth Pages:** Standardized [register.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/register.php) and [login.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/login.php) to use these new utility classes, removing brittle inline styles.
+- **Project Tracking:** Updated the [Analyze, Redesign, and Deploy Website.md](file:///c:/Users/lewis/Desktop/wangari/Analyze%2C%20Redesign%2C%20and%20Deploy%20Website.md) file to document these standards as a formal reference for future development.
 
-This establishes a clear, professional foundation for any new pages or features added to the **Busia Chicken Farm** platform.
+This establishes a clear, professional foundation for any new pages or features added to the **Wangari Farm** platform.
 
 ---
 
@@ -161,11 +161,11 @@ Trusted by farms and businesses across Kenya
 I have successfully updated the website with the new branding, hero slider, and real product data using the images you provided.
 
 **Branding & Visual Identity**
-- **Logo Integration:** Replaced the placeholder SVG with your official [logo.png](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/images/logo.png) in the [header.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/header.php).
-- **Color Synchronization:** Updated the site's primary and accent colors in [style.css](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/css/style.css) to match the exact dark green (`#1B5E20`) and gold (`#FFC107`) found in your logo.
+- **Logo Integration:** Replaced the placeholder SVG with your official [logo.png](file:///c:/Users/lewis/Desktop/wangari/Frontend/images/logo.png) in the [header.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/header.php).
+- **Color Synchronization:** Updated the site's primary and accent colors in [style.css](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/css/style.css) to match the exact dark green (`#1B5E20`) and gold (`#FFC107`) found in your logo.
 
 **Homepage Enhancements**
-- **Hero Slider:** Converted the static hero section into a high-end, full-height **Swiper Slider** on [index.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/index.php). It now features:
+- **Hero Slider:** Converted the static hero section into a high-end, full-height **Swiper Slider** on [index.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/index.php). It now features:
     - **Slide 1:** Farm Overview with real poultry farm imagery.
     - **Slide 2:** "The Egg People" showcase with fresh egg production photos.
     - **Slide 3:** Your expert farm management team.
@@ -173,9 +173,9 @@ I have successfully updated the website with the new branding, hero slider, and 
 - **Real Product Data:** Replaced all Unsplash placeholders with your actual product images (Chicks, Feeds, Eggs, and Live Poultry) to provide an authentic shopping experience.
 
 **Animations**
-- Updated [professional-animations.js](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/js/professional-animations.js) to include specialized GSAP entrance animations for each slide change, ensuring the text and buttons animate elegantly as the slides transition.
+- Updated [professional-animations.js](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/js/professional-animations.js) to include specialized GSAP entrance animations for each slide change, ensuring the text and buttons animate elegantly as the slides transition.
 
-The site now feels fully authentic and perfectly aligned with the **Busia Chicken Farm** brand. You can preview the new hero slider and updated products on your homepage now.
+The site now feels fully authentic and perfectly aligned with the **Wangari Farm** brand. You can preview the new hero slider and updated products on your homepage now.
 
 ---
 
@@ -189,8 +189,8 @@ I have removed the blue arrows from the hero slider and updated the pagination s
 
 **Changes Implemented**
 
-- **Removed Hero Arrows:** Deleted the default Swiper navigation arrows from the Hero section in [index.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/index.php) and updated [professional-animations.js](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/js/professional-animations.js) to reflect this change.
-- **Minimalist Hero Pagination:** Styled the hero slider bullets in [style.css](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/css/style.css) to be semi-transparent white, with an active state that uses your brand's dark green (`var(--primary)`) and an elegant elongated shape.
+- **Removed Hero Arrows:** Deleted the default Swiper navigation arrows from the Hero section in [index.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/index.php) and updated [professional-animations.js](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/js/professional-animations.js) to reflect this change.
+- **Minimalist Hero Pagination:** Styled the hero slider bullets in [style.css](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/css/style.css) to be semi-transparent white, with an active state that uses your brand's dark green (`var(--primary)`) and an elegant elongated shape.
 - **Global Color Fix:** Added global CSS rules to ensure all Swiper pagination bullets across the site use your brand's primary color instead of the default Swiper blue.
 
 The hero section now relies on the clean pagination bullets at the bottom for navigation, providing a much sleeker and less cluttered appearance.
@@ -203,7 +203,7 @@ the white and colorless buttons make them logo gold when hoverd and the words in
 
 **Assistant**
 
-I have updated the button styles in [style.css](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/css/style.css) to match your requirements.
+I have updated the button styles in [style.css](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/css/style.css) to match your requirements.
 
 The "colorless" outline buttons (`.btn-outline`) now feature the following interaction:
 - **Hover Background:** Changes to the brand's logo gold (`var(--accent)`).
@@ -216,15 +216,15 @@ These changes are now active across the entire site, including the hero slider a
 
 **User**
 
-about page the bg image use C:\Users\lewis\Desktop\busia-chicken-website\Frontend\images\download (2).png this image
+about page the bg image use C:\Users\lewis\Desktop\wangari\Frontend\images\download (2).png this image
 
 **Assistant**
 
-I have successfully updated the [About Us](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/about.php) page to use the team image as a professional background.
+I have successfully updated the [About Us](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/about.php) page to use the team image as a professional background.
 
 **Changes Implemented**
 
-- **Hero Background:** Replaced the plain gray background with a full-width background image using [download (2).png](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/images/download%20(2).png).
+- **Hero Background:** Replaced the plain gray background with a full-width background image using [download (2).png](file:///c:/Users/lewis/Desktop/wangari/Frontend/images/download%20(2).png).
 - **Visual Clarity:** Added a sophisticated dark gradient overlay (`rgba(0,0,0,0.7)`) to ensure the white typography remains crisp and readable against the team photo.
 - **Layout Refinement:** Set a minimum height of `50vh` for the hero section to create a more immersive and high-end feel.
 
@@ -245,12 +245,12 @@ The About page now proudly showcases your team immediately upon arrival, perfect
 
 **Assistant**
 
-I have successfully animated the statistics section on the [About Us](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/about.php) page.
+I have successfully animated the statistics section on the [About Us](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/about.php) page.
 
 **Animation Features Implemented**
 
 - **Live Counter Effect:** The numbers now smoothly count up from 0 to their target values (e.g., 0 to 10k+) as soon as they scroll into view.
-- **GSAP Powered:** Used hardware-accelerated GSAP animations in [professional-animations.js](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/assets/js/professional-animations.js) for a buttery-smooth 60fps experience.
+- **GSAP Powered:** Used hardware-accelerated GSAP animations in [professional-animations.js](file:///c:/Users/lewis/Desktop/wangari/Frontend/assets/js/professional-animations.js) for a buttery-smooth 60fps experience.
 - **Smart Suffix Handling:** The animation automatically appends the correct symbols (`k+`, `%`, `+`) during the counting process to maintain brand accuracy.
 - **Scroll Observer:** Integrated an Intersection Observer so the animation only triggers when the user reaches that section, optimizing performance.
 
@@ -268,17 +268,17 @@ I have successfully integrated the new logo globally across the website, includi
 
 **Global Logo Branding Updates**
 
-- **Footer Integration:** Updated [footer.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/footer.php) to replace the placeholder icon and text-based branding with the official [logo.png](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/images/logo.png). The logo is now sized perfectly for the footer (`60px` height) to ensure brand prominence.
-- **Certification Section:** On the [About Us](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/about.php) page, I replaced the generic checkmark SVGs with a subtle, low-opacity version of your official logo. This acts as a professional "seal of approval" for your KEBS, ISO, and VAT certifications.
+- **Footer Integration:** Updated [footer.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/footer.php) to replace the placeholder icon and text-based branding with the official [logo.png](file:///c:/Users/lewis/Desktop/wangari/Frontend/images/logo.png). The logo is now sized perfectly for the footer (`60px` height) to ensure brand prominence.
+- **Certification Section:** On the [About Us](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/about.php) page, I replaced the generic checkmark SVGs with a subtle, low-opacity version of your official logo. This acts as a professional "seal of approval" for your KEBS, ISO, and VAT certifications.
 - **Consistent Visual Language:** By removing the ad-hoc SVG icons and text-based logos, the site now presents a unified, corporate-grade identity that builds trust with every scroll.
 
-The official **Busia Chicken Farm** logo is now the primary visual anchor in both the header and footer, as well as in key trust-building sections of the site.
+The official **Wangari Farm** logo is now the primary visual anchor in both the header and footer, as well as in key trust-building sections of the site.
 
 ---
 
 **User**
 
-replace all the logos with `c:\Users\lewis\Desktop\busia-chicken-website\Frontend\images\busia logo.png` .
+replace all the logos with `c:\Users\lewis\Desktop\wangari\Frontend\images\wangari-logo.png` .
 
 **User**
 
@@ -286,14 +286,14 @@ make it the website icon too
 
 **Assistant**
 
-I have successfully replaced all logo instances with the new [busia logo.png](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/images/busia%20logo.png) and set it as the website's favicon.
+I have successfully replaced all logo instances with the new [wangari-logo.png](file:///c:/Users/lewis/Desktop/wangari/Frontend/images/wangari-logo.png) and set it as the website's favicon.
 
 **Branding Updates**
 
-- **Header:** Updated the main navigation logo in [header.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/header.php).
-- **Footer:** Replaced the branding logo in [footer.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/footer.php).
-- **About Page:** Updated the "seal of approval" icons in the certifications section of [about.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/about.php).
-- **Website Icon (Favicon):** Added the new logo as the browser tab icon in the [header.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/header.php).
+- **Header:** Updated the main navigation logo in [header.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/header.php).
+- **Footer:** Replaced the branding logo in [footer.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/footer.php).
+- **About Page:** Updated the "seal of approval" icons in the certifications section of [about.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/about.php).
+- **Website Icon (Favicon):** Added the new logo as the browser tab icon in the [header.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/header.php).
 
 The website now consistently features "The Egg People" branding throughout the entire user experience.
 
@@ -301,15 +301,15 @@ The website now consistently features "The Egg People" branding throughout the e
 
 **User**
 
-use `c:\Users\lewis\Desktop\busia-chicken-website\Frontend\images\adbg.png`  as the bg image of  Our Premium Products
+use `c:\Users\lewis\Desktop\wangari\Frontend\images\adbg.png`  as the bg image of  Our Premium Products
 
 **Assistant**
 
-I have successfully updated the [Our Premium Products](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/pages/products.php) section with the requested background image.
+I have successfully updated the [Our Premium Products](file:///c:/Users/lewis/Desktop/wangari/Frontend/pages/products.php) section with the requested background image.
 
 **Key Implementation Details**
 
-- **New Background:** Replaced the plain header with a professional, full-bleed background using the [adbg.png](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/images/adbg.png) image.
+- **New Background:** Replaced the plain header with a professional, full-bleed background using the [adbg.png](file:///c:/Users/lewis/Desktop/wangari/Frontend/images/adbg.png) image.
 - **Enhanced Visuals:** Added a sophisticated dark gradient overlay to ensure the white typography remains perfectly readable against the detailed feed and farm imagery.
 - **Modern Layout:** Increased the section's impact by setting a `50vh` minimum height and using centered alignment for a premium, high-end feel.
 
@@ -323,7 +323,7 @@ images looking like this  delete them
 
 **User**
 
-use the `c:\Users\lewis\Desktop\busia-chicken-website\Frontend\images\download (8).png`  as the hero section bg section
+use the `c:\Users\lewis\Desktop\wangari\Frontend\images\download (8).png`  as the hero section bg section
 
 **Assistant**
 

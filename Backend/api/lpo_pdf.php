@@ -29,7 +29,7 @@ $pdo = getDatabaseConnection();
 if (!$pdo) { http_response_code(500); exit('Database unavailable'); }
 $role = $_SESSION['role'];
 if ($role !== 'super_admin') {
-    $perms = function_exists('busiaRolePermissions') ? busiaRolePermissions($pdo) : [];
+    $perms = function_exists('wangariRolePermissions') ? wangariRolePermissions($pdo) : [];
     if (!(($perms[$role]['lpo']['view'] ?? 0) || ($perms[$role]['lpo']['edit'] ?? 0))) {
         http_response_code(403);
         exit('You do not have permission to view LPO documents');

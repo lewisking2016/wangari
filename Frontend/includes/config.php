@@ -182,8 +182,8 @@ function getDB(): ?PDO {
     if (!empty($GLOBALS['pdo'])) {
         // Auto-run new tables if missing — keeps the live site self-healing
         @require_once __DIR__ . '/../../Backend/config/auto_migrate.php';
-        if (function_exists('ensureBusiaSchema')) {
-            ensureBusiaSchema($GLOBALS['pdo']);
+        if (function_exists('ensureWangariSchema')) {
+            ensureWangariSchema($GLOBALS['pdo']);
         }
     }
     return $GLOBALS['pdo'];

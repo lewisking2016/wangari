@@ -131,7 +131,7 @@ try {
     }
     
     // Redirect to Admin Dashboard (on VPS)
-    $vpsBase = 'http://20.164.18.34';
+    $vpsBase = 'https://wangari.imeantech.com';
     header("Location: {$vpsBase}/Frontend/admin/app.html");
     exit;
     

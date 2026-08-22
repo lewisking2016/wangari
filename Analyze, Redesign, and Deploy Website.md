@@ -1,6 +1,6 @@
 # Analyze, Redesign, and Deploy Website
 
-> **Workspace:** c:\Users\lewis\Desktop\busia-chicken-website
+> **Workspace:** c:\Users\lewis\Desktop\wangari
 
 ---
 
@@ -12,13 +12,13 @@ analise the website and redesign teh site per wht its needed install all the dep
 **Assistant**
 
 **Analysis & Redesign Status**
-- I have reviewed the `busia-chicken-website` structure and verified that the **Phase 4 Redesign** has already been implemented successfully. 
+- I have reviewed the `wangari` structure and verified that the **Phase 4 Redesign** has already been implemented successfully. 
 - The project is now utilizing a premium, modern aesthetic without external frameworks (using pure HTML/CSS/JS). 
 - It features a robust color scheme, smooth 60fps animations, layered shadows, fully responsive breakpoints, and professional typography, entirely replacing the older design patterns and placeholders.
 
 **Dependencies & Tools Setup**
-- **Database Initialization:** I detected your XAMPP installation and used its MySQL binary to automatically create the `busia_chicken_db` database.
-- **Schema & Seeding:** I ran the [setup_database.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/setup_database.php) script to build all required tables (Users, Products, Orders, Flocks, etc.) and seeded the database with your sample categories and products (e.g., Broilers, Layers, Day-Old Chicks, Feeds).
+- **Database Initialization:** I detected your XAMPP installation and used its MySQL binary to automatically create the `wangari_db` database.
+- **Schema & Seeding:** I ran the [setup_database.php](file:///c:/Users/lewis/Desktop/wangari/setup_database.php) script to build all required tables (Users, Products, Orders, Flocks, etc.) and seeded the database with your sample categories and products (e.g., Broilers, Layers, Day-Old Chicks, Feeds).
 
 **Local Server Running**
 - The local PHP development server has been started and is successfully running in the background.
@@ -57,7 +57,7 @@ I have completely overhauled the website's UI from the ground up to give it a hi
 ### 2. Dependencies & Tooling Installed
 - **Node Environment:** Initialized `package.json` and installed modern web tooling (`prettier`, `eslint`).
 - **Animation Libraries:** Installed **GSAP**, **Swiper**, and **Motion** (Framer Motion's vanilla JS library).
-- **ESM Integration:** I directly wired up `motion` using ES Modules in the footer ([footer.php](file:///c:/Users/lewis/Desktop/busia-chicken-website/Frontend/includes/footer.php#L76-112)) to provide buttery-smooth, hardware-accelerated animations. 
+- **ESM Integration:** I directly wired up `motion` using ES Modules in the footer ([footer.php](file:///c:/Users/lewis/Desktop/wangari/Frontend/includes/footer.php#L76-112)) to provide buttery-smooth, hardware-accelerated animations. 
 
 ### 3. Professional Animations Implemented
 - **Hero Stagger Reveals:** As soon as the page loads, the hero typography slides up elegantly in a staggered sequence powered by `motion`.

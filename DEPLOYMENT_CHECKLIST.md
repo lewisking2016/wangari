@@ -1,4 +1,4 @@
-# 🚀 Live Deployment Checklist - Busia Chicken Website
+# 🚀 Live Deployment Checklist - Wangari Website
 
 ## Current Status
 - **Live URL**: https://new.decapoli.co.ke
@@ -41,7 +41,7 @@ Check these URLs work:
 - `https://new.decapoli.co.ke/Frontend/assets/css/style.css`
 - `https://new.decapoli.co.ke/Frontend/assets/js/main.js`
 - `https://new.decapoli.co.ke/Frontend/assets/js/hero-slider.js`
-- `https://new.decapoli.co.ke/Frontend/images/busia logo.png`
+- `https://new.decapoli.co.ke/Frontend/images/wangari-logo.png`
 
 ### 5. Fix Hero Slider
 The slider script is now separate: `/Frontend/assets/js/hero-slider.js`
@@ -105,7 +105,7 @@ Icons use Lucide. Verify:
 **DNS/Redirect Issue** - See Step 7 above
 
 ## 📊 Database Migration Complete
-All data from local `busia_chicken_db` has been migrated:
+All data from local `wangari_db` has been migrated:
 - 4 categories (Broilers, Layers, Chicks, Feeds)
 - 15 products with prices and stock
 - 2 users (admin, demo)

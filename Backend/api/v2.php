@@ -1,7 +1,7 @@
 <?php
 /**
  * Wangari REST API v2 — single entry point.
- * All frontend on Vercel calls this API on the VPS.
+ * All frontend calls this API on the VPS.
  * Columns verified against actual DB schema.
  */
 declare(strict_types=1);
