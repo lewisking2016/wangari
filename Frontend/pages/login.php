@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
             <p>Enter your credentials to access your account.</p>
             
             <?php if (!empty($errors)): ?>
-                <div style="padding: 16px; background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 12px; color: #FCA5A5; margin-bottom: 24px; font-size: 0.9rem;">
+                <div style="padding: 16px; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 12px; color: #991B1B; margin-bottom: 24px; font-size: 0.9rem;">
                     <ul style="margin: 0; padding-left: 20px;">
                         <?php foreach ($errors as $error): ?>
                             <li><?php echo htmlspecialchars($error); ?></li>
@@ -134,10 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 </button>
             </form>
             
-            <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: rgba(255,255,255,0.4); font-size: 0.85rem;">
-                <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.15);"></span>
+            <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: #94A3B8; font-size: 0.85rem;">
+                <span style="flex: 1; height: 1px; background: #E2E8F0;"></span>
                 <span style="padding: 0 12px; font-weight: 500;">or</span>
-                <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.15);"></span>
+                <span style="flex: 1; height: 1px; background: #E2E8F0;"></span>
             </div>
             
             <a href="/Frontend/auth/google/login.php" class="xai-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: #000000; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-size: 0.95rem; font-weight: 600; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); transition: all 0.2s ease;" onmouseover="this.style.background='#18181b'; this.style.borderColor='rgba(255,255,255,0.4)';" onmouseout="this.style.background='#000000'; this.style.borderColor='rgba(255,255,255,0.25)';">

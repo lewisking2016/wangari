@@ -153,32 +153,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
     <style>
         .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0; }
         .role-card {
-            padding: 32px 24px; border: 2px solid rgba(255,255,255,0.08);
+            padding: 32px 24px; border: 2px solid #E2E8F0;
             border-radius: 16px; cursor: pointer; text-align: center;
             transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            background: rgba(255,255,255,0.03); position: relative; overflow: hidden;
+            background: #FFFFFF; position: relative; overflow: hidden;
         }
-        .role-card:hover { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.05); transform: translateY(-2px); }
-        .role-card.selected { border-color: #4ADE80; background: rgba(74,222,128,0.08); }
+        .role-card:hover { border-color: #22C55E; background: #F0FDF4; transform: translateY(-2px); }
+        .role-card.selected { border-color: #22C55E; background: #DCFCE7; }
         .role-card .icon { font-size: 40px; margin-bottom: 16px; display: block; }
-        .role-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #F0FDF4; }
-        .role-card p { font-size: 13px; color: rgba(240,253,244,0.5); line-height: 1.5; }
+        .role-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #0F172A; }
+        .role-card p { font-size: 13px; color: #64748B; line-height: 1.5; }
         .role-card .check {
             position: absolute; top: 12px; right: 12px;
             width: 24px; height: 24px; border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.15);
+            border: 2px solid #CBD5E1;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s ease;
         }
-        .role-card.selected .check { background: #4ADE80; border-color: #4ADE80; }
+        .role-card.selected .check { background: #22C55E; border-color: #22C55E; }
 
         .step-indicator { display: flex; gap: 8px; margin-bottom: 24px; }
         .step-dot {
             width: 8px; height: 8px; border-radius: 50%;
-            background: rgba(255,255,255,0.15); transition: all 0.3s ease;
+            background: #CBD5E1; transition: all 0.3s ease;
         }
-        .step-dot.active { background: #4ADE80; width: 32px; border-radius: 4px; }
-        .step-dot.done { background: #4ADE80; }
+        .step-dot.active { background: #22C55E; width: 32px; border-radius: 4px; }
+        .step-dot.done { background: #22C55E; }
 
         .code-input-group {
             display: flex; gap: 0; margin: 20px 0;
@@ -186,11 +186,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
         .code-input-group input {
             flex: 1; padding: 16px 20px; font-size: 18px;
             font-family: 'Courier New', monospace; letter-spacing: 2px;
-            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
-            border-right: none; border-radius: 12px 0 0 12px; color: #F0FDF4;
+            background: #F8FAFC; border: 2px solid #E2E8F0;
+            border-right: none; border-radius: 12px 0 0 12px; color: #0F172A;
             outline: none; text-transform: uppercase;
         }
-        .code-input-group input:focus { border-color: #4ADE80; }
+        .code-input-group input:focus { border-color: #22C55E; }
         .code-input-group button {
             padding: 16px 24px; background: #16A34A; border: none;
             border-radius: 0 12px 12px 0; color: #fff; font-weight: 600;
@@ -201,8 +201,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
             padding: 16px; border-radius: 12px; margin: 12px 0;
             font-size: 14px; display: none;
         }
-        .code-result.valid { display: block; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #86EFAC; }
-        .code-result.invalid { display: block; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #FCA5A5; }
+        .code-result.valid { display: block; background: #DCFCE7; border: 1px solid #86EFAC; color: #166534; }
+        .code-result.invalid { display: block; background: #FEE2E2; border: 1px solid #FCA5A5; color: #991B1B; }
 
         .form-row { display: flex; gap: 16px; }
         .form-row .xai-form-group { flex: 1; }
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
             </div>
 
             <?php if (!empty($errors)): ?>
-                <div style="padding: 16px; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; color: #FCA5A5; margin-bottom: 24px; font-size: 0.9rem;">
+                <div style="padding: 16px; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 12px; color: #991B1B; margin-bottom: 24px; font-size: 0.9rem;">
                     <?php foreach ($errors as $e): ?>
                         <div>• <?php echo htmlspecialchars($e); ?></div>
                     <?php endforeach; ?>
@@ -240,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
             <!-- ═══════════ STEP 1: Choose Role ═══════════ -->
             <div id="step1" class="<?php echo $step === 2 ? 'hidden' : ''; ?>">
                 <h1 style="font-size: 1.6rem; margin-bottom: 4px;">Who are you?</h1>
-                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem;">Choose how you'll use Wangari to get started.</p>
+                <p style="color: #64748B; font-size: 0.9rem;">Choose how you'll use Wangari to get started.</p>
 
                 <div class="role-cards">
                     <div class="role-card" onclick="selectRole('owner')" id="card-owner">
@@ -269,12 +269,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
 
             <!-- ═══════════ STEP 2a: Owner Registration ═══════════ -->
             <div id="step2-owner" class="hidden">
-                <button onclick="backToStep1()" style="background:none;border:none;color:rgba(240,253,244,0.5);cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
+                <button onclick="backToStep1()" style="background:none;border:none;color:#64748B;cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     Back
                 </button>
                 <h1>Create Your Farm</h1>
-                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem; margin-bottom: 24px;">Set up your farm and start inviting your team.</p>
+                <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 24px;">Set up your farm and start inviting your team.</p>
 
                 <form method="POST" id="owner-form">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
@@ -319,12 +319,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
 
             <!-- ═══════════ STEP 2b: Worker — Enter Farm Code ═══════════ -->
             <div id="step2-worker-code" class="hidden">
-                <button onclick="backToStep1()" style="background:none;border:none;color:rgba(240,253,244,0.5);cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
+                <button onclick="backToStep1()" style="background:none;border:none;color:#64748B;cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     Back
                 </button>
                 <h1>Enter Farm Code</h1>
-                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem;">Ask your farm admin for the invite code, then paste it below.</p>
+                <p style="color: #64748B; font-size: 0.9rem;">Ask your farm admin for the invite code, then paste it below.</p>
 
                 <div class="code-input-group">
                     <input type="text" id="farm-code-input" placeholder="WGRI-XXXX-XXXX-XXXX" maxlength="24" autocomplete="off" spellcheck="false">
@@ -344,8 +344,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     Back
                 </button>
-                <h1>Join <span id="farm-name-display" style="color:#4ADE80"></span></h1>
-                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem; margin-bottom: 24px;">Create your account to start working.</p>
+                <h1>Join <span id="farm-name-display" style="color:#16A34A"></span></h1>
+                <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 24px;">Create your account to start working.</p>
 
                 <form method="POST" id="worker-form">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
@@ -452,7 +452,7 @@ async function validateCode() {
 
     result.className = 'code-result';
     result.style.display = 'block';
-    result.style.color = 'rgba(240,253,244,0.5)';
+    result.style.color = '#64748B';
     result.textContent = 'Verifying code...';
 
     try {
