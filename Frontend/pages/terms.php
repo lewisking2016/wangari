@@ -77,7 +77,7 @@ $page_title = 'Terms & Conditions — Wangari';
     <p>By accessing or using the Wangari platform ("Service"), including the website at <a href="https://wangari.imeantech.com">wangari.imeantech.com</a>, the desktop application, and all related APIs, you ("User," "you," or "your") agree to be bound by these Terms &amp; Conditions ("Terms").</p>
     <p>If you are using the Service on behalf of an organization, you represent that you have authority to bind that organization to these Terms.</p>
     <div class="legal-highlight">
-        <h4>⚡ Kenya Legal Compliance</h4>
+        <h4>Kenya Legal Compliance</h4>
         <p>These Terms are governed by the laws of the Republic of Kenya, including the Data Protection Act, 2019, the Consumer Protection Act, 2012, the Electronic Transactions Act, 2008, and the Computer Misuse and Cybercrimes Act, 2018.</p>
     </div>
 
@@ -124,14 +124,17 @@ $page_title = 'Terms & Conditions — Wangari';
 
     <!-- ════════════════════════════════════════════════════ -->
     <h2 id="subscription">4. Subscription Plans &amp; Payment</h2>
-    <h3>4.1 Free Tier</h3>
-    <p>Wangari offers a free tier with limited features. The free tier includes:</p>
+    <h3>4.1 Free Trial</h3>
+    <p>Wangari offers a 40-day free trial with full Grow plan features. The trial:</p>
     <ul>
-        <li>Up to 1 farm</li>
-        <li>Up to 5 team members</li>
-        <li>Basic inventory and order management</li>
-        <li>Community support</li>
+        <li>Starts on the date of account registration</li>
+        <li>Lasts 40 calendar days</li>
+        <li>Includes all Grow plan features (1 farm, 3 flocks, 2,000 animals, invoicing, M-Pesa, AI, team members)</li>
+        <li>Requires no credit card to start</li>
+        <li>Automatically expires after 40 days — upgrade to a paid plan to continue</li>
+        <li>Data is retained for 90 days after trial expiry to allow export</li>
     </ul>
+    <p>If you do not subscribe to a paid plan before the trial expires, your account will be restricted to read-only access. You may export your data during the 90-day grace period.</p>
 
     <h3>4.2 Paid Plans</h3>
     <p>Premium plans unlock additional features. By subscribing, you agree to:</p>
@@ -199,7 +202,7 @@ $page_title = 'Terms & Conditions — Wangari';
     <h2 id="data">7. Data Ownership &amp; Portability</h2>
 
     <div class="legal-highlight">
-        <h4>📊 Your Data Belongs to You</h4>
+        <h4>Your Data Belongs to You</h4>
         <p>You retain all rights, title, and interest in your Customer Data. We do not claim ownership over any data you enter into the Service. This complies with Section 25 of the Kenya Data Protection Act, 2019.</p>
     </div>
 
@@ -290,7 +293,7 @@ $page_title = 'Terms & Conditions — Wangari';
     </ul>
 
     <div class="legal-highlight">
-        <h4>⚠️ Important — Financial Decisions</h4>
+        <h4>Important — Financial Decisions</h4>
         <p>Wangari is a management tool, not a financial advisor. All financial decisions made based on data in the Service are your responsibility. We recommend consulting qualified professionals for financial, veterinary, or legal advice.</p>
     </div>
 
@@ -348,7 +351,7 @@ $page_title = 'Terms & Conditions — Wangari';
     <p>These Terms are governed by and construed in accordance with the laws of the Republic of Kenya. Subject to the arbitration clause, the courts of Nairobi shall have exclusive jurisdiction.</p>
 
     <div class="legal-highlight">
-        <h4>🇰🇪 Kenya-Specific Provisions</h4>
+        <h4>Kenya-Specific Provisions</h4>
         <p>These Terms are subject to the following Kenyan laws: Data Protection Act 2019, Consumer Protection Act 2012, Electronic Transactions Act 2008, Computer Misuse and Cybercrimes Act 2018, Kenya Information and Communications Act 1998, and the Sale of Goods Act (Cap 31).</p>
     </div>
 

@@ -301,7 +301,7 @@ $minDisk = '500 MB free space';
             <p>When you reconnect, changes sync automatically to the cloud. Push every 2 min, pull every 5 min. Zero effort.</p>
         </div>
         <div class="feature-card">
-            <div class="icon" style="background:rgba(245,158,11,0.1);color:#FBBF24">📊</div>
+            <div class="icon" style="background:rgba(245,158,11,0.1);color:#FBBF24"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
             <h3>Real-Time Dashboard</h3>
             <p>Live stats on animals, inventory, orders, revenue. See your farm's health at a glance with animated charts and KPIs.</p>
         </div>

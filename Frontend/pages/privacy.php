@@ -47,7 +47,7 @@ $page_title = 'Privacy Policy — Wangari';
     </div>
 
     <div class="legal-highlight">
-        <h4>🔒 Your Privacy Matters</h4>
+        <h4>Your Privacy Matters</h4>
         <p>This Privacy Policy explains how we collect, use, store, and protect your personal data when you use the Wangari platform. We comply with the Kenya Data Protection Act, 2019, and international best practices.</p>
     </div>
 
@@ -109,7 +109,7 @@ $page_title = 'Privacy Policy — Wangari';
     <h2>4. Data Sharing</h2>
     <h3>4.1 We Do NOT Sell Your Data</h3>
     <div class="legal-highlight">
-        <h4>🚫 No Data Selling</h4>
+        <h4>No Data Selling</h4>
         <p>We never sell, rent, or trade your personal data or farm data to third parties for their marketing purposes. Period.</p>
     </div>
 

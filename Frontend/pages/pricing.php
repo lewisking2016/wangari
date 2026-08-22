@@ -13,7 +13,7 @@ include '../includes/header.php';
 <section class="g-page-hero">
     <div class="g-container">
         <h1>Simple plans for farms of <span class="g-serif">every size</span></h1>
-        <p>Start free. Grow with us. Your data stays yours on every plan. Pay via M-Pesa, bank transfer, or card.</p>
+        <p>Start with a 40-day free trial. No credit card required. Your data stays yours on every plan.</p>
         <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
             <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; font-size: 0.85rem; color: rgba(255,255,255,0.9);">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -32,35 +32,35 @@ include '../includes/header.php';
     <div class="g-container">
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; align-items: start;">
 
-            <!-- FREE -->
+            <!-- FREE TRIAL -->
             <div class="g-card g-reveal g-delay-1" style="display: flex; flex-direction: column; text-align: center;">
                 <div style="margin-bottom: 0.3rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-lime); text-transform: uppercase; letter-spacing: 0.06em;">🌱 Starter</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-lime); text-transform: uppercase; letter-spacing: 0.06em;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Trial</span>
                 </div>
-                <h4 style="margin-bottom: 0.3rem;">Free</h4>
-                <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">For individual farmers getting started.</p>
-                <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin-bottom: 0.3rem;">Free Trial</h4>
+                <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">Try all Grow features free for 40 days.</p>
+                <div style="margin-bottom: 0.3rem;">
                     <span class="g-serif" style="font-size: 2.8rem; color: var(--g-ink);">KES 0</span>
-                    <span style="color: var(--g-muted); font-size: 0.82rem; display: block;">forever</span>
+                    <span style="color: var(--g-muted); font-size: 0.82rem; display: block;">for 40 days</span>
                 </div>
+                <p style="color: var(--g-lime); font-size: 0.75rem; font-weight: 600; margin-bottom: 1.2rem;">No credit card required</p>
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.5rem; font-size: 0.85rem; padding: 0; text-align: left;">
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 1 farm, 1 flock, 100 animals</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Daily production tracking</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Basic expense tracking</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> AI assistant: 5 questions/day</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Mobile app access</li>
-                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="x" style="width: 16px; height: 16px; color: #ccc; flex-shrink: 0;"></i> No invoicing or CRM</li>
-                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="x" style="width: 16px; height: 16px; color: #ccc; flex-shrink: 0;"></i> No team collaboration</li>
-                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="x" style="width: 16px; height: 16px; color: #ccc; flex-shrink: 0;"></i> Current month data only</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> All Grow features included</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 1 farm, 3 flocks, 2,000 animals</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Invoicing, M-Pesa, CRM</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 50 AI questions/day</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 3 team members</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Reports &amp; data export</li>
+                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="x" style="width: 16px; height: 16px; color: #ccc; flex-shrink: 0;"></i> Expires after 40 days</li>
                 </ul>
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start Free</a>
+                <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start 40-Day Trial</a>
             </div>
 
             <!-- GROW (Most Popular) -->
             <div class="g-card g-reveal g-delay-2" style="display: flex; flex-direction: column; border: 2px solid var(--g-lime); position: relative; background: var(--g-ink); text-align: center;">
                 <span style="position: absolute; top: -12px; right: 20px; background: var(--g-lime); color: var(--g-ink); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.35rem 0.8rem; border-radius: 999px;">MOST POPULAR</span>
                 <div style="margin-bottom: 0.3rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-lime); text-transform: uppercase; letter-spacing: 0.06em;">🌿 Small Farm</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-lime); text-transform: uppercase; letter-spacing: 0.06em;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12C12 7 7 3 2 3c0 5 4 9 10 9z"/><path d="M12 12c0-5 5-9 10-9-1 5-5 9-10 9"/></svg> Small Farm</span>
                 </div>
                 <h4 style="margin-bottom: 0.3rem; color: #fff;">Grow</h4>
                 <p style="font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-bottom: 1.2rem;">For small-scale commercial farms.</p>
@@ -68,7 +68,7 @@ include '../includes/header.php';
                     <span class="g-serif" style="font-size: 2.4rem; color: var(--g-lime);">KES 999</span>
                     <span style="color: rgba(255,255,255,0.5); font-size: 0.82rem;">/month</span>
                 </div>
-                <p style="color: rgba(255,255,255,0.4); font-size: 0.75rem; margin-bottom: 1.2rem;">less than KES 33/day ☕</p>
+                <p style="color: rgba(255,255,255,0.4); font-size: 0.75rem; margin-bottom: 1.2rem;">less than KES 33/day</p>
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.5rem; font-size: 0.85rem; padding: 0; text-align: left;">
                     <li style="display: flex; gap: 8px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 1 farm, 3 flocks, 2,000 animals</li>
                     <li style="display: flex; gap: 8px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 50 customers with invoicing</li>
@@ -86,7 +86,7 @@ include '../includes/header.php';
             <!-- SCALE -->
             <div class="g-card g-reveal g-delay-3" style="display: flex; flex-direction: column; text-align: center;">
                 <div style="margin-bottom: 0.3rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(129,117,79,0.1); border: 1px solid rgba(129,117,79,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-tan); text-transform: uppercase; letter-spacing: 0.06em;">🌳 Large Farm</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(129,117,79,0.1); border: 1px solid rgba(129,117,79,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-tan); text-transform: uppercase; letter-spacing: 0.06em;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12C12 7 7 3 2 3c0 5 4 9 10 9z"/><path d="M12 12c0-5 5-9 10-9-1 5-5 9-10 9"/></svg> Large Farm</span>
                 </div>
                 <h4 style="margin-bottom: 0.3rem;">Scale</h4>
                 <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">For large-scale commercial farms.</p>
@@ -112,7 +112,7 @@ include '../includes/header.php';
             <!-- ENTERPRISE -->
             <div class="g-card g-reveal g-delay-4" style="display: flex; flex-direction: column; text-align: center;">
                 <div style="margin-bottom: 0.3rem;">
-                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(0,11,34,0.06); border: 1px solid rgba(0,11,34,0.1); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-ink); text-transform: uppercase; letter-spacing: 0.06em;">🏢 Management</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(0,11,34,0.06); border: 1px solid rgba(0,11,34,0.1); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-ink); text-transform: uppercase; letter-spacing: 0.06em;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 7V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/></svg> Management</span>
                 </div>
                 <h4 style="margin-bottom: 0.3rem;">Enterprise</h4>
                 <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">For cooperatives, agribusinesses &amp; management companies.</p>
@@ -157,7 +157,7 @@ include '../includes/header.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td><strong>Price</strong></td><td style="text-align: center;">KES 0</td><td style="text-align: center; background: rgba(34,197,94,0.04);"><strong>KES 999/mo</strong></td><td style="text-align: center;">KES 2,999/mo</td><td style="text-align: center;">Custom</td></tr>
+                    <tr><td><strong>Price</strong></td><td style="text-align: center;">KES 0<br><small style="color:var(--g-lime);font-weight:600;">40-day trial</small></td><td style="text-align: center; background: rgba(34,197,94,0.04);"><strong>KES 999/mo</strong></td><td style="text-align: center;">KES 2,999/mo</td><td style="text-align: center;">Custom</td></tr>
                     <tr><td>Farms</td><td style="text-align: center;">1</td><td style="text-align: center; background: rgba(34,197,94,0.04);">1</td><td style="text-align: center;">3</td><td style="text-align: center;">Unlimited</td></tr>
                     <tr><td>Flocks / Batches</td><td style="text-align: center;">1</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
                     <tr><td>Animals</td><td style="text-align: center;">100</td><td style="text-align: center; background: rgba(34,197,94,0.04);">2,000</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
@@ -211,10 +211,10 @@ include '../includes/header.php';
             <div class="g-faq-item open">
                 <div class="g-faq-q" onclick="this.parentElement.classList.toggle('open')">
                     <span class="g-faq-num">01</span>
-                    <span>Can I try before I buy?</span>
+                    <span>Is there a free trial?</span>
                     <span class="g-plus">+</span>
                 </div>
-                <div class="g-faq-a">Yes! Start with our free plan — no credit card required. Upgrade anytime when you need more features.</div>
+                <div class="g-faq-a">Yes! Every new account gets a 40-day free trial with full Grow features — no credit card required. After 40 days, choose a plan that fits your farm.</div>
             </div>
             <div class="g-faq-item">
                 <div class="g-faq-q" onclick="this.parentElement.classList.toggle('open')">
@@ -264,7 +264,7 @@ include '../includes/header.php';
 <section class="g-section g-section-ink" style="text-align: center;">
     <div class="g-container" style="max-width: 680px;">
         <h2 class="g-reveal" style="color: #fff; font-size: clamp(1.9rem, 4vw, 2.8rem); margin-bottom: 1rem;">Ready to run your farm on <span class="g-serif" style="color: var(--g-lime);">Wangari?</span></h2>
-        <p class="g-reveal g-delay-1" style="color: rgba(255,255,255,0.66); font-size: 1.05rem; margin-bottom: 2rem;">Create a free account in 2 minutes. No credit card required.</p>
+        <p class="g-reveal g-delay-1" style="color: rgba(255,255,255,0.66); font-size: 1.05rem; margin-bottom: 2rem;">Start your 40-day free trial in 2 minutes. No credit card required.</p>
         <div class="g-reveal g-delay-2" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="/Frontend/pages/register.php" class="g-btn g-btn-lime">Start Free</a>
             <a href="/Frontend/pages/contact.php" class="g-btn g-btn-outline">Book a Demo</a>
