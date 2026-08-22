@@ -1,267 +1,520 @@
 <?php
 /**
- * Wangari Registration — x.ai-inspired design
+ * Wangari Registration — Role-Based Onboarding
+ * Step 1: Choose "Farm Owner" or "Join as Worker"
+ * Step 2a (Owner): Create account + farm name
+ * Step 2b (Worker): Enter farm code → Create account → Join farm
  */
 declare(strict_types=1);
-
-// Load config (handles Redis sessions, DB connection, security functions)
 require_once __DIR__ . '/../includes/config.php';
 require_once dirname(__DIR__, 2) . '/Backend/config/security.php';
 
 $page_title = 'Create Account — Wangari';
-// No header.php include - this page has its own xai-nav navigation
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
 
-$errors = [];
-$success = false;
-$formData = [
-    'first_name' => '',
-    'last_name' => '',
-    'email' => '',
-    'phone' => '',
-    'farm_name' => '',
-];
+// Redirect if already logged in
+if (!empty($_SESSION['user_id'])) {
+    $role = $_SESSION['role'] ?? '';
+    if (in_array($role, ['super_admin','farm_manager','stock_manager','sales_staff'])) {
+        header('Location: /Frontend/admin/dashboard.php');
+    } else {
+        header('Location: /Frontend/index.php');
+    }
+    exit;
+}
 
+$errors = [];
+$step = (int)($_GET['step'] ?? 1);
+$role_choice = $_GET['role'] ?? '';
+$code = $_GET['code'] ?? '';
+
+// ── Handle form submission ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Security token expired. Please refresh and try again.';
     }
 
-    $formData['first_name'] = trim($_POST['first_name'] ?? '');
-    $formData['last_name'] = trim($_POST['last_name'] ?? '');
-    $formData['email'] = trim($_POST['email'] ?? '');
-    $formData['phone'] = trim($_POST['phone'] ?? '');
-    $formData['farm_name'] = trim($_POST['farm_name'] ?? '');
+    $role_choice = trim($_POST['role_choice'] ?? '');
+    $code = trim($_POST['farm_code'] ?? '');
+    $fullName = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
     $password = $_POST['password'] ?? '';
-    $password_confirm = $_POST['password_confirm'] ?? '';
+    $passwordConfirm = $_POST['password_confirm'] ?? '';
+    $farmName = trim($_POST['farm_name'] ?? '');
 
-    if (empty($formData['first_name'])) $errors[] = 'First name is required';
-    if (empty($formData['last_name'])) $errors[] = 'Last name is required';
-    if (empty($formData['email']) || !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required';
-    if (empty($formData['phone'])) $errors[] = 'Phone number is required';
-    if (empty($password) || strlen($password) < 6) $errors[] = 'Password must be at least 6 characters';
-    if ($password !== $password_confirm) $errors[] = 'Passwords do not match';
+    if (empty($fullName)) $errors[] = 'Full name is required';
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required';
+    if (empty($phone)) $errors[] = 'Phone number is required';
+    if (strlen($password) < 6) $errors[] = 'Password must be at least 6 characters';
+    if ($password !== $passwordConfirm) $errors[] = 'Passwords do not match';
+    if ($role_choice !== 'owner' && $role_choice !== 'worker') $errors[] = 'Please select a role';
+
+    if ($role_choice === 'worker' && empty($code)) {
+        $errors[] = 'Farm code is required to join as a worker';
+    }
+
+    if ($role_choice === 'owner' && empty($farmName)) {
+        $errors[] = 'Farm name is required for farm owners';
+    }
 
     if (empty($errors)) {
         $pdo = getDB();
-        
         try {
-            // Check if email already exists
+            // Check email
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-            $stmt->execute([$formData['email']]);
+            $stmt->execute([$email]);
             if ($stmt->fetch()) {
                 $errors[] = 'An account with this email already exists';
             } else {
-                // Create username from email
-                $username = strtolower(str_replace(['@', '.'], ['', ''], explode('@', $formData['email'])[0]));
+                // Generate username from email
+                $username = strtolower(str_replace(['@', '.'], ['', ''], explode('@', $email)[0]));
                 $username = preg_replace('/[^a-z0-9]/', '', $username);
-                
-                // Ensure unique username
                 $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
                 $checkStmt->execute([$username]);
-                if ($checkStmt->fetch()) {
-                    $username = $username . rand(100, 999);
-                }
-                
+                if ($checkStmt->fetch()) $username .= rand(100, 999);
+
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                
-                $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, role, first_name, last_name, phone_number, farm_name, created_at) VALUES (?, ?, ?, 'farm_manager', ?, ?, ?, ?, NOW())");
-                $stmt->execute([$username, $formData['email'], $password_hash, $formData['first_name'], $formData['last_name'], $formData['phone'], $formData['farm_name']]);
-                
-                $success = true;
+                $mappedRole = $role_choice === 'owner' ? 'farm_manager' : 'customer';
+
+                // Insert user
+                $stmt = $pdo->prepare("INSERT INTO users (username, email, password, full_name, phone, role, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, NOW())");
+                $stmt->execute([$username, $email, $password_hash, $fullName, $phone, $mappedRole]);
+                $userId = $pdo->lastInsertId();
+
+                // Start session
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                $_SESSION['user_id'] = $userId;
+                $_SESSION['username'] = $username;
+                $_SESSION['role'] = $mappedRole;
+                $_SESSION['full_name'] = $fullName;
+                $_SESSION['email'] = $email;
+
+                if ($role_choice === 'owner') {
+                    // Create farm
+                    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                    $farmCode = 'WGRI-';
+                    for ($i = 0; $i < 12; $i++) {
+                        if ($i > 0 && $i % 4 === 0) $farmCode .= '-';
+                        $farmCode .= $chars[random_int(0, strlen($chars) - 1)];
+                    }
+
+                    $pdo->prepare("INSERT INTO farms (name, owner_id, farm_code, created_at) VALUES (?, ?, ?, NOW())")
+                        ->execute([$farmName, $userId, $farmCode]);
+                    $farmId = $pdo->lastInsertId();
+                    $pdo->prepare("INSERT INTO farm_members (farm_id, user_id, role, status, joined_at) VALUES (?, ?, 'farm_owner', 'active', NOW())")
+                        ->execute([$farmId, $userId]);
+
+                    header('Location: /Frontend/admin/dashboard.php?welcome=1');
+                    exit;
+                } else {
+                    // Worker: join farm via code
+                    $stmt = $pdo->prepare("SELECT fc.*, f.id as farm_id, f.name as farm_name FROM farm_codes fc JOIN farms f ON fc.farm_id = f.id WHERE fc.code = ? AND fc.is_active = 1");
+                    $stmt->execute([$code]);
+                    $farmCode = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($farmCode && ($farmCode['expires_at'] === null || strtotime($farmCode['expires_at']) > time()) && $farmCode['current_uses'] < $farmCode['max_uses']) {
+                        $roleForFarm = $farmCode['role'];
+
+                        $pdo->prepare("UPDATE farm_codes SET current_uses = current_uses + 1 WHERE id = ?")->execute([$farmCode['id']]);
+                        $pdo->prepare("INSERT INTO farm_members (farm_id, user_id, role, status, joined_at) VALUES (?, ?, ?, 'active', NOW())")
+                            ->execute([$farmCode['farm_id'], $userId, $roleForFarm]);
+                        $pdo->prepare("INSERT INTO farm_join_requests (farm_id, user_id, code_used, requested_role, status, created_at) VALUES (?, ?, ?, ?, 'approved', NOW())")
+                            ->execute([$farmCode['farm_id'], $userId, $code, $roleForFarm]);
+                        $pdo->prepare("UPDATE users SET role = ? WHERE id = ?")->execute([$roleForFarm, $userId]);
+
+                        $_SESSION['role'] = $roleForFarm;
+                    }
+
+                    header('Location: /Frontend/admin/dashboard.php?welcome=1');
+                    exit;
+                }
             }
         } catch (Exception $e) {
-            $errors[] = 'An error occurred during registration. Please try again.';
-            if (APP_DEBUG) {
-                error_log("Registration error: " . $e->getMessage());
-            }
+            $errors[] = 'Registration failed. Please try again.';
+            error_log("Registration error: " . $e->getMessage());
         }
     }
+    // If errors, fall through to show form with step 2
+    $step = 2;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></title>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <style>
+        .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0; }
+        .role-card {
+            padding: 32px 24px; border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 16px; cursor: pointer; text-align: center;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            background: rgba(255,255,255,0.03); position: relative; overflow: hidden;
+        }
+        .role-card:hover { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.05); transform: translateY(-2px); }
+        .role-card.selected { border-color: #4ADE80; background: rgba(74,222,128,0.08); }
+        .role-card .icon { font-size: 40px; margin-bottom: 16px; display: block; }
+        .role-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #F0FDF4; }
+        .role-card p { font-size: 13px; color: rgba(240,253,244,0.5); line-height: 1.5; }
+        .role-card .check {
+            position: absolute; top: 12px; right: 12px;
+            width: 24px; height: 24px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .role-card.selected .check { background: #4ADE80; border-color: #4ADE80; }
+
+        .step-indicator { display: flex; gap: 8px; margin-bottom: 24px; }
+        .step-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: all 0.3s ease;
+        }
+        .step-dot.active { background: #4ADE80; width: 32px; border-radius: 4px; }
+        .step-dot.done { background: #4ADE80; }
+
+        .code-input-group {
+            display: flex; gap: 0; margin: 20px 0;
+        }
+        .code-input-group input {
+            flex: 1; padding: 16px 20px; font-size: 18px;
+            font-family: 'Courier New', monospace; letter-spacing: 2px;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+            border-right: none; border-radius: 12px 0 0 12px; color: #F0FDF4;
+            outline: none; text-transform: uppercase;
+        }
+        .code-input-group input:focus { border-color: #4ADE80; }
+        .code-input-group button {
+            padding: 16px 24px; background: #16A34A; border: none;
+            border-radius: 0 12px 12px 0; color: #fff; font-weight: 600;
+            cursor: pointer; white-space: nowrap; font-family: inherit;
+        }
+
+        .code-result {
+            padding: 16px; border-radius: 12px; margin: 12px 0;
+            font-size: 14px; display: none;
+        }
+        .code-result.valid { display: block; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #86EFAC; }
+        .code-result.invalid { display: block; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #FCA5A5; }
+
+        .form-row { display: flex; gap: 16px; }
+        .form-row .xai-form-group { flex: 1; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
-
 <div class="xai-auth">
-    <!-- Brand Side -->
     <div class="xai-auth-brand">
         <a href="/" class="xai-nav-brand" style="margin-bottom: 60px;">
             <img src="/Frontend/images/wangari-logo.png" alt="Wangari" style="height: 48px;">
             Wangari<span>.</span>
         </a>
-        <h2>Start <span style="font-family: var(--font-serif); font-style: italic;">managing</span> your farm today</h2>
-        <p>Create your free account and get instant access to all farm management tools.</p>
+        <h2>Start managing your <span style="font-family: var(--font-serif); font-style: italic;">farm</span></h2>
+        <p>Create your account and start tracking poultry, livestock, inventory, sales and finances — all in one place.</p>
     </div>
-    
-    <!-- Form Side -->
+
     <div class="xai-auth-form">
-        <div class="xai-auth-card" style="max-width: 480px;">
-            <?php if ($success): ?>
-                <div style="text-align: center; padding: 40px 0;">
-                    <div style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-                    </div>
-                    <h2 style="margin-bottom: 12px;">Account Created!</h2>
-                    <p style="color: var(--xai-text-secondary); margin-bottom: 32px;">Welcome to Wangari. You can now sign in to start managing your farm.</p>
-                    <a href="login.php" class="xai-btn xai-btn-primary xai-btn-lg">
-                        Sign In
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </a>
+        <div class="xai-auth-card" style="max-width: 520px;">
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-dot <?php echo $step >= 1 ? 'active' : ''; ?>" id="dot1"></div>
+                <div class="step-dot <?php echo $step >= 2 ? 'active' : ''; ?>" id="dot2"></div>
+            </div>
+
+            <?php if (!empty($errors)): ?>
+                <div style="padding: 16px; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; color: #FCA5A5; margin-bottom: 24px; font-size: 0.9rem;">
+                    <?php foreach ($errors as $e): ?>
+                        <div>• <?php echo htmlspecialchars($e); ?></div>
+                    <?php endforeach; ?>
                 </div>
-            <?php else: ?>
-                <h1>Create Account</h1>
-                <p>Fill in your details to get started.</p>
-                
-                <?php if (!empty($errors)): ?>
-                    <div style="padding: 16px; background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 12px; color: #FCA5A5; margin-bottom: 24px; font-size: 0.9rem;">
-                        <ul style="margin: 0; padding-left: 20px;">
-                            <?php foreach ($errors as $error): ?>
-                                <li><?php echo htmlspecialchars($error); ?></li>
-                            <?php endforeach; ?>
-                        </ul>
+            <?php endif; ?>
+
+            <!-- ═══════════ STEP 1: Choose Role ═══════════ -->
+            <div id="step1" class="<?php echo $step === 2 ? 'hidden' : ''; ?>">
+                <h1 style="font-size: 1.6rem; margin-bottom: 4px;">Who are you?</h1>
+                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem;">Choose how you'll use Wangari to get started.</p>
+
+                <div class="role-cards">
+                    <div class="role-card" onclick="selectRole('owner')" id="card-owner">
+                        <span class="check" id="check-owner"></span>
+                        <span class="icon">👨‍🌾</span>
+                        <h3>Farm Owner</h3>
+                        <p>Create your own farm, manage your team, track everything.</p>
                     </div>
-                <?php endif; ?>
-                
-                <form method="POST">
-                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8'); ?>">
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="xai-form-group">
-                            <label class="xai-form-label">First Name</label>
-                            <input type="text" name="first_name" class="xai-form-input" required value="<?php echo htmlspecialchars($formData['first_name']); ?>" placeholder="Jane">
-                        </div>
-                        
-                        <div class="xai-form-group">
-                            <label class="xai-form-label">Last Name</label>
-                            <input type="text" name="last_name" class="xai-form-input" required value="<?php echo htmlspecialchars($formData['last_name']); ?>" placeholder="Wanjiku">
-                        </div>
+                    <div class="role-card" onclick="selectRole('worker')" id="card-worker">
+                        <span class="check" id="check-worker"></span>
+                        <span class="icon">👷</span>
+                        <h3>Join as Worker</h3>
+                        <p>Enter a farm code from your admin to join their team.</p>
                     </div>
-                    
-                    <div class="xai-form-group">
-                        <label class="xai-form-label">Email Address</label>
-                        <input type="email" name="email" class="xai-form-input" required value="<?php echo htmlspecialchars($formData['email']); ?>" placeholder="you@farm.co.ke">
-                    </div>
-                    
-                    <div class="xai-form-group">
-                        <label class="xai-form-label">Phone Number</label>
-                        <input type="tel" name="phone" class="xai-form-input" required value="<?php echo htmlspecialchars($formData['phone']); ?>" placeholder="+254 7XX XXX XXX">
-                    </div>
-                    
-                    <div class="xai-form-group">
-                        <label class="xai-form-label">Farm Name <span style="color: var(--xai-text-muted);">(optional)</span></label>
-                        <input type="text" name="farm_name" class="xai-form-input" value="<?php echo htmlspecialchars($formData['farm_name']); ?>" placeholder="My Farm">
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="xai-form-group">
-                            <label class="xai-form-label">Password</label>
-                            <input type="password" name="password" class="xai-form-input" required placeholder="••••••••">
-                        </div>
-                        
-                        <div class="xai-form-group">
-                            <label class="xai-form-label">Confirm Password</label>
-                            <input type="password" name="password_confirm" class="xai-form-input" required placeholder="••••••••">
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 24px;">
-                        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.85rem; color: var(--xai-text-secondary); cursor: pointer;">
-                            <input type="checkbox" name="terms" required style="accent-color: var(--xai-lime); margin-top: 4px;">
-                            <span>I agree to the <a href="terms.php" style="color: var(--xai-lime);">Terms of Service</a> and <a href="privacy.php" style="color: var(--xai-lime);">Privacy Policy</a></span>
-                        </label>
-                    </div>
-                    
-                    <button type="submit" name="register_submit" value="1" class="xai-btn xai-btn-primary xai-btn-lg" style="width: 100%;">
-                        Create Account
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </button>
-                </form>
-                
-                <div class="google-login-separator" style="display: flex; align-items: center; margin: 20px 0; color: rgba(255,255,255,0.4); font-size: 0.85rem;">
-                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.15);"></span>
-                    <span style="padding: 0 12px; font-weight: 500;">or</span>
-                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.15);"></span>
                 </div>
-                
-                <a href="/Frontend/auth/google/login.html" class="xai-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: #000000; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-size: 0.95rem; font-weight: 600; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); transition: all 0.2s ease;" onmouseover="this.style.background='#18181b'; this.style.borderColor='rgba(255,255,255,0.4)';" onmouseout="this.style.background='#000000'; this.style.borderColor='rgba(255,255,255,0.25)';">
-                    <svg width="20" height="20" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                    <span>Sign up with Google</span>
-                </a>
-                
+
+                <button class="xai-btn xai-btn-primary xai-btn-lg" style="width:100%;" onclick="goToStep2()" id="step1-btn">
+                    Continue
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+
                 <div class="xai-form-footer">
                     Already have an account? <a href="login.php">Sign In</a>
                 </div>
-            <?php endif; ?>
+            </div>
+
+            <!-- ═══════════ STEP 2a: Owner Registration ═══════════ -->
+            <div id="step2-owner" class="hidden">
+                <button onclick="backToStep1()" style="background:none;border:none;color:rgba(240,253,244,0.5);cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Back
+                </button>
+                <h1>Create Your Farm</h1>
+                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem; margin-bottom: 24px;">Set up your farm and start inviting your team.</p>
+
+                <form method="POST" id="owner-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                    <input type="hidden" name="role_choice" value="owner" id="rc-owner">
+                    <input type="hidden" name="farm_code" value="" id="fc-owner">
+
+                    <div class="xai-form-group">
+                        <label class="xai-form-label">Farm Name</label>
+                        <input type="text" name="farm_name" class="xai-form-input" placeholder="e.g. Wangari Main Farm" required>
+                    </div>
+                    <div class="xai-form-group">
+                        <label class="xai-form-label">Full Name</label>
+                        <input type="text" name="full_name" class="xai-form-input" placeholder="Your full name" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Email</label>
+                            <input type="email" name="email" class="xai-form-input" placeholder="you@email.com" required>
+                        </div>
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Phone</label>
+                            <input type="tel" name="phone" class="xai-form-input" placeholder="+254 7XX XXX XXX" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Password</label>
+                            <input type="password" name="password" class="xai-form-input" placeholder="Min 6 characters" required minlength="6">
+                        </div>
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Confirm Password</label>
+                            <input type="password" name="password_confirm" class="xai-form-input" placeholder="Re-enter password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="register_submit" value="1" class="xai-btn xai-btn-primary xai-btn-lg" style="width:100%; margin-top: 8px;">
+                        Create Farm & Account
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- ═══════════ STEP 2b: Worker — Enter Farm Code ═══════════ -->
+            <div id="step2-worker-code" class="hidden">
+                <button onclick="backToStep1()" style="background:none;border:none;color:rgba(240,253,244,0.5);cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Back
+                </button>
+                <h1>Enter Farm Code</h1>
+                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem;">Ask your farm admin for the invite code, then paste it below.</p>
+
+                <div class="code-input-group">
+                    <input type="text" id="farm-code-input" placeholder="WGRI-XXXX-XXXX-XXXX" maxlength="24" autocomplete="off" spellcheck="false">
+                    <button onclick="validateCode()">Verify</button>
+                </div>
+
+                <div class="code-result" id="code-result"></div>
+
+                <button class="xai-btn xai-btn-primary xai-btn-lg" style="width:100%; margin-top: 16px;" id="join-farm-btn" onclick="goToWorkerForm()" disabled>
+                    Continue to Account Setup
+                </button>
+            </div>
+
+            <!-- ═══════════ STEP 2c: Worker — Account Details ═══════════ -->
+            <div id="step2-worker-form" class="hidden">
+                <button onclick="showOnly('step2-worker-code')" style="background:none;border:none;color:rgba(240,253,244,0.5);cursor:pointer;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    Back
+                </button>
+                <h1>Join <span id="farm-name-display" style="color:#4ADE80"></span></h1>
+                <p style="color: rgba(240,253,244,0.5); font-size: 0.9rem; margin-bottom: 24px;">Create your account to start working.</p>
+
+                <form method="POST" id="worker-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                    <input type="hidden" name="role_choice" value="worker" id="rc-worker">
+                    <input type="hidden" name="farm_code" value="" id="fc-worker">
+
+                    <div class="xai-form-group">
+                        <label class="xai-form-label">Full Name</label>
+                        <input type="text" name="full_name" class="xai-form-input" placeholder="Your full name" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Email</label>
+                            <input type="email" name="email" class="xai-form-input" placeholder="you@email.com" required>
+                        </div>
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Phone</label>
+                            <input type="tel" name="phone" class="xai-form-input" placeholder="+254 7XX XXX XXX" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Password</label>
+                            <input type="password" name="password" class="xai-form-input" placeholder="Min 6 characters" required minlength="6">
+                        </div>
+                        <div class="xai-form-group">
+                            <label class="xai-form-label">Confirm Password</label>
+                            <input type="password" name="password_confirm" class="xai-form-input" placeholder="Re-enter password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="register_submit" value="1" class="xai-btn xai-btn-primary xai-btn-lg" style="width:100%; margin-top: 8px;">
+                        Join Farm
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </form>
+            </div>
+
         </div>
     </div>
 </div>
 
-<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+let selectedRole = '';
+let validatedCode = '';
+
+function selectRole(role) {
+    selectedRole = role;
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-' + role).classList.add('selected');
+}
+
+function goToStep2() {
+    if (!selectedRole) return;
+    document.getElementById('dot1').classList.remove('active');
+    document.getElementById('dot1').classList.add('done');
+    document.getElementById('dot2').classList.add('active');
+    document.getElementById('step1').classList.add('hidden');
+
+    if (selectedRole === 'owner') {
+        document.getElementById('step2-owner').classList.remove('hidden');
+    } else {
+        document.getElementById('step2-worker-code').classList.remove('hidden');
     }
+}
+
+function backToStep1() {
+    document.getElementById('dot1').classList.add('active');
+    document.getElementById('dot1').classList.remove('done');
+    document.getElementById('dot2').classList.remove('active');
+    document.getElementById('step1').classList.remove('hidden');
+    document.getElementById('step2-owner').classList.add('hidden');
+    document.getElementById('step2-worker-code').classList.add('hidden');
+    document.getElementById('step2-worker-form').classList.add('hidden');
+}
+
+function showOnly(id) {
+    ['step2-owner', 'step2-worker-code', 'step2-worker-form'].forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+    });
+    document.getElementById(id).classList.remove('hidden');
+}
+
+function goToWorkerForm() {
+    if (!validatedCode) return;
+    document.getElementById('fc-worker').value = validatedCode;
+    document.getElementById('farm-name-display').textContent = document.getElementById('code-farm-name').textContent;
+    showOnly('step2-worker-form');
+}
+
+async function validateCode() {
+    const input = document.getElementById('farm-code-input');
+    const result = document.getElementById('code-result');
+    const btn = document.getElementById('join-farm-btn');
+    const code = input.value.trim().toUpperCase();
+    input.value = code;
+
+    if (code.length < 6) {
+        result.className = 'code-result invalid';
+        result.style.display = 'block';
+        result.textContent = 'Please enter a valid farm code';
+        return;
+    }
+
+    result.className = 'code-result';
+    result.style.display = 'block';
+    result.style.color = 'rgba(240,253,244,0.5)';
+    result.textContent = 'Verifying code...';
+
+    try {
+        const res = await fetch('/api/farm_codes.php?action=validate_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        const data = await res.json();
+
+        if (data.valid) {
+            result.className = 'code-result valid';
+            result.innerHTML = '✅ Valid! You\'re joining <strong id="code-farm-name">' + data.farm_name + '</strong> as <strong>' + data.role.replace('_', ' ') + '</strong>';
+            validatedCode = code;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        } else {
+            result.className = 'code-result invalid';
+            result.textContent = '❌ ' + (data.error || 'Invalid code');
+            validatedCode = '';
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        }
+    } catch (e) {
+        result.className = 'code-result invalid';
+        result.textContent = '❌ Could not verify code. Check your connection.';
+        btn.disabled = true;
+    }
+}
+
+// Auto-format code input
+document.getElementById('farm-code-input').addEventListener('input', function() {
+    let v = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 16);
+    const parts = [];
+    for (let i = 0; i < v.length; i += 4) parts.push(v.slice(i, i + 4));
+    this.value = parts.join('-');
+    validatedCode = '';
+    document.getElementById('join-farm-btn').disabled = true;
+    document.getElementById('code-result').style.display = 'none';
 });
+
+// Enter to validate
+document.getElementById('farm-code-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') validateCode();
+});
+
+// Init from URL params
+<?php if ($role_choice === 'worker' && $step === 2): ?>
+selectedRole = 'worker';
+document.getElementById('dot1').classList.remove('active');
+document.getElementById('dot1').classList.add('done');
+document.getElementById('dot2').classList.add('active');
+document.getElementById('step1').classList.add('hidden');
+document.getElementById('step2-worker-code').classList.remove('hidden');
+<?php elseif ($step === 2): ?>
+selectedRole = 'owner';
+document.getElementById('dot1').classList.remove('active');
+document.getElementById('dot1').classList.add('done');
+document.getElementById('dot2').classList.add('active');
+document.getElementById('step1').classList.add('hidden');
+document.getElementById('step2-owner').classList.remove('hidden');
+<?php endif; ?>
 </script>
-
-<!-- Footer -->
-<footer class="xai-footer">
-    <div class="xai-container">
-        <div class="xai-footer-inner">
-            <div>
-                <div class="xai-footer-brand">
-                    <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
-                    Wangari<span>.</span>
-                </div>
-                <p class="xai-footer-desc">Smart Farming for a Sustainable Future.</p>
-                <div class="xai-footer-contact">
-                    <a href="mailto:info@imeantech.com" class="xai-footer-contact-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
-                        info@imeantech.com
-                    </a>
-                </div>
-            </div>
-            <div>
-                <h4>Product</h4>
-                <ul class="xai-footer-links">
-                    <li><a href="/Frontend/index.php#features">Features</a></li>
-                    <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4>Legal</h4>
-                <ul class="xai-footer-links">
-                    <li><a href="/Frontend/pages/privacy.php">Privacy</a></li>
-                    <li><a href="/Frontend/pages/terms.php">Terms</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="xai-footer-bottom">
-            <span>&copy; <?php echo date('Y'); ?> Wangari. All rights reserved.</span>
-            <div class="xai-footer-credits">
-                Built by <a href="https://imeantech.com" target="_blank">iMeanTech</a>
-            </div>
-        </div>
-    </div>
-</footer>
-
 </body>
 </html>
