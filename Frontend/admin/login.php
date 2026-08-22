@@ -56,18 +56,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
     } else {
         $pdo = getDB();
         try {
-            $stmt = $pdo->prepare("SELECT id, username, password_hash, role, first_name FROM users WHERE username = ? OR email = ?");
+            $stmt = $pdo->prepare("SELECT id, username, password, role, full_name, email FROM users WHERE username = ? OR email = ?");
             $stmt->execute([$username, $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user && password_verify($password, $user['password_hash'])) {
+            if ($user && password_verify($password, $user['password'])) {
                 if (!in_array($user['role'], ['super_admin','farm_manager','stock_manager','sales_staff'], true)) {
                     $errors[] = 'Access denied. You do not have permission to use the admin panel.';
                 } else {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
-                    $_SESSION['first_name'] = $user['first_name'];
+                    $_SESSION['first_name'] = explode(' ', $user['full_name'] ?? $user['username'] ?? '')[0] ?? '';
                     logActivity($pdo, 'login', 'auth', "{$user['username']} logged in", (int)$user['id'], 'user');
 
                     $next = $_GET['next'] ?? '/Frontend/admin/dashboard.php';

@@ -86,12 +86,12 @@ try {
             $limit = min((int)($_GET['limit'] ?? 50), 200);
             $offset = max((int)($_GET['offset'] ?? 0), 0);
 
-            $sql = "SELECT id, username, email, first_name, last_name, phone_number, role, is_active, farm_name, created_at FROM users WHERE 1=1";
+            $sql = "SELECT id, username, email, full_name, phone, role, is_active, created_at FROM users WHERE 1=1";
             $params = [];
             if ($search) {
-                $sql .= " AND (username LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ?)";
-                $s = "%$search%";
-                $params = array_merge($params, [$s, $s, $s, $s]);
+            $sql .= " AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
+            $s = "%$search%";
+            $params = array_merge($params, [$s, $s, $s]);
             }
             if ($role) {
                 $sql .= " AND role = ?";
@@ -107,8 +107,8 @@ try {
             $countSql = "SELECT COUNT(*) FROM users WHERE 1=1";
             $countParams = [];
             if ($search) {
-                $countSql .= " AND (username LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ?)";
-                $countParams = array_merge($countParams, [$s, $s, $s, $s]);
+            $countSql .= " AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
+            $countParams = array_merge($countParams, [$s, $s, $s]);
             }
             if ($role) {
                 $countSql .= " AND role = ?";
@@ -126,7 +126,7 @@ try {
             $userId = (int)($_GET['id'] ?? 0);
             if ($userId <= 0) { http_response_code(400); echo json_encode(['error' => 'Invalid user ID']); exit; }
 
-            $stmt = $pdo->prepare("SELECT id, username, email, first_name, last_name, phone_number, role, is_active, farm_name, created_at FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT id, username, email, full_name, phone, role, is_active, created_at FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$user) { http_response_code(404); echo json_encode(['error' => 'User not found']); exit; }
@@ -160,16 +160,15 @@ try {
             $fields = [
                 'username' => $username,
                 'email' => $email,
-                'first_name' => trim($input['first_name'] ?? ''),
-                'last_name' => trim($input['last_name'] ?? ''),
-                'phone_number' => trim($input['phone_number'] ?? ''),
-                'farm_name' => trim($input['farm_name'] ?? ''),
+                'full_name' => trim($input['full_name'] ?? $input['first_name'] ?? '') . ' ' . trim($input['last_name'] ?? ''),
+                'phone' => trim($input['phone'] ?? $input['phone_number'] ?? ''),
                 'role' => $role,
                 'is_active' => (int)($input['is_active'] ?? 1),
             ];
+            $fields['full_name'] = trim($fields['full_name']);
 
             if (!empty($input['password'])) {
-                $fields['password_hash'] = password_hash($input['password'], PASSWORD_DEFAULT);
+                $fields['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
             }
 
             if ($id > 0) {
@@ -186,8 +185,8 @@ try {
                 echo json_encode(['success' => true, 'id' => $id, 'message' => 'User updated']);
             } else {
                 // Create
-                if (empty($fields['password_hash'])) {
-                    $fields['password_hash'] = password_hash('changeme123', PASSWORD_DEFAULT);
+                if (empty($fields['password'])) {
+                    $fields['password'] = password_hash('changeme123', PASSWORD_DEFAULT);
                 }
                 $cols = implode(',', array_keys($fields));
                 $ph = implode(',', array_fill(0, count($fields), '?'));

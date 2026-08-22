@@ -37,15 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
         if (!$pdo) { $errors[] = 'Database connection failed'; }
         
         try {
-            $stmt = $pdo->prepare("SELECT id, username, password_hash, role, first_name, last_name FROM users WHERE username = ? OR email = ?");
+            $stmt = $pdo->prepare("SELECT id, username, password, role, full_name, email FROM users WHERE username = ? OR email = ?");
             $stmt->execute([$username, $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user && password_verify($password, $user['password_hash'])) {
+            if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
-                $_SESSION['first_name'] = $user['first_name'];
+                $_SESSION['first_name'] = explode(' ', $user['full_name'] ?? $user['username'] ?? '')[0] ?? '';
                 
                 echo "<script>window.location.href = '/Frontend/admin/dashboard.php';</script>";
                 exit;

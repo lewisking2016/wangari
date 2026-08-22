@@ -32,7 +32,7 @@ try {
     $stats['revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM financial_records WHERE type='income' AND MONTH(transaction_date)=MONTH(CURDATE())")->fetchColumn();
 
     // Recent users
-    $recentUsers = $pdo->query("SELECT id, username, email, first_name, last_name, role, is_active, created_at FROM users ORDER BY created_at DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC);
+    $recentUsers = $pdo->query("SELECT id, username, email, full_name, role, is_active, created_at FROM users ORDER BY created_at DESC LIMIT 10")->fetchAll(PDO::FETCH_ASSOC);
 
     // Activity log
     $activityLog = $pdo->query("SELECT al.*, u.username FROM activity_logs al LEFT JOIN users u ON al.user_id = u.id ORDER BY al.created_at DESC LIMIT 20")->fetchAll(PDO::FETCH_ASSOC);
@@ -351,9 +351,9 @@ async function loadUsers() {
             return;
         }
         tbody.innerHTML = data.users.map(u => {
-            const initial = (u.first_name || u.username || 'U').charAt(0).toUpperCase();
+            const initial = (u.full_name || u.username || 'U').charAt(0).toUpperCase();
             const color = ROLE_COLORS[u.role] || '#6B7280';
-            const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.username;
+            const name = u.full_name || u.username;
             const isActive = u.is_active == 1 || u.is_active === null;
             return `<tr>
                 <td>
@@ -422,11 +422,12 @@ function openUserModal() {
 function editUser(u) {
     document.getElementById('sa-modal-title').textContent = 'Edit User';
     document.getElementById('sa-form-id').value = u.id;
-    document.getElementById('sa-f-first').value = u.first_name || '';
-    document.getElementById('sa-f-last').value = u.last_name || '';
+    const parts = (u.full_name || '').split(' ');
+    document.getElementById('sa-f-first').value = parts[0] || '';
+    document.getElementById('sa-f-last').value = parts.slice(1).join(' ') || '';
     document.getElementById('sa-f-username').value = u.username || '';
     document.getElementById('sa-f-email').value = u.email || '';
-    document.getElementById('sa-f-phone').value = u.phone_number || '';
+    document.getElementById('sa-f-phone').value = u.phone || '';
     document.getElementById('sa-f-farm').value = u.farm_name || '';
     document.getElementById('sa-f-role').value = u.role || 'customer';
     document.getElementById('sa-f-pass').value = '';
