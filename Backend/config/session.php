@@ -25,6 +25,8 @@ function wangariConfigureSession(): void
         }
     }
 
+    // Keep authentication independent from an optional Redis extension/configuration.
+    ini_set('session.save_handler', 'files');
     ini_set('session.cookie_httponly', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.use_strict_mode', '1');
