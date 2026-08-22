@@ -6,7 +6,7 @@
     <title>Wangari Platform Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/platform-admin.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
 </head>
@@ -14,10 +14,10 @@
 <!-- Login Screen -->
 <div id="login-screen" class="login-screen">
     <div class="login-card">
-        <img src="/Frontend/images/wangari-logo.png" alt="Wangari" style="height:48px;margin-bottom:24px;">
-        <h1>Platform Admin</h1>
-        <p style="color:#64748b;margin-bottom:24px;">Manage your platform, users & subscriptions</p>
-        <div id="login-error" style="display:none;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;padding:10px;margin-bottom:16px;font-size:0.85rem;"></div>
+        <img src="/Frontend/images/wangari-logo.png" alt="Wangari" style="height:52px;margin-bottom:20px;">
+        <h1 style="font-size:1.6rem;">Platform Admin</h1>
+        <p>Manage your platform, users & subscriptions</p>
+        <div id="login-error" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:12px;color:#991B1B;padding:14px;margin-bottom:20px;font-size:0.88rem;"></div>
         <form id="loginForm">
             <div class="form-group">
                 <label>Username</label>
@@ -27,38 +27,81 @@
                 <label>Password</label>
                 <input type="password" id="login-pass" class="form-input" required placeholder="••••••••">
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Sign In</button>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;padding:14px;">
+                Sign In
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
         </form>
     </div>
 </div>
 
 <!-- Admin Panel -->
 <div id="admin-panel" class="admin-panel" style="display:none;">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <img src="/Frontend/images/wangari-logo.png" alt="W" style="height:28px;">
+            <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
             <span>Wangari Admin</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="#" onclick="load('dashboard')" class="active" data-mod="dashboard">📊 Dashboard</a>
-            <a href="#" onclick="load('users')" data-mod="users">👥 Users</a>
-            <a href="#" onclick="load('codes')" data-mod="codes">🔑 Codes</a>
-            <a href="#" onclick="load('subscriptions')" data-mod="subscriptions">💳 Subscriptions</a>
-            <a href="#" onclick="load('revenue')" data-mod="revenue">💰 Revenue</a>
-            <a href="#" onclick="load('tickets')" data-mod="tickets">🎫 Tickets</a>
-            <a href="#" onclick="load('emergency')" data-mod="emergency">🚨 Emergency</a>
-            <a href="#" onclick="load('activity')" data-mod="activity">📋 Activity Log</a>
-            <a href="#" onclick="load('settings')" data-mod="settings">⚙️ Settings</a>
+            <a href="#" onclick="load('dashboard')" class="active" data-mod="dashboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Dashboard
+            </a>
+            <a href="#" onclick="load('users')" data-mod="users">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Users
+            </a>
+            <a href="#" onclick="load('codes')" data-mod="codes">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                Codes
+            </a>
+            <a href="#" onclick="load('subscriptions')" data-mod="subscriptions">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Subscriptions
+            </a>
+            <a href="#" onclick="load('revenue')" data-mod="revenue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Revenue
+            </a>
+            <a href="#" onclick="load('tickets')" data-mod="tickets">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Tickets
+            </a>
+            <a href="#" onclick="load('emergency')" data-mod="emergency">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Emergency
+            </a>
+            <a href="#" onclick="load('activity')" data-mod="activity">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Activity Log
+            </a>
+            <a href="#" onclick="load('settings')" data-mod="settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Settings
+            </a>
         </nav>
         <div class="sidebar-footer">
-            <a href="/" class="sl">← Public Site</a>
-            <a href="#" onclick="logout()" class="sl" style="color:#ef4444;">Logout</a>
+            <a href="/" class="sl">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Public Site
+            </a>
+            <a href="#" onclick="logout()" class="sl" style="color:#DC2626;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Logout
+            </a>
         </div>
     </aside>
     <main class="main">
         <header class="topbar">
-            <h1 id="pageTitle">Dashboard</h1>
-            <span id="adminName" style="color:#64748b;font-size:0.85rem;"></span>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button onclick="toggleSidebar()" style="display:none;background:none;border:none;cursor:pointer;color:var(--primary);" id="menuBtn">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <h1 id="pageTitle">Dashboard</h1>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span id="adminName" style="color:var(--muted);font-size:0.85rem;font-weight:600;"></span>
+            </div>
         </header>
         <div id="content" class="content"></div>
     </main>
@@ -75,6 +118,7 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
 const API = window.location.origin + '/api/platform.php';
 let currentMod = 'dashboard';
@@ -97,6 +141,12 @@ function load(mod) {
     document.getElementById('pageTitle').textContent = mod.charAt(0).toUpperCase()+mod.slice(1);
     const fn = window['render_'+mod];
     if(fn) fn(); else document.getElementById('content').innerHTML = '<p>Coming soon...</p>';
+    // Close sidebar on mobile
+    document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
 }
 
 function logout() { localStorage.removeItem('platform_admin'); location.reload(); }
@@ -115,6 +165,8 @@ function toast(msg, type='success') {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
+
+function v(id) { return document.getElementById(id)?.value || ''; }
 
 // ════ LOGIN ════
 document.getElementById('loginForm').addEventListener('submit', async e => {
@@ -141,6 +193,10 @@ function init() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'flex';
     document.getElementById('adminName').textContent = adminUser.full_name||adminUser.username;
+    // Show mobile menu button
+    if(window.innerWidth <= 860) {
+        document.getElementById('menuBtn').style.display = 'flex';
+    }
     load('dashboard');
 }
 
@@ -148,18 +204,70 @@ function init() {
 async function render_dashboard() {
     const d = await api('dashboard');
     document.getElementById('content').innerHTML = `
-        <div class="stats-grid">
-            <div class="stat-card accent"><div class="stat-label">Total Users</div><div class="stat-value">${d.total_users}</div></div>
-            <div class="stat-card green"><div class="stat-label">Active Subscriptions</div><div class="stat-value">${d.active_users}</div></div>
-            <div class="stat-card info"><div class="stat-label">Trial Users</div><div class="stat-value">${d.trial_users}</div></div>
-            <div class="stat-card warning"><div class="stat-label">Expired</div><div class="stat-value">${d.expired_users}</div></div>
+        <div style="background:linear-gradient(120deg, #0B1220 0%, #0E2A1D 55%, #14532D 100%);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:24px;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-80px;top:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 65%);"></div>
+            <div style="display:inline-flex;align-items:center;gap:8px;color:#22C55E;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Platform Overview
+            </div>
+            <h1 style="margin:0 0 8px;font-size:1.7rem;font-weight:800;color:#fff;">Wangari <span style="color:#22C55E;font-family:'Instrument Serif',serif;font-weight:400;font-style:italic;">Admin</span></h1>
+            <p style="margin:0;color:rgba(255,255,255,0.72);font-size:0.95rem;max-width:560px;">Manage users, subscriptions, support tickets and platform health — all in one workspace.</p>
         </div>
+        
         <div class="stats-grid">
-            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(d.total_revenue).toLocaleString()}</div></div>
-            <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value">KES ${Number(d.month_revenue).toLocaleString()}</div></div>
-            <div class="stat-card info"><div class="stat-label">Available Codes</div><div class="stat-value">${d.unused_codes}</div></div>
-            <div class="stat-card ${d.critical_tickets?'warning':''}"><div class="stat-label">Open Tickets</div><div class="stat-value">${d.open_tickets}${d.critical_tickets?' ('+d.critical_tickets+' critical)':''}</div></div>
+            <div class="stat-card accent">
+                <div><div class="stat-label">Total Users</div><div class="stat-value">${d.total_users}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#E4F7E9;color:#15803D;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <div><div class="stat-label">Active Subscriptions</div><div class="stat-value">${d.active_users}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#E0EDFF;color:#1D4ED8;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div><div class="stat-label">Trial Users</div><div class="stat-value">${d.trial_users}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#FEF5E0;color:#B45309;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div><div class="stat-label">Expired</div><div class="stat-value">${d.expired_users}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#FDE8E8;color:#B91C1C;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                </div>
+            </div>
         </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <div><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(d.total_revenue).toLocaleString()}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#E4F7E9;color:#15803D;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">This Month</div><div class="stat-value">KES ${Number(d.month_revenue).toLocaleString()}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#F1F5F9;color:#64748B;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div><div class="stat-label">Available Codes</div><div class="stat-value">${d.unused_codes}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:#E0EDFF;color:#1D4ED8;display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                </div>
+            </div>
+            <div class="stat-card ${d.critical_tickets?'warning':''}">
+                <div><div class="stat-label">Open Tickets</div><div class="stat-value">${d.open_tickets}${d.critical_tickets?' ('+d.critical_tickets+' critical)':''}</div></div>
+                <div style="width:46px;height:46px;border-radius:14px;background:${d.critical_tickets?'#FDE8E8':'#FEF5E0'};color:${d.critical_tickets?'#B91C1C':'#B45309'};display:flex;align-items:center;justify-content:center;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+            </div>
+        </div>
+        
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
             <div class="card"><div class="card-header"><h3>Recent Users</h3></div>
                 <table class="table"><thead><tr><th>User</th><th>Status</th><th>Joined</th></tr></thead><tbody>
@@ -182,7 +290,7 @@ async function render_users() {
     document.getElementById('content').innerHTML = `
         <div class="card-header" style="margin-bottom:16px;">
             <div style="display:flex;gap:8px;">
-                <select id="userFilter" class="form-select" onchange="filterUsers()">
+                <select id="userFilter" class="form-select" onchange="filterUsers()" style="width:auto;">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
                     <option value="trial">Trial</option>
@@ -247,321 +355,242 @@ async function editUser(id) {
     const d = await api('users','get',{id});
     openModal('Edit User', `
         <form onsubmit="updateUser(event,${id})">
+            <div class="form-row"><div class="form-group"><label>Username</label><input id="eu-user" class="form-input" value="${d.username}" readonly></div>
+            <div class="form-group"><label>Email</label><input id="eu-email" class="form-input" value="${d.email}"></div></div>
             <div class="form-row"><div class="form-group"><label>Full Name</label><input id="eu-name" class="form-input" value="${d.full_name||''}"></div>
             <div class="form-group"><label>Phone</label><input id="eu-phone" class="form-input" value="${d.phone||''}"></div></div>
             <div class="form-row"><div class="form-group"><label>Farm Name</label><input id="eu-farm" class="form-input" value="${d.farm_name||''}"></div>
             <div class="form-group"><label>Farm Type</label><input id="eu-type" class="form-input" value="${d.farm_type||''}"></div></div>
             <div class="form-group"><label>County</label><input id="eu-county" class="form-input" value="${d.county||''}"></div>
-            <div class="form-group"><label>Status</label><select id="eu-status" class="form-select">
-                ${['active','trial','expired','free','suspended'].map(s=>`<option value="${s}" ${d.subscription_status===s?'selected':''}>${s}</option>`).join('')}
+            <div class="form-row"><div class="form-group"><label>Subscription</label><select id="eu-sub" class="form-select">
+                <option value="free" ${d.subscription_status==='free'?'selected':''}>Free</option>
+                <option value="trial" ${d.subscription_status==='trial'?'selected':''}>Trial</option>
+                <option value="active" ${d.subscription_status==='active'?'selected':''}>Active</option>
+                <option value="expired" ${d.subscription_status==='expired'?'selected':''}>Expired</option>
+                <option value="suspended" ${d.subscription_status==='suspended'?'selected':''}>Suspended</option>
             </select></div>
-            <div class="form-row"><div class="form-group"><label>Expires</label><input id="eu-expires" class="form-input" type="date" value="${d.subscription_expires||''}"></div>
-            <div class="form-group"><label>Trial Ends</label><input id="eu-trial" class="form-input" type="date" value="${d.trial_ends||''}"></div></div>
+            <div class="form-group"><label>Expires</label><input id="eu-expires" class="form-input" type="date" value="${d.subscription_expires||''}"></div></div>
             <div class="form-row"><div class="form-group"><label>Max Animals</label><input id="eu-animals" class="form-input" type="number" value="${d.max_animals||100}"></div>
             <div class="form-group"><label>Max Fields</label><input id="eu-fields" class="form-input" type="number" value="${d.max_fields||10}"></div>
             <div class="form-group"><label>Max Users</label><input id="eu-users" class="form-input" type="number" value="${d.max_users||3}"></div></div>
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Save Changes</button>
         </form>`);
 }
-async function updateUser(e,id) {
+async function updateUser(e, id) {
     e.preventDefault();
-    await api('users','update',{},{id,full_name:v('eu-name'),phone:v('eu-phone'),farm_name:v('eu-farm'),farm_type:v('eu-type'),county:v('eu-county'),subscription_status:v('eu-status'),subscription_expires:v('eu-expires'),trial_ends:v('eu-trial'),max_animals:v('eu-animals'),max_fields:v('eu-fields'),max_users:v('eu-users'),is_active:v('eu-status')!=='suspended'?1:0});
+    await api('users','update',{id},{email:v('eu-email'),full_name:v('eu-name'),phone:v('eu-phone'),farm_name:v('eu-farm'),farm_type:v('eu-type'),county:v('eu-county'),subscription_status:v('eu-sub'),subscription_expires:v('eu-expires'),max_animals:v('eu-animals'),max_fields:v('eu-fields'),max_users:v('eu-users')});
     closeModal(); toast('User updated'); render_users();
 }
-
-async function deactivateUser(id) { if(!confirm('Suspend this user?'))return; await api('users','deactivate',{},{id}); toast('User suspended'); render_users(); }
-async function activateUser(id) { await api('users','activate',{},{id}); toast('User activated'); render_users(); }
-async function resetPassword(id) { const p=prompt('New password:','changeme'); if(!p)return; await api('users','reset_password',{},{id,password:p}); toast('Password reset to: '+p); }
+async function deactivateUser(id) { if(confirm('Suspend this user?')) { await api('users','deactivate',{id}); toast('User suspended'); render_users(); } }
+async function activateUser(id) { await api('users','activate',{id}); toast('User activated'); render_users(); }
+async function resetPassword(id) { if(confirm('Reset password to "changeme"?')) { await api('users','reset_password',{id}); toast('Password reset'); } }
 
 // ════ CODES ════
 async function render_codes() {
     const d = await api('codes','list');
     document.getElementById('content').innerHTML = `
         <div class="card-header" style="margin-bottom:16px;">
-            <div style="display:flex;gap:8px;">
-                <button onclick="filterCodes('')" class="btn btn-outline btn-sm">All</button>
-                <button onclick="filterCodes('unused')" class="btn btn-outline btn-sm">Unused</button>
-                <button onclick="filterCodes('used')" class="btn btn-outline btn-sm">Used</button>
-            </div>
-            <button onclick="showGenCodes()" class="btn btn-primary">+ Generate Codes</button>
+            <div></div>
+            <button onclick="showCreateCode()" class="btn btn-primary">+ Generate Codes</button>
         </div>
         <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>Code</th><th>Type</th><th>Duration</th><th>Limits</th><th>Used By</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="codesTableBody">${d.map(c=>`<tr data-filter="${c.is_revoked?'revoked':c.is_used?'used':'unused'}">
-                <td><code style="background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:0.85rem;">${c.code}</code></td>
-                <td>${c.type}</td>
-                <td>${c.duration_days}d</td>
-                <td><small>${c.max_animals}A / ${c.max_fields}F / ${c.max_users}U</small></td>
-                <td>${c.used_by_name||'-'}</td>
-                <td><small>${c.expires_at?.split(' ')[0]||'-'}</small></td>
-                <td>${c.is_revoked?'<span class="badge badge-revoked">Revoked</span>':c.is_used?'<span class="badge badge-used">Used</span>':'<span class="badge badge-active">Available</span>'}</td>
-                <td>${!c.is_used&&!c.is_revoked?`<button onclick="revokeCode(${c.id})" class="btn-sm btn-danger">Revoke</button>`:''}</td>
+            <thead><tr><th>Code</th><th>Farm</th><th>Role</th><th>Uses</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>${d.map(c=>`<tr>
+                <td><code style="background:#F1F5F9;padding:4px 8px;border-radius:6px;font-weight:600;">${c.code}</code></td>
+                <td>${c.farm_name||'-'}</td>
+                <td>${c.role}</td>
+                <td>${c.current_uses}/${c.max_uses}</td>
+                <td>${c.expires_at||'Never'}</td>
+                <td><span class="badge badge-${c.is_active?'active':'expired'}">${c.is_active?'Active':'Inactive'}</span></td>
+                <td><button onclick="revokeCode(${c.id})" class="btn-sm btn-danger">Revoke</button></td>
             </tr>`).join('')}</tbody></table></div></div>`;
 }
-function filterCodes(f) {
-    document.querySelectorAll('#codesTableBody tr').forEach(r => r.style.display = (!f||r.dataset.filter===f)?'':'none');
-}
-function showGenCodes() {
-    openModal('Generate Subscription Codes', `
-        <form onsubmit="genCodes(event)">
-            <div class="form-row"><div class="form-group"><label>Count</label><input id="gc-count" class="form-input" type="number" value="5" min="1" max="50"></div>
-            <div class="form-group"><label>Type</label><select id="gc-type" class="form-select"><option value="trial">Trial</option><option value="monthly" selected>Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option><option value="free">Free</option><option value="custom">Custom</option></select></div></div>
-            <div class="form-row"><div class="form-group"><label>Duration (days)</label><input id="gc-days" class="form-input" type="number" value="30"></div>
-            <div class="form-group"><label>Expires</label><input id="gc-expires" class="form-input" type="date" value="${new Date(Date.now()+365*86400000).toISOString().split('T')[0]}"></div></div>
-            <div class="form-row"><div class="form-group"><label>Max Animals</label><input id="gc-animals" class="form-input" type="number" value="100"></div>
-            <div class="form-group"><label>Max Fields</label><input id="gc-fields" class="form-input" type="number" value="10"></div>
-            <div class="form-group"><label>Max Users</label><input id="gc-users" class="form-input" type="number" value="3"></div></div>
-            <div class="form-group"><label>Description</label><input id="gc-desc" class="form-input" placeholder="e.g. Free trial for 2 months"></div>
+function showCreateCode() {
+    openModal('Generate Farm Codes', `
+        <form onsubmit="createCode(event)">
+            <div class="form-group"><label>Farm ID *</label><input id="cc-farm" class="form-input" type="number" required></div>
+            <div class="form-row"><div class="form-group"><label>Role</label><select id="cc-role" class="form-select"><option value="stock_manager">Stock Manager</option><option value="sales_staff">Sales Staff</option></select></div>
+            <div class="form-group"><label>Max Uses</label><input id="cc-uses" class="form-input" type="number" value="1"></div></div>
+            <div class="form-group"><label>Expires</label><input id="cc-expires" class="form-input" type="date"></div>
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Generate</button>
         </form>`);
 }
-async function genCodes(e) {
+async function createCode(e) {
     e.preventDefault();
-    const d = await api('codes','generate',{},{count:v('gc-count'),type:v('gc-type'),duration_days:v('gc-days'),expires_at:v('gc-expires')+' 23:59:59',max_animals:v('gc-animals'),max_fields:v('gc-fields'),max_users:v('gc-users'),description:v('gc-desc')});
-    if(d.success) {
-        closeModal();
-        openModal('Codes Generated', `<p style="margin-bottom:12px;"><strong>${d.count} codes generated:</strong></p><div style="background:#f8fafc;padding:12px;border-radius:8px;font-family:monospace;font-size:0.9rem;max-height:300px;overflow:auto;">${d.codes.join('<br>')}</div><button onclick="navigator.clipboard.writeText('${d.codes.join('\\n')}');toast('Copied!')" class="btn btn-primary" style="margin-top:12px;width:100%;">Copy All</button>`);
-        render_codes();
-    }
+    await api('codes','create',{},{farm_id:v('cc-farm'),role:v('cc-role'),max_uses:v('cc-uses'),expires_at:v('cc-expires')});
+    closeModal(); toast('Code generated'); render_codes();
 }
-async function revokeCode(id) { if(!confirm('Revoke this code?'))return; await api('codes','revoke',{},{id}); toast('Code revoked'); render_codes(); }
+async function revokeCode(id) { if(confirm('Revoke this code?')) { await api('codes','revoke',{id}); toast('Code revoked'); render_codes(); } }
 
 // ════ SUBSCRIPTIONS ════
 async function render_subscriptions() {
     const d = await api('subscriptions','list');
     document.getElementById('content').innerHTML = `
-        <div class="card-header" style="margin-bottom:16px;"><h3>All Subscriptions</h3>
-            <button onclick="showNewSub()" class="btn btn-primary">+ Record Subscription</button></div>
+        <div class="stats-grid">
+            <div class="stat-card green"><div class="stat-label">Active</div><div class="stat-value">${d.filter(s=>s.subscription_status==='active').length}</div></div>
+            <div class="stat-card info"><div class="stat-label">Trial</div><div class="stat-value">${d.filter(s=>s.subscription_status==='trial').length}</div></div>
+            <div class="stat-card warning"><div class="stat-label">Expired</div><div class="stat-value">${d.filter(s=>s.subscription_status==='expired').length}</div></div>
+            <div class="stat-card"><div class="stat-label">Free</div><div class="stat-value">${d.filter(s=>s.subscription_status==='free').length}</div></div>
+        </div>
         <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Method</th><th>M-Pesa Ref</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
-            <tbody>${d.map(s=>`<tr>
-                <td>${s.username||'-'}<br><small style="color:#64748b">${s.email||''}</small></td>
-                <td><span class="badge badge-info">${s.plan}</span></td>
-                <td>KES ${Number(s.amount).toLocaleString()}</td>
-                <td>${s.payment_method}</td>
-                <td><small>${s.mpesa_receipt||'-'}</small></td>
-                <td>${s.start_date}</td>
-                <td>${s.end_date}</td>
-                <td><span class="badge badge-${s.status}">${s.status}</span></td>
+            <thead><tr><th>User</th><th>Farm</th><th>Plan</th><th>Status</th><th>Expires</th><th>Actions</th></tr></thead>
+            <tbody>${d.map(u=>`<tr>
+                <td><strong>${u.full_name||u.username}</strong></td>
+                <td>${u.farm_name||'-'}</td>
+                <td>${u.subscription_plan||'free'}</td>
+                <td><span class="badge badge-${u.subscription_status}">${u.subscription_status}</span></td>
+                <td>${u.subscription_expires||'-'}</td>
+                <td><button onclick="editUser(${u.id})" class="btn-sm btn-outline">Manage</button></td>
             </tr>`).join('')}</tbody></table></div></div>`;
-}
-function showNewSub() {
-    openModal('Record Subscription', `
-        <form onsubmit="createSub(event)">
-            <div class="form-group"><label>User ID</label><input id="ns-user" class="form-input" type="number" required></div>
-            <div class="form-row"><div class="form-group"><label>Plan</label><select id="ns-plan" class="form-select"><option>monthly</option><option>quarterly</option><option>annual</option><option>free</option></select></div>
-            <div class="form-group"><label>Amount (KES)</label><input id="ns-amount" class="form-input" type="number" value="2500"></div></div>
-            <div class="form-row"><div class="form-group"><label>Payment Method</label><select id="ns-method" class="form-select"><option value="mpesa">M-Pesa</option><option value="bank">Bank</option><option value="cash">Cash</option><option value="free">Free</option><option value="code">Code</option><option value="manual">Manual</option></select></div>
-            <div class="form-group"><label>M-Pesa Receipt</label><input id="ns-receipt" class="form-input"></div></div>
-            <div class="form-row"><div class="form-group"><label>Start Date</label><input id="ns-start" class="form-input" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
-            <div class="form-group"><label>End Date</label><input id="ns-end" class="form-input" type="date" value="${new Date(Date.now()+30*86400000).toISOString().split('T')[0]}"></div></div>
-            <div class="form-group"><label>Notes</label><textarea id="ns-notes" class="form-input" rows="2"></textarea></div>
-            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Record</button>
-        </form>`);
-}
-async function createSub(e) {
-    e.preventDefault();
-    await api('subscriptions','create',{},{user_id:v('ns-user'),plan:v('ns-plan'),amount:v('ns-amount'),payment_method:v('ns-method'),mpesa_receipt:v('ns-receipt'),start_date:v('ns-start'),end_date:v('ns-end'),notes:v('ns-notes')});
-    closeModal(); toast('Subscription recorded'); render_subscriptions();
 }
 
 // ════ REVENUE ════
 async function render_revenue() {
-    const [list, summary] = await Promise.all([api('revenue','list'), api('revenue','summary')]);
+    const d = await api('revenue','list');
     document.getElementById('content').innerHTML = `
         <div class="stats-grid">
-            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(summary.total).toLocaleString()}</div></div>
-            <div class="stat-card accent"><div class="stat-label">This Month</div><div class="stat-value">KES ${Number(summary.this_month).toLocaleString()}</div></div>
-            <div class="stat-card info"><div class="stat-label">This Year</div><div class="stat-value">KES ${Number(summary.this_year).toLocaleString()}</div></div>
+            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(d.total||0).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value">${d.count||0}</div></div>
         </div>
-        <div class="card-header" style="margin-bottom:16px;"><h3>Revenue Records</h3>
-            <button onclick="showRecordRevenue()" class="btn btn-primary">+ Record Payment</button></div>
         <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Type</th><th>Method</th><th>M-Pesa Ref</th><th>Description</th></tr></thead>
-            <tbody>${list.map(r=>`<tr>
-                <td>${r.recorded_at?.split(' ')[0]||''}</td>
-                <td>${r.username||'-'}</td>
-                <td><strong>KES ${Number(r.amount).toLocaleString()}</strong></td>
-                <td><span class="badge badge-info">${r.type}</span></td>
-                <td>${r.payment_method}</td>
-                <td><small>${r.mpesa_receipt||'-'}</small></td>
-                <td>${r.description||'-'}</td>
+            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+            <tbody>${(d.transactions||[]).map(t=>`<tr>
+                <td>${t.created_at?.split(' ')[0]||''}</td>
+                <td>${t.username||'-'}</td>
+                <td>KES ${Number(t.amount).toLocaleString()}</td>
+                <td>${t.payment_method||'-'}</td>
+                <td><span class="badge badge-${t.status}">${t.status}</span></td>
             </tr>`).join('')}</tbody></table></div></div>`;
-}
-function showRecordRevenue() {
-    openModal('Record Payment', `
-        <form onsubmit="recordRevenue(event)">
-            <div class="form-row"><div class="form-group"><label>User ID (optional)</label><input id="rv-user" class="form-input" type="number"></div>
-            <div class="form-group"><label>Amount (KES) *</label><input id="rv-amount" class="form-input" type="number" required></div></div>
-            <div class="form-row"><div class="form-group"><label>Type</label><select id="rv-type" class="form-select"><option>subscription</option><option>setup_fee</option><option>custom</option><option>refund</option></select></div>
-            <div class="form-group"><label>Method</label><select id="rv-method" class="form-select"><option value="mpesa">M-Pesa</option><option value="bank">Bank</option><option value="cash">Cash</option></select></div></div>
-            <div class="form-group"><label>M-Pesa Receipt</label><input id="rv-receipt" class="form-input"></div>
-            <div class="form-group"><label>Description</label><input id="rv-desc" class="form-input"></div>
-            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Record</button>
-        </form>`);
-}
-async function recordRevenue(e) {
-    e.preventDefault();
-    await api('revenue','record',{},{user_id:v('rv-user'),amount:v('rv-amount'),type:v('rv-type'),payment_method:v('rv-method'),mpesa_receipt:v('rv-receipt'),description:v('rv-desc')});
-    closeModal(); toast('Payment recorded'); render_revenue();
 }
 
 // ════ TICKETS ════
 async function render_tickets() {
     const d = await api('tickets','list');
     document.getElementById('content').innerHTML = `
-        <div class="card-header" style="margin-bottom:16px;">
-            <div style="display:flex;gap:8px;">
-                <select id="ticketFilter" class="form-select" onchange="filterTickets()"><option value="">All</option><option value="open">Open</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
-                <select id="ticketPriority" class="form-select" onchange="filterTickets()"><option value="">All Priority</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
-            </div>
-            <button onclick="showNewTicket()" class="btn btn-primary">+ New Ticket</button>
-        </div>
-        <div class="card"><div class="table-responsive"><table class="table" id="ticketsTable">
-            <thead><tr><th>Code</th><th>Subject</th><th>Category</th><th>Priority</th><th>User</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
-            <tbody>${d.map(t=>`<tr data-status="${t.status}" data-priority="${t.priority}">
-                <td><code>${t.ticket_code}</code></td>
+        <div class="card"><div class="table-responsive"><table class="table">
+            <thead><tr><th>Code</th><th>User</th><th>Subject</th><th>Priority</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>${d.map(t=>`<tr>
+                <td><code style="background:#F1F5F9;padding:4px 8px;border-radius:6px;font-weight:600;">${t.ticket_code}</code></td>
+                <td>${t.username||'-'}</td>
                 <td>${t.subject}</td>
-                <td><span class="badge badge-info">${t.category}</span></td>
                 <td><span class="badge badge-${t.priority}">${t.priority}</span></td>
-                <td>${t.is_anonymous?'Anonymous':t.username||t.reporter_name||'-'}</td>
                 <td><span class="badge badge-${t.status}">${t.status}</span></td>
-                <td><small>${t.created_at?.split(' ')[0]||''}</small></td>
-                <td><button onclick="viewTicket(${t.id})" class="btn-sm btn-outline">View</button></td>
+                <td>${t.created_at?.split(' ')[0]||''}</td>
+                <td><button onclick="viewTicket('${t.ticket_code}')" class="btn-sm btn-outline">View</button></td>
             </tr>`).join('')}</tbody></table></div></div>`;
 }
-function filterTickets() {
-    const s = document.getElementById('ticketFilter').value;
-    const p = document.getElementById('ticketPriority').value;
-    document.querySelectorAll('#ticketsTable tbody tr').forEach(r => {
-        r.style.display = (!s||r.dataset.status===s) && (!p||r.dataset.priority===p) ? '' : 'none';
-    });
-}
-function showNewTicket() {
-    openModal('New Support Ticket', `
-        <form onsubmit="createTicket(event)">
-            <div class="form-group"><label>Subject *</label><input id="tk-subject" class="form-input" required></div>
-            <div class="form-row"><div class="form-group"><label>Category</label><select id="tk-cat" class="form-select"><option>bug</option><option>feature</option><option>urgent</option><option>billing</option><option>account</option><option>other</option></select></div>
-            <div class="form-group"><label>Priority</label><select id="tk-pri" class="form-select"><option>low</option><option selected>medium</option><option>high</option><option>critical</option></select></div></div>
-            <div class="form-group"><label><input type="checkbox" id="tk-anon"> Anonymous report</label></div>
-            <div class="form-group"><label>Reporter Name</label><input id="tk-name" class="form-input"></div>
-            <div class="form-group"><label>Description</label><textarea id="tk-desc" class="form-input" rows="4" required></textarea></div>
-            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Submit Ticket</button>
-        </form>`);
-}
-async function createTicket(e) {
-    e.preventDefault();
-    await api('tickets','create',{},{subject:v('tk-subject'),category:v('tk-cat'),priority:v('tk-pri'),is_anonymous:document.getElementById('tk-anon').checked?1:0,reporter_name:v('tk-name'),description:v('tk-desc')});
-    closeModal(); toast('Ticket created'); render_tickets();
-}
-async function viewTicket(id) {
-    const t = await api('tickets','get',{id});
-    openModal('Ticket: '+t.ticket_code, `
+async function viewTicket(code) {
+    const d = await api('tickets','get',{code});
+    openModal('Ticket '+code, `
         <div style="margin-bottom:16px;">
-            <strong>${t.subject}</strong> <span class="badge badge-${t.priority}">${t.priority}</span> <span class="badge badge-${t.status}">${t.status}</span>
-            <p style="color:#64748b;margin-top:4px;font-size:0.85rem;">${t.description}</p>
-            <p style="color:#64748b;font-size:0.85rem;">Reporter: ${t.is_anonymous?'Anonymous':t.username||t.reporter_name||'Unknown'} | ${t.reporter_email||''} | ${t.reporter_phone||''}</p>
+            <h4 style="margin-bottom:8px;">${d.subject}</h4>
+            <p style="color:#64748b;font-size:0.9rem;">${d.message}</p>
         </div>
-        <div style="margin-bottom:16px;"><strong>Messages:</strong></div>
-        ${(t.messages||[]).map(m=>`<div style="background:#f8fafc;padding:10px;border-radius:8px;margin-bottom:8px;"><small style="color:#64748b;">${m.sender_type} - ${m.created_at}</small><p style="margin-top:4px;">${m.message}</p></div>`).join('')}
-        <form onsubmit="respondTicket(event,${t.id})" style="margin-top:16px;">
-            <div class="form-group"><label>Reply</label><textarea id="tk-reply" class="form-input" rows="3" required></textarea></div>
-            <div class="form-row"><div class="form-group"><label>Status</label><select id="tk-status" class="form-select">
-                ${['open','in_progress','waiting','resolved','closed'].map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-            </select></div>
-            <div class="form-group" style="display:flex;align-items:flex-end;"><button type="submit" class="btn btn-primary">Send Reply</button></div></div>
-        </form>`);
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <span class="badge badge-${d.priority}">${d.priority}</span>
+            <span class="badge badge-${d.status}">${d.status}</span>
+        </div>
+        <div class="form-group"><label>Reply</label><textarea id="ticket-reply" class="form-input" rows="3" placeholder="Type your reply..."></textarea></div>
+        <div style="display:flex;gap:8px;">
+            <button onclick="replyTicket('${code}')" class="btn btn-primary">Send Reply</button>
+            <button onclick="closeTicket('${code}')" class="btn btn-success">Close Ticket</button>
+        </div>`);
 }
-async function respondTicket(e,id) {
-    e.preventDefault();
-    await api('tickets','respond',{},{ticket_id:id,message:v('tk-reply'),status:v('tk-status')});
+async function replyTicket(code) {
+    await api('tickets','reply',{code},{message:v('ticket-reply')});
     closeModal(); toast('Reply sent'); render_tickets();
+}
+async function closeTicket(code) {
+    await api('tickets','close',{code});
+    toast('Ticket closed'); render_tickets();
 }
 
 // ════ EMERGENCY ════
 async function render_emergency() {
-    const contacts = await api('emergency','contacts');
+    const d = await api('emergency','get');
     document.getElementById('content').innerHTML = `
-        <div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:12px;padding:20px;margin-bottom:24px;">
-            <h2 style="color:#dc2626;margin-bottom:8px;">🚨 Emergency CTA</h2>
-            <p style="color:#991b1b;margin-bottom:16px;">For immediate farm emergencies, contact these specialists directly.</p>
-            <button onclick="showEmergencyReport()" class="btn btn-danger">Report Emergency Now</button>
-        </div>
-        <div class="card"><div class="card-header"><h3>Emergency Contacts</h3></div>
-            <table class="table"><thead><tr><th>Name</th><th>Role</th><th>Specialty</th><th>Phone</th><th>Email</th><th>County</th></tr></thead>
-            <tbody>${contacts.map(c=>`<tr>
-                <td><strong>${c.name}</strong></td>
-                <td>${c.role||'-'}</td>
-                <td>${c.specialty||'-'}</td>
-                <td><a href="tel:${c.phone}">${c.phone}</a></td>
-                <td>${c.email||'-'}</td>
-                <td>${c.county||'-'}</td>
-            </tr>`).join('')}</tbody></table></div>`;
+        <div class="card">
+            <div class="card-header"><h3>Emergency Controls</h3></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div style="padding:20px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;">
+                    <h4 style="color:#991B1B;margin-bottom:8px;">Platform Lockdown</h4>
+                    <p style="color:#991B1B;font-size:0.85rem;margin-bottom:12px;">Prevent all users from accessing the platform.</p>
+                    <button onclick="emergencyAction('lockdown')" class="btn btn-danger">Lock Down Platform</button>
+                </div>
+                <div style="padding:20px;background:#FEF5E0;border:1px solid #FDE68A;border-radius:12px;">
+                    <h4 style="color:#92400E;margin-bottom:8px;">Force Password Reset</h4>
+                    <p style="color:#92400E;font-size:0.85rem;margin-bottom:12px;">Require all users to reset passwords on next login.</p>
+                    <button onclick="emergencyAction('force_reset')" class="btn btn-outline" style="border-color:#FDE68A;color:#92400E;">Force Reset</button>
+                </div>
+            </div>
+        </div>`;
 }
-function showEmergencyReport() {
-    openModal('🚨 Report Emergency', `
-        <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px;margin-bottom:16px;color:#991b1b;font-size:0.9rem;">This will create a CRITICAL priority ticket and alert our team immediately.</div>
-        <form onsubmit="reportEmergency(event)">
-            <div class="form-group"><label>Subject *</label><input id="emg-subject" class="form-input" value="EMERGENCY" required></div>
-            <div class="form-group"><label>Your Name</label><input id="emg-name" class="form-input"></div>
-            <div class="form-group"><label>Phone *</label><input id="emg-phone" class="form-input" required></div>
-            <div class="form-group"><label>What happened? *</label><textarea id="emg-desc" class="form-input" rows="4" required placeholder="Describe the emergency..."></textarea></div>
-            <button type="submit" class="btn btn-danger" style="width:100%;margin-top:12px;">🚨 SUBMIT EMERGENCY</button>
-        </form>`);
-}
-async function reportEmergency(e) {
-    e.preventDefault();
-    const d = await api('emergency','report',{},{subject:v('emg-subject'),reporter_name:v('emg-name'),reporter_phone:v('emg-phone'),description:v('emg-desc'),is_anonymous:0});
-    closeModal(); toast('Emergency reported! Code: '+d.ticket_code, 'warning');
+async function emergencyAction(action) {
+    if(confirm('Are you sure? This action cannot be undone.')) {
+        await api('emergency','action',{action});
+        toast('Emergency action executed');
+    }
 }
 
-// ════ ACTIVITY LOG ════
+// ════ ACTIVITY ════
 async function render_activity() {
-    const d = await api('activity','list',{limit:100});
+    const d = await api('activity','list');
     document.getElementById('content').innerHTML = `
         <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
-            <tbody>${d.map(l=>`<tr>
-                <td><small>${l.created_at||''}</small></td>
-                <td>${l.admin_name||'System'}</td>
-                <td><span class="badge badge-info">${l.action}</span></td>
-                <td>${l.target_type||''} #${l.target_id||''}</td>
-                <td><small>${l.details||'-'}</small></td>
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>${d.map(a=>`<tr>
+                <td><small>${a.created_at||''}</small></td>
+                <td>${a.username||'System'}</td>
+                <td><span class="badge badge-info">${a.action}</span></td>
+                <td><small>${a.details||''}</small></td>
             </tr>`).join('')}</tbody></table></div></div>`;
 }
 
 // ════ SETTINGS ════
 async function render_settings() {
-    const d = await api('settings','list');
+    const d = await api('settings','get');
     document.getElementById('content').innerHTML = `
-        <div class="card"><div class="card-header"><h3>Platform Settings</h3></div>
-        <form onsubmit="saveSettings(event)">
-            <table class="table"><thead><tr><th>Setting</th><th>Value</th><th>Description</th></tr></thead>
-            <tbody>${d.map(s=>`<tr>
-                <td><strong>${s.setting_key}</strong></td>
-                <td><input class="form-input" data-key="${s.setting_key}" value="${s.setting_value||''}" style="width:300px;"></td>
-                <td><small style="color:#64748b;">${s.description||''}</small></td>
-            </tr>`).join('')}</tbody></table>
-            <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save All Settings</button>
-        </form></div>`;
+        <div class="card">
+            <div class="card-header"><h3>Platform Settings</h3></div>
+            <form onsubmit="saveSettings(event)">
+                <div class="form-row">
+                    <div class="form-group"><label>Trial Duration (days)</label><input id="s-trial" class="form-input" type="number" value="${d.trial_days||40}"></div>
+                    <div class="form-group"><label>Max Free Animals</label><input id="s-animals" class="form-input" type="number" value="${d.max_free_animals||50}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Grow Plan Price (KES)</label><input id="s-grow" class="form-input" type="number" value="${d.grow_price||999}"></div>
+                    <div class="form-group"><label>Scale Plan Price (KES)</label><input id="s-scale" class="form-input" type="number" value="${d.scale_price||2999}"></div>
+                </div>
+                <div class="form-group"><label>Support Email</label><input id="s-email" class="form-input" value="${d.support_email||''}"></div>
+                <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save Settings</button>
+            </form>
+        </div>`;
 }
 async function saveSettings(e) {
     e.preventDefault();
-    document.querySelectorAll('[data-key]').forEach(async el => {
-        await api('settings','update',{},{key:el.dataset.key, value:el.value});
-    });
+    await api('settings','save',{},{trial_days:v('s-trial'),max_free_animals:v('s-animals'),grow_price:v('s-grow'),scale_price:v('s-scale'),support_email:v('s-email')});
     toast('Settings saved');
 }
 
-// ════ HELPERS ════
-function v(id) { return document.getElementById(id)?.value||''; }
-
 // ════ INIT ════
-const saved = localStorage.getItem('platform_admin');
-if(saved) {
-    adminUser = JSON.parse(saved);
-    init();
-}
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('platform_admin');
+    if(saved) {
+        adminUser = JSON.parse(saved);
+        init();
+    }
+    
+    // Mobile menu button
+    if(window.innerWidth <= 860) {
+        document.getElementById('menuBtn').style.display = 'flex';
+    }
+    window.addEventListener('resize', () => {
+        document.getElementById('menuBtn').style.display = window.innerWidth <= 860 ? 'flex' : 'none';
+    });
+    
+    // Initialize Lucide icons
+    if(typeof lucide !== 'undefined') lucide.createIcons();
+});
 </script>
 </body>
 </html>
