@@ -9,7 +9,8 @@ if (!defined('BASE_URL')) {
 }
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    require_once dirname(__DIR__, 3) . '/Backend/config/session.php';
+    wangariStartSession();
 }
 
 if (!isset($page_title)) $page_title = 'Admin Console';

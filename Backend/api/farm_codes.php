@@ -16,7 +16,8 @@ $pdo = getDatabaseConnection();
 if (!$pdo) { http_response_code(500); echo json_encode(['error' => 'Database connection failed']); exit; }
 
 // Start session
-if (session_status() === PHP_SESSION_NONE) session_start();
+require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+wangariStartSession();
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;

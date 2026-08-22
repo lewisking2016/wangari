@@ -18,7 +18,8 @@ $pdo = getDatabaseConnection();
 if (!$pdo) { http_response_code(500); echo json_encode(['error' => 'Database connection failed']); exit; }
 
 // Auth check — super_admin only
-session_start();
+require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+wangariStartSession();
 if (($_SESSION['role'] ?? '') !== 'super_admin') {
     http_response_code(403);
     echo json_encode(['error' => 'Super admin access required']);

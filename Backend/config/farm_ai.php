@@ -12,7 +12,8 @@
  * - Real-time farm data access
  */
 
-session_start();
+require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+wangariStartSession();
 // Database is optional - works without it
 // Database is optional - works without it
 // require_once __DIR__ . '/../config/database.php';

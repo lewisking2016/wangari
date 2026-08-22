@@ -3,9 +3,9 @@
  * Hub: Settings, Calendar, Dropdowns, App Settings, System Logs, DB Setup
  */
 declare(strict_types=1);
-$temp_dir = sys_get_temp_dir();
-if (is_writable($temp_dir)) session_save_path($temp_dir);
-session_start();
+
+require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+wangariStartSession();
 $page_title = 'Settings - Admin';
 include __DIR__ . '/includes/admin_header.php';
 

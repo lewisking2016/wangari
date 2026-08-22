@@ -120,7 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 $userId = $pdo->lastInsertId();
 
                 // Rotate the session after account creation to prevent fixation.
-                if (session_status() === PHP_SESSION_NONE) session_start();
+                require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+wangariStartSession();
                 session_regenerate_id(true);
                 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 $_SESSION['user_id'] = $userId;

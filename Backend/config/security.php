@@ -18,7 +18,8 @@ function initializeSecureSession(): void
             'httponly' => true,
             'samesite' => 'Lax'
         ]);
-        session_start();
+        require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+        wangariStartSession();
         session_regenerate_id(true);
     }
 }

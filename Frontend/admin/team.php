@@ -4,7 +4,8 @@
  * Pending requests, team overview, sub-farms, notifications, sales performance.
  */
 declare(strict_types=1);
-session_start();
+require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+wangariStartSession();
 $page_title = 'Team Management — Wangari';
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','farm_owner','stock_manager','sales_staff'])) {
