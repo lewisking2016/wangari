@@ -1,7 +1,7 @@
 <?php
 /**
  * Global Header & Navigation, Wangari
- * Growvi-style dark ink navigation with lime accents.
+ * Unified light glassmorphism nav — same design as the landing page.
  */
 declare(strict_types=1);
 
@@ -44,11 +44,11 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 
     <!-- SEO -->
     <meta name="description" content="Wangari, smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one platform. Inspired by Prof. Wangari Maathai.">
-    <meta name="theme-color" content="#000B22">
+    <meta name="theme-color" content="#F4FAF5">
 
     <title><?php echo htmlspecialchars($page_title, ENT_QUOTES, 'UTF-8'); ?></title>
 
-    <!-- Google Fonts: Inter Tight + Instrument Serif (Growvi type system) -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -56,12 +56,13 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/vendor/swiper/swiper-bundle.min.css">
 
-    <!-- Stylesheets (growvi.css loaded last to override legacy) -->
+    <!-- Stylesheets — xai-public.css LAST so nav overrides growvi.css -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/components.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/animations.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/responsive.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/growvi.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/xai-public.css">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
@@ -69,57 +70,106 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 <body>
 
 <!-- ═══════════════════════════════════════════════ -->
-<!-- NAVBAR, Growvi ink style                       -->
+<!-- NAVBAR — Unified light glassmorphism           -->
 <!-- ═══════════════════════════════════════════════ -->
-<nav class="g-nav" id="gNav">
-    <div class="g-nav-inner">
-        <a href="/" class="g-logo">
+<nav class="xai-nav" id="mainNav">
+    <div class="xai-nav-inner">
+        <a href="/" class="xai-nav-brand">
             <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
-            <span>Wangari<em>.</em></span>
+            Wangari<span>.</span>
         </a>
 
-        <ul class="g-nav-links" id="gNavLinks">
+        <ul class="xai-nav-links">
             <li><a class="<?php echo navActive('home', $currentPage); ?>" href="/">Home</a></li>
             <li><a class="<?php echo navActive('about', $currentPage); ?>" href="/Frontend/pages/about.php">About</a></li>
             <li><a class="<?php echo navActive('services', $currentPage); ?>" href="/Frontend/pages/services.php">Services</a></li>
             <li><a class="<?php echo navActive('pricing', $currentPage); ?>" href="/Frontend/pages/pricing.php">Pricing</a></li>
             <li><a class="<?php echo navActive('contact', $currentPage); ?>" href="/Frontend/pages/contact.php">Contact</a></li>
-            <li><a class="<?php echo navActive('download', $currentPage); ?>" href="/Frontend/pages/download.php" style="color: var(--xai-lime, #4ADE80);">Download App</a></li>
         </ul>
 
-        <div class="g-nav-right">
+        <div class="xai-nav-actions">
             <?php if ($is_customer_logged_in): ?>
-                <a class="g-btn g-btn-lime g-nav-cta" href="/Frontend/pages/logout.php">Sign Out</a>
+                <a href="/Frontend/pages/logout.php" class="xai-nav-ghost">Sign Out</a>
             <?php else: ?>
-                <a class="g-btn g-btn-outline g-nav-cta" href="/Frontend/pages/login.php">Login</a>
-                <a class="g-btn g-btn-lime g-nav-cta" href="/Frontend/pages/register.php">Get Started</a>
+                <a href="/Frontend/pages/login.php" class="xai-nav-ghost">Sign In</a>
+                <a href="/Frontend/pages/register.php" class="xai-nav-cta">Get Started</a>
             <?php endif; ?>
-
-            <button class="g-hamburger" id="gHamburger" aria-label="Toggle menu">
-                <span></span><span></span><span></span>
+            <button class="xai-mobile-toggle" id="mobileMenuBtn" aria-label="Open menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
         </div>
     </div>
 </nav>
 
+<!-- Mobile Menu Drawer -->
+<div id="mobileMenu" class="xai-mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div class="xai-mobile-menu-header">
+        <a href="/" class="xai-mobile-menu-brand">
+            <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
+            Wangari<span>.</span>
+        </a>
+        <button class="xai-mobile-close" id="mobileMenuClose" aria-label="Close menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    </div>
+
+    <div class="xai-mobile-menu-links">
+        <a href="/">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+        </a>
+        <a href="/Frontend/pages/about.php">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            About
+        </a>
+        <a href="/Frontend/pages/services.php">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Services
+        </a>
+        <a href="/Frontend/pages/pricing.php">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Pricing
+        </a>
+        <a href="/Frontend/pages/contact.php">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Contact
+        </a>
+    </div>
+
+    <div class="xai-mobile-menu-footer">
+        <a href="/Frontend/pages/login.php" class="xai-m-signin">Sign In</a>
+        <a href="/Frontend/pages/register.php" class="xai-m-cta">Get Started Free →</a>
+    </div>
+</div>
+
 <script>
 (function () {
-    var nav = document.getElementById('gNav');
-    var links = document.getElementById('gNavLinks');
-    var burger = document.getElementById('gHamburger');
+    var nav = document.getElementById('mainNav');
+    var mobileMenu = document.getElementById('mobileMenu');
+    var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    var mobileMenuClose = document.getElementById('mobileMenuClose');
 
+    // Scroll effect
     function onScroll() {
-        if (nav && window.scrollY > 30) { nav.classList.add('scrolled'); }
+        if (nav && window.scrollY > 50) { nav.classList.add('scrolled'); }
         else if (nav) { nav.classList.remove('scrolled'); }
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    if (burger && links) {
-        burger.addEventListener('click', function () {
-            burger.classList.toggle('open');
-            links.classList.toggle('open');
-        });
+    // Mobile menu
+    function openMenu() {
+        if (mobileMenu) { mobileMenu.classList.add('open'); document.body.style.overflow = 'hidden'; }
     }
+    function closeMenu() {
+        if (mobileMenu) { mobileMenu.classList.remove('open'); document.body.style.overflow = ''; }
+    }
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMenu);
+    if (mobileMenuClose) mobileMenuClose.addEventListener('click', closeMenu);
+    if (mobileMenu) {
+        mobileMenu.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', closeMenu); });
+        mobileMenu.addEventListener('click', function(e) { if (e.target === mobileMenu) closeMenu(); });
+    }
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeMenu(); });
 })();
 </script>
