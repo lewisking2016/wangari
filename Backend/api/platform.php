@@ -92,8 +92,8 @@ try {
             $data['free_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='free'")->fetchColumn();
             $data['total_revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES'")->fetchColumn();
             $data['month_revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES' AND MONTH(recorded_at)=MONTH(CURDATE()) AND YEAR(recorded_at)=YEAR(CURDATE())")->fetchColumn();
-            $data['total_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM subscription_codes")->fetchColumn();
-            $data['unused_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM subscription_codes WHERE is_used=0 AND is_revoked=0 AND (expires_at IS NULL OR expires_at > NOW())")->fetchColumn();
+            $data['total_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM wangari_licenses")->fetchColumn();
+            $data['unused_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM wangari_licenses WHERE status='active' AND hardware_id IS NULL AND (expires_at IS NULL OR expires_at > NOW())")->fetchColumn();
             $data['open_tickets'] = (int) $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status IN ('open','in_progress')")->fetchColumn();
             $data['critical_tickets'] = (int) $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE priority='critical' AND status NOT IN ('resolved','closed')")->fetchColumn();
             $data['recent_users'] = $pdo->query("SELECT id, username, email, full_name, subscription_status, created_at FROM platform_users WHERE role='user' ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
@@ -166,61 +166,65 @@ try {
             }
             break;
 
-        // ════ SUBSCRIPTION CODES ════
+        // ════ DESKTOP LICENSES ════
         case 'codes':
             if ($action === 'list') {
-                $sql = 'SELECT c.*, u.username AS used_by_name FROM subscription_codes c LEFT JOIN platform_users u ON c.used_by=u.id';
+                $sql = 'SELECT l.*, u.username AS account_username, u.full_name AS account_full_name, u.email AS account_email FROM wangari_licenses l LEFT JOIN platform_users u ON u.id = l.user_id';
                 $filter = $_GET['filter'] ?? '';
-                if ($filter === 'unused') $sql .= ' WHERE c.is_used=0 AND c.is_revoked=0';
-                elseif ($filter === 'used') $sql .= ' WHERE c.is_used=1';
-                elseif ($filter === 'revoked') $sql .= ' WHERE c.is_revoked=1';
-                $sql .= ' ORDER BY c.created_at DESC LIMIT 200';
+                $where = [];
+                if ($filter === 'unused') $where[] = "l.status='active' AND l.hardware_id IS NULL";
+                elseif ($filter === 'used') $where[] = "l.hardware_id IS NOT NULL";
+                elseif ($filter === 'revoked') $where[] = "l.status='revoked'";
+                if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+                $sql .= ' ORDER BY l.created_at DESC LIMIT 200';
                 echo json_encode($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
             } elseif ($action === 'generate') {
                 $count = min((int)($input['count'] ?? 1), 50);
-                $type = $input['type'] ?? 'monthly';
-                $duration = (int)($input['duration_days'] ?? 30);
-                $desc = $input['description'] ?? '';
-                $maxAnimals = (int)($input['max_animals'] ?? 100);
-                $maxFields = (int)($input['max_fields'] ?? 10);
-                $maxUsers = (int)($input['max_users'] ?? 3);
-                $expiresAt = $input['expires_at'] ?? date('Y-m-d H:i:s', strtotime('+1 year'));
+                $plan = trim($input['plan'] ?? 'desktop');
+                $userId = (int)($input['user_id'] ?? 0);
+                $maxDevices = max(1, (int)($input['max_devices'] ?? 1));
+                $expiresAt = $input['expires_at'] ?? null;
+                if ($expiresAt === '') {
+                    $expiresAt = null;
+                }
+                if (!$expiresAt) {
+                    $expiresAt = date('Y-m-d H:i:s', strtotime('+1 year'));
+                }
+
+                if ($userId <= 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Please select a registered user account']);
+                    exit;
+                }
+
+                $stmt = $pdo->prepare('SELECT id, username, email, full_name, is_active, role FROM platform_users WHERE id=? LIMIT 1');
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$user || ($user['role'] ?? '') !== 'user' || (int)($user['is_active'] ?? 0) !== 1) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Selected account is not available for licensing']);
+                    exit;
+                }
+
+                $customerName = trim((string)($user['full_name'] ?? ''));
+                if ($customerName === '') {
+                    $customerName = trim((string)($user['username'] ?? ''));
+                }
+                $customerEmail = trim((string)($user['email'] ?? ''));
 
                 $codes = [];
-                $stmt = $pdo->prepare('INSERT INTO subscription_codes (code, type, duration_days, max_animals, max_fields, max_users, description, created_by, expires_at) VALUES (?,?,?,?,?,?,?,?,?)');
+                $stmt = $pdo->prepare('INSERT INTO wangari_licenses (license_key, user_id, customer_name, customer_email, plan, status, hardware_id, activations, max_devices, expires_at, created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
                 for ($i = 0; $i < $count; $i++) {
                     $code = generateCode();
-                    $stmt->execute([$code, $type, $duration, $maxAnimals, $maxFields, $maxUsers, $desc, 1, $expiresAt]);
+                    $stmt->execute([$code, $userId, $customerName, $customerEmail, $plan, 'active', null, 0, $maxDevices, $expiresAt, 1]);
                     $codes[] = $code;
                 }
-                platformLog($pdo, 1, 'generate_codes', 'code', null, "Generated $count $type codes");
+                platformLog($pdo, 1, 'generate_codes', 'license', $userId, "Generated $count desktop licenses for user #$userId");
                 echo json_encode(['success' => true, 'codes' => $codes, 'count' => $count]);
-            } elseif ($action === 'redeem') {
-                $code = strtoupper(trim($input['code'] ?? ''));
-                $userId = (int)($input['user_id'] ?? 0);
-                $stmt = $pdo->prepare('SELECT * FROM subscription_codes WHERE code=? AND is_used=0 AND is_revoked=0');
-                $stmt->execute([$code]);
-                $record = $stmt->fetch(PDO::FETCH_ASSOC);
-                if (!$record) {
-                    http_response_code(400);
-                    echo json_encode(['error' => 'Invalid or already used code']);
-                    exit;
-                }
-                if ($record['expires_at'] && strtotime($record['expires_at']) < time()) {
-                    http_response_code(400);
-                    echo json_encode(['error' => 'Code has expired']);
-                    exit;
-                }
-                $endDate = date('Y-m-d', strtotime("+{$record['duration_days']} days"));
-                $pdo->prepare('UPDATE subscription_codes SET is_used=1, used_by=?, used_at=NOW() WHERE id=?')->execute([$userId, $record['id']]);
-                $pdo->prepare('UPDATE platform_users SET subscription_status="active", subscription_expires=?, max_animals=?, max_fields=?, max_users=? WHERE id=?')->execute([$endDate, $record['max_animals'], $record['max_fields'], $record['max_users'], $userId]);
-                $pdo->prepare('INSERT INTO platform_subscriptions (user_id, plan, amount, payment_method, code_id, start_date, end_date, status) VALUES (?,?,"code",?,?,NOW(),?,"active")')->execute([$userId, $record['type'], $record['id'], $endDate]);
-                platformLog($pdo, 1, 'redeem_code', 'code', $record['id'], "Code $code redeemed by user #$userId");
-                echo json_encode(['success' => true, 'expires' => $endDate]);
             } elseif ($action === 'revoke') {
                 $id = (int)($input['id'] ?? 0);
-                $pdo->prepare('UPDATE subscription_codes SET is_revoked=1 WHERE id=?')->execute([$id]);
-                platformLog($pdo, 1, 'revoke_code', 'code', $id);
+                $pdo->prepare('UPDATE wangari_licenses SET status="revoked" WHERE id=?')->execute([$id]);
+                platformLog($pdo, 1, 'revoke_code', 'license', $id);
                 echo json_encode(['success' => true]);
             }
             break;

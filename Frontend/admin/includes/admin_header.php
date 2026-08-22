@@ -4,12 +4,12 @@
  */
 declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 if (!defined('BASE_URL')) {
     require_once __DIR__ . '/../../includes/config.php';
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 if (!isset($page_title)) $page_title = 'Admin Console';

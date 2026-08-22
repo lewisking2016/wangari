@@ -22,32 +22,14 @@ if (!function_exists('str_ends_with')) {
     }
 }
 
-// Start session — Redis if available, file fallback
+// Start session using the shared file-based handler so every page reads the
+// same session store, even if some legacy pages bootstrap session early.
 if (session_status() === PHP_SESSION_NONE) {
-    // Try Redis first (much faster for concurrent users)
-    $useRedis = false;
-    if (class_exists('Redis')) {
-        try {
-            $redis = new Redis();
-            $redis->connect('127.0.0.1', 6379, 2);
-            $redis->ping();
-            $useRedis = true;
-        } catch (Exception $e) {
-            $useRedis = false;
-        }
+    $temp_dir = sys_get_temp_dir();
+    if (is_writable($temp_dir)) {
+        session_save_path($temp_dir);
     }
-    
-    if ($useRedis) {
-        ini_set('session.save_handler', 'redis');
-        ini_set('session.save_path', 'tcp://127.0.0.1:6379?database=0');
-    } else {
-        // Fallback to files
-        $temp_dir = sys_get_temp_dir();
-        if (is_writable($temp_dir)) {
-            session_save_path($temp_dir);
-        }
-    }
-    
+
     // Secure Session Configuration
     ini_set('session.cookie_httponly', '1');
     ini_set('session.use_only_cookies', '1');

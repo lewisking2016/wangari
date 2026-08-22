@@ -4,9 +4,7 @@
  */
 declare(strict_types=1);
 
-$temp_dir = sys_get_temp_dir();
-if (is_writable($temp_dir)) session_save_path($temp_dir);
-session_start();
+require_once __DIR__ . '/../includes/config.php';
 
 // Admin access check - allow all authenticated users
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager', 'stock_manager', 'sales_staff', 'customer'], true)) {

@@ -255,7 +255,7 @@ async function render_dashboard() {
                 </div>
             </div>
             <div class="stat-card info">
-                <div><div class="stat-label">Available Codes</div><div class="stat-value">${d.unused_codes}</div></div>
+                <div><div class="stat-label">Available Licenses</div><div class="stat-value">${d.unused_codes}</div></div>
                 <div style="width:46px;height:46px;border-radius:14px;background:#E0EDFF;color:#1D4ED8;display:flex;align-items:center;justify-content:center;">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
                 </div>
@@ -391,36 +391,57 @@ async function render_codes() {
     document.getElementById('content').innerHTML = `
         <div class="card-header" style="margin-bottom:16px;">
             <div></div>
-            <button onclick="showCreateCode()" class="btn btn-primary">+ Generate Codes</button>
+            <button onclick="showCreateCode()" class="btn btn-primary">+ Generate Licenses</button>
         </div>
         <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>Code</th><th>Farm</th><th>Role</th><th>Uses</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>License</th><th>Account</th><th>Customer</th><th>Email</th><th>Plan</th><th>Devices</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>${d.map(c=>`<tr>
-                <td><code style="background:#F1F5F9;padding:4px 8px;border-radius:6px;font-weight:600;">${c.code}</code></td>
-                <td>${c.farm_name||'-'}</td>
-                <td>${c.role}</td>
-                <td>${c.current_uses}/${c.max_uses}</td>
+                <td><code style="background:#F1F5F9;padding:4px 8px;border-radius:6px;font-weight:600;">${c.license_key}</code></td>
+                <td><strong>${c.account_full_name || c.account_username || '-'}</strong><div style="font-size:0.78rem;color:var(--muted);">${c.account_username || ''}</div></td>
+                <td>${c.customer_name||'-'}</td>
+                <td>${c.customer_email||'-'}</td>
+                <td>${c.plan||'-'}</td>
+                <td>${c.activations||0}/${c.max_devices||1}</td>
                 <td>${c.expires_at||'Never'}</td>
-                <td><span class="badge badge-${c.is_active?'active':'expired'}">${c.is_active?'Active':'Inactive'}</span></td>
+                <td><span class="badge badge-${c.status==='active'?'active':'expired'}">${c.status||'active'}</span></td>
                 <td><button onclick="revokeCode(${c.id})" class="btn-sm btn-danger">Revoke</button></td>
             </tr>`).join('')}</tbody></table></div></div>`;
 }
-function showCreateCode() {
-    openModal('Generate Farm Codes', `
+async function showCreateCode() {
+    const users = await api('users','list');
+    const activeUsers = (users || []).filter(u => Number(u.is_active ?? 1) === 1);
+    const userOptions = ['<option value="">Select a registered user...</option>']
+        .concat(activeUsers.map(u => {
+            const label = [u.full_name || u.username, u.email].filter(Boolean).join(' • ');
+            return `<option value="${u.id}">${label}</option>`;
+        }))
+        .join('');
+
+    openModal('Generate Desktop Licenses', `
         <form onsubmit="createCode(event)">
-            <div class="form-group"><label>Farm ID *</label><input id="cc-farm" class="form-input" type="number" required></div>
-            <div class="form-row"><div class="form-group"><label>Role</label><select id="cc-role" class="form-select"><option value="stock_manager">Stock Manager</option><option value="sales_staff">Sales Staff</option></select></div>
-            <div class="form-group"><label>Max Uses</label><input id="cc-uses" class="form-input" type="number" value="1"></div></div>
-            <div class="form-group"><label>Expires</label><input id="cc-expires" class="form-input" type="date"></div>
+            <div class="form-group"><label>Registered User Account *</label><select id="cc-user" class="form-select" required>${userOptions}</select></div>
+            <div class="form-row"><div class="form-group"><label>Plan</label><input id="cc-plan" class="form-input" value="desktop"></div>
+            <div class="form-group"><label>Max Devices</label><input id="cc-devices" class="form-input" type="number" value="1" min="1"></div></div>
+            <div class="form-row"><div class="form-group"><label>Count</label><input id="cc-count" class="form-input" type="number" value="1" min="1" max="50"></div>
+            <div class="form-group"><label>Expires</label><input id="cc-expires" class="form-input" type="datetime-local"></div></div>
+            <div class="form-group" style="margin-top:-2px;"><small style="color:var(--muted);">The license will be tied to the selected registered account and cannot be issued without one.</small></div>
             <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Generate</button>
         </form>`);
 }
 async function createCode(e) {
     e.preventDefault();
-    await api('codes','create',{},{farm_id:v('cc-farm'),role:v('cc-role'),max_uses:v('cc-uses'),expires_at:v('cc-expires')});
-    closeModal(); toast('Code generated'); render_codes();
+    const userId = v('cc-user');
+    if (!userId) { toast('Please select a registered user account', 'error'); return; }
+    await api('codes','generate',{},{
+        count:v('cc-count'),
+        plan:v('cc-plan'),
+        user_id:userId,
+        max_devices:v('cc-devices'),
+        expires_at:v('cc-expires')
+    });
+    closeModal(); toast('License generated'); render_codes();
 }
-async function revokeCode(id) { if(confirm('Revoke this code?')) { await api('codes','revoke',{id}); toast('Code revoked'); render_codes(); } }
+async function revokeCode(id) { if(confirm('Revoke this license?')) { await api('codes','revoke',{id}); toast('License revoked'); render_codes(); } }
 
 // ════ SUBSCRIPTIONS ════
 async function render_subscriptions() {

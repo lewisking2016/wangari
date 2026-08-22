@@ -142,10 +142,10 @@
     </div>
   </div>
 
-  <h3>Activate Your License</h3>
+  <h3>Activate Your Account</h3>
   <p class="sub">Enter the license key you received after purchase to unlock Wangari on this device.</p>
 
-  <label for="license-input">License Key</label>
+  <label for="license-input">Activation Code</label>
   <input
     type="text"
     id="license-input"
@@ -158,7 +158,7 @@
 
   <button class="btn" id="activate-btn" onclick="doActivate()">
     <div class="spinner" id="spinner"></div>
-    <span id="btn-label">Activate License</span>
+    <span id="btn-label">Activate Code</span>
   </button>
 
   <div class="error-msg" id="error-msg"></div>
@@ -190,7 +190,7 @@
   async function doActivate() {
     const key = input.value.trim();
     if (!key || key.length < 6) {
-      showError('Please enter a valid license key.');
+      showError('Please enter a valid activation code.');
       return;
     }
 
@@ -218,7 +218,7 @@
     btn.disabled   = on;
     spinner.style.display = on ? 'block' : 'none';
     if (on) btnLabel.textContent = 'Verifying…';
-    else if (!input.classList.contains('success')) btnLabel.textContent = 'Activate License';
+    else if (!input.classList.contains('success')) btnLabel.textContent = 'Activate Code';
   }
 
   function showError(msg) {

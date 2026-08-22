@@ -41,6 +41,28 @@ CREATE TABLE IF NOT EXISTS platform_users (
     INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Desktop Licenses (one install per activation code)
+CREATE TABLE IF NOT EXISTS wangari_licenses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    license_key VARCHAR(64) NOT NULL UNIQUE,
+    user_id INT DEFAULT NULL,
+    customer_name VARCHAR(255) DEFAULT NULL,
+    customer_email VARCHAR(255) DEFAULT NULL,
+    plan VARCHAR(50) DEFAULT 'desktop',
+    status ENUM('active','expired','revoked') DEFAULT 'active',
+    hardware_id VARCHAR(128) DEFAULT NULL,
+    activations INT DEFAULT 0,
+    max_devices INT DEFAULT 1,
+    expires_at DATETIME DEFAULT NULL,
+    created_by INT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME DEFAULT NULL,
+    INDEX idx_lic_status (status),
+    INDEX idx_lic_hardware (hardware_id),
+    INDEX idx_lic_user (user_id),
+    INDEX idx_lic_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Subscription Codes
 CREATE TABLE IF NOT EXISTS subscription_codes (
     id INT AUTO_INCREMENT PRIMARY KEY,

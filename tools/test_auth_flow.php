@@ -1,0 +1,55 @@
+<?php
+declare(strict_types=1);
+
+function fail(string $message): void
+{
+    fwrite(STDERR, $message . PHP_EOL);
+    exit(1);
+}
+
+function assertContains(string $haystack, string $needle, string $label): void
+{
+    if (strpos($haystack, $needle) === false) {
+        fail("FAIL: {$label} missing expected text: {$needle}");
+    }
+}
+
+function assertNotContains(string $haystack, string $needle, string $label): void
+{
+    if (strpos($haystack, $needle) !== false) {
+        fail("FAIL: {$label} still contains forbidden text: {$needle}");
+    }
+}
+
+$root = dirname(__DIR__);
+
+$loginPhp = file_get_contents($root . '/Frontend/pages/login.php');
+$registerPhp = file_get_contents($root . '/Frontend/pages/register.php');
+$adminLogin = file_get_contents($root . '/Frontend/admin/login.php');
+$googleLogin = file_get_contents($root . '/Frontend/auth/google/login.php');
+$googleCallback = file_get_contents($root . '/Frontend/auth/google/callback.php');
+$dashboard = file_get_contents($root . '/Frontend/admin/dashboard.php');
+$loginHtml = file_get_contents($root . '/Frontend/pages/login.html');
+$registerHtml = file_get_contents($root . '/Frontend/pages/register.html');
+$configPhp = file_get_contents($root . '/Frontend/includes/config.php');
+
+if ($loginPhp === false || $registerPhp === false || $adminLogin === false || $googleLogin === false || $googleCallback === false || $dashboard === false || $loginHtml === false || $registerHtml === false || $configPhp === false) {
+    fail('FAIL: Could not read one or more auth files');
+}
+
+assertContains($loginPhp, '/Frontend/auth/google/login.php', 'public login page');
+assertContains($loginPhp, '/Frontend/pages/register.php', 'public login page');
+assertContains($registerPhp, '/Frontend/pages/login.php', 'public register page');
+
+assertContains($adminLogin, '/Frontend/auth/google/login.php', 'admin login page');
+assertContains($loginHtml, '/Frontend/auth/google/login.php', 'static login page');
+assertContains($registerHtml, '/Frontend/auth/google/login.php', 'static register page');
+assertContains($registerHtml, 'login.php', 'static register page');
+
+assertNotContains($googleLogin, 'session_start();', 'google login bootstrap');
+assertNotContains($googleCallback, 'session_start();', 'google callback bootstrap');
+assertNotContains($dashboard, 'session_save_path(', 'admin dashboard bootstrap');
+assertContains($dashboard, "require_once __DIR__ . '/../includes/config.php';", 'admin dashboard bootstrap');
+assertNotContains($configPhp, "save_handler', 'redis'", 'shared session config');
+
+echo "Auth flow checks passed." . PHP_EOL;

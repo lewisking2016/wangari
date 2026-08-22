@@ -163,6 +163,50 @@ function reconcileLegacySchema(PDO $pdo): void
             $pdo->exec('ALTER TABLE users ' . implode(', ', $add));
         }
     }
+
+    // Desktop app license records. These back the one-install activation flow.
+    if (!tableExists($pdo, 'wangari_licenses')) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS wangari_licenses (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                license_key VARCHAR(64) NOT NULL UNIQUE,
+                user_id INT DEFAULT NULL,
+                customer_name VARCHAR(255) DEFAULT NULL,
+                customer_email VARCHAR(255) DEFAULT NULL,
+                plan VARCHAR(50) DEFAULT 'desktop',
+                status ENUM('active','expired','revoked') DEFAULT 'active',
+                hardware_id VARCHAR(128) DEFAULT NULL,
+                activations INT DEFAULT 0,
+                max_devices INT DEFAULT 1,
+                expires_at DATETIME DEFAULT NULL,
+                created_by INT DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_seen DATETIME DEFAULT NULL,
+                INDEX idx_lic_status (status),
+                INDEX idx_lic_hardware (hardware_id),
+                INDEX idx_lic_user (user_id),
+                INDEX idx_lic_created_at (created_at)
+            ) ENGINE=InnoDB
+        ");
+    } elseif (!columnExists($pdo, 'wangari_licenses', 'user_id')) {
+        $pdo->exec("ALTER TABLE wangari_licenses ADD COLUMN user_id INT DEFAULT NULL AFTER license_key");
+        try {
+            $pdo->exec("ALTER TABLE wangari_licenses ADD INDEX idx_lic_user (user_id)");
+        } catch (Exception $e) {
+            // Index may already exist on an older migration path.
+        }
+    }
+
+    if (tableExists($pdo, 'wangari_licenses') && tableExists($pdo, 'platform_users')) {
+        $pdo->exec("
+            UPDATE wangari_licenses l
+            JOIN platform_users u ON u.email = l.customer_email
+            SET l.user_id = u.id
+            WHERE l.user_id IS NULL
+              AND l.customer_email IS NOT NULL
+              AND l.customer_email <> ''
+        ");
+    }
 }
 
 /**

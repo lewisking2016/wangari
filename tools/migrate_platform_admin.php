@@ -68,6 +68,29 @@ CREATE TABLE IF NOT EXISTS platform_users (
     INDEX idx_active (is_active)
 ) ENGINE=InnoDB");
 
+// ── Desktop Licenses ──
+createTable($pdo, 'wangari_licenses', "
+CREATE TABLE IF NOT EXISTS wangari_licenses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    license_key VARCHAR(64) UNIQUE NOT NULL,
+    user_id INT DEFAULT NULL,
+    customer_name VARCHAR(255) DEFAULT NULL,
+    customer_email VARCHAR(255) DEFAULT NULL,
+    plan VARCHAR(50) DEFAULT 'desktop',
+    status ENUM('active','expired','revoked') DEFAULT 'active',
+    hardware_id VARCHAR(128) DEFAULT NULL,
+    activations INT DEFAULT 0,
+    max_devices INT DEFAULT 1,
+    expires_at DATETIME DEFAULT NULL,
+    created_by INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME DEFAULT NULL,
+    INDEX idx_status (status),
+    INDEX idx_hardware (hardware_id),
+    INDEX idx_user (user_id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB");
+
 // ── Subscription Codes ──
 createTable($pdo, 'subscription_codes', "
 CREATE TABLE IF NOT EXISTS subscription_codes (

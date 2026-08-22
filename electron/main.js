@@ -29,7 +29,8 @@ const PHP_PORT       = 18432; // obscure internal port
 const LICENSE_DIR    = path.join(os.homedir(), '.wangari');
 const LICENSE_FILE   = path.join(LICENSE_DIR, '.lic');
 const GRACE_MS       = 14 * 24 * 60 * 60 * 1000; // 14-day offline grace
-const LICENSE_SERVER = 'https://license.wangari.app';
+const LICENSE_SERVER = process.env.WANGARI_LICENSE_SERVER || 'https://wangari.imeantech.com/Backend/api/license.php';
+const LICENSE_SECRET = process.env.WANGARI_JWT_SECRET || 'WANGARI_DESKTOP_LICENSE_SECRET_CHANGE_ME';
 const SYNC_SERVER    = 'https://wangari.imeantech.com';
 const SYNC_DIR       = path.join(LICENSE_DIR, 'sync');
 const SYNC_QUEUE     = path.join(SYNC_DIR, 'queue.json');
@@ -182,7 +183,7 @@ function callLicenseServer(endpoint, body) {
 }
 
 async function activateLicense(licenseKey) {
-  return callLicenseServer('/api/license/activate', {
+  return callLicenseServer('', {
     license_key: licenseKey,
     hardware_id: HARDWARE_ID,
     app_version: APP_VERSION,
@@ -234,6 +235,7 @@ function startPhpServer(jwtToken) {
       WANGARI_MODE:          'desktop',
       WANGARI_LICENSE_TOKEN: jwtToken,
       WANGARI_HW_ID:         HARDWARE_ID,
+      WANGARI_JWT_SECRET:    LICENSE_SECRET,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

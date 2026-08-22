@@ -264,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 </button>
 
                 <div class="xai-form-footer">
-                    Already have an account? <a href="login.php">Sign In</a>
+                    Already have an account? <a href="/Frontend/pages/login.php">Sign In</a>
                 </div>
             </div>
 
