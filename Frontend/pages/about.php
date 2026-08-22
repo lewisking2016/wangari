@@ -151,13 +151,12 @@ include '../includes/header.php';
 <!-- CTA Section -->
 <section class="g-section g-section-cream" style="text-align: center;">
     <div class="g-container" style="max-width: 680px;">
-        <h2 class="g-reveal" style="font-size: clamp(1.9rem, 4vw, 2.8rem); margin-bottom: 1rem;">Ready to Partner With <span class="g-serif" style="color: var(--g-tan);">Us?</span></h2>
+        <h2 class="g-reveal" style="font-size: clamp(1.9rem, 4vw, 2.8rem); margin-bottom: 1rem;">Digital tools by <span class="g-serif" style="color: var(--g-tan);">iMeanTech</span></h2>
         <p class="g-reveal g-delay-1" style="font-size: 1.1rem; color: var(--g-muted); margin-bottom: 2rem;">
-            Whether you run a commercial farm, an agro-vet, a feed mill, or a family homestead, Wangari organises your records, tracks your costs and grows your business.
+            iMeanTech builds and supports the Wangari platform, combining software, data workflows and practical tools for modern farm teams.
         </p>
         <div class="g-reveal g-delay-2" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="contact.php" class="g-btn g-btn-lime">Contact Us</a>
-            <a href="services.php" class="g-btn g-btn-outline-dark">Explore Modules</a>
+            <a href="https://imeantech.com" target="_blank" rel="noopener noreferrer" class="g-btn g-btn-lime">Visit iMeanTech.com</a>
         </div>
     </div>
 </section>

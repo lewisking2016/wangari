@@ -109,11 +109,10 @@ include '../includes/header.php';
 
     <section class="g-section g-section-ink">
         <div class="g-container" style="text-align: center; max-width: 680px;">
-            <h2 style="color: #fff;">Ready to run your farm on <span class="g-serif" style="color: var(--g-lime);">Wangari?</span></h2>
-            <p style="color: rgba(255,255,255,0.66); margin-bottom: 2rem;">Create a free account and start tracking today, no credit card required.</p>
+            <h2 style="color: #fff;">Wangari is built by <span class="g-serif" style="color: var(--g-lime);">iMeanTech</span></h2>
+            <p style="color: rgba(255,255,255,0.66); margin-bottom: 2rem;">Learn more about the team and technology behind the farm management platform.</p>
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-lime">Start Free</a>
-                <a href="/Frontend/pages/contact.php" class="g-btn g-btn-outline">Book a Demo</a>
+                <a href="https://imeantech.com" target="_blank" rel="noopener noreferrer" class="g-btn g-btn-lime">Visit iMeanTech.com</a>
             </div>
         </div>
     </section>

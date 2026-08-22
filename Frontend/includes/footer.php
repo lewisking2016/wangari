@@ -27,6 +27,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
                         <span>Wangari<em>.</em></span>
                     </a>
                     <p>Farm management that keeps your records, sales, and team in one place.</p>
+                    <p style="margin-top: 1rem;"><a href="https://imeantech.com" target="_blank" rel="noopener noreferrer" style="color: var(--g-lime); font-weight: 700;">Built and supported by iMeanTech.com</a></p>
                     <p style="margin-top: 1rem; color: rgba(255,255,255,0.8);">
                         <?php echo htmlspecialchars($site_phone, ENT_QUOTES, 'UTF-8'); ?><br>
                         <?php echo htmlspecialchars($site_email, ENT_QUOTES, 'UTF-8'); ?>

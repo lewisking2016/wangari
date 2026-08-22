@@ -623,18 +623,13 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
 
         <div class="xai-container">
             <div class="xai-cta xai-reveal">
-                <h2>Let's grow something <span style="font-family:var(--font-serif);font-style:italic;">better</span></h2>
-                <p>Tell us about your farm, and we'll show you how Wangari can organise it.</p>
+                <h2>Built with <span style="font-family:var(--font-serif);font-style:italic;">iMeanTech</span></h2>
+                <p>iMeanTech designs and supports Wangari's digital farm management platform for practical, connected operations.</p>
                 <div class="xai-cta-actions">
-                    <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary xai-btn-lg">
-                        Get Started Free
+                    <a href="https://imeantech.com" target="_blank" rel="noopener noreferrer" class="xai-btn xai-btn-primary xai-btn-lg">
+                        Visit iMeanTech.com
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
-                <a href="/Frontend/pages/download.php" class="xai-btn xai-btn-secondary xai-btn-lg">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    Download App
-                </a>
-                    <a href="/Frontend/pages/contact.php" class="xai-btn xai-btn-ghost xai-btn-lg">Book a Demo</a>
                 </div>
             </div>
         </div>

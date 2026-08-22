@@ -263,11 +263,10 @@ include '../includes/header.php';
 <!-- CTA -->
 <section class="g-section g-section-ink" style="text-align: center;">
     <div class="g-container" style="max-width: 680px;">
-        <h2 class="g-reveal" style="color: #fff; font-size: clamp(1.9rem, 4vw, 2.8rem); margin-bottom: 1rem;">Ready to run your farm on <span class="g-serif" style="color: var(--g-lime);">Wangari?</span></h2>
-        <p class="g-reveal g-delay-1" style="color: rgba(255,255,255,0.66); font-size: 1.05rem; margin-bottom: 2rem;">Start your 40-day free trial in 2 minutes. No credit card required.</p>
+        <h2 class="g-reveal" style="color: #fff; font-size: clamp(1.9rem, 4vw, 2.8rem); margin-bottom: 1rem;">Wangari technology by <span class="g-serif" style="color: var(--g-lime);">iMeanTech</span></h2>
+        <p class="g-reveal g-delay-1" style="color: rgba(255,255,255,0.66); font-size: 1.05rem; margin-bottom: 2rem;">Visit iMeanTech to learn about the technology, services and support behind Wangari.</p>
         <div class="g-reveal g-delay-2" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="/Frontend/pages/register.php" class="g-btn g-btn-lime">Start Free</a>
-            <a href="/Frontend/pages/contact.php" class="g-btn g-btn-outline">Book a Demo</a>
+            <a href="https://imeantech.com" target="_blank" rel="noopener noreferrer" class="g-btn g-btn-lime">Visit iMeanTech.com</a>
         </div>
     </div>
 </section>
