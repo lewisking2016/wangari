@@ -138,12 +138,13 @@ try {
         $_SESSION['email']       = $email;
     }
     
-    // Role-based redirect
-    $redirect = '/Frontend/admin/dashboard.php';
-    if (($user['role'] ?? '') === 'super_admin') {
-        $redirect = '/Frontend/admin/super_admin.php';
-    } elseif (($user['role'] ?? '') === 'customer') {
-        $redirect = '/Frontend/index.php';
+    // Role-based redirect — check the ACTUAL role (might be new user where $user is null)
+    $role = $user['role'] ?? $_SESSION['role'] ?? 'farm_manager';
+    $redirect = '/Frontend/pages/dashboard.php'; // default: customer dashboard
+    if ($role === 'super_admin') {
+        $redirect = '/wangariadmin/';
+    } elseif (in_array($role, ['farm_manager', 'stock_manager', 'sales_staff', 'field_worker', 'accountant'])) {
+        $redirect = '/Frontend/pages/dashboard.php';
     }
     header("Location: {$redirect}");
     exit;
