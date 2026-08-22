@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 // Route by role
                 $redirect = '/Frontend/pages/dashboard.php'; // default: customer dashboard
                 if ($user['role'] === 'super_admin') {
-                    $redirect = '/wangariadmin/';
+                    $redirect = '/Frontend/admin/dashboard.php';
                 }
                 
                 echo "<script>window.location.href = '$redirect';</script>";
