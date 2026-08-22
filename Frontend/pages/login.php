@@ -13,9 +13,9 @@ $page_title = 'Sign In — Wangari';
 // No header.php include - this page has its own xai-nav navigation
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
 
-// Redirect only if a customer is already logged in
-if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'customer') {
-    echo "<script>window.location.href = '/Frontend/index.php';</script>";
+// Redirect only if an account is already logged in
+if (!empty($_SESSION['user_id']) && wangariIsFarmSystemRole((string)($_SESSION['role'] ?? ''))) {
+    header('Location: ' . wangariAuthRedirectPath((string)$_SESSION['role']));
     exit;
 }
 
@@ -45,9 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
 
     if (empty($errors)) {
         $pdo = getDB();
-        if (!$pdo) { $errors[] = 'Database connection failed'; }
-        
-        try {
+        if (!$pdo) {
+            $errors[] = 'Database connection failed';
+        } else try {
             if (filter_var($username, FILTER_VALIDATE_EMAIL)) {
                 $variants = wangariEmailVariants($username);
                 $placeholders = implode(',', array_fill(0, count($variants), '?'));
@@ -60,6 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user && password_verify($password, $user['password'])) {
+                session_regenerate_id(true);
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
@@ -67,9 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 $_SESSION['full_name'] = $user['full_name'] ?? $user['username'];
                 
                 // Route by role — everyone goes to the real farm system
-                $redirect = '/Frontend/admin/dashboard.php';
+                $redirect = wangariAuthRedirectPath((string)$user['role']);
                 
-                echo "<script>window.location.href = '$redirect';</script>";
+                header('Location: ' . $redirect);
                 exit;
             } else {
                 $errors[] = 'Invalid username/email or password';

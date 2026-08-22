@@ -7,6 +7,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../includes/config.php';
 require_once dirname(__DIR__, 3) . '/Backend/config/email_policy.php';
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
 $errors = [];
 
 // 1. Verify CSRF State
@@ -105,6 +108,9 @@ try {
 
         unset($_SESSION['google_registration_profile'], $_SESSION['oauth_flow']);
         
+        // Rotate the session after OAuth authentication and rebuild CSRF state.
+        session_regenerate_id(true);
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         // Log in the user by updating session variables
         $_SESSION['user_id']     = $user['id'];
         $_SESSION['username']    = $user['username'];
@@ -133,9 +139,7 @@ try {
     session_write_close();
 
     // All authenticated farm roles go to the real farm system.
-    $redirect = ($_SESSION['role'] ?? '') === 'customer'
-        ? '/Frontend/index.php'
-        : '/Frontend/admin/dashboard.php';
+    $redirect = wangariAuthRedirectPath((string)($_SESSION['role'] ?? ''));
     header('Location: ' . $redirect);
     exit;
     

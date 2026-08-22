@@ -5,6 +5,8 @@
  */
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+
 // PHP 8.0 Polyfills for PHP 7.4 compatibility
 if (!function_exists('str_contains')) {
     function str_contains(string $haystack, string $needle): bool {
@@ -25,20 +27,10 @@ if (!function_exists('str_ends_with')) {
 // Start session using the shared file-based handler so every page reads the
 // same session store, even if some legacy pages bootstrap session early.
 if (session_status() === PHP_SESSION_NONE) {
-    $temp_dir = sys_get_temp_dir();
-    if (is_writable($temp_dir)) {
-        session_save_path($temp_dir);
-    }
-
-    // Secure Session Configuration
-    ini_set('session.cookie_httponly', '1');
-    ini_set('session.use_only_cookies', '1');
-    ini_set('session.use_strict_mode', '1');
-    ini_set('session.gc_maxlifetime', '7200');
-    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-        ini_set('session.cookie_secure', '1');
-    }
-    session_start();
+    wangariConfigureSession();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    wangariStartSession();
 }
 
 // Detect BASE_URL automatically
@@ -182,6 +174,16 @@ function wangariIsFarmSystemRole(string $role): bool {
         'sales_staff', 'customer', 'field_worker', 'veterinarian',
         'accountant', 'auditor', 'guest',
     ], true);
+}
+
+function wangariAuthRedirectPath(string $role): string {
+    if ($role === 'super_admin') {
+        return '/Frontend/admin/super_admin.php';
+    }
+    if ($role === 'customer') {
+        return '/Frontend/index.php';
+    }
+    return '/Frontend/admin/dashboard.php';
 }
 
 /**

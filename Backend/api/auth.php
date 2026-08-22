@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+require __DIR__ . '/../config/session.php';
 require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../config/email_policy.php';
 $pdo = getDatabaseConnection();
@@ -103,7 +104,7 @@ if (!empty($googleCode)) {
             }
         } else {
             if (session_status() === PHP_SESSION_NONE) {
-                session_start();
+                wangariStartSession();
             }
             $_SESSION['google_registration_profile'] = [
                 'google_id' => $googleId,
@@ -125,7 +126,7 @@ if (!empty($googleCode)) {
         }
 
         // Start session (do NOT override Redis session path)
-        if (session_status() === PHP_SESSION_NONE) session_start();
+        wangariStartSession();
 
         $_SESSION['user_id']    = $user['id'];
         $_SESSION['username']   = $user['username'];
@@ -194,7 +195,7 @@ try {
     }
 
     // Start session (do NOT override Redis session path)
-    if (session_status() === PHP_SESSION_NONE) session_start();
+    wangariStartSession();
 
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];

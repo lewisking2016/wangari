@@ -16,11 +16,7 @@ $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SE
 // Redirect if already logged in
 if (!empty($_SESSION['user_id'])) {
     $role = $_SESSION['role'] ?? '';
-    if (in_array($role, ['super_admin','farm_manager','stock_manager','sales_staff'])) {
-        header('Location: /Frontend/admin/dashboard.php');
-    } else {
-        header('Location: /Frontend/index.php');
-    }
+    header('Location: ' . wangariAuthRedirectPath((string)$role));
     exit;
 }
 
@@ -123,8 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                 ]);
                 $userId = $pdo->lastInsertId();
 
-                // Start session
+                // Rotate the session after account creation to prevent fixation.
                 if (session_status() === PHP_SESSION_NONE) session_start();
+                session_regenerate_id(true);
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 $_SESSION['user_id'] = $userId;
                 $_SESSION['username'] = $username;
                 $_SESSION['role'] = $mappedRole;
@@ -147,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     $pdo->prepare("INSERT INTO farm_members (farm_id, user_id, role, status, joined_at) VALUES (?, ?, 'farm_owner', 'active', NOW())")
                         ->execute([$farmId, $userId]);
 
-                    header('Location: /Frontend/admin/dashboard.php?welcome=1');
+                    header('Location: ' . wangariAuthRedirectPath($mappedRole) . '?welcome=1');
                     exit;
                 } else {
                     // Worker: join farm via code (they go to the farm system, not admin)
@@ -169,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
                     }
 
                     // Workers go to the farm system, not admin dashboard
-                    header('Location: /Frontend/admin/dashboard.php?welcome=1');
+                        header('Location: ' . wangariAuthRedirectPath($mappedRole) . '?welcome=1');
                     exit;
                 }
             }

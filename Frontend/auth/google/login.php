@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../includes/config.php';
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
 $_SESSION['oauth_flow'] = (($_GET['flow'] ?? 'login') === 'register') ? 'register' : 'login';
 
 // Generate a secure state token to prevent CSRF attacks
