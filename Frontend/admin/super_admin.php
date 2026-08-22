@@ -631,7 +631,7 @@ try {
 </div>
 
 <script>
-const API = '/api/super_admin.php';
+const API = '/Backend/api/super_admin.php';
 const COLORS = { super_admin:'#DC2626', farm_manager:'#16A34A', stock_manager:'#3B82F6', sales_staff:'#F59E0B', customer:'#6B7280' };
 
 function switchTab(id, btn) {
@@ -650,6 +650,9 @@ async function loadUsers() {
         const res = await fetch(`${API}?endpoint=users&search=${encodeURIComponent(q)}&role=${r}`);
         const d = await res.json();
         const tb = document.getElementById('sa-users-body');
+        if (!res.ok || d.error) {
+            throw new Error(d.error || `Users request failed (${res.status})`);
+        }
         document.getElementById('sa-count').textContent = `${d.total} user(s)`;
         if (!d.users || !d.users.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--sa-muted);">No users found.</td></tr>'; return; }
         tb.innerHTML = d.users.map(u => {
@@ -667,7 +670,11 @@ async function loadUsers() {
             </tr>`;
         }).join('');
         if (typeof lucide !== 'undefined') lucide.createIcons();
-    } catch(e) { console.error(e); }
+    } catch(e) {
+        console.error('Unable to load users', e);
+        const tb = document.getElementById('sa-users-body');
+        if (tb) tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#B91C1C;">Unable to load users: ${h(e.message || 'Unknown error')}</td></tr>`;
+    }
 }
 function searchUsers() { loadUsers(); }
 
