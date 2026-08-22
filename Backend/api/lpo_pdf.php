@@ -48,8 +48,8 @@ $itemsStmt->execute([$id]);
 $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $farmName  = getSetting('farm_name', 'Wangari Farm OS');
-$farmEmail = getSetting('farm_email', 'info@wangari.farm');
-$farmPhone = getSetting('farm_phone', '+254 727 585 599');
+$farmEmail = getSetting('farm_email', 'info@imeantech.com');
+$farmPhone = getSetting('farm_phone', '+254 114 971 070');
 $farmAddr  = getSetting('farm_address', 'Kenya');
 $currency  = getSetting('currency', 'KES');
 $typeLabel = ['quotation' => 'QUOTATION', 'lpo' => 'LOCAL PURCHASE ORDER', 'invoice' => 'INVOICE'][$doc['doc_type']] ?? strtoupper($doc['doc_type']);

@@ -142,7 +142,7 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    You can order through our website shop, call +254 727 585 599, or visit our farm. Orders are processed immediately and we confirm delivery within 24 hours. Bulk orders should be placed at least 3 days in advance.
+                    You can contact the Wangari team at info@imeantech.com or +254 114 971 070 for support and order enquiries.
                 </div>
             </div>
 
@@ -272,7 +272,7 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    Call us immediately: +254 727 585 599. We have a vet on call for emergency advice. Isolate sick birds, improve ventilation, and ensure clean water. Don't delay, early treatment saves lives and prevents spread.
+                    Call +254 114 971 070 for urgent support. Isolate sick birds, improve ventilation, and ensure clean water while waiting for professional guidance.
                 </div>
             </div>
 
@@ -282,7 +282,7 @@ include '../includes/header.php';
                     <div class="faq-toggle">▼</div>
                 </div>
                 <div class="faq-answer">
-                    Yes! Farm visits are welcome by appointment for biosafety reasons. Call +254 727 585 599 to schedule. Educational groups and business partners get special rates. We provide facility tours and hands-on training.
+                    Farm visits can be arranged by appointment. Email info@imeantech.com or call +254 114 971 070 to schedule.
                 </div>
             </div>
         </div>

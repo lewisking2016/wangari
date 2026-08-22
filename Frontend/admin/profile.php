@@ -182,7 +182,7 @@ $avatarUrl = $user['profile_pic'] ?: '';
 
                     <div style="margin-bottom: 14px;">
                         <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--admin-text-main);">Phone Number</label>
-                        <input type="text" name="phone_number" value="<?php echo htmlspecialchars($user['phone_number'] ?? ''); ?>" placeholder="+254 700 000 000" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+                        <input type="text" name="phone_number" value="<?php echo htmlspecialchars($user['phone_number'] ?? ''); ?>" placeholder="+254 114 971 070" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
                     </div>
 
                     <div style="margin-bottom: 20px;">

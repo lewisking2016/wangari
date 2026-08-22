@@ -10,8 +10,8 @@ if (!isset($path_prefix)) {
 }
 
 $site_name = function_exists('getSetting') ? getSetting('farm_name', 'Wangari') : 'Wangari';
-$site_email = function_exists('getSetting') ? getSetting('farm_email', 'info@wangari.farm') : 'info@wangari.farm';
-$site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727 585 599') : '+254 727 585 599';
+$site_email = function_exists('getSetting') ? getSetting('farm_email', 'info@imeantech.com') : 'info@imeantech.com';
+$site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 114 971 070') : '+254 114 971 070';
 ?>
 
     <!-- ═══════════════════════════════════════════════ -->

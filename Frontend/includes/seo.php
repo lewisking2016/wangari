@@ -35,7 +35,7 @@ function generateOrganizationSchema(): string
             '@type' => 'ContactPoint',
             'contactType' => 'Customer Service',
             'telephone' => '+254-727-585599',
-            'email' => 'info@wangari.farm',
+            'email' => 'info@imeantech.com',
             'areaServed' => ['KE', 'UG', 'TZ'],
             'availableLanguage' => ['en', 'sw']
         ]

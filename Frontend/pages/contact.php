@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
                     </div>
                     <div>
                         <h4 style="margin-bottom: 0.2rem;">Phone</h4>
-                        <p style="margin-bottom: 0.2rem;"><a href="tel:+254727585599" style="color: var(--g-ink); font-weight: 600; font-size: 1.05rem;">+254 727 585 599</a></p>
+                        <p style="margin-bottom: 0.2rem;"><a href="tel:+254114971070" style="color: var(--g-ink); font-weight: 600; font-size: 1.05rem;">+254 114 971 070</a></p>
                         <p style="color: var(--g-muted); font-size: 0.9rem; margin: 0;">Mon - Fri, 8:00 AM - 6:00 PM EAT</p>
                     </div>
                 </div>

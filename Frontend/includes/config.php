@@ -64,8 +64,8 @@ define('APP_DEBUG', APP_ENV === 'development');
 define('SITE_NAME', 'Wangari');
 define('SITE_TAGLINE', 'Smart Farming for a Sustainable Future');
 define('SITE_DESCRIPTION', 'The all-in-one farm management platform for Africa. Track livestock, crops, feed production, sales and finances, and grow smarter, rooted in the spirit of Prof. Wangari Maathai.');
-define('SITE_EMAIL', 'info@wangari.farm');
-define('SITE_PHONE', '+254 727 585 599');
+define('SITE_EMAIL', 'info@imeantech.com');
+define('SITE_PHONE', '+254 114 971 070');
 define('SITE_ADDRESS', 'Nairobi, Kenya');
 
 // Pagination

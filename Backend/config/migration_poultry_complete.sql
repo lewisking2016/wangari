@@ -407,8 +407,8 @@ CREATE TABLE IF NOT EXISTS settings (
 
 INSERT IGNORE INTO settings (setting_key, setting_value, setting_group, description) VALUES
 ('farm_name',            'Wangari Farm',  'general', 'Display name of the farm'),
-('farm_phone',           '+254 727 585 599',    'general', 'Primary contact phone'),
-('farm_email',           'info@wangari.farm','general','Contact email'),
+('farm_phone',           '+254 114 971 070',    'general', 'Primary contact phone'),
+('farm_email',           'info@imeantech.com','general','Contact email'),
 ('farm_address',         'Nasira AC Sub-location, Busibwabo, Wangari, Kenya', 'general', 'Physical address'),
 ('currency_code',        'KES',                'general', 'Currency code'),
 ('default_crate_price',  '380',                'sales',   'Default price per crate of eggs'),

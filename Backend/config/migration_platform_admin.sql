@@ -229,12 +229,12 @@ INSERT INTO platform_settings (setting_key, setting_value, setting_type, descrip
 ('grow_price', '999', 'number', 'Grow plan monthly price in KES'),
 ('scale_price', '2999', 'number', 'Scale plan monthly price in KES'),
 ('enterprise_price', '15000', 'number', 'Enterprise plan monthly price in KES'),
-('support_email', 'support@wangari.imeantech.com', 'string', 'Support email address'),
+('support_email', 'info@imeantech.com', 'string', 'Support email address'),
 ('platform_name', 'Wangari', 'string', 'Platform name')
 ON DUPLICATE KEY UPDATE setting_key=setting_key;
 
 -- Default Emergency Contacts
 INSERT INTO emergency_contacts (name, role, phone, email) VALUES
-('Wangari Support', 'Technical Support', '+254 700 000 000', 'support@wangari.imeantech.com'),
+('Wangari Support', 'Technical Support', '+254 114 971 070', 'info@imeantech.com'),
 ('iMeanTech', 'Platform Owner', '+254 700 000 001', 'info@imeantech.com')
 ON DUPLICATE KEY UPDATE id=id;

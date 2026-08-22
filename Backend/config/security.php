@@ -298,7 +298,7 @@ function getFlashMessage(): ?array
  */
 function sendAppMail(PDO $pdo, string $to, string $subject, string $body): bool
 {
-    $from = 'info@wangari.farm';
+    $from = 'info@imeantech.com';
     $fromName = 'Wangari';
     try {
         $rows = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('mail_from','mail_from_name','farm_email','farm_name')")->fetchAll(PDO::FETCH_KEY_PAIR);

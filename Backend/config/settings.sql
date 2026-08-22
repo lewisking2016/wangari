@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS site_settings (
 -- Insert default settings
 INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
 ('farm_name', 'Wangari Farm'),
-('farm_email', 'info@wangari.farm'),
-('farm_phone', '+254 700 000 000'),
+('farm_email', 'info@imeantech.com'),
+('farm_phone', '+254 114 971 070'),
 ('farm_address', 'Wangari, Kenya'),
 ('currency', 'KES'),
 ('mpesa_shortcode', '174379'),
