@@ -179,6 +179,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_submit'])) {
     // If errors, fall through to show form with step 2
     $step = 2;
 }
+
+// Persist the token and any Google registration profile before rendering.
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

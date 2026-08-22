@@ -82,6 +82,7 @@ assertContains($googleCallback, 'session_write_close();', 'Google callback sessi
 assertContains($configPhp, "require_once dirname(__DIR__, 2) . '/Backend/config/session.php';", 'shared session bootstrap');
 assertContains($sessionPhp, 'Backend/storage/sessions', 'shared session storage');
 assertContains($sessionPhp, "session.cookie_samesite', 'Lax'", 'session cookie policy');
+assertContains($sessionPhp, '/var/lib/php/sessions', 'system session storage fallback');
 assertContains($loginPhp, "session_regenerate_id(true);", 'password login session rotation');
 
 echo "Auth flow checks passed." . PHP_EOL;
