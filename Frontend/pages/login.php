@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
                 <h4>Product</h4>
                 <ul class="xai-footer-links">
-                    <li><a href="/Frontend/index.php#features">Features</a></li>
+                    <li><a href="/Frontend/pages/services.php">Services</a></li>
                     <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
                 </ul>
             </div>
