@@ -1,10 +1,10 @@
 <?php
 /**
- * Wangari Landing Page — x.ai/bot inspired design
+ * Wangari Landing Page - x.ai/bot inspired design
  */
 declare(strict_types=1);
 
-$page_title = 'Wangari — Smart Farming for a Sustainable Future';
+$page_title = 'Wangari - Smart Farming for a Sustainable Future';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -102,7 +102,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                 Trusted by 200+ farms across Kenya
             </div>
             <h1>One System.<br>Every Farm.<br><span>Smart Farming Technology</span></h1>
-            <p class="xai-hero-sub">Wangari runs the daily life of your farm — flocks, feed production, sales, and finances — in one simple platform that works on any device.</p>
+            <p class="xai-hero-sub">Wangari keeps your farm records, feed production, sales, and finances in one platform that works on any device.</p>
             <div class="xai-hero-actions">
                 <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary xai-btn-lg">
                     Get Started Free
@@ -141,7 +141,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                         <div class="xai-preview-dot"></div>
                         <div class="xai-preview-dot"></div>
                         <div class="xai-preview-dot"></div>
-                        <span class="xai-preview-title">Wangari Farm OS — Live Dashboard</span>
+                        <span class="xai-preview-title">Wangari Farm OS - Live Dashboard</span>
                     </div>
                     <!-- Animated WebP walkthrough recording -->
                     <img
@@ -154,7 +154,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                 <!-- Caption below frame -->
                 <p class="xai-preview-caption">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg>
-                    Live recording of the Wangari admin dashboard — no demo data, this is the real system
+                    Live recording of the Wangari admin dashboard - no demo data, this is the real system
                 </p>
             </div>
         </div>
@@ -175,7 +175,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                 </div>
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">98<span>%</span></div>
-                    <div class="xai-impact-label">Uptime — always available</div>
+                    <div class="xai-impact-label">Uptime - always available</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">3x</div>
@@ -189,9 +189,9 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
     <section class="xai-section" id="features">
         <div class="xai-container">
             <div class="xai-header xai-reveal">
-                <div class="xai-header-eyebrow">What is Wangari?</div>
+                <div class="xai-header-eyebrow">What Wangari Does</div>
                 <h2>One platform built<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">for African farms</span></h2>
-                <p style="max-width:640px;margin:0 auto;">Wangari is a complete farm management system — part ERP, part CRM, part AI assistant — designed for poultry farmers, livestock keepers, crop growers, feed millers, and agri-vets. Replace notebooks and spreadsheets with live dashboards your whole team can use, on any device, anywhere.</p>
+                <p style="max-width:640px;margin:0 auto;">Wangari is a complete farm management system designed for poultry farmers, livestock keepers, crop growers, feed millers, and agri-vets. Replace notebooks and spreadsheets with live dashboards your whole team can use, on any device, anywhere.</p>
             </div>
 
             <!-- 3-column explainer -->
@@ -201,14 +201,14 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     </div>
                     <h3>Runs on your farm</h3>
-                    <p>Record daily production, track flock health, manage feed batches and capture sales — all from a phone or tablet in the shed, not just the office.</p>
+                    <p>Record daily production, track flock health, manage feed batches and capture sales - all from a phone or tablet in the shed, not just the office.</p>
                 </div>
                 <div class="xai-trio-card">
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#3b82f622,#1d4ed811);">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     </div>
                     <h3>Real profit visibility</h3>
-                    <p>Know your exact cost per bag, cost per bird, revenue per customer and net profit per month — automatically, with no manual calculations.</p>
+                    <p>Know your exact cost per bag, cost per bird, revenue per customer and net profit per month - automatically, with no manual calculations.</p>
                 </div>
                 <div class="xai-trio-card">
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#a855f722,#7c3aed11);">
@@ -241,7 +241,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                         <span class="xai-module-tag">Poultry Hub</span>
                     </div>
                     <h3>Poultry & Flocks</h3>
-                    <p>Manage multiple flocks — broilers, layers, chicks. Record daily mortality, egg production, body weight, FCR and feed consumption. Set vaccination schedules and get automatic health alerts.</p>
+                    <p>Manage multiple flocks - broilers, layers, chicks. Record daily mortality, egg production, body weight, FCR and feed consumption. Set vaccination schedules and get automatic health alerts.</p>
                     <ul class="xai-module-list">
                         <li>Batch creation & lifecycle tracking</li>
                         <li>Daily production entries (eggs, weight, mortality)</li>
@@ -456,7 +456,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                     <div class="xai-testimonial-stars">
                         <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
                     </div>
-                    <p>"Wangari replaced our spreadsheets overnight. Production, feed costs, sales and credit — one place, always up to date. We finally know our real profit."</p>
+                    <p>"Wangari replaced our spreadsheets overnight. Production, feed costs, sales and credit - one place, always up to date. We finally know our real profit."</p>
                     <div class="xai-testimonial-author">
                         <div class="xai-testimonial-avatar">N</div>
                         <div>
@@ -482,7 +482,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                     <div class="xai-testimonial-stars">
                         <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
                     </div>
-                    <p>"I run my shop, my credit customers and my orders from my phone. The AI assistant answers questions from our own records — it just works."</p>
+                    <p>"I run my shop, my credit customers and my orders from my phone. The AI assistant answers questions from our own records - it just works."</p>
                     <div class="xai-testimonial-author">
                         <div class="xai-testimonial-avatar">A</div>
                         <div>
@@ -650,14 +650,14 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
             <div class="xai-faq xai-reveal">
                 <?php
                 $faqs = [
-                    ["What exactly is Wangari?", "Wangari is an all-in-one farm management system — a mix of ERP, CRM and operations software. It handles production, inventory, feed, sales, credit, and finance for farms and agribusinesses of every size."],
+                    ["What exactly is Wangari?", "Wangari is an all-in-one farm management system - a mix of ERP, CRM and operations software. It handles production, inventory, feed, sales, credit, and finance for farms and agribusinesses of every size."],
                     ["Which types of farms does it support?", "Wangari supports poultry farms (broilers & layers), dairy & livestock farms, crop farms, feed mills, agro-vets and mixed farming operations. Each hub can be turned on or off based on what your farm does."],
                     ["Do I need internet to use Wangari?", "Wangari is a web app that requires internet to sync data. However, you can install it on a local server on your farm so it works on your LAN without an internet connection."],
-                    ["Does it work on my phone?", "Yes. Wangari is fully responsive and works on any smartphone, tablet or computer. Capture production in the shed and check reports from home — no app download needed."],
+                    ["Does it work on my phone?", "Yes. Wangari is fully responsive and works on any smartphone, tablet or computer. Capture production in the shed and check reports from home - no app download needed."],
                     ["How many users can I add?", "There is no hard limit on users. You can add as many team members as you need, each with their own role (Admin, Manager, Worker, Viewer) controlling what they can see and do."],
                     ["Is my data safe and who owns it?", "You own your data, always. Records are encrypted, access is role-based, and you can export or delete everything at any time. No lock-in, no hidden fees."],
                     ["Can I export my data?", "Yes. Every report, ledger and record can be exported as CSV or PDF. You can also run database backups at any time."],
-                    ["Does it integrate with M-Pesa?", "The finance hub is designed to work alongside M-Pesa — you can record M-Pesa payments and reconcile them with your cashbook. Direct API integration is available on the business plan."],
+                    ["Does it integrate with M-Pesa?", "The finance hub is designed to work alongside M-Pesa - you can record M-Pesa payments and reconcile them with your cashbook. Direct API integration is available on the business plan."],
                     ["How do I get started?", "Click Get Started Free above, create your farm profile, add your first flock or herd and begin recording. Our setup wizard and support team walk you through everything."],
                 ];
                 foreach ($faqs as $i => $faq):
@@ -687,7 +687,7 @@ $page_title = 'Wangari — Smart Farming for a Sustainable Future';
                     <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
                     Wangari<span>.</span>
                 </div>
-                <p class="xai-footer-desc">Smart Farming for a Sustainable Future. All-in-one farm management system for poultry, livestock, crops, and finances — built for African agriculture.</p>
+                <p class="xai-footer-desc">Smart Farming for a Sustainable Future. All-in-one farm management system for poultry, livestock, crops, and finances - built for African agriculture.</p>
                 <div class="xai-footer-contact">
                     <a href="mailto:info@imeantech.com" class="xai-footer-contact-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Global Footer, Wangari
- * Growvi-style dark ink footer with email subscribe strip.
+ * Shared public footer used across the site.
  */
 declare(strict_types=1);
 
@@ -26,7 +26,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
                         <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
                         <span>Wangari<em>.</em></span>
                     </a>
-                    <p>Smart farming for a sustainable future. Track poultry, livestock, crops, feed production, sales and finances in one place, inspired by Prof. Wangari Maathai.</p>
+                    <p>Farm management that keeps your records, sales, and team in one place.</p>
                     <p style="margin-top: 1rem; color: rgba(255,255,255,0.8);">
                         <?php echo htmlspecialchars($site_phone, ENT_QUOTES, 'UTF-8'); ?><br>
                         <?php echo htmlspecialchars($site_email, ENT_QUOTES, 'UTF-8'); ?>
@@ -35,7 +35,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
 
                 <!-- Menus -->
                 <div>
-                    <h4>Menus</h4>
+                    <h4>Browse</h4>
                     <ul class="g-footer-links">
                         <li><a href="/Frontend/pages/about.php">About Us</a></li>
                         <li><a href="/Frontend/pages/pricing.php">Pricing</a></li>
@@ -46,7 +46,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
 
                 <!-- CMS Pages -->
                 <div>
-                    <h4>Explore</h4>
+                    <h4>Useful Links</h4>
                     <ul class="g-footer-links">
                         <li><a href="/Frontend/pages/services.php">Services</a></li>
                         <li><a href="/Frontend/pages/faq.php">FAQ</a></li>
@@ -56,8 +56,8 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
 
                 <!-- Stay Up To Date -->
                 <div class="g-subscribe">
-                    <h4>Stay Up To Date</h4>
-                    <p>Get the latest farming tips, insights, and updates delivered straight to your inbox.</p>
+                    <h4>Stay Informed</h4>
+                    <p>Receive product updates, farming tips, and support news by email.</p>
                     <form class="g-subscribe-form" id="gSubscribeForm" action="<?php echo $path_prefix; ?>pages/newsletter.php" method="post">
                         <input type="email" name="email" placeholder="you@farm.co.ke" required aria-label="Email address">
                         <button type="submit" aria-label="Subscribe">Subscribe</button>
