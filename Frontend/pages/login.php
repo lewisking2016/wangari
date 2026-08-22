@@ -4,11 +4,9 @@
  */
 declare(strict_types=1);
 
-$temp_dir = sys_get_temp_dir();
-if (is_writable($temp_dir)) {
-    session_save_path($temp_dir);
-}
-session_start();
+// Load config (handles Redis sessions, DB connection, security functions)
+require_once __DIR__ . '/../includes/config.php';
+require_once dirname(__DIR__, 2) . '/Backend/config/security.php';
 
 $page_title = 'Sign In — Wangari';
 // No header.php include - this page has its own xai-nav navigation
@@ -36,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
 
     if (empty($errors)) {
         $pdo = getDB();
+        if (!$pdo) { $errors[] = 'Database connection failed'; }
         
         try {
             $stmt = $pdo->prepare("SELECT id, username, password_hash, role, first_name, last_name FROM users WHERE username = ? OR email = ?");

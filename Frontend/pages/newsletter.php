@@ -7,12 +7,6 @@ declare(strict_types=1);
 $path_prefix = '../';
 $page_title = 'Newsletter - Wangari';
 
-if (session_status() === PHP_SESSION_NONE) {
-    $temp_dir = sys_get_temp_dir();
-    if (is_writable($temp_dir)) session_save_path($temp_dir);
-    session_start();
-}
-
 require_once __DIR__ . '/../includes/config.php';
 $pdo = getDB();
 
