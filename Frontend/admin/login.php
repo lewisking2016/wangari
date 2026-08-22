@@ -4,16 +4,11 @@
  */
 declare(strict_types=1);
 
-// Use temp session path
-$temp_dir = sys_get_temp_dir();
-if (is_writable($temp_dir)) session_save_path($temp_dir);
-session_start();
+// Load config (handles Redis sessions)
+require_once __DIR__ . '/../includes/config.php';
 
 $path_prefix = '../';
 $page_title = 'Admin Portal - Wangari';
-
-// Load frontend config
-require_once __DIR__ . '/../includes/config.php';
 
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
 
