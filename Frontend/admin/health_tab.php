@@ -5,7 +5,7 @@
 declare(strict_types=1);
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager'], true)) {
-    echo "<script>window.location.href = '/wangariadmin';</script>";
+    echo "<script>window.location.href = '/Frontend/pages/login.php';</script>";
     exit;
 }
 

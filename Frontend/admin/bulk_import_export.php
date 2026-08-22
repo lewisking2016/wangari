@@ -22,7 +22,7 @@ require_once __DIR__ . '/../includes/config.php';
 
 // Check admin access
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','sales_staff'], true)) {
-    echo "<script>window.location.href = '/wangariadmin';</script>";
+    echo "<script>window.location.href = '/Frontend/pages/login.php';</script>";
     exit;
 }
 

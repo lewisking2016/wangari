@@ -13,6 +13,10 @@ if (empty($_SESSION['user_id'])) {
     exit;
 }
 
+// All users go to the real farm system
+header('Location: /Frontend/admin/dashboard.php');
+exit;
+
 $userId   = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? '';
 $role     = $_SESSION['role'] ?? 'farm_manager';

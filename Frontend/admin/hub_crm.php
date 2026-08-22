@@ -10,7 +10,7 @@ if (is_writable($temp_dir)) session_save_path($temp_dir);
 session_start();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','stock_manager'], true)) {
-    echo "<script>window.location.href='/wangariadmin';</script>"; exit;
+    echo "<script>window.location.href='/Frontend/pages/login.php';</script>"; exit;
 }
 
 $page_title = 'CRM & Customers - Admin';

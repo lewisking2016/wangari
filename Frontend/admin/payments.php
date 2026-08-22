@@ -12,7 +12,7 @@ $page_title = 'Payments - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager','sales_staff'], true)) {
-    header('Location: /wangariadmin');
+    header('Location: /Frontend/pages/login.php');
     exit;
 }
 

@@ -50,7 +50,7 @@ $site_phone = function_exists('getSetting') ? getSetting('farm_phone', '+254 727
                     <ul class="g-footer-links">
                         <li><a href="/Frontend/pages/services.php">Services</a></li>
                         <li><a href="/Frontend/pages/faq.php">FAQ</a></li>
-                        <li><a href="/wangariadmin">System Login</a></li>
+                        <li><a href="/Frontend/pages/login.php">System Login</a></li>
                     </ul>
                 </div>
 
