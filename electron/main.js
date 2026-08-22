@@ -13,6 +13,13 @@ const http   = require('http');
 const https  = require('https');
 const { spawn, execSync } = require('child_process');
 const os     = require('os');
+let database, syncEngine;
+try {
+  database   = require('./database');
+  syncEngine = require('./sync-engine');
+} catch (e) {
+  console.warn('[wangari] Offline modules not available:', e.message);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -310,14 +317,35 @@ function createMainWindow(jwtToken) {
 
   Menu.setApplicationMenu(null);
 
-  mainWindow.loadURL(`http://127.0.0.1:${PHP_PORT}/Frontend/admin/dashboard.php`);
+  // Try to load the server UI; fall back to offline page if PHP is down
+  const phpUrl = `http://127.0.0.1:${PHP_PORT}/Frontend/admin/dashboard.php`;
+  const offlinePath = path.join(__dirname, 'offline.html');
+
+  mainWindow.loadURL(phpUrl).catch(() => {
+    console.warn('[wangari] PHP server unreachable — loading offline mode');
+    mainWindow.loadFile(offlinePath);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (_e, code, desc) => {
+    if (code === -6 || code === -3) { // ERR_FILE_NOT_FOUND or ERR_CONNECTION_REFUSED
+      console.warn('[wangari] Load failed (' + desc + ') — switching to offline mode');
+      mainWindow.loadFile(offlinePath);
+    }
+  });
+
   mainWindow.once('ready-to-show', () => { mainWindow.show(); mainWindow.focus(); });
-  mainWindow.on('closed', () => { mainWindow = null; stopPhpServer(); });
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    stopPhpServer();
+    if (syncEngine) syncEngine.stop();
+  });
 
   // Heartbeat every 6 hours
   setInterval(heartbeat, 6 * 60 * 60 * 1000);
-  // Start offline sync service
-  startSyncService();
+
+  // Start sync engine if available
+  if (syncEngine) syncEngine.start(mainWindow);
+  else startSyncService(); // legacy queue fallback
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -489,19 +517,25 @@ function stopSyncService() {
 }
 
 // IPC: sync operations
+// Sync engine IPC (new)
 ipcMain.handle('sync:status', () => {
+  if (syncEngine) {
+    const queue = getSyncQueue();
+    return { pending: queue.length, lastSync: queue.length > 0 ? queue[0].timestamp : null };
+  }
   const queue = getSyncQueue();
   return { pending: queue.length, lastSync: queue.length > 0 ? queue[0].timestamp : null };
 });
 
 ipcMain.handle('sync:push', async (_e, action) => {
-  addToSyncQueue(action);
-  await processSyncQueue();
+  if (syncEngine) await syncEngine.pushChanges();
+  else { addToSyncQueue(action); await processSyncQueue(); }
   return { success: true, pending: getSyncQueue().length };
 });
 
 ipcMain.handle('sync:pull', async () => {
-  // Pull latest data from server
+  if (syncEngine) return syncEngine.pullChanges();
+  // Legacy pull
   const online = await isOnline();
   if (!online) return { success: false, error: 'Offline' };
   try {
@@ -529,6 +563,49 @@ ipcMain.handle('sync:pull', async () => {
   } catch (e) {
     return { success: false, error: e.message };
   }
+});
+
+// Database IPC handlers
+ipcMain.handle('db:getStats', () => {
+  if (!database) return { error: 'Database not available' };
+  try { return database.getStats(); }
+  catch (e) { return { error: e.message }; }
+});
+
+ipcMain.handle('db:getDashboard', () => {
+  if (!database) return { error: 'Database not available' };
+  try { return database.getDashboardData(); }
+  catch (e) { return { error: e.message }; }
+});
+
+ipcMain.handle('db:query', (_e, { table, filter, limit, offset }) => {
+  if (!database) return [];
+  try { return database.findAll(table, { where: '', params: [], limit: limit || 100, offset: offset || 0 }); }
+  catch (e) { return []; }
+});
+
+ipcMain.handle('db:insert', (_e, { table, data }) => {
+  if (!database) return { error: 'Database not available' };
+  try { return database.insert(table, data); }
+  catch (e) { return { error: e.message }; }
+});
+
+ipcMain.handle('db:update', (_e, { table, id, data }) => {
+  if (!database) return { error: 'Database not available' };
+  try { return database.update(table, id, data); }
+  catch (e) { return { error: e.message }; }
+});
+
+ipcMain.handle('db:delete', (_e, { table, id }) => {
+  if (!database) return { error: 'Database not available' };
+  try { return database.remove(table, id); }
+  catch (e) { return { error: e.message }; }
+});
+
+ipcMain.handle('sync:forceFull', async () => {
+  if (!syncEngine) return { success: false, error: 'Sync engine not available' };
+  try { return { success: true, result: await syncEngine.fullSync() }; }
+  catch (e) { return { success: false, error: e.message }; }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -563,6 +640,8 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
   stopPhpServer();
   stopSyncService();
+  if (syncEngine) syncEngine.stop();
+  if (database) database.closeDatabase();
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -571,8 +650,15 @@ app.on('activate', () => {
     const lic = loadLicense();
     if (isLicenseValid(lic)) {
       startPhpServer(lic.jwt);
-      waitForPhp().then(() => createMainWindow(lic.jwt));
+      waitForPhp()
+        .then(() => createMainWindow(lic.jwt))
+        .catch(() => createMainWindow(lic.jwt)); // still create — offline fallback
     }
   }
+});
+
+app.on('before-quit', () => {
+  if (database) database.closeDatabase();
+  if (syncEngine) syncEngine.stop();
 });
 

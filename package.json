@@ -14,7 +14,8 @@
     "electron:dev:win": "set WANGARI_DEV=1 && set WANGARI_MODE=desktop && electron electron/main.js",
     "electron:build:win": "electron-builder --win --x64",
     "electron:build:mac": "electron-builder --mac",
-    "electron:build:linux": "electron-builder --linux"
+    "electron:build:linux": "electron-builder --linux",
+    "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "keywords": [
     "farming",
@@ -94,10 +95,15 @@
     "prettier": "^3.9.5"
   },
   "dependencies": {
+    "better-sqlite3": "^11.0.0",
     "chart.js": "^4.4.0",
     "gsap": "^3.15.0",
     "lucide": "^1.25.0",
     "motion": "^12.42.2",
     "swiper": "^14.0.5"
+  },
+  "build": {
+    "npmRebuild": true,
+    "nativeRebuilder": true
   }
 }
