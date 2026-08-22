@@ -51,5 +51,10 @@ assertNotContains($googleCallback, 'session_start();', 'google callback bootstra
 assertNotContains($dashboard, 'session_save_path(', 'admin dashboard bootstrap');
 assertContains($dashboard, "require_once __DIR__ . '/../includes/config.php';", 'admin dashboard bootstrap');
 assertNotContains($configPhp, "save_handler', 'redis'", 'shared session config');
+assertContains($googleCallback, 'No local account matches this Google email', 'google callback');
+assertContains($googleCallback, 'header(\'Location: /Frontend/pages/login.php?google=required\')', 'google callback');
+assertNotContains($googleCallback, 'New User: Register them automatically', 'google callback');
+assertNotContains($googleCallback, 'INSERT INTO users (username, email, password, full_name, role, google_id, profile_pic, created_at)', 'google callback');
+assertContains($loginPhp, 'No local account matches this Google email', 'public login page');
 
 echo "Auth flow checks passed." . PHP_EOL;

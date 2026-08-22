@@ -20,6 +20,16 @@ if (isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'customer') {
 
 $errors = [];
 $username = '';
+$googleNotice = '';
+
+if (!empty($_SESSION['google_login_error'])) {
+    $googleNotice = (string) $_SESSION['google_login_error'];
+    unset($_SESSION['google_login_error']);
+} elseif (($_GET['google'] ?? '') === 'required') {
+    $googleNotice = 'No local account matches this Google email. Please register first using the same email, or ask an admin to create your account.';
+} elseif (($_GET['google'] ?? '') === 'inactive') {
+    $googleNotice = 'This account is inactive. Please contact support or your admin.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -96,6 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
         <div class="xai-auth-card">
             <h1>Sign In</h1>
             <p>Enter your credentials to access your account.</p>
+
+            <?php if (!empty($googleNotice)): ?>
+                <div style="padding: 16px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; color: #92400E; margin-bottom: 24px; font-size: 0.9rem;">
+                    <?php echo htmlspecialchars($googleNotice, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
+            <?php endif; ?>
             
             <?php if (!empty($errors)): ?>
                 <div style="padding: 16px; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 12px; color: #991B1B; margin-bottom: 24px; font-size: 0.9rem;">

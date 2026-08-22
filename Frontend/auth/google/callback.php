@@ -49,7 +49,7 @@ $firstName = $profile['given_name'] ?? '';
 $lastName  = $profile['family_name'] ?? '';
 $picture   = $profile['picture'] ?? '';
 
-// 4. Log in or Sign up User
+// 4. Log in existing user only
 $pdo = getDB();
 if (!$pdo) {
     die("Database connection error.");
@@ -62,6 +62,11 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
+        if (!empty($user['is_active']) && (int)$user['is_active'] !== 1) {
+            header('Location: /Frontend/pages/login.php?google=inactive');
+            exit;
+        }
+
         // User exists: Update Google ID & profile pic if missing
         $updateFields = [];
         $params = [];
@@ -90,46 +95,9 @@ try {
         $_SESSION['email']       = $email;
         
     } else {
-        // New User: Register them automatically
-        
-        // Derive username from email
-        $username = strtolower(str_replace(['@', '.'], ['', ''], explode('@', $email)[0]));
-        $username = preg_replace('/[^a-z0-9]/', '', $username);
-        
-        // Ensure username uniqueness
-        $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-        $checkStmt->execute([$username]);
-        if ($checkStmt->fetch()) {
-            $username = $username . rand(100, 999);
-        }
-        
-        // Create random password (user logs in via Google)
-        $passwordHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
-        
-        // Insert user
-        $insertStmt = $pdo->prepare("
-            INSERT INTO users (username, email, password, full_name, role, google_id, profile_pic, created_at)
-            VALUES (?, ?, ?, ?, 'farm_manager', ?, ?, NOW())
-        ");
-        
-        $insertStmt->execute([
-            $username,
-            $email,
-            $passwordHash,
-            trim($firstName . ' ' . $lastName),
-            $googleId,
-            $picture
-        ]);
-        
-        $newUserId = $pdo->lastInsertId();
-        
-        // Log in the user
-        $_SESSION['user_id']     = $newUserId;
-        $_SESSION['username']    = $username;
-        $_SESSION['role']        = 'farm_manager';
-        $_SESSION['full_name']  = trim($firstName . ' ' . $lastName);
-        $_SESSION['profile_pic'] = $picture;
-        $_SESSION['email']       = $email;
+        $_SESSION['google_login_error'] = 'No local account matches this Google email. Please register first using the same email, or ask an admin to create your account.';
+        header('Location: /Frontend/pages/login.php?google=required');
+        exit;
     }
     
     // All users go to the real farm system
