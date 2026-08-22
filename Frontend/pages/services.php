@@ -52,7 +52,7 @@ include '../includes/header.php';
                 <div class="g-numbered-item g-reveal g-delay-3">
                     <span class="g-num">03</span>
                     <h3>Sales, Credit &amp; Finance</h3>
-                    <p>Orders, cashbook, customer credit, LPOs, invoices and profit reports, M-Pesa payment ready for Kenya.</p>
+                    <p>Orders, cashbook, customer credit, LPOs, invoices and profit reports, with M-Pesa payment records for Kenya-based teams.</p>
                     <div class="g-service-tags">
                         <span class="g-service-tag">M-Pesa</span>
                         <span class="g-service-tag">Profit Reports</span>
@@ -60,8 +60,8 @@ include '../includes/header.php';
                 </div>
                 <div class="g-numbered-item g-reveal g-delay-4">
                     <span class="g-num">04</span>
-                    <h3>Online Shop</h3>
-                    <p>Your own web storefront with cart, checkout, order tracking and M-Pesa payments, built into the system.</p>
+                    <h3>Sales &amp; Storefront</h3>
+                    <p>Manage products, customer orders, cart activity and order status from the sales side of the platform. Payment recording stays visible in the finance workflow.</p>
                     <div class="g-service-tags">
                         <span class="g-service-tag">Storefront</span>
                         <span class="g-service-tag">Cart &amp; Checkout</span>
@@ -96,11 +96,11 @@ include '../includes/header.php';
                 </div>
                 <div class="g-numbered-item g-reveal g-delay-8">
                     <span class="g-num">08</span>
-                    <h3>Multi-Language &amp; Mobile</h3>
-                    <p>Works on any device, smartphone, tablet or computer, with simple forms designed for the farm shed.</p>
+                    <h3>Responsive Web Access</h3>
+                    <p>Use the system on a smartphone, tablet or computer with simple forms designed for the farm office and shed.</p>
                     <div class="g-service-tags">
                         <span class="g-service-tag">Mobile First</span>
-                        <span class="g-service-tag">Your Language</span>
+                        <span class="g-service-tag">Any Screen</span>
                     </div>
                 </div>
             </div>

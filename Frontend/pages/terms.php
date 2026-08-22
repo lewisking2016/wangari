@@ -125,11 +125,11 @@ $page_title = 'Terms & Conditions — Wangari';
     <!-- ════════════════════════════════════════════════════ -->
     <h2 id="subscription">4. Subscription Plans &amp; Payment</h2>
     <h3>4.1 Free Trial</h3>
-    <p>Wangari offers a 40-day free trial with full Grow plan features. The trial:</p>
+    <p>Wangari offers a 40-day free trial with full access to the Wangari web system. The trial:</p>
     <ul>
         <li>Starts on the date of account registration</li>
         <li>Lasts 40 calendar days</li>
-        <li>Includes all Grow plan features (1 farm, 3 flocks, 2,000 animals, invoicing, M-Pesa, AI, team members)</li>
+        <li>Includes every available web module, with no usage caps on farms, records, team members, reports or AI questions</li>
         <li>Requires no credit card to start</li>
         <li>Automatically expires after 40 days — upgrade to a paid plan to continue</li>
         <li>Data is retained for 90 days after trial expiry to allow export</li>

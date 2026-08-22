@@ -21,11 +21,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
     $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message'] ?? '');
 
-    if ($name && $email && $phone && $subject && $message) {
-        $form_submitted = true;
-        $form_message = "Thank you for reaching out! We'll get back to you within 24 hours.";
+    if ($name && filter_var($email, FILTER_VALIDATE_EMAIL) && $phone && $subject && $message) {
+        try {
+            $db = function_exists('getDB') ? getDB() : null;
+            if (!$db) {
+                throw new RuntimeException('Contact storage is unavailable.');
+            }
+
+            $ticketCode = 'WEB-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+            $ticket = $db->prepare('INSERT INTO support_tickets (user_id, ticket_code, subject, category, priority, is_anonymous, reporter_name, reporter_email, reporter_phone, description) VALUES (NULL, ?, ?, ?, ?, 0, ?, ?, ?, ?)');
+            $ticket->execute([$ticketCode, $subject, 'other', 'medium', $name, $email, $phone, $message]);
+            $form_submitted = true;
+            $form_message = "Your message was received. Reference: {$ticketCode}. Our team will follow up using the contact details you provided.";
+        } catch (Throwable $e) {
+            error_log('Public contact submission failed: ' . $e->getMessage());
+            $form_message = 'We could not record your message right now. Please email info@imeantech.com or call us directly.';
+        }
     } else {
-        $form_message = "Please fill in all fields.";
+        $form_message = "Please fill in all fields with a valid email address.";
     }
 }
 ?>
@@ -66,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
                     </div>
                     <div>
                         <h4 style="margin-bottom: 0.2rem;">Email</h4>
-                        <p style="margin-bottom: 0.2rem;"><a href="mailto:info@wangari.farm" style="color: var(--g-ink); font-weight: 600; font-size: 1.05rem;">info@wangari.farm</a></p>
+                        <p style="margin-bottom: 0.2rem;"><a href="mailto:info@imeantech.com" style="color: var(--g-ink); font-weight: 600; font-size: 1.05rem;">info@imeantech.com</a></p>
                         <p style="color: var(--g-muted); font-size: 0.9rem; margin: 0;">We aim to respond within 24 hours</p>
                     </div>
                 </div>
@@ -85,9 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
                 <div style="margin-top: 2rem;">
                     <h4 style="margin-bottom: 1rem;">Follow Us</h4>
                     <div style="display: flex; gap: 0.8rem;">
-                        <a href="#" aria-label="Facebook" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">FB</a>
-                        <a href="#" aria-label="X" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">X</a>
-                        <a href="#" aria-label="Instagram" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">IG</a>
+                        <a href="mailto:info@imeantech.com" aria-label="Email Wangari" style="width: 42px; height: 42px; border: 1px solid var(--g-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--g-muted); transition: all 0.2s;">@</a>
                     </div>
                 </div>
             </div>
@@ -152,20 +163,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
         <div class="g-container">
             <div class="g-section-head center">
                 <span class="g-eyebrow">Find Us</span>
-                <h2>Visit our <span class="g-serif">farm</span></h2>
-                <p>Open for scheduled visits and pickups.</p>
+                <h2>Work with us <span class="g-serif">remotely or in person</span></h2>
+                <p>Our team supports onboarding and scheduled farm visits by arrangement.</p>
             </div>
-            <div style="border-radius: var(--g-radius); overflow: hidden; height: 420px; border: 1px solid var(--g-line);">
-                <iframe
-                    width="100%"
-                    height="100%"
-                    frameborder="0"
-                    style="border:0"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3981.5234567890!2d34.1234567!3d0.4567890!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sWangari%20Farm!5e0!3m2!1sen!2ske!4v1234567890"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
+            <div style="border-radius: var(--g-radius); padding: 2.5rem; background: var(--g-ink); color: #fff; border: 1px solid var(--g-line);">
+                <h3 style="color: #fff; margin-bottom: 0.8rem;">A clear next step</h3>
+                <p style="color: rgba(255,255,255,0.72); max-width: 620px; margin-bottom: 1.2rem;">Tell us what you manage, how your team records it today, and which part of the system you want to test. We will use your message to guide the next conversation.</p>
+                <a href="mailto:info@imeantech.com" class="g-btn g-btn-lime">Email the team</a>
             </div>
         </div>
     </section>

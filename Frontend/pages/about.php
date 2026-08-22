@@ -22,12 +22,12 @@ include '../includes/header.php';
     <div class="g-container g-stack-mobile" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(2.5rem, 6vw, 5rem); align-items: center;">
         <div class="g-reveal">
             <span class="g-eyebrow">Our Story</span>
-            <h2 style="font-size: clamp(1.9rem, 4vw, 2.9rem); margin-bottom: 1rem;">From a small family operation to a <span class="g-serif" style="color: var(--g-tan);">smart farming platform</span></h2>
+            <h2 style="font-size: clamp(1.9rem, 4vw, 2.9rem); margin-bottom: 1rem;">A practical platform for <span class="g-serif" style="color: var(--g-tan);">better farm decisions</span></h2>
             <p style="color: var(--g-muted); font-size: 1.05rem;">
-                Wangari began in 2015 as a small family poultry operation. What started with just 500 birds taught us something important: the farms that thrive are the ones that keep good records. Today we build the Wangari system so every farm, from a backyard flock to a full agribusiness, can run its operations, inventory, sales and finances in one place.
+                Wangari is a farm management platform for poultry, livestock, crops, feed production, sales and finance. It brings the records that teams usually keep in notebooks and spreadsheets into one workspace so owners can see what is happening and make decisions from current information.
             </p>
             <p style="color: var(--g-muted); font-size: 1.05rem;">
-                Our platform is named in honour of Prof. Wangari Maathai, the first African woman to win the Nobel Peace Prize, who taught us that small actions by many people create great change, one record, one flock, one farm at a time.
+                The name reflects the values associated with Prof. Wangari Maathai: practical action, responsible stewardship and progress built consistently over time. The product is designed for real farm teams, with role-based access, exports and workflows that can grow with the business.
             </p>
         </div>
         <div class="g-grid-2 g-reveal g-delay-1" style="gap: 1.2rem;">
@@ -36,16 +36,16 @@ include '../includes/header.php';
                 <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Production to profit, connected</span>
             </div>
             <div class="g-dash-tile" style="background: #fff; border: 1px solid var(--g-line); border-radius: var(--g-radius); padding: 1.5rem; text-align: center;">
-                <span class="g-dash-num" style="font-size: 1.9rem;">M-Pesa Ready</span>
-                <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Payments built for Kenya</span>
+                <span class="g-dash-num" style="font-size: 1.9rem;">M-Pesa Records</span>
+                <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Record and reconcile payments</span>
             </div>
             <div class="g-dash-tile" style="background: #fff; border: 1px solid var(--g-line); border-radius: var(--g-radius); padding: 1.5rem; text-align: center;">
                 <span class="g-dash-num" style="font-size: 1.9rem;">Your Data</span>
                 <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Export anytime, no lock-in</span>
             </div>
             <div class="g-dash-tile" style="background: #fff; border: 1px solid var(--g-line); border-radius: var(--g-radius); padding: 1.5rem; text-align: center;">
-                <span class="g-dash-num" style="font-size: 1.9rem;">24/7 Support</span>
-                <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Help & training included</span>
+                <span class="g-dash-num" style="font-size: 1.9rem;">Support &amp; Training</span>
+                <span class="g-dash-label" style="display: block; margin-top: 0.4rem;">Guidance when your team needs it</span>
             </div>
         </div>
     </div>
@@ -57,27 +57,27 @@ include '../includes/header.php';
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; text-align: center;">
             <div class="g-reveal g-delay-1">
                 <div style="font-size: 3.2rem; font-weight: 600; color: var(--g-lime); margin-bottom: 0.5rem;">
-                    <span class="stat-counter" data-target="10" data-suffix="k+">0</span>
+                    <span class="stat-counter" data-target="7" data-suffix="">0</span>
                 </div>
-                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Farms on Wangari</div>
+                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Connected farm hubs</div>
             </div>
             <div class="g-reveal g-delay-2">
                 <div style="font-size: 3.2rem; font-weight: 600; color: var(--g-lime); margin-bottom: 0.5rem;">
-                    <span class="stat-counter" data-target="5" data-suffix="k+">0</span>
+                    <span class="stat-counter" data-target="40" data-suffix="">0</span>
                 </div>
-                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Satisfied Users</div>
+                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Trial days with full access</div>
             </div>
             <div class="g-reveal g-delay-3">
                 <div style="font-size: 3.2rem; font-weight: 600; color: var(--g-lime); margin-bottom: 0.5rem;">
-                    <span class="stat-counter" data-target="10" data-suffix="+">0</span>
+                    <span class="stat-counter" data-target="1" data-suffix="">0</span>
                 </div>
-                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Years in Business</div>
+                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Workspace for each farm</div>
             </div>
             <div class="g-reveal g-delay-4">
                 <div style="font-size: 3.2rem; font-weight: 600; color: var(--g-lime); margin-bottom: 0.5rem;">
                     <span class="stat-counter" data-target="100" data-suffix="%">0</span>
                 </div>
-                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Data Ownership Guarantee</div>
+                <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6); font-weight: 500;">Your records remain exportable</div>
             </div>
         </div>
     </div>
@@ -121,28 +121,28 @@ include '../includes/header.php';
 <section class="g-section">
     <div class="g-container">
         <div class="g-section-head center g-reveal">
-            <span class="g-eyebrow">Leadership Team</span>
-            <h2>The people behind <span class="g-serif">Wangari</span></h2>
-            <p>The dedicated professionals driving our mission forward.</p>
+            <span class="g-eyebrow">How We Work</span>
+            <h2>The team behind <span class="g-serif">the platform</span></h2>
+            <p>Wangari is improved around the workflows farm owners, managers and record keepers need every day.</p>
         </div>
         <div class="g-grid-3">
             <div class="g-card g-reveal g-delay-1" style="text-align: center; padding: 2.5rem 1.7rem;">
                 <div style="width: 84px; height: 84px; margin: 0 auto 1.2rem; border-radius: 50%; background: var(--g-ink); color: var(--g-lime); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700;">S</div>
-                <h3>Samuel Kiplagat</h3>
-                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Founder &amp; Product Director</p>
-                <p style="color: var(--g-muted); font-size: 0.9rem;">20+ years in poultry and agribusiness. Leads product vision and works with farms daily.</p>
+                <h3>Farm Operations</h3>
+                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Built around daily records</p>
+                <p style="color: var(--g-muted); font-size: 0.9rem;">The system connects production, health, inventory and sales information in one workflow.</p>
             </div>
             <div class="g-card g-reveal g-delay-2" style="text-align: center; padding: 2.5rem 1.7rem;">
                 <div style="width: 84px; height: 84px; margin: 0 auto 1.2rem; border-radius: 50%; background: var(--g-ink); color: var(--g-lime); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700;">G</div>
-                <h3>Grace Wanjiru</h3>
-                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Customer Success Lead</p>
-                <p style="color: var(--g-muted); font-size: 0.9rem;">Onboarding, training and support for every farm that joins the platform.</p>
+                <h3>People &amp; Permissions</h3>
+                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Every team member sees their work</p>
+                <p style="color: var(--g-muted); font-size: 0.9rem;">Role-based access helps owners share work without giving away administrative control.</p>
             </div>
             <div class="g-card g-reveal g-delay-3" style="text-align: center; padding: 2.5rem 1.7rem;">
                 <div style="width: 84px; height: 84px; margin: 0 auto 1.2rem; border-radius: 50%; background: var(--g-ink); color: var(--g-lime); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700;">P</div>
-                <h3>Peter Omondi</h3>
-                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Head of Engineering</p>
-                <p style="color: var(--g-muted); font-size: 0.9rem;">Builds and maintains the Wangari platform, modules, payments and data security.</p>
+                <h3>Reports &amp; Decisions</h3>
+                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">From records to action</p>
+                <p style="color: var(--g-muted); font-size: 0.9rem;">Dashboards, reports and exports help teams understand costs, stock, production and revenue.</p>
             </div>
         </div>
     </div>
@@ -157,7 +157,7 @@ include '../includes/header.php';
         </p>
         <div class="g-reveal g-delay-2" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="contact.php" class="g-btn g-btn-lime">Contact Us</a>
-            <a href="shop.php" class="g-btn g-btn-outline-dark">Shop Now</a>
+            <a href="services.php" class="g-btn g-btn-outline-dark">Explore Modules</a>
         </div>
     </div>
 </section>

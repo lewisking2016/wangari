@@ -13,7 +13,7 @@ include '../includes/header.php';
 <section class="g-page-hero">
     <div class="g-container">
         <h1>Simple plans for farms of <span class="g-serif">every size</span></h1>
-        <p>Start with a 40-day free trial. No credit card required. Your data stays yours on every plan.</p>
+        <p>Use every Wangari web feature free for 40 days. No card is required, and your farm data remains yours.</p>
         <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
             <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; font-size: 0.85rem; color: rgba(255,255,255,0.9);">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -37,21 +37,21 @@ include '../includes/header.php';
                 <div style="margin-bottom: 0.3rem;">
                     <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-lime); text-transform: uppercase; letter-spacing: 0.06em;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Trial</span>
                 </div>
-                <h4 style="margin-bottom: 0.3rem;">Free Trial</h4>
-                <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">Try all Grow features free for 40 days.</p>
+                <h4 style="margin-bottom: 0.3rem;">Free for 40 days</h4>
+                <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">Full access to the Wangari web system with no usage caps during the trial.</p>
                 <div style="margin-bottom: 0.3rem;">
                     <span class="g-serif" style="font-size: 2.8rem; color: var(--g-ink);">KES 0</span>
                     <span style="color: var(--g-muted); font-size: 0.82rem; display: block;">for 40 days</span>
                 </div>
                 <p style="color: var(--g-lime); font-size: 0.75rem; font-weight: 600; margin-bottom: 1.2rem;">No credit card required</p>
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.5rem; font-size: 0.85rem; padding: 0; text-align: left;">
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> All Grow features included</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 1 farm, 3 flocks, 2,000 animals</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Invoicing, M-Pesa, CRM</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 50 AI questions/day</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> 3 team members</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Every web module and report</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Unlimited farms, records, and team members</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Invoicing, LPOs, CRM, exports, and M-Pesa recording</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Unlimited AI questions</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Full history and data export</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Reports &amp; data export</li>
-                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="x" style="width: 16px; height: 16px; color: #ccc; flex-shrink: 0;"></i> Expires after 40 days</li>
+                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="clock" style="width: 16px; height: 16px; color: #888; flex-shrink: 0;"></i> Trial access ends after 40 days</li>
                 </ul>
                 <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start 40-Day Trial</a>
             </div>
@@ -98,7 +98,7 @@ include '../includes/header.php';
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.5rem; font-size: 0.85rem; padding: 0; text-align: left;">
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> 3 farms, unlimited flocks &amp; animals</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> Unlimited customers &amp; invoicing</li>
-                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> Full M-Pesa &amp; credit management</li>
+                    <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> M-Pesa payment recording and credit management</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> Unlimited feed formulas</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> 10 team members</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-tan); flex-shrink: 0;"></i> Unlimited AI questions</li>
@@ -158,19 +158,19 @@ include '../includes/header.php';
                 </thead>
                 <tbody>
                     <tr><td><strong>Price</strong></td><td style="text-align: center;">KES 0<br><small style="color:var(--g-lime);font-weight:600;">40-day trial</small></td><td style="text-align: center; background: rgba(34,197,94,0.04);"><strong>KES 999/mo</strong></td><td style="text-align: center;">KES 2,999/mo</td><td style="text-align: center;">Custom</td></tr>
-                    <tr><td>Farms</td><td style="text-align: center;">1</td><td style="text-align: center; background: rgba(34,197,94,0.04);">1</td><td style="text-align: center;">3</td><td style="text-align: center;">Unlimited</td></tr>
-                    <tr><td>Flocks / Batches</td><td style="text-align: center;">1</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
-                    <tr><td>Animals</td><td style="text-align: center;">100</td><td style="text-align: center; background: rgba(34,197,94,0.04);">2,000</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
+                    <tr><td>Farms</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">1</td><td style="text-align: center;">3</td><td style="text-align: center;">Unlimited</td></tr>
+                    <tr><td>Flocks / Batches</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
+                    <tr><td>Animals</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">2,000</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
                     <tr><td>Customers</td><td style="text-align: center;">—</td><td style="text-align: center; background: rgba(34,197,94,0.04);">50</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
-                    <tr><td>Team Members</td><td style="text-align: center;">1</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">10</td><td style="text-align: center;">Unlimited</td></tr>
-                    <tr><td>AI Questions / Day</td><td style="text-align: center;">5</td><td style="text-align: center; background: rgba(34,197,94,0.04);">50</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited + Custom</td></tr>
+                    <tr><td>Team Members</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">10</td><td style="text-align: center;">Unlimited</td></tr>
+                    <tr><td>AI Questions / Day</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">50</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited + Custom</td></tr>
                     <tr><td>Invoicing &amp; LPOs</td><td style="text-align: center;">—</td><td style="text-align: center; background: rgba(34,197,94,0.04);">Basic</td><td style="text-align: center;">Advanced + PDF</td><td style="text-align: center;">White-label</td></tr>
                     <tr><td>Feed Formulas</td><td style="text-align: center;">—</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
                     <tr><td>Vaccination Schedules</td><td style="text-align: center;">—</td><td style="text-align: center; background: rgba(34,197,94,0.04);">✓</td><td style="text-align: center;">✓</td><td style="text-align: center;">✓</td></tr>
-                    <tr><td>Data History</td><td style="text-align: center;">Current month</td><td style="text-align: center; background: rgba(34,197,94,0.04);">30 days</td><td style="text-align: center;">All time</td><td style="text-align: center;">All time</td></tr>
+                    <tr><td>Data History</td><td style="text-align: center;">All history during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">30 days</td><td style="text-align: center;">All time</td><td style="text-align: center;">All time</td></tr>
                     <tr><td>Data Export</td><td style="text-align: center;">—</td><td style="text-align: center; background: rgba(34,197,94,0.04);">CSV</td><td style="text-align: center;">CSV + PDF</td><td style="text-align: center;">All + API</td></tr>
                     <tr><td>M-Pesa Integration</td><td style="text-align: center;">—</td><td style="text-align: center; background: rgba(34,197,94,0.04);">Recording</td><td style="text-align: center;">Full</td><td style="text-align: center;">Full + API</td></tr>
-                    <tr><td>Support</td><td style="text-align: center;">Community</td><td style="text-align: center; background: rgba(34,197,94,0.04);">Email 24h</td><td style="text-align: center;">Phone 4h</td><td style="text-align: center;">Dedicated 1h</td></tr>
+                    <tr><td>Support</td><td style="text-align: center;">Included during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">Email</td><td style="text-align: center;">Email</td><td style="text-align: center;">Dedicated contact</td></tr>
                     <tr><td>Data Retention</td><td style="text-align: center;">30 days</td><td style="text-align: center; background: rgba(34,197,94,0.04);">1 year</td><td style="text-align: center;">Forever</td><td style="text-align: center;">Forever + backup</td></tr>
                 </tbody>
             </table>
@@ -181,20 +181,20 @@ include '../includes/header.php';
 <!-- Social Proof -->
 <section class="g-section">
     <div class="g-container" style="text-align: center; max-width: 700px;">
-        <h2 class="g-reveal" style="font-size: clamp(1.8rem, 4vw, 2.5rem);">Trusted by <span class="g-serif" style="color: var(--g-tan);">200+ farms</span> across Kenya</h2>
-        <p class="g-reveal g-delay-1" style="color: var(--g-muted); font-size: 1.05rem; margin-bottom: 2rem;">From backyard flocks to commercial agribusinesses, Wangari scales with your farm.</p>
+        <h2 class="g-reveal" style="font-size: clamp(1.8rem, 4vw, 2.5rem);">Try the complete farm system <span class="g-serif" style="color: var(--g-tan);">before you commit</span></h2>
+        <p class="g-reveal g-delay-1" style="color: var(--g-muted); font-size: 1.05rem; margin-bottom: 2rem;">The trial is designed to let you test every web module with your own farm records, team, and workflows.</p>
         <div class="g-reveal g-delay-2" style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
             <div style="text-align: center;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--g-lime);">200+</div>
-                <div style="font-size: 0.82rem; color: var(--g-muted);">Farms</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--g-lime);">40</div>
+                <div style="font-size: 0.82rem; color: var(--g-muted);">Trial days</div>
             </div>
             <div style="text-align: center;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--g-lime);">50,000+</div>
-                <div style="font-size: 0.82rem; color: var(--g-muted);">Animals Tracked</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--g-lime);">All</div>
+                <div style="font-size: 0.82rem; color: var(--g-muted);">Web modules</div>
             </div>
             <div style="text-align: center;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--g-lime);">KES 50M+</div>
-                <div style="font-size: 0.82rem; color: var(--g-muted);">Revenue Managed</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--g-lime);">No</div>
+                <div style="font-size: 0.82rem; color: var(--g-muted);">Card required</div>
             </div>
         </div>
     </div>

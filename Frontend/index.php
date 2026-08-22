@@ -99,7 +99,7 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
         <div class="xai-hero-content xai-reveal">
             <div class="xai-hero-eyebrow xai-icon-animated">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Trusted by 200+ farms across Kenya
+                Built for real farm teams
             </div>
             <h1>One System.<br>Every Farm.<br><span>Smart Farming Technology</span></h1>
             <p class="xai-hero-sub">Wangari keeps your farm records, feed production, sales, and finances in one platform that works on any device.</p>
@@ -166,20 +166,20 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
         <div class="xai-container">
             <div class="xai-impact-grid">
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">200<span>+</span></div>
-                    <div class="xai-impact-label">Farms running Wangari</div>
+                    <div class="xai-impact-num">40</div>
+                    <div class="xai-impact-label">Trial days with full web access</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">7</div>
                     <div class="xai-impact-label">Integrated hubs in one system</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">98<span>%</span></div>
-                    <div class="xai-impact-label">Uptime - always available</div>
+                    <div class="xai-impact-num">All</div>
+                    <div class="xai-impact-label">Web modules included in trial</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">3x</div>
-                    <div class="xai-impact-label">Faster reporting vs spreadsheets</div>
+                    <div class="xai-impact-num">1</div>
+                    <div class="xai-impact-label">Workspace for your farm records</div>
                 </div>
             </div>
         </div>
@@ -447,21 +447,21 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
     <section class="xai-section" id="testimonials">
         <div class="xai-container">
             <div class="xai-header xai-reveal">
-                <div class="xai-header-eyebrow">Testimonials</div>
-                <h2>What Our <span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">Clients Say</span></h2>
-                <p>Trusted by farmers and agribusinesses across Kenya.</p>
+                <div class="xai-header-eyebrow">Built Around Your Work</div>
+                <h2>See what your team can <span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">manage</span></h2>
+                <p>Use the trial with your own records and judge the workflow before choosing a paid plan.</p>
             </div>
             <div class="xai-testimonials">
                 <div class="xai-testimonial xai-reveal">
                     <div class="xai-testimonial-stars">
                         <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
                     </div>
-                    <p>"Wangari replaced our spreadsheets overnight. Production, feed costs, sales and credit - one place, always up to date. We finally know our real profit."</p>
+                    <p>Keep production, feed costs, sales and credit records together instead of switching between notebooks and spreadsheets.</p>
                     <div class="xai-testimonial-author">
                         <div class="xai-testimonial-avatar">N</div>
                         <div>
-                            <div class="xai-testimonial-name">Njeri W.</div>
-                            <div class="xai-testimonial-role">Poultry Farm Owner, Kiambu</div>
+                            <div class="xai-testimonial-name">Farm operations</div>
+                            <div class="xai-testimonial-role">Production and health records</div>
                         </div>
                     </div>
                 </div>
@@ -469,12 +469,12 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
                     <div class="xai-testimonial-stars">
                         <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
                     </div>
-                    <p>"The feed costing alone paid for itself. We know exactly what each bag costs to produce, and our profit reports are ready in one click."</p>
+                    <p>Track feed formulas, stock movement and production costs so your reports start with the records your team entered.</p>
                     <div class="xai-testimonial-author">
                         <div class="xai-testimonial-avatar">O</div>
                         <div>
-                            <div class="xai-testimonial-name">Otieno M.</div>
-                            <div class="xai-testimonial-role">Feed Mill Owner, Kisumu</div>
+                            <div class="xai-testimonial-name">Inventory and production</div>
+                            <div class="xai-testimonial-role">Stock, formulas and costing</div>
                         </div>
                     </div>
                 </div>
@@ -482,12 +482,12 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
                     <div class="xai-testimonial-stars">
                         <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
                     </div>
-                    <p>"I run my shop, my credit customers and my orders from my phone. The AI assistant answers questions from our own records - it just works."</p>
+                    <p>Manage customers, orders and credit from the same account, with responsive screens for phones and computers.</p>
                     <div class="xai-testimonial-author">
                         <div class="xai-testimonial-avatar">A</div>
                         <div>
-                            <div class="xai-testimonial-name">Amina K.</div>
-                            <div class="xai-testimonial-role">Agro-Vet Owner, Nakuru</div>
+                            <div class="xai-testimonial-name">Sales and customers</div>
+                            <div class="xai-testimonial-role">Orders, invoices and credit</div>
                         </div>
                     </div>
                 </div>
@@ -495,12 +495,12 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
                     <div class="xai-testimonial-stars">
                         <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
                     </div>
-                    <p>"We track 4 dairy cows, 200 layers and our shop from one system. The vaccination reminders alone have saved us at least two sick flocks this year."</p>
+                    <p>Give owners, managers and record keepers the access they need while keeping permissions and farm data under your control.</p>
                     <div class="xai-testimonial-author">
                         <div class="xai-testimonial-avatar">M</div>
                         <div>
-                            <div class="xai-testimonial-name">Mwangi J.</div>
-                            <div class="xai-testimonial-role">Mixed Farm, Nyeri</div>
+                            <div class="xai-testimonial-name">Teams and permissions</div>
+                            <div class="xai-testimonial-role">Role-based access</div>
                         </div>
                     </div>
                 </div>
@@ -516,8 +516,8 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
             <div class="xai-app-wrap xai-reveal">
                 <div class="xai-app-content">
                     <div class="xai-app-tag">Coming Q4 2026</div>
-                    <h2>Native Mobile Apps<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">for iOS & Android</span></h2>
-                    <p>We are building native apps to run the farm from the palm of your hand. Work offline in remote sheds and sync automatically when you're back online.</p>
+                    <h2>Use Wangari on the device<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">your farm already has</span></h2>
+                    <p>The responsive web system works on phones, tablets and computers. A Windows desktop installer is available for accounts that have been activated by the administrator.</p>
                     
                     <div class="xai-app-features">
                         <div class="xai-app-feat-item">
@@ -657,7 +657,7 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
                     ["How many users can I add?", "There is no hard limit on users. You can add as many team members as you need, each with their own role (Admin, Manager, Worker, Viewer) controlling what they can see and do."],
                     ["Is my data safe and who owns it?", "You own your data, always. Records are encrypted, access is role-based, and you can export or delete everything at any time. No lock-in, no hidden fees."],
                     ["Can I export my data?", "Yes. Every report, ledger and record can be exported as CSV or PDF. You can also run database backups at any time."],
-                    ["Does it integrate with M-Pesa?", "The finance hub is designed to work alongside M-Pesa - you can record M-Pesa payments and reconcile them with your cashbook. Direct API integration is available on the business plan."],
+                    ["Does it integrate with M-Pesa?", "The finance hub lets you record M-Pesa payments and reconcile them with your cashbook. Direct payment API checkout is not being advertised until the live integration is configured and tested."],
                     ["How do I get started?", "Click Get Started Free above, create your farm profile, add your first flock or herd and begin recording. Our setup wizard and support team walk you through everything."],
                 ];
                 foreach ($faqs as $i => $faq):
