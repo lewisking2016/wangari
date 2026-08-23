@@ -213,7 +213,7 @@ try {
                 }
                 $password = password_hash($input['password'] ?? 'changeme', PASSWORD_DEFAULT);
                 $stmt = $pdo->prepare('INSERT INTO platform_users (username, email, password, full_name, phone, farm_name, farm_type, county, role, subscription_status, subscription_expires, trial_ends, max_animals, max_fields, max_users) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-                $trialEnd = date('Y-m-d', strtotime('+30 days'));
+                $trialEnd = date('Y-m-d', strtotime('+40 days'));
                 $stmt->execute([
                     $username, $email, $password,
                     $input['full_name'] ?? '', $input['phone'] ?? '',
@@ -336,7 +336,7 @@ try {
                 $mpesaReceipt = $input['mpesa_receipt'] ?? '';
                 $mpesaPhone = $input['mpesa_phone'] ?? '';
                 $startDate = $input['start_date'] ?? date('Y-m-d');
-                $endDate = $input['end_date'] ?? date('Y-m-d', strtotime('+30 days'));
+                $endDate = $input['end_date'] ?? date('Y-m-d', strtotime('+40 days'));
                 $notes = $input['notes'] ?? '';
 
                 $stmt = $pdo->prepare('INSERT INTO platform_subscriptions (user_id, plan, amount, payment_method, mpesa_receipt, mpesa_phone, start_date, end_date, status, notes, created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
