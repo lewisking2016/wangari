@@ -8,7 +8,11 @@ declare(strict_types=1);
 $platform = strtolower((string)($_GET['platform'] ?? ''));
 $releases = [
     'windows' => [
-        'file' => 'Wangari Farm Manager Setup 1.2.0.exe',
+        'files' => [
+            'wangari-farm-manager Setup 1.2.0.exe',
+            'Wangari Farm Manager Setup 1.2.0.exe',
+            'Wangari-Farm-Manager-Setup-1.2.0.exe',
+        ],
         'name' => 'Wangari-Farm-Manager-Setup-1.2.0.exe',
         'type' => 'application/octet-stream',
     ],
@@ -22,15 +26,16 @@ if (!isset($releases[$platform])) {
 }
 
 $release = $releases[$platform];
-$candidates = [
-    __DIR__ . DIRECTORY_SEPARATOR . 'releases' . DIRECTORY_SEPARATOR . $release['file'],
-    dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'dist-electron' . DIRECTORY_SEPARATOR . $release['file'],
-];
 $filePath = null;
-foreach ($candidates as $candidate) {
-    if (is_file($candidate) && is_readable($candidate)) {
-        $filePath = $candidate;
-        break;
+$releasesDir = __DIR__ . DIRECTORY_SEPARATOR . 'releases' . DIRECTORY_SEPARATOR;
+$distDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'dist-electron' . DIRECTORY_SEPARATOR;
+foreach ($release['files'] as $filename) {
+    $candidates = [$releasesDir . $filename, $distDir . $filename];
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate) && is_readable($candidate)) {
+            $filePath = $candidate;
+            break 2;
+        }
     }
 }
 
