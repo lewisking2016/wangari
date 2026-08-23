@@ -442,19 +442,6 @@ async function createCodeForUser(e, userId) { e.preventDefault(); await api('cod
 async function createCodeManual(e) { e.preventDefault(); const uid = v('cc-user-id'); if(!uid){toast('Enter a user ID','error');return;} await api('codes','generate',{},{count:v('cc-count'),plan:v('cc-plan'),user_id:uid,max_devices:v('cc-devices'),expires_at:v('cc-expires')}); closeModal(); toast('License generated'); render_codes(); }
 async function revokeAllForUser(userId) { if(!confirm('Revoke ALL licenses for this user?')) return; const codes = await api('codes','list'); const uc = (Array.isArray(codes)?codes:[]).filter(c=>c.user_id===userId&&c.status==='active'); for(const c of uc){await api('codes','revoke',{id:c.id});} toast('All licenses revoked'); render_codes(); }
 async function revokeCode(id) { if(confirm('Revoke this license?')){await api('codes','revoke',{id});toast('License revoked');render_codes();} }
-        <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>License</th><th>Account</th><th>Customer</th><th>Email</th><th>Plan</th><th>Devices</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody>${d.map(c=>`<tr>
-                <td><code style="background:#F1F5F9;padding:4px 8px;border-radius:6px;font-weight:600;">${c.license_key}</code></td>
-                <td><strong>${c.account_full_name || c.account_username || '-'}</strong><div style="font-size:0.78rem;color:var(--muted);">${c.account_username || ''}</div></td>
-                <td>${c.customer_name||'-'}</td>
-                <td>${c.customer_email||'-'}</td>
-                <td>${c.plan||'-'}</td>
-                <td>${c.activations||0}/${c.max_devices||1}</td>
-                <td>${c.expires_at||'Never'}</td>
-                <td><span class="badge badge-${c.status==='active'?'active':'expired'}">${c.status||'active'}</span></td>
-                <td><button onclick="revokeCode(${c.id})" class="btn-sm btn-danger">Revoke</button></td>
-            </tr>`).join('')}</tbody></table></div></div>`;
 
 // ════ SUBSCRIPTIONS ════
 async function render_subscriptions() {
