@@ -1230,7 +1230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .cmd-palette { padding: 8vh 8px 8px; }
         }
         /* Desktop always shows the sidebar; only mobile uses the off-canvas pattern */
-        .w2-mobile-hamburger { display: none; }
+        @media (min-width: 861px) { .w2-mobile-hamburger { display: none; } }
         .w2-nav-overlay { display: none; }
     </style>
 

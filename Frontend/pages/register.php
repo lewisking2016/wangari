@@ -254,6 +254,15 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         .form-row { display: flex; gap: 16px; }
         .form-row .xai-form-group { flex: 1; }
         .hidden { display: none !important; }
+        @media (max-width: 640px) {
+            .role-cards { grid-template-columns: 1fr; }
+            .form-row { flex-direction: column; gap: 12px; }
+            .xai-auth-card { padding: 24px 20px; margin: 16px; }
+            .xai-auth-brand { padding: 20px; }
+            .xai-auth-brand h2 { font-size: 1.3rem; }
+            .step-dots { gap: 6px; }
+            .step-dot { width: 8px; height: 8px; }
+        }
     </style>
 </head>
 <body>

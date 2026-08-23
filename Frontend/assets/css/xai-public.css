@@ -1601,19 +1601,35 @@ a {
         flex-direction: column;
         gap: 24px;
     }
-    
+    .xai-hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .xai-hero-actions .xai-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .xai-hero h1 {
+        font-size: 2rem;
+    }
+    .xai-hero-sub {
+        font-size: 0.95rem;
+    }
+    .xai-sections-grid {
+        grid-template-columns: 1fr;
+    }
+    .xai-section-card {
+        padding: 20px;
+    }
     .xai-auth {
         grid-template-columns: 1fr;
     }
-    
     .xai-auth-brand {
         display: none;
     }
-    
     .xai-footer-inner {
         grid-template-columns: 1fr;
     }
-    
     .xai-footer-bottom {
         flex-direction: column;
         gap: 16px;

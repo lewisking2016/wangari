@@ -271,4 +271,18 @@ include '../includes/header.php';
     </div>
 </section>
 
+<style>
+@media (max-width: 900px) {
+    .g-container > div[style*="grid-template-columns: repeat(4"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+@media (max-width: 560px) {
+    .g-container > div[style*="grid-template-columns: repeat(4"] {
+        grid-template-columns: 1fr !important;
+    }
+    .g-table-wrap { overflow-x: auto; }
+    .g-table { min-width: 500px; }
+}
+</style>
 <?php include '../includes/footer.php'; ?>

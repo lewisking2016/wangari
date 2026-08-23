@@ -176,6 +176,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_submit'])) {
 
 </main>
 
+<style>
+@media (max-width: 860px) {
+    .g-container.g-stack-mobile {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+    .g-form-card { padding: 20px; }
+}
+@media (max-width: 560px) {
+    .g-form-card input, .g-form-card textarea, .g-form-card select {
+        font-size: 16px !important;
+    }
+}
+</style>
 <?php
 include '../includes/footer.php';
 ?>

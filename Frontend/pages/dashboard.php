@@ -56,6 +56,14 @@ $page_title = 'Dashboard — Wangari';
             box-shadow: 0 16px 48px rgba(0,0,0,0.08);
             border-color: var(--xai-lime);
         }
+        @media (max-width: 640px) {
+            .dash { padding: 80px 16px 40px; }
+            .dash-welcome h1 { font-size: 1.5rem; }
+            .dash-grid { grid-template-columns: 1fr; }
+            .dash-quick { flex-direction: column; }
+            .dash-quick-btn { width: 100%; justify-content: center; }
+            .xai-nav-links { display: none; }
+        }
         .dash-card-icon {
             width: 48px;
             height: 48px;
