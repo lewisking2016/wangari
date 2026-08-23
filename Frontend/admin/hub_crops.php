@@ -7,6 +7,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+require_once dirname(__DIR__, 2) . '/Backend/config/limits.php';
 wangariStartSession();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','stock_manager'], true)) {
@@ -37,6 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $notes= trim($_POST['notes'] ?? '');
         if (!$name) { $error_message = 'Field name is required.'; }
         else {
+            // Check field limit before inserting new field
+            if ($id === 0) {
+                $limitCheck = wangariCheckFieldLimit($pdo, (int)($_SESSION['user_id'] ?? 0));
+                if (!$limitCheck['allowed']) {
+                    $error_message = $limitCheck['message'];
+                }
+            }
+            if (empty($error_message)) {
             try {
                 if ($id > 0) {
                     $pdo->prepare('UPDATE fields SET name=?,location=?,size_acres=?,soil_type=?,status=?,notes=? WHERE id=?')
@@ -48,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
                     $message = 'Field added.';
                 }
             } catch (Exception $e) { $error_message = $e->getMessage(); }
+            } // end if (empty($error_message))
         }
         $tab = 'fields';
     }

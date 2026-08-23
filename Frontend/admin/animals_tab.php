@@ -4,6 +4,8 @@
  */
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/Backend/config/limits.php';
+
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin', 'farm_manager'], true)) {
     echo "<script>window.location.href = '/Frontend/pages/login.php';</script>";
     exit;
@@ -29,6 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_animal'])) {
     if ($tag === '' || $name === '') {
         $error_message = 'Animal tag and name are required.';
     } else {
+        // Check animal limit before inserting new animal
+        if ($animalId === 0) {
+            $limitCheck = wangariCheckAnimalLimit($pdo, (int)($_SESSION['user_id'] ?? 0));
+            if (!$limitCheck['allowed']) {
+                $error_message = $limitCheck['message'];
+            }
+        }
+        if (empty($error_message)) {
         try {
             if ($animalId > 0) {
                 $stmt = $pdo->prepare('UPDATE animals SET tag = ?, name = ?, type = ?, breed = ?, gender = ?, birth_date = ?, status = ?, herd_id = ?, notes = ? WHERE id = ?');
@@ -42,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_animal'])) {
         } catch (Exception $e) {
             $error_message = 'Unable to save animal record: ' . $e->getMessage();
         }
+        } // end if (empty($error_message))
     }
 }
 

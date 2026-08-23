@@ -7,6 +7,7 @@ header('Location: /Frontend/admin/hub_operations.php?tab=animals', true, 301);
 exit;
 
 require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+require_once dirname(__DIR__, 2) . '/Backend/config/limits.php';
 wangariStartSession();
 
 $page_title = 'Animals - Admin';
@@ -37,6 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_animal'])) {
     if ($tag === '' || $name === '') {
         $error_message = 'Animal tag and name are required.';
     } else {
+        // Check animal limit before inserting
+        if ($animalId === 0) {
+            $limitCheck = wangariCheckAnimalLimit($pdo, (int)($_SESSION['user_id'] ?? 0));
+            if (!$limitCheck['allowed']) {
+                $error_message = $limitCheck['message'];
+            }
+        }
+        if (empty($error_message)) {
         try {
             if ($animalId > 0) {
                 $stmt = $pdo->prepare('UPDATE animals SET tag = ?, name = ?, type = ?, breed = ?, gender = ?, birth_date = ?, status = ?, herd_id = ?, notes = ? WHERE id = ?');
@@ -50,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_animal'])) {
         } catch (Exception $e) {
             $error_message = 'Unable to save animal record: ' . $e->getMessage();
         }
+        } // end if (empty($error_message))
     }
 }
 

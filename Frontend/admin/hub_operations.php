@@ -10,6 +10,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/Backend/config/session.php';
+require_once dirname(__DIR__, 2) . '/Backend/config/limits.php';
 wangariStartSession();
 
 if (empty($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['super_admin','farm_manager','stock_manager','sales_staff'], true)) {
@@ -36,6 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     /* ── Save Animal (individual) ── */
     if ($postAction === 'save_animal') {
         $id = (int)($_POST['id'] ?? 0);
+        
+        // Check animal limit before inserting new animal
+        if ($id === 0) {
+            $limitCheck = wangariCheckAnimalLimit($pdo, (int)($_SESSION['user_id'] ?? 0));
+            if (!$limitCheck['allowed']) {
+                $error_message = $limitCheck['message'];
+                $tab = 'animals';
+            }
+        }
+        
+        if (empty($error_message)) {
         $v = [
             trim($_POST['tag'] ?? ''), trim($_POST['name'] ?? ''),
             trim($_POST['species'] ?? 'Chicken'), trim($_POST['breed'] ?? ''),
@@ -54,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
                 $message = 'Animal added.';
             }
         } catch (Exception $e) { $error_message = $e->getMessage(); }
+        } // end if (empty($error_message))
         $tab = 'animals';
     }
 
