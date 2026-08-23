@@ -112,7 +112,32 @@ try {
                 if ($status) $sql .= " AND subscription_status=" . $pdo->quote($status);
                 if ($search) $sql .= " AND (username LIKE " . $pdo->quote("%$search%") . " OR email LIKE " . $pdo->quote("%$search%") . " OR full_name LIKE " . $pdo->quote("%$search%") . ")";
                 $sql .= ' ORDER BY created_at DESC';
-                echo json_encode($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
+                $users = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+                // Google/manual farm registration stores accounts in users. Keep the
+                // platform admin list connected while legacy platform_users is empty.
+                if (!$users) {
+                    $fallback = 'SELECT id, username, email,
+                        COALESCE(full_name, TRIM(CONCAT(COALESCE(first_name, ""), " ", COALESCE(last_name, "")))) AS full_name,
+                        COALESCE(phone, phone_number, "") AS phone,
+                        "" AS farm_name, "" AS farm_type, "" AS county,
+                        CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN "trial" ELSE "free" END AS subscription_status,
+                        NULL AS subscription_expires, NULL AS trial_ends,
+                        100 AS max_animals, 10 AS max_fields, 3 AS max_users,
+                        0 AS total_login_count, NULL AS last_login, COALESCE(is_active, 1) AS is_active, created_at
+                        FROM users WHERE role <> "super_admin"';
+                    $params = [];
+                    if ($search) {
+                        $fallback .= ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ? OR first_name LIKE ? OR last_name LIKE ?)';
+                        $term = "%$search%";
+                        $params = [$term, $term, $term, $term, $term];
+                    }
+                    $fallback .= ' ORDER BY created_at DESC';
+                    $stmt = $pdo->prepare($fallback);
+                    $stmt->execute($params);
+                    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+                echo json_encode($users);
             } elseif ($action === 'get') {
                 $id = (int)($_GET['id'] ?? 0);
                 $stmt = $pdo->prepare('SELECT * FROM platform_users WHERE id=?');
