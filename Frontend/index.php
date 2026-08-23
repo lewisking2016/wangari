@@ -166,7 +166,7 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
         <div class="xai-container">
             <div class="xai-impact-grid">
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">40</div>
+                    <div class="xai-impact-num">30</div>
                     <div class="xai-impact-label">Trial days with full web access</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">

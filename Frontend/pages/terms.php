@@ -128,7 +128,7 @@ $page_title = 'Terms & Conditions — Wangari';
     <p>Wangari offers a 30-day free trial with full access to the Wangari web system. The trial:</p>
     <ul>
         <li>Starts on the date of account registration</li>
-        <li>Lasts 40 calendar days</li>
+        <li>Lasts 30 calendar days</li>
         <li>Includes every available web module, with no usage caps on farms, records, team members, reports or AI questions</li>
         <li>Requires no credit card to start</li>
         <li>Automatically expires after 30 days — upgrade to a paid plan to continue</li>

@@ -53,7 +53,7 @@ include '../includes/header.php';
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Reports &amp; data export</li>
                     <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="clock" style="width: 16px; height: 16px; color: #888; flex-shrink: 0;"></i> Trial access ends after 30 days</li>
                 </ul>
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start 40-Day Trial</a>
+                <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start 30-Day Trial</a>
             </div>
 
             <!-- GROW (Most Popular) -->
