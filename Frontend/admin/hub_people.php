@@ -103,10 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 }
 
 /* ── Load PHP-based tab data ── */
-$staffList = $taskList = $messageList = [];
+$staffList = $taskList = $messageList = $customerList = [];
 if ($pdo) {
     try {
         $staffList = $pdo->query("SELECT * FROM users WHERE role IN ('super_admin','farm_manager','stock_manager') ORDER BY first_name ASC, last_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        if ($tab === 'users') {
+            $customerList = $pdo->query("SELECT id, username, email, full_name, first_name, last_name, phone, phone_number, role, is_active, created_at FROM users WHERE role = 'customer' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+        }
         if ($tab === 'tasks') {
             $taskList = $pdo->query("SELECT t.*, CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) AS assigned_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id ORDER BY COALESCE(t.due_date,t.created_at) ASC")->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -231,8 +234,36 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
 
 <!-- ══════ CUSTOMER LIST TAB ══════ -->
 <?php elseif ($tab === 'users'): ?>
-<div class="admin-card" style="padding:0; overflow:hidden;">
-    <iframe src="users.php" style="width:100%; height:800px; border:none; display:block;"></iframe>
+<div class="admin-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Customer Accounts</h3>
+            <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;">Registered farm users, including Google-connected accounts.</p>
+        </div>
+        <span class="badge-pill badge-pill-success"><?= count($customerList) ?> accounts</span>
+    </div>
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Status</th><th>Joined</th></tr></thead>
+            <tbody>
+            <?php if (empty($customerList)): ?>
+                <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No customer accounts found.</td></tr>
+            <?php else: foreach ($customerList as $customer):
+                $customerName = trim((string)($customer['full_name'] ?? '')) ?: trim((string)($customer['first_name'] ?? '') . ' ' . (string)($customer['last_name'] ?? '')) ?: (string)$customer['username'];
+                $customerPhone = $customer['phone'] ?? $customer['phone_number'] ?? '-';
+            ?>
+                <tr>
+                    <td><strong><?= htmlspecialchars($customerName, ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><?= htmlspecialchars((string)$customer['username'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars((string)$customer['email'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars((string)$customerPhone, ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><span class="badge-pill <?= ((int)($customer['is_active'] ?? 1) === 1) ? 'badge-pill-success' : 'badge-pill-warning' ?>"><?= ((int)($customer['is_active'] ?? 1) === 1) ? 'Active' : 'Inactive' ?></span></td>
+                    <td><?= htmlspecialchars((string)($customer['created_at'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+                </tr>
+            <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- ══════ TASKS TAB ══════ -->
