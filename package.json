@@ -1,6 +1,6 @@
 {
   "name": "wangari-farm-manager",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Wangari Smart Farm Manager — Desktop + Web",
   "main": "electron/main.js",
   "scripts": {

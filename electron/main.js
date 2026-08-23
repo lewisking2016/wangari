@@ -32,6 +32,7 @@ const GRACE_MS       = 14 * 24 * 60 * 60 * 1000; // 14-day offline grace
 const LICENSE_SERVER = process.env.WANGARI_LICENSE_SERVER || 'https://wangari.imeantech.com/Backend/api/license.php';
 const LICENSE_SECRET = process.env.WANGARI_JWT_SECRET || 'WANGARI_DESKTOP_LICENSE_SECRET_CHANGE_ME';
 const SYNC_SERVER    = 'https://wangari.imeantech.com';
+const VERSION_CHECK  = 'https://wangari.imeantech.com/Backend/api/version.php';
 const SYNC_DIR       = path.join(LICENSE_DIR, 'sync');
 const SYNC_QUEUE     = path.join(SYNC_DIR, 'queue.json');
 const SYNC_INTERVAL  = 5 * 60 * 1000; // sync every 5 minutes when online
@@ -711,9 +712,67 @@ ipcMain.handle('sync:forceFull', async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // APP LIFECYCLE
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// VERSION CHECK
+// ─────────────────────────────────────────────────────────────────────────────
+async function checkForUpdates() {
+  return new Promise((resolve) => {
+    const req = https.get(VERSION_CHECK, { timeout: 8000 }, (res) => {
+      let data = '';
+      res.on('data', d => data += d);
+      res.on('end', () => {
+        try {
+          const info = JSON.parse(data);
+          resolve(info);
+        } catch (_) {
+          resolve(null);
+        }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+  });
+}
+
+function isNewerVersion(latest, current) {
+  if (!latest || !current) return false;
+  const lp = latest.split('.').map(Number);
+  const cp = current.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((lp[i] || 0) > (cp[i] || 0)) return true;
+    if ((lp[i] || 0) < (cp[i] || 0)) return false;
+  }
+  return false;
+}
+
+async function showUpdatePrompt(downloadUrl, releaseNotes) {
+  const result = await dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Available',
+    message: 'A new version of Wangari is available!',
+    detail: `Version ${APP_VERSION} is installed.\n\nRelease notes:\n${releaseNotes || 'Bug fixes and improvements.'}`,
+    buttons: ['Download Update', 'Continue Anyway'],
+    defaultId: 0,
+    cancelId: 1,
+  });
+  if (result.response === 0) {
+    shell.openExternal(downloadUrl);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APP LIFECYCLE
+// ─────────────────────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   const splash = createSplashWindow();
   await new Promise(r => setTimeout(r, 1200)); // let splash render
+
+  // Check for updates in background
+  checkForUpdates().then(info => {
+    if (info && isNewerVersion(info.latest_version, APP_VERSION)) {
+      showUpdatePrompt(info.download_url, info.release_notes);
+    }
+  });
 
   const lic   = loadLicense();
   const licOk = isLicenseValid(lic);
