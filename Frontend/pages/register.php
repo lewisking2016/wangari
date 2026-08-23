@@ -207,7 +207,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
         }
         .role-card:hover { border-color: #22C55E; background: #F0FDF4; transform: translateY(-2px); }
         .role-card.selected { border-color: #22C55E; background: #DCFCE7; }
-        .role-card .icon { font-size: 40px; margin-bottom: 16px; display: block; }
+        .role-card .icon { margin-bottom: 16px; display: flex; justify-content: center; }
         .role-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #0F172A; }
         .role-card p { font-size: 13px; color: #64748B; line-height: 1.5; }
         .role-card .check {
@@ -298,17 +298,18 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 <div class="role-cards">
                     <div class="role-card" onclick="selectRole('owner')" id="card-owner">
                         <span class="check" id="check-owner"></span>
-                        <span class="icon">👨‍🌾</span>
+                        <span class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
                         <h3>Farm Owner</h3>
                         <p>Create your own farm, manage your team, track everything.</p>
                     </div>
                     <div class="role-card" onclick="selectRole('worker')" id="card-worker">
                         <span class="check" id="check-worker"></span>
-                        <span class="icon">👷</span>
+                        <span class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                         <h3>Join as Worker</h3>
                         <p>Enter a farm code from your admin to join their team.</p>
                     </div>
                 </div>
+                <div id="step1-error" style="display:none;color:#DC2626;font-size:0.85rem;margin-top:12px;padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;"></div>
 
                 <a href="/Frontend/auth/google/login.php?flow=register" class="xai-btn" style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:#000000;border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;color:#ffffff;text-decoration:none;font-size:0.95rem;font-weight:600;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,0.4);transition:all 0.2s ease;margin-bottom:12px;" onmouseover="this.style.background='#18181b'; this.style.borderColor='rgba(255,255,255,0.4)';" onmouseout="this.style.background='#000000'; this.style.borderColor='rgba(255,255,255,0.25)';">
                     <svg width="20" height="20" viewBox="0 0 24 24">
@@ -469,7 +470,11 @@ function selectRole(role) {
 }
 
 function goToStep2() {
-    if (!selectedRole) return;
+    if (!selectedRole) {
+        var err = document.getElementById('step1-error');
+        if (err) { err.textContent = 'Please select whether you are a Farm Owner or Worker.'; err.style.display = 'block'; }
+        return;
+    }
     document.getElementById('dot1').classList.remove('active');
     document.getElementById('dot1').classList.add('done');
     document.getElementById('dot2').classList.add('active');

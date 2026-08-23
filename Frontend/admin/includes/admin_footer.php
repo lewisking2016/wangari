@@ -22,8 +22,10 @@ declare(strict_types=1);
             // Sidebar V2: collapsible groups
             document.querySelectorAll('.w2-nav-parent').forEach(btn => {
                 btn.addEventListener('click', () => {
+                    const grp = btn.closest('.w2-nav-group');
                     const subs = btn.nextElementSibling;
                     const isOpen = btn.classList.toggle('open');
+                    if (grp) grp.classList.toggle('open', isOpen);
                     if (subs) subs.style.display = isOpen ? 'block' : 'none';
                     btn.querySelector('.w2-nav-chev').style.transform = isOpen ? 'rotate(180deg)' : '';
                 });
