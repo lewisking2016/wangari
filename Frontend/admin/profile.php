@@ -152,6 +152,97 @@ $avatarUrl = $user['profile_pic'] ?: '';
             </div>
         </div>
 
+        <?php
+        // Get subscription status
+        require_once dirname(__DIR__, 2) . '/Backend/config/limits.php';
+        $subStatus = 'trial';
+        $subPlan = 'Free Trial';
+        $subExpires = '';
+        $maxAnimals = 5;
+        $maxFields = 5;
+        
+        if ($pdo) {
+            $stmt = $pdo->prepare('SELECT subscription_status, subscription_expires, max_animals, max_fields FROM platform_users WHERE id = ?');
+            $stmt->execute([$userId]);
+            $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($sub) {
+                $subStatus = $sub['subscription_status'] ?? 'trial';
+                $subExpires = $sub['subscription_expires'] ?? '';
+                $maxAnimals = (int)($sub['max_animals'] ?? 5);
+                $maxFields = (int)($sub['max_fields'] ?? 5);
+                
+                if ($subStatus === 'active') {
+                    if ($maxAnimals >= 200) $subPlan = 'Plus';
+                    elseif ($maxAnimals >= 5) $subPlan = 'Pro';
+                    else $subPlan = 'Free';
+                } elseif ($subStatus === 'trial') {
+                    $subPlan = 'Free Trial';
+                } else {
+                    $subPlan = ucfirst($subStatus);
+                }
+            }
+        }
+        
+        $statusColors = [
+            'active' => ['bg' => '#DCFCE7', 'text' => '#166534', 'border' => '#BBF7D0'],
+            'trial' => ['bg' => '#FEF3C7', 'text' => '#92400E', 'border' => '#FDE68A'],
+            'expired' => ['bg' => '#FEE2E2', 'text' => '#991B1B', 'border' => '#FECACA'],
+            'past_due' => ['bg' => '#FEF3C7', 'text' => '#92400E', 'border' => '#FDE68A'],
+        ];
+        $sc = $statusColors[$subStatus] ?? $statusColors['trial'];
+        ?>
+
+        <!-- Subscription Status Card -->
+        <div style="background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--admin-shadow);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #166534, #22C55E); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="credit-card" style="width: 24px; height: 24px; color: #fff;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.78rem; color: var(--admin-text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 4px;">Subscription</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--admin-text-heading);"><?php echo htmlspecialchars($subPlan); ?> Plan</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="text-align: right;">
+                        <div style="background: <?php echo $sc['bg']; ?>; color: <?php echo $sc['text']; ?>; border: 1px solid <?php echo $sc['border']; ?>; padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-transform: capitalize; display: inline-flex; align-items: center; gap: 6px;">
+                            <?php if ($subStatus === 'active'): ?>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            <?php elseif ($subStatus === 'trial'): ?>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <?php else: ?>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            <?php endif; ?>
+                            <?php echo htmlspecialchars($subStatus); ?>
+                        </div>
+                    </div>
+                    <?php if ($subStatus !== 'active'): ?>
+                    <a href="/Frontend/pages/pricing.php" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #166534, #22C55E); color: #fff; padding: 10px 20px; border-radius: 999px; font-weight: 700; font-size: 0.88rem; text-decoration: none;">
+                        <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
+                        Upgrade Plan
+                    </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--admin-border); display: flex; gap: 32px; flex-wrap: wrap; font-size: 0.88rem;">
+                <div>
+                    <span style="color: var(--admin-text-muted);">Animals Limit:</span>
+                    <strong style="color: var(--admin-text-heading); margin-left: 6px;"><?php echo $maxAnimals > 0 ? $maxAnimals : 'Unlimited'; ?></strong>
+                </div>
+                <div>
+                    <span style="color: var(--admin-text-muted);">Fields Limit:</span>
+                    <strong style="color: var(--admin-text-heading); margin-left: 6px;"><?php echo $maxFields > 0 ? $maxFields : 'Unlimited'; ?></strong>
+                </div>
+                <?php if ($subExpires): ?>
+                <div>
+                    <span style="color: var(--admin-text-muted);"><?php echo $subStatus === 'trial' ? 'Trial Expires:' : 'Next Billing:'; ?></span>
+                    <strong style="color: var(--admin-text-heading); margin-left: 6px;"><?php echo date('M j, Y', strtotime($subExpires)); ?></strong>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
             <!-- Profile Details Form -->
             <div style="background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 24px; box-shadow: var(--admin-shadow);">

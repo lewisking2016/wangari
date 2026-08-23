@@ -9,26 +9,41 @@ $path_prefix = '../';
 $page_title = 'Pricing | Wangari';
 include '../includes/header.php';
 
-// Get user's trial status if logged in
-$userTrialInfo = null;
+// Get user's subscription status if logged in
+$userSubInfo = null;
+$userPlan = null;
 if (!empty($_SESSION['user_id'])) {
     require_once dirname(__DIR__, 2) . '/Backend/config/database.php';
     $pdo = getDatabaseConnection();
     if ($pdo) {
-        $stmt = $pdo->prepare('SELECT subscription_status, subscription_expires, trial_ends FROM platform_users WHERE id = ?');
+        $stmt = $pdo->prepare('SELECT subscription_status, subscription_expires, trial_ends, max_animals, max_fields FROM platform_users WHERE id = ?');
         $stmt->execute([$_SESSION['user_id']]);
-        $userTrialInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        $userSubInfo = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (!$userTrialInfo) {
-            $stmt = $pdo->prepare('SELECT "trial" as subscription_status, DATE_ADD(created_at, INTERVAL 30 DAY) as subscription_expires FROM users WHERE id = ?');
+        if (!$userSubInfo) {
+            $stmt = $pdo->prepare('SELECT "trial" as subscription_status, DATE_ADD(created_at, INTERVAL 30 DAY) as subscription_expires, 5 as max_animals, 5 as max_fields FROM users WHERE id = ?');
             $stmt->execute([$_SESSION['user_id']]);
-            $userTrialInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+            $userSubInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        
+        // Determine user's current plan based on limits
+        if ($userSubInfo) {
+            $maxAnimals = (int)($userSubInfo['max_animals'] ?? 5);
+            if ($maxAnimals >= 200) {
+                $userPlan = 'plus';
+            } elseif ($maxAnimals >= 5) {
+                $userPlan = 'pro';
+            }
+            // Check if active subscription
+            if (($userSubInfo['subscription_status'] ?? '') !== 'active') {
+                $userPlan = null; // Not on a paid plan
+            }
         }
     }
 }
 ?>
 
-<?php if ($userTrialInfo && ($userTrialInfo['subscription_status'] ?? '') === 'trial'): ?>
+<?php if ($userSubInfo && ($userSubInfo['subscription_status'] ?? '') === 'trial'): ?>
 <div style="max-width: 900px; margin: 0 auto 0; padding: 0 1.5rem;">
     <div style="background: linear-gradient(135deg, #166534 0%, #22c55e 100%); border-radius: 14px; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; color: white;">
         <div style="display: flex; align-items: center; gap: 14px;">
@@ -39,7 +54,7 @@ if (!empty($_SESSION['user_id'])) {
                 <div style="font-weight: 700; font-size: 1.05rem;">You're on a 30-day free trial</div>
                 <div style="font-size: 0.85rem; opacity: 0.9;">
                     <?php 
-                    $expires = $userTrialInfo['subscription_expires'] ?? $userTrialInfo['trial_ends'] ?? null;
+                    $expires = $userSubInfo['subscription_expires'] ?? $userSubInfo['trial_ends'] ?? null;
                     if ($expires) {
                         $daysLeft = max(0, (int)((strtotime($expires) - time()) / 86400));
                         echo "<strong>{$daysLeft} days remaining</strong> — Upgrade now to continue after trial ends";
@@ -104,7 +119,14 @@ if (!empty($_SESSION['user_id'])) {
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Basic AI assistant</li>
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Email support</li>
                 </ul>
-                <button onclick="startPayment('pro', 'monthly')" class="g-btn g-btn-outline-dark" style="width: 100%;">Subscribe Pro - KES 1,500/mo</button>
+                <?php if ($userPlan === 'pro'): ?>
+                    <div style="width: 100%; padding: 12px; background: rgba(34,197,94,0.15); border: 2px solid #22c55e; border-radius: 999px; color: #166534; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Your Current Plan
+                    </div>
+                <?php else: ?>
+                    <button onclick="startPayment('pro', 'monthly')" class="g-btn g-btn-outline-dark" style="width: 100%;">Subscribe Pro - KES 1,500/mo</button>
+                <?php endif; ?>
             </div>
 
             <!-- PLUS (Most Popular) -->
@@ -134,7 +156,14 @@ if (!empty($_SESSION['user_id'])) {
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Up to 3 farms</li>
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Email + WhatsApp support</li>
                 </ul>
-                <button onclick="startPayment('plus', 'monthly')" class="g-btn g-btn-lime" style="width: 100%;">Subscribe Plus - KES 4,500/mo</button>
+                <?php if ($userPlan === 'plus'): ?>
+                    <div style="width: 100%; padding: 12px; background: #22c55e; border-radius: 999px; color: #0B1220; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Your Current Plan
+                    </div>
+                <?php else: ?>
+                    <button onclick="startPayment('plus', 'monthly')" class="g-btn g-btn-lime" style="width: 100%;">Subscribe Plus - KES 4,500/mo</button>
+                <?php endif; ?>
             </div>
 
             <!-- CUSTOM (Enterprise) -->
