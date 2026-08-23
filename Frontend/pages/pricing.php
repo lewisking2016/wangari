@@ -57,7 +57,7 @@ include '../includes/header.php';
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Basic AI assistant</li>
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Email support</li>
                 </ul>
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start 30-Day Trial</a>
+                <button onclick="startPayment('pro', 'monthly')" class="g-btn g-btn-outline-dark" style="width: 100%;">Subscribe Pro - KES 1,500/mo</button>
             </div>
 
             <!-- PLUS (Most Popular) -->
@@ -87,7 +87,7 @@ include '../includes/header.php';
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Up to 3 farms</li>
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> Email + WhatsApp support</li>
                 </ul>
-                <a href="/Frontend/pages/register.php" class="g-btn g-btn-lime" style="width: 100%;">Choose Plus</a>
+                <button onclick="startPayment('plus', 'monthly')" class="g-btn g-btn-lime" style="width: 100%;">Subscribe Plus - KES 4,500/mo</button>
             </div>
 
             <!-- CUSTOM (Enterprise) -->
@@ -344,4 +344,44 @@ include '../includes/header.php';
     .g-table { min-width: 450px; }
 }
 </style>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+function startPayment(plan, billing) {
+    // Check if user is logged in
+    fetch('/Backend/api/paystack.php?action=subscription')
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                // Not logged in, redirect to login
+                window.location.href = '/Frontend/pages/login.php?redirect=pricing';
+                return;
+            }
+            
+            // Initialize payment
+            fetch('/Backend/api/paystack.php?action=initialize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: plan, billing: billing })
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success && result.authorization_url) {
+                    // Redirect to Paystack checkout
+                    window.location.href = result.authorization_url;
+                } else {
+                    alert(result.error || 'Payment initialization failed. Please try again.');
+                }
+            })
+            .catch(err => {
+                console.error('Payment error:', err);
+                alert('An error occurred. Please try again.');
+            });
+        })
+        .catch(() => {
+            window.location.href = '/Frontend/pages/login.php?redirect=pricing';
+        });
+}
+</script>
+
 <?php include '../includes/footer.php'; ?>
