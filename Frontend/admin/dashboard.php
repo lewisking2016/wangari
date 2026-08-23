@@ -421,6 +421,57 @@ try {
         </div>
     </div>
 
+    <?php
+    // Get subscription status for banner
+    require_once dirname(__DIR__, 2) . '/Backend/config/limits.php';
+    $dashSubStatus = 'trial';
+    $dashSubPlan = 'Free Trial';
+    $dashSubExpires = '';
+    $dashMaxAnimals = 5;
+    
+    if (isset($wPdo) && $wPdo) {
+        $stmt = $wPdo->prepare('SELECT subscription_status, subscription_expires, max_animals FROM platform_users WHERE id = ?');
+        $stmt->execute([(int)($_SESSION['user_id'] ?? 0)]);
+        $dashSub = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($dashSub) {
+            $dashSubStatus = $dashSub['subscription_status'] ?? 'trial';
+            $dashSubExpires = $dashSub['subscription_expires'] ?? '';
+            $dashMaxAnimals = (int)($dashSub['max_animals'] ?? 5);
+            if ($dashSubStatus === 'active') {
+                $dashSubPlan = $dashMaxAnimals >= 200 ? 'Plus' : 'Pro';
+            }
+        }
+    }
+    
+    // Show banner only for trial or expired users
+    if ($dashSubStatus !== 'active'): ?>
+    <div style="background: <?php echo $dashSubStatus === 'trial' ? 'linear-gradient(135deg, #166534 0%, #22c55e 100%)' : 'linear-gradient(135deg, #991B1B 0%, #DC2626 100%)'; ?>; border-radius: 14px; padding: 18px 24px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; color: white;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+                <div style="font-weight: 700; font-size: 1rem;"><?php echo $dashSubStatus === 'trial' ? 'You\'re on a 30-day free trial' : 'Your subscription has expired'; ?></div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">
+                    <?php if ($dashSubExpires): ?>
+                        <?php $daysLeft = max(0, (int)((strtotime($dashSubExpires) - time()) / 86400)); ?>
+                        <?php if ($dashSubStatus === 'trial'): ?>
+                            <strong><?php echo $daysLeft; ?> days remaining</strong> — Upgrade to keep all features
+                        <?php else: ?>
+                            Expired <?php echo date('M j, Y', strtotime($dashSubExpires)); ?> — Subscribe now to continue
+                        <?php endif; ?>
+                    <?php else: ?>
+                        Upgrade to unlock all features
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <a href="/Frontend/pages/pricing.php" style="background: white; color: <?php echo $dashSubStatus === 'trial' ? '#166534' : '#991B1B'; ?>; padding: 10px 20px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; text-decoration: none; white-space: nowrap;">
+            <?php echo $dashSubStatus === 'trial' ? 'Upgrade Plan' : 'Renew Subscription'; ?> →
+        </a>
+    </div>
+    <?php endif; ?>
+
     <!-- V2 KPI cards -->
     <div class="d2-kpis">
         <div class="d2-kpi" onclick="window.location.href='/Frontend/admin/hub_finance.php?tab=sales'">
