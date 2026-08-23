@@ -86,20 +86,59 @@ try {
         // ════ DASHBOARD ════
         case 'dashboard':
             $data = [];
-            $data['total_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user'")->fetchColumn();
-            $data['active_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='active'")->fetchColumn();
-            $data['trial_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='trial'")->fetchColumn();
-            $data['expired_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='expired'")->fetchColumn();
-            $data['free_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='free'")->fetchColumn();
-            $data['total_revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES'")->fetchColumn();
-            $data['month_revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES' AND MONTH(recorded_at)=MONTH(CURDATE()) AND YEAR(recorded_at)=YEAR(CURDATE())")->fetchColumn();
-            $data['total_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM wangari_licenses")->fetchColumn();
-            $data['unused_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM wangari_licenses WHERE status='active' AND hardware_id IS NULL AND (expires_at IS NULL OR expires_at > NOW())")->fetchColumn();
-            $data['open_tickets'] = (int) $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status IN ('open','in_progress')")->fetchColumn();
-            $data['critical_tickets'] = (int) $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE priority='critical' AND status NOT IN ('resolved','closed')")->fetchColumn();
-            $data['recent_users'] = $pdo->query("SELECT id, username, email, full_name, subscription_status, created_at FROM platform_users WHERE role='user' ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
-            $data['recent_tickets'] = $pdo->query("SELECT id, ticket_code, subject, category, priority, status, created_at FROM support_tickets ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
-            $data['revenue_by_month'] = $pdo->query("SELECT DATE_FORMAT(recorded_at,'%Y-%m') AS month, SUM(amount) AS total, COUNT(*) AS count FROM platform_revenue WHERE currency='KES' GROUP BY month ORDER BY month DESC LIMIT 12")->fetchAll(PDO::FETCH_ASSOC);
+            // Count from both platform_users AND users tables
+            try {
+                $puCount = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user'")->fetchColumn();
+            } catch (Exception $e) { $puCount = 0; }
+            try {
+                $uCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role <> 'super_admin'")->fetchColumn();
+            } catch (Exception $e) { $uCount = 0; }
+            $data['total_users'] = max($puCount, $uCount);
+            try {
+                $data['active_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='active'")->fetchColumn();
+            } catch (Exception $e) { $data['active_users'] = 0; }
+            try {
+                $data['trial_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='trial'")->fetchColumn();
+            } catch (Exception $e) { $data['trial_users'] = 0; }
+            try {
+                $data['expired_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='expired'")->fetchColumn();
+            } catch (Exception $e) { $data['expired_users'] = 0; }
+            try {
+                $data['free_users'] = (int) $pdo->query("SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='free'")->fetchColumn();
+            } catch (Exception $e) { $data['free_users'] = 0; }
+            try {
+                $data['total_revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES'")->fetchColumn();
+            } catch (Exception $e) { $data['total_revenue'] = 0; }
+            try {
+                $data['month_revenue'] = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES' AND MONTH(recorded_at)=MONTH(CURDATE()) AND YEAR(recorded_at)=YEAR(CURDATE())")->fetchColumn();
+            } catch (Exception $e) { $data['month_revenue'] = 0; }
+            try {
+                $data['total_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM wangari_licenses")->fetchColumn();
+            } catch (Exception $e) { $data['total_codes'] = 0; }
+            try {
+                $data['unused_codes'] = (int) $pdo->query("SELECT COUNT(*) FROM wangari_licenses WHERE status='active' AND hardware_id IS NULL AND (expires_at IS NULL OR expires_at > NOW())")->fetchColumn();
+            } catch (Exception $e) { $data['unused_codes'] = 0; }
+            try {
+                $data['open_tickets'] = (int) $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE status IN ('open','in_progress')")->fetchColumn();
+            } catch (Exception $e) { $data['open_tickets'] = 0; }
+            try {
+                $data['critical_tickets'] = (int) $pdo->query("SELECT COUNT(*) FROM support_tickets WHERE priority='critical' AND status NOT IN ('resolved','closed')")->fetchColumn();
+            } catch (Exception $e) { $data['critical_tickets'] = 0; }
+            // Recent users from both tables
+            try {
+                $data['recent_users'] = $pdo->query("SELECT id, username, email, full_name, subscription_status, created_at FROM platform_users WHERE role='user' ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Exception $e) { $data['recent_users'] = []; }
+            if (empty($data['recent_users'])) {
+                try {
+                    $data['recent_users'] = $pdo->query("SELECT id, username, email, COALESCE(CONCAT(first_name,' ',last_name), username) AS full_name, 'free' AS subscription_status, created_at FROM users WHERE role <> 'super_admin' ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+                } catch (Exception $e) { $data['recent_users'] = []; }
+            }
+            try {
+                $data['recent_tickets'] = $pdo->query("SELECT id, ticket_code, subject, category, priority, status, created_at FROM support_tickets ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Exception $e) { $data['recent_tickets'] = []; }
+            try {
+                $data['revenue_by_month'] = $pdo->query("SELECT DATE_FORMAT(recorded_at,'%Y-%m') AS month, SUM(amount) AS total, COUNT(*) AS count FROM platform_revenue WHERE currency='KES' GROUP BY month ORDER BY month DESC LIMIT 12")->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Exception $e) { $data['revenue_by_month'] = []; }
             echo json_encode($data);
             break;
 
@@ -108,34 +147,50 @@ try {
             if ($action === 'list') {
                 $status = $_GET['status'] ?? '';
                 $search = $_GET['search'] ?? '';
-                $sql = 'SELECT id, username, email, full_name, phone, farm_name, farm_type, county, subscription_status, subscription_expires, trial_ends, max_animals, max_fields, max_users, total_login_count, last_login, is_active, created_at FROM platform_users WHERE role = "user"';
-                if ($status) $sql .= " AND subscription_status=" . $pdo->quote($status);
-                if ($search) $sql .= " AND (username LIKE " . $pdo->quote("%$search%") . " OR email LIKE " . $pdo->quote("%$search%") . " OR full_name LIKE " . $pdo->quote("%$search%") . ")";
-                $sql .= ' ORDER BY created_at DESC';
-                $users = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+                $users = [];
 
-                // Google/manual farm registration stores accounts in users. Keep the
-                // platform admin list connected while legacy platform_users is empty.
-                if (!$users) {
-                    $fallback = 'SELECT id, username, email,
-                        COALESCE(full_name, username) AS full_name,
-                        COALESCE(phone, "") AS phone,
+                // Try platform_users first
+                try {
+                    $sql = 'SELECT id, username, email, full_name, phone, farm_name, farm_type, county, subscription_status, subscription_expires, trial_ends, max_animals, max_fields, max_users, total_login_count, last_login, is_active, created_at FROM platform_users WHERE role = "user"';
+                    if ($status) $sql .= " AND subscription_status=" . $pdo->quote($status);
+                    if ($search) $sql .= " AND (username LIKE " . $pdo->quote("%$search%") . " OR email LIKE " . $pdo->quote("%$search%") . " OR full_name LIKE " . $pdo->quote("%$search%") . ")";
+                    $sql .= ' ORDER BY created_at DESC';
+                    $users = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+                } catch (Exception $e) {
+                    // platform_users table may not exist yet
+                }
+
+                // Also fetch from users table (where Google/manual registrations go)
+                try {
+                    $userSql = 'SELECT id, username, email,
+                        COALESCE(CONCAT(first_name, " ", last_name), full_name, username) AS full_name,
+                        COALESCE(phone_number, phone, "") AS phone,
                         "" AS farm_name, "" AS farm_type, "" AS county,
                         CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN "trial" ELSE "free" END AS subscription_status,
                         NULL AS subscription_expires, NULL AS trial_ends,
                         100 AS max_animals, 10 AS max_fields, 3 AS max_users,
-                        0 AS total_login_count, NULL AS last_login, COALESCE(is_active, 1) AS is_active, created_at
+                        0 AS total_login_count, NULL AS last_login, 1 AS is_active, created_at
                         FROM users WHERE role <> "super_admin"';
                     $params = [];
                     if ($search) {
-                        $fallback .= ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
+                        $userSql .= ' AND (username LIKE ? OR email LIKE ? OR COALESCE(first_name, "") LIKE ? OR COALESCE(last_name, "") LIKE ?)';
                         $term = "%$search%";
-                        $params = [$term, $term, $term];
+                        $params = [$term, $term, $term, $term];
                     }
-                    $fallback .= ' ORDER BY created_at DESC';
-                    $stmt = $pdo->prepare($fallback);
+                    $userSql .= ' ORDER BY created_at DESC';
+                    $stmt = $pdo->prepare($userSql);
                     $stmt->execute($params);
-                    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $extraUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    // Merge: add users table entries that aren't already in platform_users
+                    $existingIds = array_column($users, 'id');
+                    foreach ($extraUsers as $eu) {
+                        if (!in_array($eu['id'], $existingIds)) {
+                            $users[] = $eu;
+                        }
+                    }
+                } catch (Exception $e) {
+                    // users table query failed - use only platform_users results
                 }
                 echo json_encode($users);
             } elseif ($action === 'get') {
