@@ -5,6 +5,17 @@
 declare(strict_types=1);
 
 $page_title = 'Wangari - Smart Farming for a Sustainable Future';
+
+// Start session and check login state
+require_once __DIR__ . '/includes/config.php';
+if (session_status() === PHP_SESSION_NONE) {
+    wangariStartSession();
+}
+$is_logged_in = !empty($_SESSION['user_id']);
+$dashboard_url = '/Frontend/admin/dashboard.php';
+if (($_SESSION['role'] ?? '') === 'customer') {
+    $dashboard_url = '/Frontend/pages/dashboard.php';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,8 +48,13 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
             <li><a href="/Frontend/pages/contact.php">Contact</a></li>
         </ul>
         <div class="xai-nav-actions">
-            <a href="/Frontend/pages/login.php" class="xai-nav-ghost">Sign In</a>
-            <a href="/Frontend/pages/register.php" class="xai-nav-cta">Get Started</a>
+            <?php if ($is_logged_in): ?>
+                <a href="<?php echo $dashboard_url; ?>" class="xai-nav-ghost">Dashboard</a>
+                <a href="/Frontend/pages/logout.php" class="xai-nav-cta" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca;">Sign Out</a>
+            <?php else: ?>
+                <a href="/Frontend/pages/login.php" class="xai-nav-ghost">Sign In</a>
+                <a href="/Frontend/pages/register.php" class="xai-nav-cta">Get Started</a>
+            <?php endif; ?>
             <button class="xai-mobile-toggle" id="mobileMenuBtn" aria-label="Open menu">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
@@ -86,8 +102,13 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
 
     <!-- Footer CTAs -->
     <div class="xai-mobile-menu-footer">
-        <a href="/Frontend/pages/login.php" class="xai-m-signin">Sign In</a>
-        <a href="/Frontend/pages/register.php" class="xai-m-cta">Get Started Free →</a>
+        <?php if ($is_logged_in): ?>
+            <a href="<?php echo $dashboard_url; ?>" class="xai-m-signin">Go to Dashboard</a>
+            <a href="/Frontend/pages/logout.php" class="xai-m-cta" style="background: #fee2e2; color: #b91c1c;">Sign Out</a>
+        <?php else: ?>
+            <a href="/Frontend/pages/login.php" class="xai-m-signin">Sign In</a>
+            <a href="/Frontend/pages/register.php" class="xai-m-cta">Get Started Free →</a>
+        <?php endif; ?>
     </div>
 
 </div>
@@ -104,14 +125,25 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
             <h1>One System.<br>Every Farm.<br><span>Smart Farming Technology</span></h1>
             <p class="xai-hero-sub">Wangari keeps your farm records, feed production, sales, and finances in one platform that works on any device.</p>
             <div class="xai-hero-actions">
-                <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary xai-btn-lg">
-                    Get Started Free
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </a>
-                <a href="/Frontend/pages/login.php" class="xai-btn xai-btn-secondary xai-btn-lg">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-                    Sign In
-                </a>
+                <?php if ($is_logged_in): ?>
+                    <a href="<?php echo $dashboard_url; ?>" class="xai-btn xai-btn-primary xai-btn-lg">
+                        Go to Dashboard
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    </a>
+                    <a href="/Frontend/pages/logout.php" class="xai-btn xai-btn-secondary xai-btn-lg">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                        Sign Out
+                    </a>
+                <?php else: ?>
+                    <a href="/Frontend/pages/register.php" class="xai-btn xai-btn-primary xai-btn-lg">
+                        Get Started Free
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="/Frontend/pages/login.php" class="xai-btn xai-btn-secondary xai-btn-lg">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                        Sign In
+                    </a>
+                <?php endif; ?>
             </div>
             <div class="xai-hero-stats">
                 <div class="xai-stat">
