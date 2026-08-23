@@ -177,6 +177,7 @@ HTML;
                 <span><?php echo htmlspecialchars(str_replace('_', ' ', $_SESSION['role'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></span>
             </div>
         </div>
+        <a href="/" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:10px;background:#F0FDF4;color:#166534;text-decoration:none;font-weight:600;font-size:0.82rem;transition:all 0.18s;border:1px solid #BBF7D0;margin-bottom:8px;"><i data-lucide="globe" style="width:15px;height:15px;"></i> Visit Website</a>
         <a href="/Frontend/pages/logout.php" class="w2-signout"><i data-lucide="log-out" style="width:15px;height:15px;"></i> Sign Out</a>
     </div>
 </nav>

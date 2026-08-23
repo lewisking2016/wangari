@@ -27,8 +27,12 @@ function navActive(string $page, string $current): string {
     return ($page === $current) ? ' active' : '';
 }
 
-// Determine login state for public site (only customer role shows on website)
-$is_customer_logged_in = !empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'customer';
+// Determine login state for public site (any logged-in user)
+$is_logged_in = !empty($_SESSION['user_id']);
+$dashboard_url = '/Frontend/admin/dashboard.php';
+if (($_SESSION['role'] ?? '') === 'customer') {
+    $dashboard_url = '/Frontend/pages/dashboard.php';
+}
 
 // Cart count for badge
 $cartCount = 0;
@@ -88,8 +92,9 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
         </ul>
 
         <div class="xai-nav-actions">
-            <?php if ($is_customer_logged_in): ?>
-                <a href="/Frontend/pages/logout.php" class="xai-nav-ghost">Sign Out</a>
+            <?php if ($is_logged_in): ?>
+                <a href="<?php echo $dashboard_url; ?>" class="xai-nav-ghost">Dashboard</a>
+                <a href="/Frontend/pages/logout.php" class="xai-nav-cta" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca;">Sign Out</a>
             <?php else: ?>
                 <a href="/Frontend/pages/login.php" class="xai-nav-ghost">Sign In</a>
                 <a href="/Frontend/pages/register.php" class="xai-nav-cta">Get Started</a>
@@ -137,8 +142,13 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     </div>
 
     <div class="xai-mobile-menu-footer">
-        <a href="/Frontend/pages/login.php" class="xai-m-signin">Sign In</a>
-        <a href="/Frontend/pages/register.php" class="xai-m-cta">Get Started Free →</a>
+        <?php if ($is_logged_in): ?>
+            <a href="<?php echo $dashboard_url; ?>" class="xai-m-signin">Go to Dashboard</a>
+            <a href="/Frontend/pages/logout.php" class="xai-m-cta" style="background: #fee2e2; color: #b91c1c;">Sign Out</a>
+        <?php else: ?>
+            <a href="/Frontend/pages/login.php" class="xai-m-signin">Sign In</a>
+            <a href="/Frontend/pages/register.php" class="xai-m-cta">Get Started Free →</a>
+        <?php endif; ?>
     </div>
 </div>
 
