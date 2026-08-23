@@ -21,6 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/role_permissions.php';
+wangariStartSession();
+
+if (empty($_SESSION['user_id']) || !wangariIsFarmSystemRole((string)($_SESSION['role'] ?? ''))) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Authentication required']);
+    exit();
+}
+
 // Get request body
 $input = json_decode(file_get_contents('php://input'), true);
 

@@ -8,6 +8,13 @@ declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 
+// This migration creates administrator tables and must never be web-accessible.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    echo json_encode(['error' => 'Not found']);
+    exit;
+}
+
 require __DIR__ . '/../config/database.php';
 $pdo = getDatabaseConnection();
 
