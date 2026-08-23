@@ -41,7 +41,7 @@ include '../includes/header.php';
                     </span>
                 </div>
                 <h4 style="margin-bottom: 0.3rem; font-size: 1.4rem;">Pro</h4>
-                <p style="font-size: 0.85rem; color: var(--g-muted); margin-bottom: 1.2rem;">For small-scale commercial farms getting started.</p>
+                <p style="font-size: 0.85rem; color: var(--g-muted); margin-bottom: 1.2rem;">For backyard farmers and very small operations.</p>
                 <div style="margin-bottom: 0.3rem;">
                     <span class="g-serif" style="font-size: 2.6rem; color: var(--g-ink);">KES 1,500</span>
                     <span style="color: var(--g-muted); font-size: 0.85rem;">/month</span>
@@ -50,7 +50,7 @@ include '../includes/header.php';
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; font-size: 0.88rem; padding: 0; text-align: left;">
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 3 modules (Livestock OR Crops OR Finance)</li>
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 5 team members</li>
-                    <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 200 cows / 2,000 birds</li>
+                    <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 5 cows / 100 birds</li>
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 10 fields</li>
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 50 SMS alerts/month</li>
                     <li style="display: flex; gap: 10px;"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> PDF reports</li>
@@ -70,7 +70,7 @@ include '../includes/header.php';
                     </span>
                 </div>
                 <h4 style="margin-bottom: 0.3rem; color: #fff; font-size: 1.4rem;">Plus</h4>
-                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 1.2rem;">For serious farmers with multiple operations.</p>
+                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 1.2rem;">For growing farms with commercial scale.</p>
                 <div style="margin-bottom: 0.3rem;">
                     <span class="g-serif" style="font-size: 2.6rem; color: var(--g-lime);">KES 4,500</span>
                     <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">/month</span>
@@ -79,7 +79,7 @@ include '../includes/header.php';
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; font-size: 0.88rem; padding: 0; text-align: left;">
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> All modules included</li>
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 15 team members</li>
-                    <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 500 cows / 10,000 birds</li>
+                    <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 200 cows / 2,000 birds</li>
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 50 fields</li>
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> 200 SMS alerts/month</li>
                     <li style="display: flex; gap: 10px; color: rgba(255,255,255,0.9);"><i data-lucide="check" style="width: 18px; height: 18px; color: var(--g-lime); flex-shrink: 0;"></i> PDF + CSV + Excel reports</li>
@@ -167,9 +167,9 @@ include '../includes/header.php';
                     </tr>
                     <tr>
                         <td>Animals</td>
-                        <td style="text-align: center;">200 / 2,000 birds</td>
-                        <td style="text-align: center; background: rgba(34,197,94,0.04);">500 / 10,000 birds</td>
-                        <td style="text-align: center;">Unlimited</td>
+                        <td style="text-align: center;">5 / 100 birds</td>
+                        <td style="text-align: center; background: rgba(34,197,94,0.04);">200 / 2,000 birds</td>
+                        <td style="text-align: center;">500 / 10,000+ birds</td>
                     </tr>
                     <tr>
                         <td>Fields</td>
@@ -313,7 +313,7 @@ include '../includes/header.php';
                     <span>What's the difference between Pro and Plus?</span>
                     <span class="g-plus">+</span>
                 </div>
-                <div class="g-faq-a">Pro gives you 3 modules of your choice (Livestock, Crops, or Finance) with 5 team members. Plus unlocks all modules, supports 15 team members, up to 3 farms, and includes advanced analytics and CSV/Excel exports. Most serious farmers upgrade to Plus within 3 months.</div>
+                <div class="g-faq-a">Pro is designed for very small farms (5 cows or 100 birds max). It gives you 3 modules of your choice with 5 team members. Plus unlocks all modules, supports 200 cows or 2,000 birds, 15 team members, up to 3 farms, and includes advanced analytics. If your farm grows beyond Pro limits, you'll need to upgrade.</div>
             </div>
         </div>
     </div>
