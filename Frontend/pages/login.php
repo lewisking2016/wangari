@@ -13,9 +13,17 @@ $page_title = 'Sign In — Wangari';
 // No header.php include - this page has its own xai-nav navigation
 $csrf_token = function_exists('generateCSRFToken') ? generateCSRFToken() : ($_SESSION['csrf_token'] ?? '');
 
+// Handle redirect parameter
+$redirectParam = $_GET['redirect'] ?? '';
+$redirectTo = '/Frontend/pages/pricing.php'; // default redirect after login from pricing
+
 // Redirect only if an account is already logged in
 if (!empty($_SESSION['user_id']) && wangariIsFarmSystemRole((string)($_SESSION['role'] ?? ''))) {
-    header('Location: ' . wangariAuthRedirectPath((string)$_SESSION['role']));
+    if ($redirectParam === 'pricing') {
+        header('Location: /Frontend/pages/pricing.php');
+    } else {
+        header('Location: ' . wangariAuthRedirectPath((string)$_SESSION['role']));
+    }
     exit;
 }
 
@@ -68,8 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                 $_SESSION['first_name'] = explode(' ', $user['full_name'] ?? $user['username'] ?? '')[0] ?? '';
                 $_SESSION['full_name'] = $user['full_name'] ?? $user['username'];
                 
-                // Route by role — everyone goes to the real farm system
-                $redirect = wangariAuthRedirectPath((string)$user['role']);
+                // Route by role — check redirect parameter first
+                if ($redirectParam === 'pricing') {
+                    $redirect = '/Frontend/pages/pricing.php';
+                } else {
+                    $redirect = wangariAuthRedirectPath((string)$user['role']);
+                }
                 
                 header('Location: ' . $redirect);
                 exit;

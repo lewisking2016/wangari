@@ -46,10 +46,17 @@ try {
                 exit;
             }
             
-            // Get user email
+            // Get user email - try platform_users first, then users table
             $stmt = $pdo->prepare('SELECT email, full_name, username FROM platform_users WHERE id = ?');
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$user) {
+                // Try users table (registered via Google/manual)
+                $stmt = $pdo->prepare('SELECT email, COALESCE(full_name, username) as full_name, username FROM users WHERE id = ?');
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
             
             if (!$user) {
                 http_response_code(404);

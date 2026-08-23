@@ -8,7 +8,54 @@ declare(strict_types=1);
 $path_prefix = '../';
 $page_title = 'Pricing | Wangari';
 include '../includes/header.php';
+
+// Get user's trial status if logged in
+$userTrialInfo = null;
+if (!empty($_SESSION['user_id'])) {
+    require_once dirname(__DIR__, 2) . '/Backend/config/database.php';
+    $pdo = getDatabaseConnection();
+    if ($pdo) {
+        $stmt = $pdo->prepare('SELECT subscription_status, subscription_expires, trial_ends FROM platform_users WHERE id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+        $userTrialInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$userTrialInfo) {
+            $stmt = $pdo->prepare('SELECT "trial" as subscription_status, DATE_ADD(created_at, INTERVAL 30 DAY) as subscription_expires FROM users WHERE id = ?');
+            $stmt->execute([$_SESSION['user_id']]);
+            $userTrialInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+    }
+}
 ?>
+
+<?php if ($userTrialInfo && ($userTrialInfo['subscription_status'] ?? '') === 'trial'): ?>
+<div style="max-width: 900px; margin: 0 auto 0; padding: 0 1.5rem;">
+    <div style="background: linear-gradient(135deg, #166534 0%, #22c55e 100%); border-radius: 14px; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; color: white;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+                <div style="font-weight: 700; font-size: 1.05rem;">You're on a 30-day free trial</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">
+                    <?php 
+                    $expires = $userTrialInfo['subscription_expires'] ?? $userTrialInfo['trial_ends'] ?? null;
+                    if ($expires) {
+                        $daysLeft = max(0, (int)((strtotime($expires) - time()) / 86400));
+                        echo "<strong>{$daysLeft} days remaining</strong> — Upgrade now to continue after trial ends";
+                    } else {
+                        echo 'Upgrade now to continue after trial ends';
+                    }
+                    ?>
+                </div>
+            </div>
+        </div>
+        <a href="/Frontend/admin/dashboard.php" style="background: white; color: #166534; padding: 10px 24px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; text-decoration: none; white-space: nowrap;">
+            Go to Dashboard →
+        </a>
+    </div>
+</div>
+<?php endif; ?>
 
 <section class="g-page-hero">
     <div class="g-container">
@@ -348,40 +395,51 @@ include '../includes/header.php';
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
 function startPayment(plan, billing) {
-    // Check if user is logged in
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Processing...';
+    btn.disabled = true;
+    
+    // Check if user is logged in by trying to get subscription info
     fetch('/Backend/api/paystack.php?action=subscription')
         .then(r => r.json())
         .then(data => {
             if (data.error) {
-                // Not logged in, redirect to login
+                // Not logged in, redirect to login with redirect back to pricing
                 window.location.href = '/Frontend/pages/login.php?redirect=pricing';
                 return;
             }
             
-            // Initialize payment
-            fetch('/Backend/api/paystack.php?action=initialize', {
+            // User is logged in, initialize payment directly
+            return fetch('/Backend/api/paystack.php?action=initialize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ plan: plan, billing: billing })
-            })
-            .then(r => r.json())
-            .then(result => {
-                if (result.success && result.authorization_url) {
-                    // Redirect to Paystack checkout
-                    window.location.href = result.authorization_url;
-                } else {
-                    alert(result.error || 'Payment initialization failed. Please try again.');
-                }
-            })
-            .catch(err => {
-                console.error('Payment error:', err);
-                alert('An error occurred. Please try again.');
             });
         })
-        .catch(() => {
+        .then(r => r ? r.json() : null)
+        .then(result => {
+            if (result && result.success && result.authorization_url) {
+                // Redirect to Paystack checkout
+                window.location.href = result.authorization_url;
+            } else if (result) {
+                alert(result.error || 'Payment initialization failed. Please try again.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error('Payment error:', err);
+            // If fetch fails, might be network issue, redirect to login
             window.location.href = '/Frontend/pages/login.php?redirect=pricing';
         });
 }
+
+// Add spin animation for loading
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
 </script>
 
 <?php include '../includes/footer.php'; ?>
