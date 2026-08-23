@@ -130,7 +130,7 @@ try {
             } catch (Exception $e) { $data['recent_users'] = []; }
             if (empty($data['recent_users'])) {
                 try {
-                    $data['recent_users'] = $pdo->query("SELECT id, username, email, COALESCE(CONCAT(first_name,' ',last_name), username) AS full_name, 'free' AS subscription_status, created_at FROM users WHERE role <> 'super_admin' ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
+                    $data['recent_users'] = $pdo->query("SELECT id, username, email, username AS full_name, 'free' AS subscription_status, created_at FROM users WHERE role <> 'super_admin' ORDER BY created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
                 } catch (Exception $e) { $data['recent_users'] = []; }
             }
             try {
@@ -162,20 +162,25 @@ try {
 
                 // Also fetch from users table (where Google/manual registrations go)
                 try {
-                    $userSql = 'SELECT id, username, email,
-                        COALESCE(CONCAT(first_name, " ", last_name), full_name, username) AS full_name,
-                        COALESCE(phone_number, phone, "") AS phone,
-                        "" AS farm_name, "" AS farm_type, "" AS county,
-                        CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN "trial" ELSE "free" END AS subscription_status,
-                        NULL AS subscription_expires, NULL AS trial_ends,
-                        100 AS max_animals, 10 AS max_fields, 3 AS max_users,
-                        0 AS total_login_count, NULL AS last_login, 1 AS is_active, created_at
-                        FROM users WHERE role <> "super_admin"';
+                    // Get column names first to avoid referencing non-existent columns
+                    $cols = $pdo->query('SHOW COLUMNS FROM users')->fetchAll(PDO::FETCH_COLUMN);
+                    $hasFirstName = in_array('first_name', $cols);
+                    $hasLastName = in_array('last_name', $cols);
+                    $hasFullName = in_array('full_name', $cols);
+                    $hasPhone = in_array('phone_number', $cols) || in_array('phone', $cols);
+
+                    $nameExpr = $hasFullName ? 'full_name' : 'username';
+                    if ($hasFirstName && $hasLastName) {
+                        $nameExpr = 'CONCAT(COALESCE(first_name, ""), " ", COALESCE(last_name, ""))';
+                    }
+                    $phoneExpr = $hasPhone ? (in_array('phone_number', $cols) ? 'phone_number' : 'phone') : '""';
+
+                    $userSql = "SELECT id, username, email, $nameExpr AS full_name, $phoneExpr AS phone, '' AS farm_name, '' AS farm_type, '' AS county, CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN 'trial' ELSE 'free' END AS subscription_status, NULL AS subscription_expires, NULL AS trial_ends, 100 AS max_animals, 10 AS max_fields, 3 AS max_users, 0 AS total_login_count, NULL AS last_login, 1 AS is_active, created_at FROM users WHERE role <> 'super_admin'";
                     $params = [];
                     if ($search) {
-                        $userSql .= ' AND (username LIKE ? OR email LIKE ? OR COALESCE(first_name, "") LIKE ? OR COALESCE(last_name, "") LIKE ?)';
+                        $userSql .= ' AND (username LIKE ? OR email LIKE ?)';
                         $term = "%$search%";
-                        $params = [$term, $term, $term, $term];
+                        $params = [$term, $term];
                     }
                     $userSql .= ' ORDER BY created_at DESC';
                     $stmt = $pdo->prepare($userSql);
