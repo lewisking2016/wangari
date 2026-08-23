@@ -74,10 +74,18 @@ try {
             // Combined user counts from both tables in minimal queries
             $data['total_users'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user'")
                 + (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE id NOT IN (SELECT id FROM platform_users WHERE role='user')");
-            $data['active_users'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='active'");
-            $data['trial_users'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='trial'");
-            $data['expired_users'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='expired'");
-            $data['free_users'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='free'");
+            // Count from platform_users
+            $puActive = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='active'");
+            $puTrial = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='trial'");
+            $puExpired = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='expired'");
+            $puFree = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='free'");
+            // Count users from users table (registered via Google/manual) as trial if within 40 days
+            $uTrial = (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') AND created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY)");
+            $uFree = (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') AND created_at < DATE_SUB(NOW(), INTERVAL 40 DAY)");
+            $data['active_users'] = $puActive;
+            $data['trial_users'] = $puTrial + $uTrial;
+            $data['expired_users'] = $puExpired;
+            $data['free_users'] = $puFree + $uFree;
 
             // Revenue
             $data['total_revenue'] = (float)safeScalar($pdo, "SELECT COALESCE(SUM(amount),0) FROM platform_revenue WHERE currency='KES'");
@@ -91,10 +99,11 @@ try {
             $data['open_tickets'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM support_tickets WHERE status IN ('open','in_progress')");
             $data['critical_tickets'] = (int)safeScalar($pdo, "SELECT COUNT(*) FROM support_tickets WHERE priority='critical' AND status NOT IN ('resolved','closed')");
 
-            // Recent data
+            // Recent data — merge from both tables
             $data['recent_users'] = safeQuery($pdo, "SELECT id, username, email, full_name, subscription_status, created_at FROM platform_users WHERE role='user' ORDER BY created_at DESC LIMIT 5");
-            if (empty($data['recent_users'])) {
-                $data['recent_users'] = safeQuery($pdo, "SELECT id, username, email, username AS full_name, 'free' AS subscription_status, created_at FROM users WHERE role <> 'super_admin' ORDER BY created_at DESC LIMIT 5");
+            $extraRecent = safeQuery($pdo, "SELECT id, username, email, username AS full_name, CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN 'trial' ELSE 'free' END AS subscription_status, created_at FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') ORDER BY created_at DESC LIMIT 5");
+            foreach ($extraRecent as $er) {
+                if (count($data['recent_users']) < 5) $data['recent_users'][] = $er;
             }
             $data['recent_tickets'] = safeQuery($pdo, "SELECT id, ticket_code, subject, category, priority, status, created_at FROM support_tickets ORDER BY created_at DESC LIMIT 5");
             $data['revenue_by_month'] = safeQuery($pdo, "SELECT DATE_FORMAT(recorded_at,'%Y-%m') AS month, SUM(amount) AS total, COUNT(*) AS count FROM platform_revenue WHERE currency='KES' GROUP BY month ORDER BY month DESC LIMIT 12");

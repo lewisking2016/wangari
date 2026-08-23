@@ -126,6 +126,7 @@ const API = window.location.origin + '/api/platform.php';
 let currentMod = 'dashboard';
 let adminUser = null;
 let allUsersCache = [];
+let _usersList = []; // cached for editUser by index
 
 // ════ HELPERS ════
 async function api(mod, action='get', params={}, body=null) {
@@ -262,6 +263,7 @@ async function render_users() {
     document.getElementById('content').innerHTML = loading();
     const d = await api('users','list');
     const users = Array.isArray(d) ? d : [];
+    _usersList = users;
     document.getElementById('content').innerHTML = `
         <div class="card-header" style="margin-bottom:16px;">
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -279,7 +281,7 @@ async function render_users() {
         </div>
         <div class="card"><div class="table-responsive"><table class="table" id="usersTable">
             <thead><tr><th>User</th><th>Farm</th><th>County</th><th>Status</th><th>Expires</th><th>Last Login</th><th>Actions</th></tr></thead>
-            <tbody>${users.map(u=>`<tr data-status="${u.subscription_status}" data-search="${esc((u.username+u.email+u.full_name+u.farm_name).toLowerCase())}">
+            <tbody>${users.map((u,ui)=>`<tr data-status="${u.subscription_status}" data-search="${esc((u.username+u.email+u.full_name+u.farm_name).toLowerCase())}">
                 <td><strong>${esc(u.full_name||u.username)}</strong><br><small style="color:#64748b">${esc(u.email)}</small></td>
                 <td>${esc(u.farm_name||'-')}<br><small style="color:var(--muted)">${esc(u.farm_type||'')}</small></td>
                 <td>${esc(u.county||'-')}</td>
@@ -287,7 +289,7 @@ async function render_users() {
                 <td><small>${u.subscription_expires||'-'}</small></td>
                 <td><small>${(u.last_login||'Never').split(' ')[0]}<br>${u.total_login_count||0} logins</small></td>
                 <td style="white-space:nowrap;">
-                    <button onclick='editUser(${JSON.stringify(u).replace(/'/g,"&#39;")})' class="btn-sm btn-outline">Edit</button>
+                    <button onclick="editUser(${ui})" class="btn-sm btn-outline">Edit</button>
                     ${Number(u.is_active)?`<button onclick="deactivateUser(${u.id})" class="btn-sm btn-danger">Suspend</button>`:`<button onclick="activateUser(${u.id})" class="btn-sm btn-success">Activate</button>`}
                     <button onclick="resetPassword(${u.id})" class="btn-sm btn-outline">Reset Pass</button>
                 </td>
@@ -322,7 +324,9 @@ async function createUser(e) {
     await api('users','create',{},{username:v('cu-user'),email:v('cu-email'),password:'changeme',full_name:v('cu-name'),phone:v('cu-phone'),farm_name:v('cu-farm'),farm_type:v('cu-type'),county:v('cu-county'),max_animals:v('cu-animals'),max_fields:v('cu-fields'),max_users:v('cu-maxusers')});
     closeModal(); toast('User created'); render_users();
 }
-function editUser(u) {
+function editUser(idx) {
+    const u = _usersList[idx];
+    if (!u) { toast('User not found', 'error'); return; }
     openModal('Edit User: ' + (u.full_name||u.username), `
         <form onsubmit="updateUser(event,${u.id})">
             <div class="form-row"><div class="form-group"><label>Username</label><input class="form-input" value="${esc(u.username)}" readonly style="background:#f5f5f5;"></div>
