@@ -298,7 +298,7 @@ $role = $_SESSION['role'];
 </div>
 
 <script>
-const API = '/api/team.php';
+const API = '/Backend/api/team.php';
 let allMembers = [];
 
 // ── Fetch helpers ──
@@ -516,9 +516,7 @@ async function doGenerateCode() {
     const role = document.getElementById('code-role').value;
     const maxUses = document.getElementById('code-uses').value;
     const expiresDays = document.getElementById('code-expires').value;
-    const data = await fetchAPI('/api/farm_codes.php?action=generate_code', null);
-    // Use fetch directly for farm_codes API
-    const res = await fetch('/api/farm_codes.php?action=generate_code', {
+    const res = await fetch('/Backend/api/farm_codes.php?action=generate_code', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ role, max_uses: parseInt(maxUses), expires_days: parseInt(expiresDays) })

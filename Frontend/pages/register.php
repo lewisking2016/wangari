@@ -526,7 +526,7 @@ async function validateCode() {
     result.textContent = 'Verifying code...';
 
     try {
-        const res = await fetch('/api/farm_codes.php?action=validate_code', {
+        const res = await fetch('/Backend/api/farm_codes.php?action=validate_code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: code })
