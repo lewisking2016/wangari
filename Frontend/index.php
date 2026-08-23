@@ -108,9 +108,9 @@ $page_title = 'Wangari - Smart Farming for a Sustainable Future';
                     Get Started Free
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
-                <a href="/Frontend/pages/download.php" class="xai-btn xai-btn-secondary xai-btn-lg">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    Download App
+                <a href="/Frontend/pages/login.php" class="xai-btn xai-btn-secondary xai-btn-lg">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                    Sign In
                 </a>
             </div>
             <div class="xai-hero-stats">

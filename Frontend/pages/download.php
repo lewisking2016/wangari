@@ -97,15 +97,14 @@ $minDisk = '500 MB free space';
 <main>
     <section class="dl-hero">
         <div class="dl-hero-badge"><span class="dot"></span>Version <?php echo $appVersion; ?> - <?php echo $releaseDate; ?></div>
-        <h1>Manage your farm, <span>offline or online</span></h1>
-        <p>Download Wangari Desktop for Windows, Mac, or Linux. Work offline and sync your data when you reconnect.</p>
+        <h1>Desktop App <span>Coming Soon</span></h1>
+        <p>The Wangari Desktop app is currently under development. In the meantime, use the full-featured web version to manage your farm.</p>
         <div class="dl-buttons">
-            <a href="/Frontend/downloads/download.php?platform=windows" class="dl-btn dl-btn-primary <?php echo $userOS === 'windows' ? 'detected' : ''; ?>" id="btn-win" onclick="trackDownload('windows')"><i data-lucide="monitor" aria-hidden="true"></i>Download for Windows <small>.exe</small></a>
-            <a href="#platform-status" class="dl-btn dl-btn-secondary dl-btn-disabled" id="btn-mac" aria-disabled="true" onclick="return platformUnavailable(event, 'macOS')"><i data-lucide="apple" aria-hidden="true"></i>macOS build pending <small>.dmg</small></a>
-            <a href="#platform-status" class="dl-btn dl-btn-secondary dl-btn-disabled" id="btn-linux" aria-disabled="true" onclick="return platformUnavailable(event, 'Linux')"><i data-lucide="terminal" aria-hidden="true"></i>Linux build pending <small>.AppImage</small></a>
+            <a href="/Frontend/pages/register.php" class="dl-btn dl-btn-primary"><i data-lucide="globe" aria-hidden="true"></i>Use Web Version <small>Free trial</small></a>
+            <a href="/Frontend/pages/login.php" class="dl-btn dl-btn-secondary"><i data-lucide="log-in" aria-hidden="true"></i>Sign In to Web App</a>
         </div>
-        <p class="dl-subtext" id="platform-status">Windows installer available now. macOS and Linux builds will be published separately. v<?php echo $appVersion; ?> - <?php echo $releaseDate; ?></p>
-        <div class="dl-account-note"><i data-lucide="lock-keyhole" aria-hidden="true"></i>Create an account or sign in, then enter the license code issued by the administrator to use the desktop app.</div>
+        <p class="dl-subtext" id="platform-status">The desktop app will be available for Windows, macOS, and Linux. Sign up for the web version now to get started.</p>
+        <div class="dl-account-note"><i data-lucide="info" aria-hidden="true"></i>The web version includes all core features: livestock tracking, field management, finances, and reports.</div>
     </section>
     <section class="dl-features">
         <h2>Everything you need, <em style="font-family:'Instrument Serif',serif;font-style:italic;color:var(--green-400)">offline or online</em></h2><p class="sub">The desktop app includes everything in the web version, plus offline access and local data sync.</p>
