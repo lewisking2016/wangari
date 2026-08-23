@@ -5,12 +5,11 @@
  */
 declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
-    require_once __DIR__ . '/config.php';
-}
+require_once __DIR__ . '/config.php';
 
-if (!defined('BASE_URL')) {
-    require_once __DIR__ . '/config.php';
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    wangariStartSession();
 }
 
 if (!isset($page_title)) {
