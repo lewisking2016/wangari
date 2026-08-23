@@ -1464,13 +1464,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if(burger)burger.addEventListener('click',function(){setNav(!document.body.classList.contains('w2-nav-open'));});
             if(overlay)overlay.addEventListener('click',function(){setNav(false);});
-            // Auto-close on nav link click (mobile)
-            document.querySelectorAll('.w2-nav-item, .w2-nav-sub, .w2-nav-parent').forEach(function(el){
+            // Auto-close on nav link click (mobile) - exclude parent buttons
+            document.querySelectorAll('.w2-nav-item, .w2-nav-sub').forEach(function(el){
                 el.addEventListener('click',function(){ if(window.innerWidth<=860) setNav(false); });
             });
             // Sidebar group accordion (works on all screen sizes)
             document.querySelectorAll('.w2-nav-parent').forEach(function(btn){
                 btn.addEventListener('click',function(e){
+                    e.stopPropagation();
                     var grp=btn.closest('.w2-nav-group');
                     if(!grp)return;
                     var subs=grp.querySelector('.w2-nav-subs');
