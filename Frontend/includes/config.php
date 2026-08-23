@@ -178,11 +178,12 @@ function wangariIsFarmSystemRole(string $role): bool {
 
 function wangariAuthRedirectPath(string $role): string {
     if ($role === 'super_admin') {
-        return '/Frontend/admin/super_admin.php';
+        return '/wangariadmin/';
     }
     if ($role === 'customer') {
         return '/Frontend/index.php';
     }
+    // farm_manager, farm_worker — go to the farm management system
     return '/Frontend/admin/dashboard.php';
 }
 
