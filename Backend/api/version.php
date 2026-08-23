@@ -9,7 +9,7 @@ header('Access-Control-Allow-Origin: *');
 
 $latestVersion = '1.2.0';
 $downloadUrl = 'https://wangari.imeantech.com/Frontend/pages/download.php';
-$releaseNotes = 'Login flow, 40-day trial, bug fixes, modern design';
+$releaseNotes = 'Login flow, 30-day trial, bug fixes, modern design';
 
 echo json_encode([
     'latest_version' => $latestVersion,

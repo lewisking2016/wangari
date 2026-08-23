@@ -86,7 +86,7 @@ try {
             } else {
                 // users table — check if within 40-day trial
                 $createdAt = $user['created_at'];
-                $trialEndDate = date('Y-m-d', strtotime($createdAt . ' +40 days'));
+                $trialEndDate = date('Y-m-d', strtotime($createdAt . ' +30 days'));
                 $trialEnds = $trialEndDate;
                 if (date('Y-m-d') > $trialEndDate) {
                     $status = 'expired';

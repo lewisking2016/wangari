@@ -14,7 +14,7 @@ if (!$pdo) {
 }
 
 $updates = [
-    'trial_duration_days' => '40',
+    'trial_duration_days' => '30',
     'platform_version' => '1.2.0',
 ];
 

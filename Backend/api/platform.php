@@ -79,9 +79,9 @@ try {
             $puTrial = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='trial'");
             $puExpired = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='expired'");
             $puFree = (int)safeScalar($pdo, "SELECT COUNT(*) FROM platform_users WHERE role='user' AND subscription_status='free'");
-            // Count users from users table (registered via Google/manual) as trial if within 40 days
-            $uTrial = (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') AND created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY)");
-            $uFree = (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') AND created_at < DATE_SUB(NOW(), INTERVAL 40 DAY)");
+            // Count users from users table (registered via Google/manual) as trial if within 30 days
+            $uTrial = (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $uFree = (int)safeScalar($pdo, "SELECT COUNT(*) FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)");
             $data['active_users'] = $puActive;
             $data['trial_users'] = $puTrial + $uTrial;
             $data['expired_users'] = $puExpired;
@@ -101,7 +101,7 @@ try {
 
             // Recent data — merge from both tables
             $data['recent_users'] = safeQuery($pdo, "SELECT id, username, email, full_name, subscription_status, created_at FROM platform_users WHERE role='user' ORDER BY created_at DESC LIMIT 5");
-            $extraRecent = safeQuery($pdo, "SELECT id, username, email, username AS full_name, CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN 'trial' ELSE 'free' END AS subscription_status, created_at FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') ORDER BY created_at DESC LIMIT 5");
+            $extraRecent = safeQuery($pdo, "SELECT id, username, email, username AS full_name, CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 'trial' ELSE 'free' END AS subscription_status, created_at FROM users WHERE role <> 'super_admin' AND id NOT IN (SELECT id FROM platform_users WHERE role='user') ORDER BY created_at DESC LIMIT 5");
             foreach ($extraRecent as $er) {
                 if (count($data['recent_users']) < 5) $data['recent_users'][] = $er;
             }
@@ -144,7 +144,7 @@ try {
                     $paramsU = [];
                     if ($search) { $whereU[] = "(username LIKE ? OR email LIKE ?)"; $paramsU = ["%$search%", "%$search%"]; }
                     $wU = implode(' AND ', $whereU);
-                    $extraUsers = safeQuery($pdo, "SELECT id, username, email, $nameExpr AS full_name, $phoneExpr AS phone, '' AS farm_name, '' AS farm_type, '' AS county, CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN 'trial' ELSE 'free' END AS subscription_status, NULL AS subscription_expires, NULL AS trial_ends, 100 AS max_animals, 10 AS max_fields, 3 AS max_users, 0 AS total_login_count, NULL AS last_login, 1 AS is_active, created_at FROM users WHERE $wU ORDER BY created_at DESC LIMIT $perPage OFFSET $offset", $paramsU);
+                    $extraUsers = safeQuery($pdo, "SELECT id, username, email, $nameExpr AS full_name, $phoneExpr AS phone, '' AS farm_name, '' AS farm_type, '' AS county, CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 'trial' ELSE 'free' END AS subscription_status, NULL AS subscription_expires, NULL AS trial_ends, 100 AS max_animals, 10 AS max_fields, 3 AS max_users, 0 AS total_login_count, NULL AS last_login, 1 AS is_active, created_at FROM users WHERE $wU ORDER BY created_at DESC LIMIT $perPage OFFSET $offset", $paramsU);
                     $existingIds = array_column($users, 'id');
                     foreach ($extraUsers as $eu) { if (!in_array($eu['id'], $existingIds)) $users[] = $eu; }
                 } catch (Exception $e) {}
@@ -168,7 +168,7 @@ try {
                     http_response_code(400); echo json_encode(['error' => 'Only Gmail and Outlook email addresses are allowed']); exit;
                 }
                 $password = password_hash($input['password'] ?? 'changeme', PASSWORD_DEFAULT);
-                $trialEnd = date('Y-m-d', strtotime('+40 days'));
+                $trialEnd = date('Y-m-d', strtotime('+30 days'));
                 $stmt = $pdo->prepare('INSERT INTO platform_users (username, email, password, full_name, phone, farm_name, farm_type, county, role, subscription_status, subscription_expires, trial_ends, max_animals, max_fields, max_users) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
                 $stmt->execute([
                     $username, $email, $password,

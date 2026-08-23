@@ -13,7 +13,7 @@ include '../includes/header.php';
 <section class="g-page-hero">
     <div class="g-container">
         <h1>Simple plans for farms of <span class="g-serif">every size</span></h1>
-        <p>Use every Wangari web feature free for 40 days. No card is required, and your farm data remains yours.</p>
+        <p>Use every Wangari web feature free for 30 days. No card is required, and your farm data remains yours.</p>
         <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
             <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; font-size: 0.85rem; color: rgba(255,255,255,0.9);">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -37,11 +37,11 @@ include '../includes/header.php';
                 <div style="margin-bottom: 0.3rem;">
                     <span style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 999px; font-size: 0.7rem; font-weight: 700; color: var(--g-lime); text-transform: uppercase; letter-spacing: 0.06em;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Trial</span>
                 </div>
-                <h4 style="margin-bottom: 0.3rem;">Free for 40 days</h4>
+                <h4 style="margin-bottom: 0.3rem;">Free for 30 days</h4>
                 <p style="font-size: 0.82rem; color: var(--g-muted); margin-bottom: 1.2rem;">Full access to the Wangari web system with no usage caps during the trial.</p>
                 <div style="margin-bottom: 0.3rem;">
                     <span class="g-serif" style="font-size: 2.8rem; color: var(--g-ink);">KES 0</span>
-                    <span style="color: var(--g-muted); font-size: 0.82rem; display: block;">for 40 days</span>
+                    <span style="color: var(--g-muted); font-size: 0.82rem; display: block;">for 30 days</span>
                 </div>
                 <p style="color: var(--g-lime); font-size: 0.75rem; font-weight: 600; margin-bottom: 1.2rem;">No credit card required</p>
                 <ul style="list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.5rem; font-size: 0.85rem; padding: 0; text-align: left;">
@@ -51,7 +51,7 @@ include '../includes/header.php';
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Unlimited AI questions</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Full history and data export</li>
                     <li style="display: flex; gap: 8px;"><i data-lucide="check" style="width: 16px; height: 16px; color: var(--g-lime); flex-shrink: 0;"></i> Reports &amp; data export</li>
-                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="clock" style="width: 16px; height: 16px; color: #888; flex-shrink: 0;"></i> Trial access ends after 40 days</li>
+                    <li style="display: flex; gap: 8px; color: var(--g-muted);"><i data-lucide="clock" style="width: 16px; height: 16px; color: #888; flex-shrink: 0;"></i> Trial access ends after 30 days</li>
                 </ul>
                 <a href="/Frontend/pages/register.php" class="g-btn g-btn-outline-dark" style="width: 100%;">Start 40-Day Trial</a>
             </div>
@@ -157,7 +157,7 @@ include '../includes/header.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td><strong>Price</strong></td><td style="text-align: center;">KES 0<br><small style="color:var(--g-lime);font-weight:600;">40-day trial</small></td><td style="text-align: center; background: rgba(34,197,94,0.04);"><strong>KES 999/mo</strong></td><td style="text-align: center;">KES 2,999/mo</td><td style="text-align: center;">Custom</td></tr>
+                    <tr><td><strong>Price</strong></td><td style="text-align: center;">KES 0<br><small style="color:var(--g-lime);font-weight:600;">30-day trial</small></td><td style="text-align: center; background: rgba(34,197,94,0.04);"><strong>KES 999/mo</strong></td><td style="text-align: center;">KES 2,999/mo</td><td style="text-align: center;">Custom</td></tr>
                     <tr><td>Farms</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">1</td><td style="text-align: center;">3</td><td style="text-align: center;">Unlimited</td></tr>
                     <tr><td>Flocks / Batches</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">3</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
                     <tr><td>Animals</td><td style="text-align: center;">Unlimited during trial</td><td style="text-align: center; background: rgba(34,197,94,0.04);">2,000</td><td style="text-align: center;">Unlimited</td><td style="text-align: center;">Unlimited</td></tr>
@@ -214,7 +214,7 @@ include '../includes/header.php';
                     <span>Is there a free trial?</span>
                     <span class="g-plus">+</span>
                 </div>
-                <div class="g-faq-a">Yes! Every new account gets a 40-day free trial with full Grow features — no credit card required. After 40 days, choose a plan that fits your farm.</div>
+                <div class="g-faq-a">Yes! Every new account gets a 30-day free trial with full Grow features — no credit card required. After 30 days, choose a plan that fits your farm.</div>
             </div>
             <div class="g-faq-item">
                 <div class="g-faq-q" onclick="this.parentElement.classList.toggle('open')">
