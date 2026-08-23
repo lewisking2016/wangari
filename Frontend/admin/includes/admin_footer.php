@@ -19,24 +19,13 @@ declare(strict_types=1);
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
-            // Sidebar V2: collapsible groups
-            document.querySelectorAll('.w2-nav-parent').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const grp = btn.closest('.w2-nav-group');
-                    const subs = btn.nextElementSibling;
-                    const isOpen = btn.classList.toggle('open');
-                    if (grp) grp.classList.toggle('open', isOpen);
-                    if (subs) subs.style.display = isOpen ? 'block' : 'none';
-                    btn.querySelector('.w2-nav-chev').style.transform = isOpen ? 'rotate(180deg)' : '';
-                });
-            });
             // Auto-open group containing the active sub-item
             document.querySelectorAll('.w2-nav-sub.active').forEach(sub => {
                 const parent = sub.closest('.w2-nav-group');
                 if (parent) {
                     const btn = parent.querySelector('.w2-nav-parent');
                     const subs = parent.querySelector('.w2-nav-subs');
-                    btn.classList.add('open');
+                    if (btn) btn.classList.add('open');
                     if (subs) subs.style.display = 'block';
                 }
             });

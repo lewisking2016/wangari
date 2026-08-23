@@ -419,9 +419,78 @@ if (!empty($_SESSION['user_id'])) {
     .g-table-wrap { overflow-x: auto; }
     .g-table { min-width: 450px; }
 }
+
+/* FAQ Styles - Inline to ensure they work */
+.g-faq-item {
+    background: #fff;
+    border: 1px solid #E7EAF0;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.g-faq-item.open {
+    border-color: rgba(34,197,94,0.7);
+}
+.g-faq-q {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #0F172A;
+    user-select: none;
+}
+.g-faq-q:hover {
+    background: #F8FAFC;
+}
+.g-faq-num {
+    color: #9DBF2E;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.g-faq-q .g-plus {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: #9DBF2E;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.g-faq-item.open .g-plus {
+    transform: rotate(45deg);
+}
+.g-faq-a {
+    display: none;
+    padding: 0 1.5rem 1.3rem;
+    color: #64748B;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+.g-faq-item.open .g-faq-a {
+    display: block;
+}
 </style>
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+// FAQ Toggle - ensure it works
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFAQ);
+} else {
+    initFAQ();
+}
+function initFAQ() {
+    document.querySelectorAll('.g-faq-q').forEach(function(q) {
+        q.addEventListener('click', function() {
+            var item = this.closest('.g-faq-item');
+            if (item) {
+                item.classList.toggle('open');
+            }
+        });
+    });
+}
+</script>
 <script>
 function startPayment(plan, billing) {
     // Show loading state
