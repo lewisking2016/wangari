@@ -118,8 +118,8 @@ try {
                 // platform admin list connected while legacy platform_users is empty.
                 if (!$users) {
                     $fallback = 'SELECT id, username, email,
-                        COALESCE(full_name, TRIM(CONCAT(COALESCE(first_name, ""), " ", COALESCE(last_name, "")))) AS full_name,
-                        COALESCE(phone, phone_number, "") AS phone,
+                        COALESCE(full_name, username) AS full_name,
+                        COALESCE(phone, "") AS phone,
                         "" AS farm_name, "" AS farm_type, "" AS county,
                         CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 40 DAY) THEN "trial" ELSE "free" END AS subscription_status,
                         NULL AS subscription_expires, NULL AS trial_ends,
@@ -128,9 +128,9 @@ try {
                         FROM users WHERE role <> "super_admin"';
                     $params = [];
                     if ($search) {
-                        $fallback .= ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ? OR first_name LIKE ? OR last_name LIKE ?)';
+                        $fallback .= ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
                         $term = "%$search%";
-                        $params = [$term, $term, $term, $term, $term];
+                        $params = [$term, $term, $term];
                     }
                     $fallback .= ' ORDER BY created_at DESC';
                     $stmt = $pdo->prepare($fallback);

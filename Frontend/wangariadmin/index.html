@@ -446,110 +446,159 @@ async function revokeCode(id) { if(confirm('Revoke this license?')) { await api(
 // ════ SUBSCRIPTIONS ════
 async function render_subscriptions() {
     const d = await api('subscriptions','list');
+    const arr = Array.isArray(d) ? d : [];
     document.getElementById('content').innerHTML = `
         <div class="stats-grid">
-            <div class="stat-card green"><div class="stat-label">Active</div><div class="stat-value">${d.filter(s=>s.subscription_status==='active').length}</div></div>
-            <div class="stat-card info"><div class="stat-label">Trial</div><div class="stat-value">${d.filter(s=>s.subscription_status==='trial').length}</div></div>
-            <div class="stat-card warning"><div class="stat-label">Expired</div><div class="stat-value">${d.filter(s=>s.subscription_status==='expired').length}</div></div>
-            <div class="stat-card"><div class="stat-label">Free</div><div class="stat-value">${d.filter(s=>s.subscription_status==='free').length}</div></div>
+            <div class="stat-card green"><div class="stat-label">Active</div><div class="stat-value">${arr.filter(s=>(s.status||s.subscription_status)==='active').length}</div></div>
+            <div class="stat-card info"><div class="stat-label">Trial</div><div class="stat-value">${arr.filter(s=>(s.status||s.subscription_status)==='trial').length}</div></div>
+            <div class="stat-card warning"><div class="stat-label">Expired</div><div class="stat-value">${arr.filter(s=>(s.status||s.subscription_status)==='expired').length}</div></div>
+            <div class="stat-card"><div class="stat-label">Free</div><div class="stat-value">${arr.filter(s=>(s.status||s.subscription_status)==='free').length}</div></div>
         </div>
         <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>User</th><th>Farm</th><th>Plan</th><th>Status</th><th>Expires</th><th>Actions</th></tr></thead>
-            <tbody>${d.map(u=>`<tr>
-                <td><strong>${u.full_name||u.username}</strong></td>
-                <td>${u.farm_name||'-'}</td>
-                <td>${u.subscription_plan||'free'}</td>
-                <td><span class="badge badge-${u.subscription_status}">${u.subscription_status}</span></td>
-                <td>${u.subscription_expires||'-'}</td>
-                <td><button onclick="editUser(${u.id})" class="btn-sm btn-outline">Manage</button></td>
+            <thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Method</th><th>Status</th><th>Period</th><th>Actions</th></tr></thead>
+            <tbody>${arr.map(s=>`<tr>
+                <td><strong>${s.username||'-'}</strong><br><small style="color:var(--muted)">${s.email||''}</small></td>
+                <td>${s.plan||'-'}</td>
+                <td>KES ${Number(s.amount||0).toLocaleString()}</td>
+                <td>${s.payment_method||'-'}</td>
+                <td><span class="badge badge-${s.status}">${s.status}</span></td>
+                <td><small>${s.start_date||''} to ${s.end_date||''}</small></td>
+                <td><button onclick="extendSubscription(${s.id})" class="btn-sm btn-outline">Extend</button></td>
             </tr>`).join('')}</tbody></table></div></div>`;
+}
+async function extendSubscription(id) {
+    const days = prompt('Extend by how many days?', '30');
+    if (days) {
+        await api('subscriptions','extend',{id},{extra_days:parseInt(days)});
+        toast('Subscription extended');
+        render_subscriptions();
+    }
 }
 
 // ════ REVENUE ════
 async function render_revenue() {
-    const d = await api('revenue','list');
+    const [summary, transactions] = await Promise.all([
+        api('revenue','summary'),
+        api('revenue','list')
+    ]);
+    const txns = Array.isArray(transactions) ? transactions : [];
     document.getElementById('content').innerHTML = `
         <div class="stats-grid">
-            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(d.total||0).toLocaleString()}</div></div>
-            <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value">${d.count||0}</div></div>
+            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value">KES ${Number(summary.total||0).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value">KES ${Number(summary.this_month||0).toLocaleString()}</div></div>
+            <div class="stat-card info"><div class="stat-label">This Year</div><div class="stat-value">KES ${Number(summary.this_year||0).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value">${txns.length}</div></div>
         </div>
-        <div class="card"><div class="table-responsive"><table class="table">
-            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
-            <tbody>${(d.transactions||[]).map(t=>`<tr>
-                <td>${t.created_at?.split(' ')[0]||''}</td>
+        ${(summary.by_month&&summary.by_month.length)?`<div class="card"><div class="card-header"><h3>Revenue by Month</h3></div>
+            <table class="table"><thead><tr><th>Month</th><th>Revenue</th><th>Transactions</th></tr></thead><tbody>
+            ${summary.by_month.map(r=>`<tr><td>${r.month}</td><td>KES ${Number(r.total).toLocaleString()}</td><td>${r.count}</td></tr>`).join('')}
+            </tbody></table></div>`:''}
+        <div class="card"><div class="card-header"><h3>All Transactions</h3></div><div class="table-responsive"><table class="table">
+            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Receipt</th></tr></thead>
+            <tbody>${txns.map(t=>`<tr>
+                <td>${t.created_at||''}</td>
                 <td>${t.username||'-'}</td>
                 <td>KES ${Number(t.amount).toLocaleString()}</td>
                 <td>${t.payment_method||'-'}</td>
-                <td><span class="badge badge-${t.status}">${t.status}</span></td>
+                <td><code style="background:#F1F5F9;padding:2px 6px;border-radius:4px;font-size:0.8rem;">${t.mpesa_receipt||'-'}</code></td>
             </tr>`).join('')}</tbody></table></div></div>`;
 }
 
 // ════ TICKETS ════
 async function render_tickets() {
     const d = await api('tickets','list');
+    const arr = Array.isArray(d) ? d : [];
     document.getElementById('content').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card warning"><div class="stat-label">Open</div><div class="stat-value">${arr.filter(t=>t.status==='open').length}</div></div>
+            <div class="stat-card info"><div class="stat-label">In Progress</div><div class="stat-value">${arr.filter(t=>t.status==='in_progress').length}</div></div>
+            <div class="stat-card green"><div class="stat-label">Resolved</div><div class="stat-value">${arr.filter(t=>t.status==='resolved').length}</div></div>
+            <div class="stat-card"><div class="stat-label">Closed</div><div class="stat-value">${arr.filter(t=>t.status==='closed').length}</div></div>
+        </div>
         <div class="card"><div class="table-responsive"><table class="table">
             <thead><tr><th>Code</th><th>User</th><th>Subject</th><th>Priority</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-            <tbody>${d.map(t=>`<tr>
+            <tbody>${arr.map(t=>`<tr>
                 <td><code style="background:#F1F5F9;padding:4px 8px;border-radius:6px;font-weight:600;">${t.ticket_code}</code></td>
                 <td>${t.username||'-'}</td>
                 <td>${t.subject}</td>
                 <td><span class="badge badge-${t.priority}">${t.priority}</span></td>
                 <td><span class="badge badge-${t.status}">${t.status}</span></td>
                 <td>${t.created_at?.split(' ')[0]||''}</td>
-                <td><button onclick="viewTicket('${t.ticket_code}')" class="btn-sm btn-outline">View</button></td>
+                <td><button onclick="viewTicket(${t.id},'${t.ticket_code}')" class="btn-sm btn-outline">View</button></td>
             </tr>`).join('')}</tbody></table></div></div>`;
 }
-async function viewTicket(code) {
-    const d = await api('tickets','get',{code});
+async function viewTicket(id, code) {
+    const d = await api('tickets','get',{id});
+    const msgs = (d.messages||[]).map(m=>`<div style="padding:12px;background:${m.sender_type==='admin'?'#E4F7E9':'#F1F5F9'};border-radius:10px;margin-bottom:8px;">
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">${m.sender_type==='admin'?'Admin':'User'} - ${m.created_at||''}</div>
+        <div style="font-size:0.9rem;">${m.message}</div>
+    </div>`).join('');
     openModal('Ticket '+code, `
         <div style="margin-bottom:16px;">
-            <h4 style="margin-bottom:8px;">${d.subject}</h4>
-            <p style="color:#64748b;font-size:0.9rem;">${d.message}</p>
+            <h4 style="margin-bottom:8px;">${d.subject||''}</h4>
+            <p style="color:var(--muted);font-size:0.9rem;">${d.description||d.message||''}</p>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:16px;">
             <span class="badge badge-${d.priority}">${d.priority}</span>
             <span class="badge badge-${d.status}">${d.status}</span>
+            ${d.category?`<span class="badge badge-info">${d.category}</span>`:''}
         </div>
-        <div class="form-group"><label>Reply</label><textarea id="ticket-reply" class="form-input" rows="3" placeholder="Type your reply..."></textarea></div>
-        <div style="display:flex;gap:8px;">
-            <button onclick="replyTicket('${code}')" class="btn btn-primary">Send Reply</button>
-            <button onclick="closeTicket('${code}')" class="btn btn-success">Close Ticket</button>
+        ${msgs?`<div style="margin-bottom:16px;"><h4 style="font-size:0.9rem;margin-bottom:8px;">Conversation</h4>${msgs}</div>`:''}
+        <div class="form-group"><label>Admin Reply</label><textarea id="ticket-reply" class="form-input" rows="3" placeholder="Type your reply..."></textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="replyTicket(${id})" class="btn btn-primary">Send Reply</button>
+            <button onclick="resolveTicket(${id})" class="btn btn-success">Mark Resolved</button>
+            <button onclick="closeTicket(${id})" class="btn btn-outline">Close</button>
         </div>`);
 }
-async function replyTicket(code) {
-    await api('tickets','reply',{code},{message:v('ticket-reply')});
+async function replyTicket(id) {
+    await api('tickets','respond',{},{ticket_id:id, message:v('ticket-reply'), status:'in_progress'});
     closeModal(); toast('Reply sent'); render_tickets();
 }
-async function closeTicket(code) {
-    await api('tickets','close',{code});
+async function resolveTicket(id) {
+    await api('tickets','respond',{},{ticket_id:id, message:'Ticket resolved by admin.', status:'resolved'});
+    toast('Ticket resolved'); render_tickets();
+}
+async function closeTicket(id) {
+    await api('tickets','respond',{},{ticket_id:id, status:'closed'});
     toast('Ticket closed'); render_tickets();
 }
 
 // ════ EMERGENCY ════
 async function render_emergency() {
-    const d = await api('emergency','get');
+    const contacts = await api('emergency','contacts');
+    const arr = Array.isArray(contacts) ? contacts : [];
     document.getElementById('content').innerHTML = `
         <div class="card">
-            <div class="card-header"><h3>Emergency Controls</h3></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div style="padding:20px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;">
-                    <h4 style="color:#991B1B;margin-bottom:8px;">Platform Lockdown</h4>
-                    <p style="color:#991B1B;font-size:0.85rem;margin-bottom:12px;">Prevent all users from accessing the platform.</p>
-                    <button onclick="emergencyAction('lockdown')" class="btn btn-danger">Lock Down Platform</button>
+            <div class="card-header"><h3>Emergency Contacts</h3></div>
+            <div class="table-responsive"><table class="table">
+                <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+                <tbody>${arr.map(c=>`<tr>
+                    <td><strong>${c.name||'-'}</strong></td>
+                    <td>${c.phone||'-'}</td>
+                    <td>${c.email||'-'}</td>
+                    <td>${c.role||'-'}</td>
+                    <td><span class="badge badge-${c.is_active?'active':'expired'}">${c.is_active?'Active':'Inactive'}</span></td>
+                </tr>`).join('')}</tbody></table></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>Report Emergency</h3></div>
+            <form onsubmit="reportEmergency(event)">
+                <div class="form-group"><label>Subject</label><input id="emg-subject" class="form-input" value="EMERGENCY" required></div>
+                <div class="form-group"><label>Description</label><textarea id="emg-desc" class="form-input" rows="4" placeholder="Describe the emergency..." required></textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Reporter Name</label><input id="emg-name" class="form-input"></div>
+                    <div class="form-group"><label>Reporter Phone</label><input id="emg-phone" class="form-input"></div>
                 </div>
-                <div style="padding:20px;background:#FEF5E0;border:1px solid #FDE68A;border-radius:12px;">
-                    <h4 style="color:#92400E;margin-bottom:8px;">Force Password Reset</h4>
-                    <p style="color:#92400E;font-size:0.85rem;margin-bottom:12px;">Require all users to reset passwords on next login.</p>
-                    <button onclick="emergencyAction('force_reset')" class="btn btn-outline" style="border-color:#FDE68A;color:#92400E;">Force Reset</button>
-                </div>
-            </div>
+                <button type="submit" class="btn btn-danger" style="margin-top:8px;">Submit Emergency Report</button>
+            </form>
         </div>`;
 }
-async function emergencyAction(action) {
-    if(confirm('Are you sure? This action cannot be undone.')) {
-        await api('emergency','action',{action});
-        toast('Emergency action executed');
+async function reportEmergency(e) {
+    e.preventDefault();
+    if(confirm('Submit this emergency report?')) {
+        await api('emergency','report',{},{subject:v('emg-subject'),description:v('emg-desc'),reporter_name:v('emg-name'),reporter_phone:v('emg-phone'),priority:'critical'});
+        toast('Emergency reported'); render_emergency();
     }
 }
 
@@ -569,28 +618,55 @@ async function render_activity() {
 
 // ════ SETTINGS ════
 async function render_settings() {
-    const d = await api('settings','get');
+    const raw = await api('settings','list');
+    const settings = {};
+    (Array.isArray(raw)?raw:[]).forEach(s => { settings[s.setting_key] = s.setting_value; });
     document.getElementById('content').innerHTML = `
         <div class="card">
             <div class="card-header"><h3>Platform Settings</h3></div>
             <form onsubmit="saveSettings(event)">
+                <h4 style="margin:16px 0 12px;font-size:0.95rem;color:var(--heading);">Pricing</h4>
                 <div class="form-row">
-                    <div class="form-group"><label>Trial Duration (days)</label><input id="s-trial" class="form-input" type="number" value="${d.trial_days||40}"></div>
-                    <div class="form-group"><label>Max Free Animals</label><input id="s-animals" class="form-input" type="number" value="${d.max_free_animals||50}"></div>
+                    <div class="form-group"><label>Monthly Price (KES)</label><input id="s-monthly_price" class="form-input" type="number" value="${settings.monthly_price||2500}"></div>
+                    <div class="form-group"><label>Quarterly Price (KES)</label><input id="s-quarterly_price" class="form-input" type="number" value="${settings.quarterly_price||6000}"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Grow Plan Price (KES)</label><input id="s-grow" class="form-input" type="number" value="${d.grow_price||999}"></div>
-                    <div class="form-group"><label>Scale Plan Price (KES)</label><input id="s-scale" class="form-input" type="number" value="${d.scale_price||2999}"></div>
+                    <div class="form-group"><label>Annual Price (KES)</label><input id="s-annual_price" class="form-input" type="number" value="${settings.annual_price||20000}"></div>
+                    <div class="form-group"><label>Trial Duration (days)</label><input id="s-trial_duration_days" class="form-input" type="number" value="${settings.trial_duration_days||30}"></div>
                 </div>
-                <div class="form-group"><label>Support Email</label><input id="s-email" class="form-input" value="${d.support_email||''}"></div>
-                <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save Settings</button>
+                <h4 style="margin:20px 0 12px;font-size:0.95rem;color:var(--heading);">Free Tier Limits</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Max Animals</label><input id="s-max_free_animals" class="form-input" type="number" value="${settings.max_free_animals||100}"></div>
+                    <div class="form-group"><label>Max Fields</label><input id="s-max_free_fields" class="form-input" type="number" value="${settings.max_free_fields||10}"></div>
+                </div>
+                <h4 style="margin:20px 0 12px;font-size:0.95rem;color:var(--heading);">Payment (M-Pesa)</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Paybill Number</label><input id="s-mpesa_paybill" class="form-input" value="${settings.mpesa_paybill||''}"></div>
+                    <div class="form-group"><label>Till Number</label><input id="s-mpesa_till" class="form-input" value="${settings.mpesa_till||''}"></div>
+                </div>
+                <h4 style="margin:20px 0 12px;font-size:0.95rem;color:var(--heading);">Support</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Support Email</label><input id="s-support_email" class="form-input" value="${settings.support_email||''}"></div>
+                    <div class="form-group"><label>Support Phone</label><input id="s-support_phone" class="form-input" value="${settings.support_phone||''}"></div>
+                </div>
+                <h4 style="margin:20px 0 12px;font-size:0.95rem;color:var(--heading);">Platform</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Platform Name</label><input id="s-platform_name" class="form-input" value="${settings.platform_name||'Wangari'}"></div>
+                    <div class="form-group"><label>Version</label><input id="s-platform_version" class="form-input" value="${settings.platform_version||'1.0.0'}" readonly></div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:16px;">Save All Settings</button>
             </form>
         </div>`;
 }
 async function saveSettings(e) {
     e.preventDefault();
-    await api('settings','save',{},{trial_days:v('s-trial'),max_free_animals:v('s-animals'),grow_price:v('s-grow'),scale_price:v('s-scale'),support_email:v('s-email')});
-    toast('Settings saved');
+    const keys = ['monthly_price','quarterly_price','annual_price','trial_duration_days','max_free_animals','max_free_fields','mpesa_paybill','mpesa_till','support_email','support_phone','platform_name'];
+    let saved = 0;
+    for (const key of keys) {
+        const el = document.getElementById('s-'+key);
+        if (el) { await api('settings','update',{},{key, value:el.value}); saved++; }
+    }
+    toast('Settings saved ('+saved+' updated)');
 }
 
 // ════ INIT ════
