@@ -8,6 +8,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('wangari', {
+  // ── Auth ──
+  login: (email, password) => ipcRenderer.invoke('auth:login', email, password),
+  loginConfirmed: (user) => ipcRenderer.send('auth:login-confirmed', user),
   // ── License ──
   activate: (key) => ipcRenderer.invoke('license:activate', key),
   licenseStatus: () => ipcRenderer.invoke('license:status'),

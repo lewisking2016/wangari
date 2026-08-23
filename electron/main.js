@@ -279,6 +279,10 @@ function waitForPhp(retries = 40) {
 // ─────────────────────────────────────────────────────────────────────────────
 let mainWindow    = null;
 let activationWin = null;
+let loginWin      = null;
+let currentUser   = null;
+
+const AUTH_SERVER = 'https://wangari.imeantech.com/Backend/api/desktop_auth.php';
 
 function createSplashWindow() {
   const win = new BrowserWindow({
@@ -291,7 +295,20 @@ function createSplashWindow() {
   return win;
 }
 
-function createActivationWindow() {
+function createLoginWindow() {
+  loginWin = new BrowserWindow({
+    width: 500, height: 620, frame: false, center: true, resizable: false,
+    webPreferences: {
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+    backgroundColor: '#071C0F',
+  });
+  loginWin.loadFile(path.join(__dirname, 'login.html'));
+  loginWin.on('closed', () => { loginWin = null; });
+}
+
+function createActivationWindow(user) {
   activationWin = new BrowserWindow({
     width: 540, height: 580, frame: false, center: true, resizable: false,
     webPreferences: {
@@ -301,6 +318,7 @@ function createActivationWindow() {
     backgroundColor: '#0D3320',
   });
   activationWin.loadFile(path.join(__dirname, 'activation.html'));
+  activationWin.on('closed', () => { activationWin = null; });
 }
 
 function createMainWindow(jwtToken) {
@@ -353,6 +371,86 @@ function createMainWindow(jwtToken) {
 // ─────────────────────────────────────────────────────────────────────────────
 // IPC HANDLERS
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Desktop login via API
+ipcMain.handle('auth:login', async (_e, email, password) => {
+  try {
+    const payload = JSON.stringify({ email, password });
+    const url = new URL(AUTH_SERVER);
+    const isSecure = url.protocol === 'https:';
+    return new Promise((resolve, reject) => {
+      const proto = isSecure ? https : http;
+      const req = proto.request({
+        hostname: url.hostname,
+        port: url.port || (isSecure ? 443 : 80),
+        path: url.pathname,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+        timeout: 15000,
+      }, (res) => {
+        let data = '';
+        res.on('data', d => data += d);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            if (res.statusCode === 200) resolve(parsed);
+            else resolve({ ok: false, error: parsed.error || 'Login failed' });
+          } catch (_) {
+            resolve({ ok: false, error: 'Invalid server response' });
+          }
+        });
+      });
+      req.on('timeout', () => { req.destroy(); resolve({ ok: false, error: 'Connection timed out' }); });
+      req.on('error', (e) => resolve({ ok: false, error: 'Network error: ' + e.message }));
+      req.write(payload);
+      req.end();
+    });
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+// After login confirmed — check trial and proceed
+ipcMain.on('auth:login-confirmed', async (_e, userData) => {
+  currentUser = userData.user;
+  const trial = userData.trial || {};
+  const needsLicense = userData.needs_license;
+  console.log('[auth] User logged in:', currentUser.email || currentUser.username, 'trial:', trial.status);
+
+  // Check if there's a saved license first
+  const lic = loadLicense();
+  if (isLicenseValid(lic)) {
+    loginWin?.close(); loginWin = null;
+    startPhpServer(lic.jwt);
+    try {
+      await waitForPhp();
+      createMainWindow(lic.jwt);
+    } catch (err) {
+      createMainWindow(lic.jwt);
+    }
+    return;
+  }
+
+  // No license — check trial status
+  if (needsLicense) {
+    // Trial expired and no license — show activation screen
+    loginWin?.close(); loginWin = null;
+    createActivationWindow(currentUser);
+    return;
+  }
+
+  // Trial is active — start the app with trial mode
+  loginWin?.close(); loginWin = null;
+  const trialJwt = 'trial_' + currentUser.id + '_' + Date.now();
+  startPhpServer(trialJwt);
+  try {
+    await waitForPhp();
+    createMainWindow(trialJwt);
+  } catch (err) {
+    createMainWindow(trialJwt);
+  }
+});
+
 ipcMain.handle('license:activate', async (_e, licenseKey) => {
   try {
     const response = await activateLicense(licenseKey.trim());
@@ -620,23 +718,25 @@ app.whenReady().then(async () => {
   const lic   = loadLicense();
   const licOk = isLicenseValid(lic);
 
-  if (!licOk) {
-    splash.close();
-    createActivationWindow();
+  if (licOk) {
+    // Already licensed — go straight to dashboard
+    startPhpServer(lic.jwt);
+    try {
+      await waitForPhp();
+      splash.close();
+      createMainWindow(lic.jwt);
+      setTimeout(heartbeat, 5000);
+    } catch (e) {
+      splash.close();
+      dialog.showErrorBox('Startup Error', 'Could not start the embedded PHP server.\n\n' + e.message);
+      app.quit();
+    }
     return;
   }
 
-  startPhpServer(lic.jwt);
-  try {
-    await waitForPhp();
-    splash.close();
-    createMainWindow(lic.jwt);
-    setTimeout(heartbeat, 5000); // background refresh shortly after open
-  } catch (e) {
-    splash.close();
-    dialog.showErrorBox('Startup Error', 'Could not start the embedded PHP server.\n\n' + e.message);
-    app.quit();
-  }
+  // No license — show login screen first
+  splash.close();
+  createLoginWindow();
 });
 
 app.on('window-all-closed', () => {
