@@ -8,8 +8,8 @@ declare(strict_types=1);
 $platform = strtolower((string)($_GET['platform'] ?? ''));
 $releases = [
     'windows' => [
-        'file' => 'Wangari Farm Manager Setup 1.0.0.exe',
-        'name' => 'Wangari-Farm-Manager-Setup-1.0.0.exe',
+        'file' => 'Wangari Farm Manager Setup 1.2.0.exe',
+        'name' => 'Wangari-Farm-Manager-Setup-1.2.0.exe',
         'type' => 'application/octet-stream',
     ],
 ];

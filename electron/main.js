@@ -24,7 +24,7 @@ try {
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
-const APP_VERSION    = '1.1.0';
+const APP_VERSION    = '1.2.0';
 const PHP_PORT       = 18432; // obscure internal port
 const LICENSE_DIR    = path.join(os.homedir(), '.wangari');
 const LICENSE_FILE   = path.join(LICENSE_DIR, '.lic');

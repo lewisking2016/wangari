@@ -84,7 +84,8 @@
       ],
       "icon": "Frontend/assets/img/logo.png",
       "category": "Office"
-    }
+    },
+    "npmRebuild": true
   },
   "devDependencies": {
     "electron": "^31.7.7",
@@ -101,9 +102,5 @@
     "lucide": "^1.25.0",
     "motion": "^12.42.2",
     "swiper": "^14.0.5"
-  },
-  "build": {
-    "npmRebuild": true,
-    "nativeRebuilder": true
   }
 }
