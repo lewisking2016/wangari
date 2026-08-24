@@ -111,8 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         nav.navbar { display: none !important; }
         
         .admin-shell { 
-            display: flex; 
-            min-height: 100vh; 
+            display: block;
+            min-height: 100vh;
         }
 
         /* Sidebar Styling */
@@ -353,7 +353,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Content Area */
         .admin-content { 
-            flex: 1; 
             padding: 24px; 
             max-width: 1400px;
             margin: 0 auto;
