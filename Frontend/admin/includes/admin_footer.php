@@ -15,7 +15,7 @@ declare(strict_types=1);
     <!-- Wangari Admin V2 — loaded last so it overrides every legacy module stylesheet (admin-stock.css, page-level <style> blocks) -->
     <link rel="stylesheet" href="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/css/wangari-admin-v2.css?v=2.0">
     <!-- Mobile Responsive System — covers all device sizes from 320px to 1280px -->
-    <link rel="stylesheet" href="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/css/mobile-responsive.css?v=1.0">
+    <link rel="stylesheet" href="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/css/mobile-responsive.css?v=1.1">
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof lucide !== 'undefined') {
