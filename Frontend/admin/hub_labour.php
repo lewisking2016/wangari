@@ -408,10 +408,10 @@ function editWorker(w) {
 </div>
 <?php endif; ?>
 
-<?php include __DIR__ . '/includes/admin_footer.php'; ?>
-
 <?php if ($tab === 'codes'): ?>
 <?php include __DIR__ . '/labour_codes_tab.php'; ?>
 <?php elseif ($tab === 'connected'): ?>
 <?php include __DIR__ . '/labour_connected_tab.php'; ?>
 <?php endif; ?>
+
+<?php include __DIR__ . '/includes/admin_footer.php'; ?>
