@@ -1162,6 +1162,7 @@ class FarmAI {
         require_once dirname(__DIR__, 2) . '/Backend/config/openrouter.php';
         
         if (!openrouter_is_configured()) {
+            error_log('[AI-DEBUG] OpenRouter not configured');
             return null;
         }
         
@@ -1246,16 +1247,19 @@ class FarmAI {
         );
         
         if (!$response) {
+            error_log('[AI-DEBUG] First API call returned null');
             return null;
         }
         
         $data = json_decode($response, true);
         
         if (!isset($data['choices'][0]['message'])) {
+            error_log('[AI-DEBUG] No choices in response: ' . substr($response, 0, 200));
             return null;
         }
         
         $assistantMessage = $data['choices'][0]['message'];
+        error_log('[AI-DEBUG] Has tool_calls: ' . (isset($assistantMessage['tool_calls']) ? 'yes' : 'no'));
         
         // Check if AI wants to call tools
         if (isset($assistantMessage['tool_calls']) && !empty($assistantMessage['tool_calls'])) {
@@ -1282,6 +1286,8 @@ class FarmAI {
                 ];
             }
             
+            error_log('[AI-DEBUG] Executed ' . count($assistantMessage['tool_calls']) . ' tool(s)');
+            
             // Get AI's response after tool execution
             $payload2 = [
                 'model' => OPENROUTER_MODEL,
@@ -1301,8 +1307,10 @@ class FarmAI {
                 ]
             );
             
+            error_log('[AI-DEBUG] Second API call...');
             if ($response2) {
                 $data2 = json_decode($response2, true);
+                error_log('[AI-DEBUG] Second response decoded: ' . ($data2 ? 'OK' : 'FAIL'));
                 if (isset($data2['choices'][0]['message']['content'])) {
                     $finalAnswer = $data2['choices'][0]['message']['content'];
                     $this->logLLMUsage($userId, $message, $finalAnswer);
@@ -1314,6 +1322,9 @@ class FarmAI {
                         'source' => 'openrouter+tools'
                     ];
                 }
+                error_log('[AI-DEBUG] Second response has no content: ' . json_encode($data2));
+            } else {
+                error_log('[AI-DEBUG] Second API call returned null');
             }
         }
         
