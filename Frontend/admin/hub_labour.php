@@ -40,11 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         else {
             try {
                 if ($id > 0) {
-                    $pdo->prepare('UPDATE workers SET name=?,phone=?,role=?,wage_type=?,wage_rate=?,status=?,notes=? WHERE id=?')
+                    $pdo->prepare('UPDATE labour_workers SET full_name=?,phone=?,role=?,employment_type=?,daily_rate=?,status=?,notes=? WHERE id=?')
                         ->execute([$name,$phone,$role,$wtype,$rate,$stat,$notes,$id]);
                     $message = 'Worker updated.';
                 } else {
-                    $pdo->prepare('INSERT INTO workers (name,phone,role,wage_type,wage_rate,status,notes) VALUES (?,?,?,?,?,?,?)')
+                    $pdo->prepare('INSERT INTO labour_workers (full_name,phone,role,employment_type,daily_rate,status,notes) VALUES (?,?,?,?,?,?,?)')
                         ->execute([$name,$phone,$role,$wtype,$rate,$stat,$notes]);
                     $message = 'Worker added.';
                 }
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             try {
-                $pdo->prepare('DELETE FROM workers WHERE id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM labour_workers WHERE id=?')->execute([$id]);
                 $message = 'Worker deleted.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
         }
@@ -167,10 +167,10 @@ $workerOptions = [];
 $farmUserId = (int)$_SESSION['user_id'];
 if ($pdo) {
     try {
-        $workers = $pdo->query('SELECT * FROM workers ORDER BY status="active" DESC, name')->fetchAll();
+        $workers = $pdo->query('SELECT * FROM labour_workers ORDER BY status="active" DESC, name')->fetchAll();
         foreach ($workers as $w) $workerOptions[$w['id']] = $w['name'];
-        $attendance = $pdo->query('SELECT a.*, w.name AS worker_name FROM worker_attendance a LEFT JOIN workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
-        $payments = $pdo->query('SELECT p.*, w.name AS worker_name FROM worker_payments p LEFT JOIN workers w ON w.id=p.worker_id ORDER BY p.paid_at DESC LIMIT 200')->fetchAll();
+        $attendance = $pdo->query('SELECT a.*, w.full_name AS worker_name FROM worker_attendance a LEFT JOIN workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
+        $payments = $pdo->query('SELECT p.*, w.full_name AS worker_name FROM worker_payments p LEFT JOIN workers w ON w.id=p.worker_id ORDER BY p.paid_at DESC LIMIT 200')->fetchAll();
         // Worker connection codes
         $workerCodes = $pdo->prepare('SELECT * FROM worker_connection_codes WHERE farm_user_id = ? ORDER BY created_at DESC');
         $workerCodes->execute([$farmUserId]);
@@ -226,7 +226,7 @@ $tabs = [
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
         <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">Workers <?= helpTip('All people who work on your farm: permanent staff, casual workers, managers. Track names, roles, phone numbers, and wages.') ?></h3>
-        <span style="color:#64748b;font-size:0.85rem;"><?= count(array_filter($workers, fn($w) => $w['status']==='active')) ?> active ┬╖ <?= count($workers) ?> total</span>
+        <span style="color:#64748b;font-size:0.85rem;"><?= count(array_filter($workers, fn($w) => $w['is_active']==='active')) ?> active ┬╖ <?= count($workers) ?> total</span>
     </div>
     <div class="table-responsive">
         <table class="admin-table">
@@ -240,7 +240,7 @@ $tabs = [
                     <td><?= htmlspecialchars($w['phone'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($w['role'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span style="text-transform:capitalize;"><?= htmlspecialchars($w['wage_type'], ENT_QUOTES, 'UTF-8') ?></span> ┬╖ KES <?= number_format((float)$w['wage_rate'], 0) ?></td>
-                    <td><span class="badge-pill <?= $w['status']==='active' ? 'badge-pill-success' : 'badge-pill-danger' ?>"><?= ucfirst($w['status']) ?></span></td>
+                    <td><span class="badge-pill <?= $w['is_active']==='active' ? 'badge-pill-success' : 'badge-pill-danger' ?>"><?= ((int)$w['is_active'] ? 'Active' : 'Inactive') ?></span></td>
                     <td>
                         <div class="tbl-actions">
                             <button class="btn btn-outline btn-sm" onclick='editWorker(<?= json_encode($w, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit</button>
@@ -261,19 +261,19 @@ $tabs = [
             <input type="hidden" name="_action" value="save_worker">
             <input type="hidden" name="id" id="worker-id" value="0">
             <div class="admin-form-group"><label class="admin-form-label">Full Name *</label>
-                <input class="admin-form-control" type="text" name="name" id="worker-name" required></div>
+                <input class="admin-form-control" type="text" name="full_name" id="worker-name" required></div>
             <div class="admin-form-group"><label class="admin-form-label">Phone</label>
                 <input class="admin-form-control" type="text" name="phone" id="worker-phone" placeholder="+254 7XX XXX XXX"></div>
             <div class="admin-form-group"><label class="admin-form-label">Role</label>
                 <input class="admin-form-control" type="text" name="role" id="worker-role" placeholder="e.g. General farm hand"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div class="admin-form-group"><label class="admin-form-label">Wage Type</label>
-                    <select class="admin-form-control" name="wage_type" id="worker-wtype"><option>daily</option><option>piecework</option><option>monthly</option></select></div>
+                    <select class="admin-form-control" name="employment_type" id="worker-wtype"><option>daily</option><option>piecework</option><option>monthly</option></select></div>
                 <div class="admin-form-group"><label class="admin-form-label">Rate (KES)</label>
-                    <input class="admin-form-control" type="number" step="0.01" min="0" name="wage_rate" id="worker-rate" placeholder="0"></div>
+                    <input class="admin-form-control" type="number" step="0.01" min="0" name="daily_rate" id="worker-rate" placeholder="0"></div>
             </div>
             <div class="admin-form-group"><label class="admin-form-label">Status</label>
-                <select class="admin-form-control" name="status" id="worker-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+                <select class="admin-form-control" name="is_active" id="worker-status"><option value="1">Active</option><option value="0">Inactive</option></select></div>
             <div class="admin-form-group"><label class="admin-form-label">Notes</label>
                 <textarea class="admin-form-control" name="notes" id="worker-notes" rows="2"></textarea></div>
             <div style="display:flex;gap:12px;margin-top:20px;">
@@ -287,12 +287,12 @@ $tabs = [
 function editWorker(w) {
     document.getElementById('worker-modal-title').textContent = 'Edit Worker';
     document.getElementById('worker-id').value = w.id;
-    document.getElementById('worker-name').value = w.name;
+    document.getElementById('worker-name').value = w.full_name;
     document.getElementById('worker-phone').value = w.phone || '';
     document.getElementById('worker-role').value = w.role || '';
-    document.getElementById('worker-wtype').value = w.wage_type;
-    document.getElementById('worker-rate').value = w.wage_rate;
-    document.getElementById('worker-status').value = w.status;
+    document.getElementById('worker-wtype').value = w.employment_type;
+    document.getElementById('worker-rate').value = w.daily_rate;
+    document.getElementById('worker-status').value = w.is_active;
     document.getElementById('worker-notes').value = w.notes || '';
     document.getElementById('worker-modal').style.display = 'flex';
 }
