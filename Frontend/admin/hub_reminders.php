@@ -77,6 +77,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'weather';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_reminder') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM reminders WHERE id=?')->execute([$id]);
+                $message = 'Reminder deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'reminders';
+    }
+
+    if ($postAction === 'delete_weather_alert') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM weather_alerts WHERE id=?')->execute([$id]);
+                $message = 'Weather alert deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'weather';
+    }
 }
 
 /* ═══ Load data ═══ */
@@ -175,7 +198,12 @@ $tabs = [
                             <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                             <button class="btn btn-outline btn-sm"><i data-lucide="check" style="width:13px;height:13px;"></i> Dismiss</button>
                         </form>
-                        <?php else: ?><span style="color:#94a3b8;">—</span><?php endif; ?>
+                        <?php endif; ?>
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this reminder?');">
+                            <input type="hidden" name="_action" value="delete_reminder">
+                            <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
+                            <button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

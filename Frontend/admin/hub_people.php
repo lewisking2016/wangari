@@ -100,6 +100,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         }
         $tab = 'messages';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_staff') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM users WHERE id=? AND role != "super_admin"')->execute([$id]);
+                $message = 'Staff member deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'staff';
+    }
+
+    if ($postAction === 'delete_task') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM farm_tasks WHERE id=?')->execute([$id]);
+                $message = 'Task deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'tasks';
+    }
+
+    if ($postAction === 'delete_message') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM messages WHERE id=?')->execute([$id]);
+                $message = 'Message deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'messages';
+    }
 }
 
 /* ── Load PHP-based tab data ── */
@@ -180,7 +214,7 @@ $tabs = [
                     <td><span class="badge-pill badge-pill-warning"><?= htmlspecialchars(ucwords(str_replace('_',' ',$s['role'])), ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><?= htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><?= htmlspecialchars($s['phone_number'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openStaffModal(<?= htmlspecialchars(json_encode($s), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openStaffModal(<?= htmlspecialchars(json_encode($s), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><form method="POST" style="display:inline;" onsubmit="return confirm('Delete this staff member?');"><input type="hidden" name="_action" value="delete_staff"><input type="hidden" name="id" value="<?= (int)$s['id'] ?>"><button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></form></div></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -294,7 +328,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
                         ?>
                         <span class="badge-pill <?= $pill ?>"><?= htmlspecialchars($ts, ENT_QUOTES, 'UTF-8') ?></span>
                     </td>
-                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openTaskModal(<?= htmlspecialchars(json_encode($t), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openTaskModal(<?= htmlspecialchars(json_encode($t), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><form method="POST" style="display:inline;" onsubmit="return confirm('Delete this task?');"><input type="hidden" name="_action" value="delete_task"><input type="hidden" name="id" value="<?= (int)$t['id'] ?>"><button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></form></div></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
@@ -370,7 +404,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('task-mod
                     <td><strong><?= htmlspecialchars($msg['subject'], ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><?= htmlspecialchars(substr($msg['created_at'] ?? '', 0, 16), ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-success"><?= ucfirst(htmlspecialchars($msg['status'], ENT_QUOTES, 'UTF-8')) ?></span></td>
-                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openMsgView(<?= htmlspecialchars(json_encode($msg), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button></div></td>
+                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openMsgView(<?= htmlspecialchars(json_encode($msg), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button><form method="POST" style="display:inline;" onsubmit="return confirm('Delete this message?');"><input type="hidden" name="_action" value="delete_message"><input type="hidden" name="id" value="<?= (int)$msg['id'] ?>"><button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></form></div></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>

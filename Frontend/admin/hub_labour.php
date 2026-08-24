@@ -88,6 +88,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         }
         $tab = 'payments';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_worker') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM workers WHERE id=?')->execute([$id]);
+                $message = 'Worker deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'workers';
+    }
+
+    if ($postAction === 'delete_attendance') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM worker_attendance WHERE id=?')->execute([$id]);
+                $message = 'Attendance record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'attendance';
+    }
+
+    if ($postAction === 'delete_payment') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM worker_payments WHERE id=?')->execute([$id]);
+                $message = 'Payment record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'payments';
+    }
 }
 
 /* ═══ Load data ═══ */
@@ -162,6 +196,7 @@ $tabs = [
                     <td>
                         <div class="tbl-actions">
                             <button class="btn btn-outline btn-sm" onclick='editWorker(<?= json_encode($w, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit</button>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this worker?');"><input type="hidden" name="_action" value="delete_worker"><input type="hidden" name="id" value="<?= (int)$w['id'] ?>"><button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></form>
                         </div>
                     </td>
                 </tr>
