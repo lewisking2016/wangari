@@ -434,13 +434,19 @@ class WangariAIToolExecutor {
         $period = $args['period'] ?? 'month';
         
         try {
-            $dateFilter = match($period) {
-                'today' => 'CURDATE()',
-                'week' => 'DATE_SUB(CURDATE(), INTERVAL 7 DAY)',
-                'month' => 'DATE_SUB(CURDATE(), INTERVAL 30 DAY)',
-                'year' => 'DATE_SUB(CURDATE(), INTERVAL 1 YEAR)',
-                default => 'DATE_SUB(CURDATE(), INTERVAL 30 DAY)'
-            };
+            switch ($period) {
+                case 'today':
+                    $dateFilter = 'CURDATE()';
+                    break;
+                case 'week':
+                    $dateFilter = 'DATE_SUB(CURDATE(), INTERVAL 7 DAY)';
+                    break;
+                case 'year':
+                    $dateFilter = 'DATE_SUB(CURDATE(), INTERVAL 1 YEAR)';
+                    break;
+                default:
+                    $dateFilter = 'DATE_SUB(CURDATE(), INTERVAL 30 DAY)';
+            }
             
             // Get expenses
             $stmt = $this->pdo->prepare("
