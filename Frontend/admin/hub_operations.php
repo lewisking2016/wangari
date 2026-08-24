@@ -785,6 +785,9 @@ $tabs = [
     <div class="stat-card"><div class="stat-card-info"><small>Pending Births (14d)</small><strong><?= $pendingBirths ?></strong></div><div class="stat-card-icon info"><i data-lucide="baby" style="width:22px;height:22px;"></i></div></div>
 </div>
 
+<!-- Batch Performance Analytics -->
+<?php include __DIR__ . '/includes/batch_analytics_widget.php'; ?>
+
 <!-- Recent Health -->
 <div class="admin-card" style="margin-bottom:24px;">
     <h3 style="margin:0 0 14px;font-family:'Outfit',sans-serif;font-size:1.05rem;">Recent Health Activity</h3>
