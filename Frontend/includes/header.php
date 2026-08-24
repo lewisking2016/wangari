@@ -66,6 +66,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/responsive.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/growvi.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/xai-public.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile-responsive.css?v=1.0">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
