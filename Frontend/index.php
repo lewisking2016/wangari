@@ -163,7 +163,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
     </section>
 
 
-    <!-- ── SYSTEM PREVIEW (Live Demo Recording) ── -->
+    <!-- ── SYSTEM PREVIEW (Video Demo) ── -->
     <section class="xai-section-sm" id="preview">
         <div class="xai-container">
             <div class="xai-preview xai-reveal">
@@ -173,20 +173,26 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         <div class="xai-preview-dot"></div>
                         <div class="xai-preview-dot"></div>
                         <div class="xai-preview-dot"></div>
-                        <span class="xai-preview-title">Wangari Farm OS - Live Dashboard</span>
+                        <span class="xai-preview-title">Wangari Farm OS - System Overview</span>
                     </div>
-                    <!-- Animated WebP walkthrough recording -->
-                    <img
-                        src="/Frontend/images/demo-walkthrough.webp"
-                        alt="Wangari admin dashboard showing live revenue, orders, inventory alerts and farm operations"
-                        class="xai-preview-img"
-                        style="border-radius:0 0 12px 12px; width:100%; display:block; object-fit:cover;"
+                    <!-- Video demo -->
+                    <video
+                        class="xai-preview-video"
+                        style="width:100%; display:block; border-radius:0 0 12px 12px; object-fit:cover;"
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                        preload="metadata"
                     >
+                        <source src="/Frontend/images/wvideo.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
                 <!-- Caption below frame -->
                 <p class="xai-preview-caption">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg>
-                    Live recording of the Wangari admin dashboard - no demo data, this is the real system
+                    See Wangari in action - the real farm management system
                 </p>
             </div>
         </div>
