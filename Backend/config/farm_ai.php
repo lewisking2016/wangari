@@ -585,6 +585,12 @@ class FarmAI {
     }
     
     private function getDefaultResponse($message) {
+        // First check if this is an ACTION request (create/edit/add/delete)
+        $actionResult = $this->handleAction($message);
+        if ($actionResult) {
+            return $actionResult;
+        }
+        
         // Try OpenRouter LLM with web search for complex queries
         $llmResult = $this->callOpenRouterWithSearch($message);
         
@@ -603,6 +609,375 @@ class FarmAI {
                "📈 **Market** - current prices\n\n" .
                "Try asking about any of these topics!\n\n" .
                "**Example:** 'How much feed for 100 broilers?'";
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // ACTION HANDLING - Like Notion AI
+    // ═══════════════════════════════════════════════════════════════
+    
+    /**
+     * Detect and handle action commands
+     */
+    private function handleAction($message) {
+        $userId = $_SESSION['user_id'] ?? 0;
+        if ($userId <= 0) return null;
+        
+        require_once dirname(__DIR__, 2) . '/Backend/config/ai_actions.php';
+        $actions = new WangariAIActions($userId);
+        
+        $lower = strtolower($message);
+        
+        // ═══ POULTRY ACTIONS ═══
+        
+        // Add flock/batch
+        if (preg_match('/(add|create|new|start).*(flock|batch|broiler|layer|chicken|poultry|kuku)/i', $message)) {
+            $quantity = $this->extractNumber($message);
+            $type = 'broiler';
+            if (strpos($lower, 'layer') !== false) $type = 'layer';
+            if (strpos($lower, 'kienyeji') !== false) $type = 'kienyeji';
+            
+            $result = $actions->addFlock([
+                'type' => $type,
+                'quantity' => $quantity ?: 50,
+                'notes' => 'Created via AI assistant',
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Flock Created Successfully!**\n\n" .
+                       "📦 Batch: {$result['batch_no']}\n" .
+                       "🐔 Type: " . ucfirst($type) . "\n" .
+                       "📊 Quantity: " . ($quantity ?: 50) . " birds\n\n" .
+                       "The flock is now active in your system. Would you like me to help you:\n" .
+                       "- Set up a feeding schedule?\n" .
+                       "- Create a vaccination reminder?\n" .
+                       "- Record daily production?";
+            }
+            return "❌ Failed to create flock: " . $result['error'];
+        }
+        
+        // Record production
+        if (preg_match('/(record|log|add).*(production|eggs|mortality|feed|weight)/i', $message)) {
+            $eggs = 0;
+            $mortality = 0;
+            $feed = 0;
+            
+            if (preg_match('/(\d+)\s*egg/i', $message, $m)) $eggs = $m[1];
+            if (preg_match('/(\d+)\s*(dead|mortality|death)/i', $message, $m)) $mortality = $m[1];
+            if (preg_match('/(\d+\.?\d*)\s*(kg|bag|feed)/i', $message, $m)) $feed = $m[1];
+            
+            $flocks = $actions->getFlocks();
+            if (empty($flocks)) {
+                return "⚠️ No active flocks found. Please create a flock first.\n\n" .
+                       "Try: 'Add 100 broilers'";
+            }
+            
+            $result = $actions->recordPoultryProduction([
+                'batch_id' => $flocks[0]['id'],
+                'eggs' => $eggs,
+                'mortality' => $mortality,
+                'feed_used' => $feed,
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Production Recorded!**\n\n" .
+                       ($eggs ? "🥚 Eggs: $eggs\n" : "") .
+                       ($mortality ? "⚠️ Mortality: $mortality\n" : "") .
+                       ($feed ? "🌾 Feed: {$feed}kg\n" : "") .
+                       "📅 Date: " . date('Y-m-d') . "\n\n" .
+                       "Keep up the good records! Would you like to see your production summary?";
+            }
+            return "❌ Failed to record: " . $result['error'];
+        }
+        
+        // ═══ LIVESTOCK ACTIONS ═══
+        
+        // Add animal
+        if (preg_match('/(add|create|new).*(animal|cow|goat|sheep|cattle|ng.ombo|mbuzi)/i', $message)) {
+            $type = 'cattle';
+            if (strpos($lower, 'goat') !== false || strpos($lower, 'mbuzi') !== false) $type = 'goat';
+            if (strpos($lower, 'sheep') !== false) $type = 'sheep';
+            
+            $name = $this->extractName($message) ?: 'Animal-' . rand(100, 999);
+            
+            $result = $actions->addAnimal([
+                'name' => $name,
+                'type' => $type,
+                'notes' => 'Added via AI assistant',
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Animal Added Successfully!**\n\n" .
+                       "🏷️ Tag: {$result['tag_id']}\n" .
+                       "📛 Name: $name\n" .
+                       "🐄 Type: " . ucfirst($type) . "\n\n" .
+                       "The animal is now in your herd. Would you like to:\n" .
+                       "- Record milk production?\n" .
+                       "- Add vaccination records?\n" .
+                       "- View your herd summary?";
+            }
+            return "❌ Failed to add animal: " . $result['error'];
+        }
+        
+        // Record milk
+        if (preg_match('/(record|log|add).*(milk|maziwa)/i', $message)) {
+            $liters = $this->extractNumber($message) ?: 10;
+            $animals = $actions->getAnimals('cattle');
+            
+            if (empty($animals)) {
+                return "⚠️ No cattle found. Please add a cow first.\n\n" .
+                       "Try: 'Add a cow named [name]'";
+            }
+            
+            $result = $actions->recordMilkProduction([
+                'animal_id' => $animals[0]['id'],
+                'morning_liters' => $liters / 2,
+                'evening_liters' => $liters / 2,
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Milk Production Recorded!**\n\n" .
+                       "🥛 Total: $liters liters\n" .
+                       "🐄 Cow: {$animals[0]['name']}\n" .
+                       "📅 Date: " . date('Y-m-d') . "\n\n" .
+                       "Great job keeping records! At KES 50/liter, that's KES " . ($liters * 50) . " in revenue.";
+            }
+            return "❌ Failed to record milk: " . $result['error'];
+        }
+        
+        // ═══ CROP ACTIONS ═══
+        
+        // Add field
+        if (preg_match('/(add|create|new).*(field|shamba|plot)/i', $message)) {
+            $acreage = $this->extractNumber($message) ?: 1;
+            $crop = $this->extractCrop($message) ?: 'maize';
+            $name = $this->extractName($message) ?: 'Field-' . rand(100, 999);
+            
+            $result = $actions->addField([
+                'name' => $name,
+                'crop' => $crop,
+                'acreage' => $acreage,
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Field Added Successfully!**\n\n" .
+                       "🗺️ Name: $name\n" .
+                       "🌾 Crop: " . ucfirst($crop) . "\n" .
+                       "📏 Acreage: $acreage acres\n\n" .
+                       "The field is now in your system. Would you like to:\n" .
+                       "- Record planting?\n" .
+                       "- Add input costs?\n" .
+                       "- View field summary?";
+            }
+            return "❌ Failed to add field: " . $result['error'];
+        }
+        
+        // ═══ CUSTOMER & ORDER ACTIONS ═══
+        
+        // Add customer
+        if (preg_match('/(add|create|new).*(customer|client|buyer|mkaji)/i', $message)) {
+            $name = $this->extractName($message);
+            $phone = $this->extractPhone($message);
+            
+            if (empty($name)) {
+                return "Please provide a customer name.\n\n" .
+                       "**Example:** 'Add customer John Mwangi'";
+            }
+            
+            $result = $actions->addCustomer([
+                'name' => $name,
+                'phone' => $phone,
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Customer Added Successfully!**\n\n" .
+                       "👤 Name: $name\n" .
+                       ($phone ? "📞 Phone: $phone\n" : "") .
+                       "\nThe customer is now in your CRM. Would you like to:\n" .
+                       "- Create an order for them?\n" .
+                       "- Send an invoice?\n" .
+                       "- View their purchase history?";
+            }
+            return "❌ Failed to add customer: " . $result['error'];
+        }
+        
+        // Create order/sale
+        if (preg_match('/(create|make|new|add).*(order|sale|invoice)/i', $message)) {
+            $amount = $this->extractAmount($message);
+            
+            if ($amount <= 0) {
+                return "Please specify the order amount.\n\n" .
+                       "**Example:** 'Create order for KES 5000'";
+            }
+            
+            $result = $actions->createOrder([
+                'items' => [['product' => 'Farm Product', 'quantity' => 1, 'unit_price' => $amount]],
+                'payment_method' => strpos($lower, 'mpesa') !== false ? 'mpesa' : 'cash',
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Order Created Successfully!**\n\n" .
+                       "📋 Order: {$result['order_no']}\n" .
+                       "💰 Total: KES " . number_format($result['total']) . "\n" .
+                       "📅 Date: " . date('Y-m-d') . "\n\n" .
+                       "The order is recorded. Would you like to:\n" .
+                       "- Generate an invoice?\n" .
+                       "- Record payment?\n" .
+                       "- Add more items?";
+            }
+            return "❌ Failed to create order: " . $result['error'];
+        }
+        
+        // Record expense
+        if (preg_match('/(record|log|add).*(expense|cost|matumizi)/i', $message)) {
+            $amount = $this->extractAmount($message);
+            $category = 'other';
+            
+            if (strpos($lower, 'feed') !== false) $category = 'feed';
+            elseif (strpos($lower, 'medicine') !== false || strpos($lower, 'drug') !== false) $category = 'medicine';
+            elseif (strpos($lower, 'labor') !== false || strpos($lower, 'worker') !== false) $category = 'labor';
+            elseif (strpos($lower, 'transport') !== false) $category = 'transport';
+            
+            if ($amount <= 0) {
+                return "Please specify the expense amount.\n\n" .
+                       "**Example:** 'Record expense KES 2000 for feed'";
+            }
+            
+            $result = $actions->recordExpense([
+                'category' => $category,
+                'description' => $message,
+                'amount' => $amount,
+            ]);
+            
+            if ($result['success']) {
+                return "✅ **Expense Recorded!**\n\n" .
+                       "💸 Amount: KES " . number_format($amount) . "\n" .
+                       "📂 Category: " . ucfirst($category) . "\n" .
+                       "📅 Date: " . date('Y-m-d') . "\n\n" .
+                       "Your expenses are being tracked. Would you like to see your expense summary?";
+            }
+            return "❌ Failed to record expense: " . $result['error'];
+        }
+        
+        // ═══ QUERY ACTIONS ═══
+        
+        // Farm summary
+        if (preg_match('/(show|get|view|tell).*(summary|overview|dashboard|status)/i', $message)) {
+            $summary = $actions->getFarmSummary();
+            
+            if (isset($summary['error'])) {
+                return "❌ " . $summary['error'];
+            }
+            
+            return "📊 **Farm Summary**\n\n" .
+                   "🐔 Poultry Batches: {$summary['poultry_batches']} ({$summary['total_birds']} birds)\n" .
+                   "🐄 Animals: {$summary['total_animals']}\n" .
+                   "🌾 Fields: {$summary['total_fields']}\n" .
+                   "👥 Customers: {$summary['total_customers']}\n\n" .
+                   "💰 **This Month:**\n" .
+                   "   Orders: {$summary['orders_this_month']}\n" .
+                   "   Revenue: KES " . number_format($summary['revenue_this_month']) . "\n\n" .
+                   "Would you like detailed reports on any area?";
+        }
+        
+        // List flocks
+        if (preg_match('/(show|list|view).*(flock|batch|chicken|poultry)/i', $message)) {
+            $flocks = $actions->getFlocks();
+            
+            if (empty($flocks)) {
+                return "📭 No active flocks.\n\n" .
+                       "Would you like to create one? Try: 'Add 100 broilers'";
+            }
+            
+            $response = "🐔 **Active Flocks**\n\n";
+            foreach ($flocks as $f) {
+                $response .= "- **{$f['batch_no']}**: {$f['type']} ({$f['breed']}) - {$f['quantity']} birds\n";
+            }
+            $response .= "\nTotal: " . array_sum(array_column($flocks, 'quantity')) . " birds\n\n";
+            $response .= "Would you like to add a new flock or record production?";
+            return $response;
+        }
+        
+        // List animals
+        if (preg_match('/(show|list|view).*(animal|cow|goat|herd)/i', $message)) {
+            $animals = $actions->getAnimals();
+            
+            if (empty($animals)) {
+                return "📭 No animals found.\n\n" .
+                       "Would you like to add one? Try: 'Add a cow named [name]'";
+            }
+            
+            $response = "🐄 **Your Animals**\n\n";
+            foreach ($animals as $a) {
+                $response .= "- **{$a['name']}** ({$a['tag_id']}): {$a['type']} - {$a['breed']}\n";
+            }
+            $response .= "\nWould you like to add more animals or record production?";
+            return $response;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Extract a number from the message
+     */
+    private function extractNumber($message) {
+        if (preg_match('/(\d+)/', $message, $m)) {
+            return (int)$m[1];
+        }
+        return 0;
+    }
+    
+    /**
+     * Extract a name from the message
+     */
+    private function extractName($message) {
+        // Look for patterns like 'named X' or 'called X'
+        if (preg_match('/(?:named?|called?)\s+(.+?)(?:\s+and|$)/i', $message, $m)) {
+            return trim($m[1]);
+        }
+        // Look for capitalized words after action keywords
+        if (preg_match('/(?:customer|client|cow|goat|field)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i', $message, $m)) {
+            return trim($m[1]);
+        }
+        return '';
+    }
+    
+    /**
+     * Extract phone number from message
+     */
+    private function extractPhone($message) {
+        if (preg_match('/(\d{4}\s?\d{3}\s?\d{3}|\d{10})/', $message, $m)) {
+            return $m[1];
+        }
+        return '';
+    }
+    
+    /**
+     * Extract amount from message
+     */
+    private function extractAmount($message) {
+        // Look for KES followed by number
+        if (preg_match('/(?:kes|ksh)\s*(\d[\d,]*)/i', $message, $m)) {
+            return (int)str_replace(',', '', $m[1]);
+        }
+        // Look for number followed by currency words
+        if (preg_match('/(\d[\d,]*)\s*(?:kes|ksh|shillings?)/i', $message, $m)) {
+            return (int)str_replace(',', '', $m[1]);
+        }
+        return 0;
+    }
+    
+    /**
+     * Extract crop type from message
+     */
+    private function extractCrop($message) {
+        $crops = ['maize', 'beans', 'wheat', 'rice', 'potatoes', 'tomatoes', 'kale', 'spinach', 'onions', 'cabbages'];
+        foreach ($crops as $crop) {
+            if (strpos(strtolower($message), $crop) !== false) {
+                return $crop;
+            }
+        }
+        return '';
     }
     
     // ═══════════════════════════════════════════════════════════════
