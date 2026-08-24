@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         if (!$workerId) { $error_message = 'Select a worker.'; }
         else {
             try {
-                $pdo->prepare('INSERT INTO worker_attendance (worker_id,work_date,hours_worked,task,location,notes) VALUES (?,?,?,?,?,?)')
+                $pdo->prepare('INSERT INTO labour_attendance (worker_id,work_date,hours_worked,task,location,notes) VALUES (?,?,?,?,?,?)')
                     ->execute([$workerId,$date,$hours,$task,$loc,$notes]);
                 $message = 'Attendance recorded.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         if (!$workerId || $amount <= 0) { $error_message = 'Worker and amount are required.'; }
         else {
             try {
-                $pdo->prepare('INSERT INTO worker_payments (worker_id,amount,period_start,period_end,method,notes) VALUES (?,?,?,?,?,?)')
+                $pdo->prepare('INSERT INTO labour_payments (worker_id,amount,period_start,period_end,method,notes) VALUES (?,?,?,?,?,?)')
                     ->execute([$workerId,$amount,$pstart?:null,$pend?:null,$method,$notes]);
                 $message = 'Wage payment recorded.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             try {
-                $pdo->prepare('DELETE FROM worker_attendance WHERE id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM labour_attendance WHERE id=?')->execute([$id]);
                 $message = 'Attendance record deleted.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
         }
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             try {
-                $pdo->prepare('DELETE FROM worker_payments WHERE id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM labour_payments WHERE id=?')->execute([$id]);
                 $message = 'Payment record deleted.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
         }
@@ -169,8 +169,8 @@ if ($pdo) {
     try {
         $workers = $pdo->query('SELECT * FROM labour_workers ORDER BY is_active DESC, full_name')->fetchAll();
         foreach ($workers as $w) $workerOptions[$w['id']] = $w['name'];
-        $attendance = $pdo->query('SELECT a.*, w.full_name AS worker_name FROM worker_attendance a LEFT JOIN labour_workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
-        $payments = $pdo->query('SELECT p.*, w.full_name AS worker_name FROM worker_payments p LEFT JOIN labour_workers w ON w.id=p.worker_id ORDER BY p.paid_at DESC LIMIT 200')->fetchAll();
+        $attendance = $pdo->query('SELECT a.*, w.full_name AS worker_name FROM labour_attendance a LEFT JOIN labour_workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
+        $payments = $pdo->query('SELECT p.*, w.full_name AS worker_name FROM labour_payments p LEFT JOIN labour_workers w ON w.id=p.worker_id ORDER BY p.paid_at DESC LIMIT 200')->fetchAll();
         // Worker connection codes
         $workerCodes = $pdo->prepare('SELECT * FROM worker_connection_codes WHERE farm_user_id = ? ORDER BY created_at DESC');
         $workerCodes->execute([$farmUserId]);
