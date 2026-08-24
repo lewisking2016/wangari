@@ -783,31 +783,6 @@ class FarmAI {
                        "**Example:** 'Add customer John Mwangi'";
             }
             
-            $result = $actions->addCustomer([
-                'name' => $name,
-                'phone' => $phone,
-            ]);
-            
-            if ($result['success']) {
-                return "✅ **Customer Added Successfully!**\n\n" .
-                       "👤 Name: $name\n" .
-                       ($phone ? "📞 Phone: $phone\n" : "") .
-                       "\nThe customer is now in your CRM. Would you like to:\n" .
-                       "- Create an order for them?\n" .
-                       "- Send an invoice?\n" .
-                       "- View their purchase history?";
-            }
-            return "❌ Failed to add customer: " . $result['error'];
-        }
-        
-        // Create order/sale
-        if (preg_match('/(create|make|new|add).*(order|sale|invoice)/i', $message)) {
-            $amount = $this->extractAmount($message);
-            
-            if ($amount <= 0) {
-                return "Please specify the order amount.\n\n" .
-                       "**Example:** 'Create order for KES 5000'";
-            }
             
             $result = $actions->createOrder([
                 'items' => [['product' => 'Farm Product', 'quantity' => 1, 'unit_price' => $amount]],
