@@ -32,7 +32,15 @@ $thinkingEnabled = (int)($_SESSION['ai_thinking'] ?? 0) === 1;
 $aiProvider = $pdo ? aiSetting($pdo, 'ai_provider') : '';
 $aiApiKey   = $pdo ? aiSetting($pdo, 'ai_api_key') : '';
 $aiModel    = $pdo ? aiSetting($pdo, 'ai_model') : '';
-$aiConnected = $aiProvider !== '' && $aiApiKey !== '';
+
+// Check if AI is connected (OpenRouter uses separate config)
+$aiConnected = false;
+if ($aiProvider === 'openrouter') {
+    require_once dirname(__DIR__, 2) . '/Backend/config/openrouter.php';
+    $aiConnected = openrouter_is_configured();
+} else {
+    $aiConnected = $aiProvider !== '' && $aiApiKey !== '';
+}
 $thinkingActive = $aiConnected && $thinkingEnabled;
 
 /* Toggle Thinking (POST from the switch) — verify CSRF here because this exits
