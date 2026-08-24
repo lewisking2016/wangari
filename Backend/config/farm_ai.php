@@ -232,7 +232,7 @@ class FarmAI {
         }
         
         // Housing
-        if (pregatch('/(house|coop|housing|kraal|barn|nyumba|structure)/', $message)) {
+        if (preg_match('/(house|coop|housing|kraal|barn|nyumba|structure)/', $message)) {
             return $this->handleHousing($message);
         }
         
