@@ -161,5 +161,8 @@ declare(strict_types=1);
         });
     });
     </script>
+<script src="/Frontend/assets/js/notifications.js"></script>
+<script src="/Frontend/assets/js/export.js"></script>
+<script src="/Frontend/assets/js/print-reports.js"></script>
 </body>
 </html>
