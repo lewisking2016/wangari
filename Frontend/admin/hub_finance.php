@@ -93,6 +93,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'budgets';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_order') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM orders WHERE id=?')->execute([$id]);
+                $message = 'Order deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'orders';
+    }
+
+    if ($postAction === 'delete_payment') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM financial_records WHERE id=?')->execute([$id]);
+                $message = 'Payment deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'payments';
+    }
+
+    if ($postAction === 'delete_expense') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM financial_records WHERE id=? AND type="expense"')->execute([$id]);
+                $message = 'Expense deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'expenses';
+    }
 }
 
 /* ── Load PHP-based tab data ── */

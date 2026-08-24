@@ -123,6 +123,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         }
         $tab = 'maintenance';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_equipment') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM farm_equipment WHERE id=?')->execute([$id]);
+                $message = 'Equipment deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'equipment';
+    }
+
+    if ($postAction === 'delete_maintenance') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM equipment_maintenance WHERE id=?')->execute([$id]);
+                $message = 'Maintenance record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'maintenance';
+    }
+
+    if ($postAction === 'delete_usage') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM equipment_usage WHERE id=?')->execute([$id]);
+                $message = 'Usage record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'maintenance';
+    }
 }
 
 /* ── Load PHP-based tab data ── */
@@ -236,7 +270,8 @@ $tabs = [
                             <?php endif; ?>
                         <?php endif; ?>
                     </td>
-                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openEquipModal(<?= htmlspecialchars(json_encode($fi), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+                    <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openEquipModal(<?= htmlspecialchars(json_encode($fi), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this equipment?'))document.getElementById('delete-equip-<?= (int)$fi['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+                        <form id="delete-equip-<?= (int)$fi['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_equipment"><input type="hidden" name="id" value="<?= (int)$fi['id'] ?>"></form>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>

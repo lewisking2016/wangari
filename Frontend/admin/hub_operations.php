@@ -431,6 +431,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } catch (Exception $e) { $error_message = $e->getMessage(); }
         $tab = 'transport';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_animal') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM animals WHERE id=?')->execute([$id]);
+                $message = 'Animal deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'animals';
+    }
+
+    if ($postAction === 'delete_group') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM animal_groups WHERE id=?')->execute([$id]);
+                $message = 'Group deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'groups';
+    }
+
+    if ($postAction === 'delete_housing') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM houses WHERE id=?')->execute([$id]);
+                $message = 'Housing deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'housing';
+    }
+
+    if ($postAction === 'delete_health') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM health_records WHERE id=?')->execute([$id]);
+                $message = 'Health record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'health';
+    }
+
+    if ($postAction === 'delete_vaccination') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM vaccinations WHERE id=?')->execute([$id]);
+                $message = 'Vaccination deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'vaccinations';
+    }
+
+    if ($postAction === 'delete_production') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM production_records WHERE id=?')->execute([$id]);
+                $message = 'Production record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'production';
+    }
+
+    if ($postAction === 'delete_breeding') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM breeding_records WHERE id=?')->execute([$id]);
+                $message = 'Breeding record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'breeding';
+    }
+
+    if ($postAction === 'delete_feeding') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM feed_logs WHERE id=?')->execute([$id]);
+                $message = 'Feed log deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'feeding';
+    }
+
+    if ($postAction === 'delete_mortality') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM mortality_records WHERE id=?')->execute([$id]);
+                $message = 'Mortality record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'mortality';
+    }
+
+    if ($postAction === 'delete_quarantine') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM quarantine_records WHERE id=?')->execute([$id]);
+                $message = 'Quarantine record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'quarantine';
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -736,7 +847,8 @@ $tabs = [
             <td><?= htmlspecialchars($a['birth_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><?= htmlspecialchars($a['group_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><span class="badge-pill <?= ($a['status'] ?? '') === 'Active' || ($a['status'] ?? '') === 'alive' ? 'badge-pill-success' : (($a['status'] ?? '') === 'sick' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= htmlspecialchars($a['status'] ?? 'Active', ENT_QUOTES, 'UTF-8') ?></span></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openAnimalModal(<?= htmlspecialchars(json_encode($a), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openAnimalModal(<?= htmlspecialchars(json_encode($a), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this animal?'))document.getElementById('delete-form-<?= (int)$a['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-form-<?= (int)$a['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_animal"><input type="hidden" name="id" value="<?= (int)$a['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -802,7 +914,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('animal-m
             <td><?= htmlspecialchars($g['location'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><?= htmlspecialchars($g['house_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><span class="badge-pill <?= ($g['status'] ?? '') === 'active' ? 'badge-pill-success' : (($g['status'] ?? '') === 'sold' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= ucfirst(htmlspecialchars($g['status'] ?? 'active', ENT_QUOTES, 'UTF-8')) ?></span></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openGroupModal(<?= htmlspecialchars(json_encode($g), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openGroupModal(<?= htmlspecialchars(json_encode($g), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this group?'))document.getElementById('delete-grp-<?= (int)$g['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-grp-<?= (int)$g['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_group"><input type="hidden" name="id" value="<?= (int)$g['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -867,7 +980,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('group-mo
             <td><?= number_format((float)($h['capacity'] ?? 0)) ?></td>
             <td><?= htmlspecialchars($h['location'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><?= (int)($h['active_groups'] ?? 0) ?></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHousingModal(<?= htmlspecialchars(json_encode($h), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHousingModal(<?= htmlspecialchars(json_encode($h), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this housing?'))document.getElementById('delete-house-<?= (int)$h['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-house-<?= (int)$h['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_housing"><input type="hidden" name="id" value="<?= (int)$h['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -930,7 +1044,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('housing-
             <td><?= htmlspecialchars($h['vet_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><?= isset($h['cost']) && $h['cost'] ? number_format((float)$h['cost'], 2) : '-' ?></td>
             <td><span class="badge-pill <?= ($h['status'] ?? '') === 'completed' ? 'badge-pill-success' : (($h['status'] ?? '') === 'scheduled' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= htmlspecialchars($h['status'] ?? 'completed', ENT_QUOTES, 'UTF-8') ?></span></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHealthModal(<?= htmlspecialchars(json_encode($h), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openHealthModal(<?= htmlspecialchars(json_encode($h), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this health record?'))document.getElementById('delete-health-<?= (int)$h['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-health-<?= (int)$h['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_health"><input type="hidden" name="id" value="<?= (int)$h['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -1039,7 +1154,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('health-m
             <td><?= $v['next_due_date'] ?? '-' ?></td>
             <td><?= isset($v['cost']) && $v['cost'] ? number_format((float)$v['cost'], 2) : '-' ?></td>
             <td><span class="badge-pill <?= ($v['status'] ?? '') === 'completed' ? 'badge-pill-success' : (($v['status'] ?? '') === 'missed' ? 'badge-pill-danger' : 'badge-pill-warning') ?>"><?= htmlspecialchars($v['status'] ?? 'scheduled', ENT_QUOTES, 'UTF-8') ?></span></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openVacModal(<?= htmlspecialchars(json_encode($v), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openVacModal(<?= htmlspecialchars(json_encode($v), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this vaccination?'))document.getElementById('delete-vac-<?= (int)$v['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-vac-<?= (int)$v['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_vaccination"><input type="hidden" name="id" value="<?= (int)$v['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -1107,7 +1223,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('vac-moda
             <td><strong><?= number_format((float)($p['weight_kg'] ?? 0), 1) ?></strong></td>
             <td><?= number_format((float)($p['feed_consumed_kg'] ?? 0), 1) ?></td>
             <td><strong style="color:<?= ($p['mortality'] ?? 0) > 0 ? '#dc2626' : '#1e293b' ?>"><?= $p['mortality'] ?? 0 ?></strong></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openProdModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openProdModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this production record?'))document.getElementById('delete-prod-<?= (int)$p['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-prod-<?= (int)$p['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_production"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -1176,7 +1293,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('prod-mod
             <td><?= htmlspecialchars($b['due_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
             <td><span class="badge-pill <?= ($b['status'] ?? '') === 'Born' ? 'badge-pill-success' : (($b['status'] ?? '') === 'Pending' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= htmlspecialchars($b['status'] ?? 'Pending', ENT_QUOTES, 'UTF-8') ?></span></td>
             <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($b['notes'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openBreedingModal(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openBreedingModal(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this breeding record?'))document.getElementById('delete-breed-<?= (int)$b['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-breed-<?= (int)$b['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_breeding"><input type="hidden" name="id" value="<?= (int)$b['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>
@@ -1272,7 +1390,8 @@ document.addEventListener('click',e=>{ const m=document.getElementById('breeding
             <td><strong><?= number_format((float)($fl['quantity_kg'] ?? 0), 1) ?></strong></td>
             <td><?= isset($fl['cost']) && $fl['cost'] ? number_format((float)$fl['cost'], 2) : '-' ?></td>
             <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($fl['notes'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
-            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openFeedModal(<?= htmlspecialchars(json_encode($fl), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button></div></td>
+            <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openFeedModal(<?= htmlspecialchars(json_encode($fl), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><button class="btn btn-trans btn-sm" style="color:#dc2626;" onclick="if(confirm('Delete this feed log?'))document.getElementById('delete-feed-<?= (int)$fl['id'] ?>').submit();"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button></div></td>
+        <form id="delete-feed-<?= (int)$fl['id'] ?>" method="POST" style="display:none;"><input type="hidden" name="_action" value="delete_feeding"><input type="hidden" name="id" value="<?= (int)$fl['id'] ?>"></form>
         </tr>
         <?php endforeach; endif; ?></tbody>
     </table></div>

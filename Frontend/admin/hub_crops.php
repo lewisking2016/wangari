@@ -338,6 +338,128 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         }
         $tab = 'soil';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_planting') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crop_plantings WHERE id=?')->execute([$id]);
+                $message = 'Planting deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'plantings';
+    }
+
+    if ($postAction === 'delete_activity') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crop_activities WHERE id=?')->execute([$id]);
+                $message = 'Activity deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'activities';
+    }
+
+    if ($postAction === 'delete_harvest') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crop_harvests WHERE id=?')->execute([$id]);
+                $message = 'Harvest deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'harvests';
+    }
+
+    if ($postAction === 'delete_crop_cost') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crop_costs WHERE id=?')->execute([$id]);
+                $message = 'Cost deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'costs';
+    }
+
+    if ($postAction === 'delete_irrigation') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM irrigation_records WHERE id=?')->execute([$id]);
+                $message = 'Irrigation record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'irrigation';
+    }
+
+    if ($postAction === 'delete_pest_disease') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM pest_disease_records WHERE id=?')->execute([$id]);
+                $message = 'Pest/disease record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'pest_control';
+    }
+
+    if ($postAction === 'delete_growth') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM growth_monitoring WHERE id=?')->execute([$id]);
+                $message = 'Growth record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'growth';
+    }
+
+    if ($postAction === 'delete_seed') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM seed_inventory WHERE id=?')->execute([$id]);
+                $message = 'Seed deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'seed_inventory';
+    }
+
+    if ($postAction === 'delete_post_harvest') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM post_harvest_records WHERE id=?')->execute([$id]);
+                $message = 'Post-harvest record deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'post_harvest';
+    }
+
+    if ($postAction === 'delete_soil_test') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM soil_tests WHERE id=?')->execute([$id]);
+                $message = 'Soil test deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'soil';
+    }
+
+    if ($postAction === 'delete_amendment') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM soil_amendments WHERE id=?')->execute([$id]);
+                $message = 'Amendment deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'soil';
+    }
 }
 
 /* ═══ Load data ═══ */
@@ -637,6 +759,20 @@ function editField(f) {
     document.getElementById('field-notes').value = f.notes || '';
     document.getElementById('field-modal').style.display = 'flex';
 }
+function editPlanting(p) {
+    document.getElementById('planting-modal').querySelector('h3').textContent = 'Edit Planting';
+    document.getElementById('planting-modal').querySelector('input[name=_action]').value = 'save_planting';
+    document.getElementById('planting-modal').querySelector('input[name=id]').value = p.id;
+    document.getElementById('planting-modal').querySelector('select[name=field_id]').value = p.field_id || '';
+    document.getElementById('planting-modal').querySelector('input[name=crop]').value = p.crop || '';
+    document.getElementById('planting-modal').querySelector('input[name=variety]').value = p.variety || '';
+    document.getElementById('planting-modal').querySelector('input[name=planting_date]').value = p.planting_date || '';
+    document.getElementById('planting-modal').querySelector('input[name=area_acres]').value = p.area_acres || '';
+    document.getElementById('planting-modal').querySelector('input[name=expected_harvest_date]').value = p.expected_harvest_date || '';
+    document.getElementById('planting-modal').querySelector('input[name=expected_yield]').value = p.expected_yield || '';
+    document.getElementById('planting-modal').querySelector('textarea[name=notes]').value = p.notes || '';
+    document.getElementById('planting-modal').style.display = 'flex';
+}
 </script>
 
 <?php elseif ($tab === 'plantings'): ?>
@@ -659,7 +795,13 @@ function editField(f) {
                     <td><span class="badge-pill <?= $p['status']==='growing' ? 'badge-pill-success' : ($p['status']==='harvested' ? 'badge-pill-warning' : 'badge-pill-danger') ?>"><?= ucfirst($p['status']) ?></span></td>
                     <td>
                         <div class="tbl-actions">
+                            <button class="btn btn-outline btn-sm" onclick='editPlanting(<?= json_encode($p, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit</button>
                             <a class="btn btn-outline btn-sm" href="?tab=activities&planting=<?= (int)$p['id'] ?>"><i data-lucide="clipboard-list" style="width:13px;height:13px;"></i> Activities</a>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this planting?');">
+                                <input type="hidden" name="_action" value="delete_planting">
+                                <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+                                <button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                            </form>
                         </div>
                     </td>
                 </tr>

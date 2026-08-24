@@ -85,6 +85,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         }
         $tab = 'contacts';
     }
+
+    /* ── DELETE HANDLERS ── */
+    if ($postAction === 'delete_customer') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM walk_in_customers WHERE id=?')->execute([$id]);
+                $message = 'Customer deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'customers';
+    }
+
+    if ($postAction === 'delete_contact') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crm_contacts WHERE id=?')->execute([$id]);
+                $message = 'Contact deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'contacts';
+    }
+
+    if ($postAction === 'delete_followup') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crm_followups WHERE id=?')->execute([$id]);
+                $message = 'Follow-up deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'followups';
+    }
+
+    if ($postAction === 'delete_segment') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM crm_segments WHERE id=?')->execute([$id]);
+                $message = 'Segment deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'segments';
+    }
 }
 
 /* ═══ Load data ═══ */
@@ -226,7 +271,7 @@ $tabs = [
                 <tr>
                     <td><span class="badge-pill badge-pill-success"><?= htmlspecialchars($s['name'], ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><?= htmlspecialchars($s['description'] ?: '—', ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><button class="btn btn-outline btn-sm" onclick='editSegment(<?= json_encode($s, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit</button></td>
+                    <td><button class="btn btn-outline btn-sm" onclick='editSegment(<?= json_encode($s, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Edit</button><form method="POST" style="display:inline;" onsubmit="return confirm('Delete this segment?');"><input type="hidden" name="_action" value="delete_segment"><input type="hidden" name="id" value="<?= (int)$s['id'] ?>"><button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></form></td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
