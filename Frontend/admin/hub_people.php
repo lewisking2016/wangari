@@ -31,8 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id        = (int)($_POST['id'] ?? 0);
         $username  = trim($_POST['username'] ?? '');
         $email     = trim($_POST['email'] ?? '');
-        $firstName = trim($_POST['first_name'] ?? '');
-        $lastName  = trim($_POST['last_name'] ?? '');
+        $fullName = trim($_POST['full_name'] ?? '');
         $phone     = trim($_POST['phone'] ?? '');
         $role      = trim($_POST['role'] ?? 'farm_manager');
         $password  = trim($_POST['password'] ?? '');
@@ -42,16 +41,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } else {
             try {
                 if ($id > 0) {
-                    $pdo->prepare('UPDATE users SET username=?,email=?,first_name=?,last_name=?,phone_number=?,role=? WHERE id=?')
-                        ->execute([$username,$email,$firstName,$lastName,$phone,$role,$id]);
+                    $pdo->prepare('UPDATE users SET username=?,email=?,full_name=?,phone_number=?,role=? WHERE id=?')
+                        ->execute([$username,$email,$fullName,$phone,$role,$id]);
                     if ($password !== '') {
-                        $pdo->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([password_hash($password, PASSWORD_DEFAULT), $id]);
+                        $pdo->prepare('UPDATE users SET password=? WHERE id=?')->execute([password_hash($password, PASSWORD_DEFAULT), $id]);
                     }
                     $message = 'Staff member updated.';
                 } else {
                     $hash = password_hash($password !== '' ? $password : 'Staff@123', PASSWORD_DEFAULT);
-                    $pdo->prepare('INSERT INTO users (username,email,password_hash,role,first_name,last_name,phone_number) VALUES (?,?,?,?,?,?,?)')
-                        ->execute([$username,$email,$hash,$role,$firstName,$lastName,$phone]);
+                    $pdo->prepare('INSERT INTO users (username,email,password,role,full_name,phone_number) VALUES (?,?,?,?,?,?)')
+                        ->execute([$username,$email,$hash,$role,$fullName,$phone]);
                     $message = 'Staff member added. Default password: Staff@123';
                 }
             } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -140,12 +139,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 $staffList = $taskList = $messageList = $customerList = [];
 if ($pdo) {
     try {
-        $staffList = $pdo->query("SELECT * FROM users WHERE role IN ('super_admin','farm_manager','stock_manager') ORDER BY first_name ASC, last_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $staffList = $pdo->query("SELECT * FROM users WHERE role IN ('super_admin','farm_manager','stock_manager') ORDER BY full_name ASC, username ASC")->fetchAll(PDO::FETCH_ASSOC);
         if ($tab === 'users') {
-            $customerList = $pdo->query("SELECT id, username, email, full_name, first_name, last_name, phone, phone_number, role, is_active, created_at FROM users WHERE role = 'customer' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+            $customerList = $pdo->query("SELECT id, username, email, full_name, phone, phone_number, role, is_active, created_at FROM users WHERE role = 'customer' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
         }
         if ($tab === 'tasks') {
-            $taskList = $pdo->query("SELECT t.*, CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) AS assigned_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id ORDER BY COALESCE(t.due_date,t.created_at) ASC")->fetchAll(PDO::FETCH_ASSOC);
+            $taskList = $pdo->query("SELECT t.*, COALESCE(u.full_name, u.username, 'Unassigned') AS assigned_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id ORDER BY COALESCE(t.due_date,t.created_at) ASC")->fetchAll(PDO::FETCH_ASSOC);
         }
         if ($tab === 'messages') {
             $stmt = $pdo->prepare("SELECT m.*, su.username AS from_user, ru.username AS to_user FROM messages m LEFT JOIN users su ON m.sender_id=su.id LEFT JOIN users ru ON m.recipient_id=ru.id WHERE m.sender_id=? OR m.recipient_id=? ORDER BY m.created_at DESC");
@@ -209,7 +208,7 @@ $tabs = [
                 <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No administrative accounts set up.</td></tr>
             <?php else: foreach ($staffList as $s): ?>
                 <tr>
-                    <td><strong><?= htmlspecialchars(trim(($s['first_name'] ?? '') . ' ' . ($s['last_name'] ?? '')) ?: $s['username'], ENT_QUOTES, 'UTF-8') ?></strong></td>
+                    <td><strong><?= htmlspecialchars(trim($s['full_name'] ?? '') ?: $s['username'], ENT_QUOTES, 'UTF-8') ?></strong></td>
                     <td><?= htmlspecialchars($s['username'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning"><?= htmlspecialchars(ucwords(str_replace('_',' ',$s['role'])), ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><?= htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -229,8 +228,7 @@ $tabs = [
             <input type="hidden" name="_action" value="save_staff">
             <input type="hidden" name="id" id="staff-id">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div class="admin-form-group"><label class="admin-form-label">First Name</label><input class="admin-form-control" name="first_name" id="st-fname"></div>
-                <div class="admin-form-group"><label class="admin-form-label">Last Name</label><input class="admin-form-control" name="last_name" id="st-lname"></div>
+                <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Full Name</label><input class="admin-form-control" name="full_name" id="st-fname"></div>
                 <div class="admin-form-group"><label class="admin-form-label">Username *</label><input class="admin-form-control" name="username" id="st-uname" required></div>
                 <div class="admin-form-group"><label class="admin-form-label">Email *</label><input class="admin-form-control" type="email" name="email" id="st-email" required></div>
                 <div class="admin-form-group"><label class="admin-form-label">Phone</label><input class="admin-form-control" name="phone" id="st-phone"></div>
@@ -254,8 +252,7 @@ $tabs = [
 function openStaffModal(d) {
     document.getElementById('staff-modal-title').textContent = d?.id ? 'Edit Staff Account' : 'Add Staff Account';
     document.getElementById('staff-id').value = d?.id || '';
-    document.getElementById('st-fname').value = d?.first_name || '';
-    document.getElementById('st-lname').value = d?.last_name || '';
+    document.getElementById('st-fname').value = d?.full_name || d?.first_name || '';
     document.getElementById('st-uname').value = d?.username || '';
     document.getElementById('st-email').value = d?.email || '';
     document.getElementById('st-phone').value = d?.phone_number || '';
@@ -283,7 +280,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
             <?php if (empty($customerList)): ?>
                 <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No customer accounts found.</td></tr>
             <?php else: foreach ($customerList as $customer):
-                $customerName = trim((string)($customer['full_name'] ?? '')) ?: trim((string)($customer['first_name'] ?? '') . ' ' . (string)($customer['last_name'] ?? '')) ?: (string)$customer['username'];
+                $customerName = trim((string)($customer['full_name'] ?? '')) ?: (string)$customer['username'];
                 $customerPhone = $customer['phone'] ?? $customer['phone_number'] ?? '-';
             ?>
                 <tr>
@@ -349,7 +346,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
                     <select class="admin-form-control" name="assigned_to" id="task-assign">
                         <option value="">-- Choose Staff --</option>
                         <?php foreach ($staffList as $s): ?>
-                        <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars(trim($s['first_name'] . ' ' . $s['last_name']) ?: $s['username'], ENT_QUOTES, 'UTF-8') ?></option>
+                        <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars(trim($s['full_name'] ?? '') ?: $s['username'], ENT_QUOTES, 'UTF-8') ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
