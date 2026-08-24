@@ -240,9 +240,10 @@ function checkAccess(string $module, string $action = 'view'): bool {
 function requireAccess(string $module, string $action = 'view'): void {
     if (!checkAccess($module, $action)) {
         http_response_code(403);
+        $role = $_SESSION['role'] ?? 'unknown';
         echo json_encode([
             'error' => 'Access denied',
-            'message' => "Your role ({$_SESSION['role'] ?? 'unknown'}) does not have '$action' permission on '$module'",
+            'message' => "Your role ({$role}) does not have '{$action}' permission on '{$module}'",
         ]);
         exit;
     }
