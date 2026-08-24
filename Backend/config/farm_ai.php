@@ -585,6 +585,14 @@ class FarmAI {
     }
     
     private function getDefaultResponse($message) {
+        // Try OpenRouter LLM with web search for complex queries
+        $llmResult = $this->callOpenRouterWithSearch($message);
+        
+        if ($llmResult && isset($llmResult['answer'])) {
+            return $llmResult['answer'];
+        }
+        
+        // Fall back to local knowledge base response
         return "🤔 I'm not sure I understand. I can help with:\n\n" .
                "🐔 **Chickens** - feeding, health, housing, breeding\n" .
                "🐄 **Cattle** - feeding, health, housing, breeding\n" .
@@ -595,6 +603,222 @@ class FarmAI {
                "📈 **Market** - current prices\n\n" .
                "Try asking about any of these topics!\n\n" .
                "**Example:** 'How much feed for 100 broilers?'";
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // OpenRouter + Web Search Integration
+    // ═══════════════════════════════════════════════════════════════
+    
+    /**
+     * Detect if a query needs research/web search
+     */
+    private function needsResearch($message) {
+        $researchKeywords = [
+            'research', 'search', 'find', 'look up', 'google', 'latest', 'current',
+            'today', 'now', 'recent', 'news', 'update', 'what is', 'who is',
+            'how to', 'tutorial', 'guide', 'example', 'case study',
+            'best practices', 'comparison', 'review', 'recommend',
+            'price', 'cost', 'market', 'trend', 'forecast',
+        ];
+        
+        foreach ($researchKeywords as $keyword) {
+            if (strpos($message, $keyword) !== false) {
+                return true;
+            }
+        }
+        
+        // Check for question patterns that suggest research needed
+        if (preg_match('/\b(what|how|why|when|where|which|who)\b.*\?/', $message)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Call OpenRouter with web search context
+     */
+    public function callOpenRouterWithSearch($message, $farmContext = []) {
+        // Check if OpenRouter is configured
+        if (!file_exists(dirname(__DIR__, 2) . '/Backend/config/openrouter.php')) {
+            return null;
+        }
+        require_once dirname(__DIR__, 2) . '/Backend/config/openrouter.php';
+        
+        if (!openrouter_is_configured()) {
+            return null;
+        }
+        
+        // Check rate limit
+        $userId = $_SESSION['user_id'] ?? 0;
+        $subStatus = $_SESSION['subscription_status'] ?? 'trial';
+        
+        if ($userId > 0 && openrouter_is_rate_limited($userId, $subStatus)) {
+            return [
+                'answer' => "I've reached my daily limit for AI-powered responses. Please try again tomorrow or upgrade your plan for more queries.\n\n" .
+                           "💡 **Tip:** I can still help with basic farming questions using my built-in knowledge base!",
+                'mode' => 'rate_limited',
+                'source' => 'local'
+            ];
+        }
+        
+        // Check if this query needs research
+        $needsResearch = $this->needsResearch($message);
+        $webContext = '';
+        
+        if ($needsResearch) {
+            // Load web search helper
+            require_once dirname(__DIR__, 2) . '/Backend/config/web_search.php';
+            
+            // Search the web for relevant information
+            $searchResults = wangari_web_search($message, 3);
+            
+            if (!empty($searchResults)) {
+                $webContext = "\n\nWEB SEARCH RESULTS:\n";
+                foreach ($searchResults as $i => $result) {
+                    $webContext .= ($i + 1) . ". " . $result['title'] . "\n";
+                    $webContext .= "   " . $result['snippet'] . "\n";
+                    $webContext .= "   Source: " . $result['url'] . "\n\n";
+                }
+                $webContext .= "Use these search results to provide accurate, up-to-date information.\n";
+            }
+        }
+        
+        // Build context with farm data
+        $contextPrompt = $this->buildFarmContext($farmContext);
+        
+        // Prepare messages
+        $messages = [
+            ['role' => 'system', 'content' => OPENROUTER_SYSTEM_PROMPT . "\n\n" . $contextPrompt . $webContext],
+        ];
+        
+        // Add conversation history (last 10 messages)
+        $recentHistory = array_slice($this->conversationHistory, -10);
+        foreach ($recentHistory as $msg) {
+            $messages[] = $msg;
+        }
+        
+        // Add current message
+        $messages[] = ['role' => 'user', 'content' => $message];
+        
+        // Build request payload
+        $payload = [
+            'model' => OPENROUTER_MODEL,
+            'messages' => $messages,
+            'max_tokens' => OPENROUTER_MAX_TOKENS,
+            'temperature' => OPENROUTER_TEMPERATURE,
+        ];
+        
+        // Enable reasoning if configured
+        if (defined('OPENROUTER_ENABLE_REASONING') && OPENROUTER_ENABLE_REASONING) {
+            $payload['reasoning'] = [
+                'effort' => 'medium',
+                'exclude' => false,
+            ];
+        }
+        
+        // Call OpenRouter API
+        $response = $this->httpPost(
+            OPENROUTER_API_URL,
+            $payload,
+            [
+                'Authorization: Bearer ' . OPENROUTER_API_KEY,
+                'HTTP-Referer: https://wangari.imeantech.com',
+                'X-OpenRouter-Title: Wangari Farm AI',
+                'Content-Type: application/json',
+            ]
+        );
+        
+        if (!$response) {
+            return null;
+        }
+        
+        $data = json_decode($response, true);
+        
+        if (isset($data['choices'][0]['message']['content'])) {
+            $answer = $data['choices'][0]['message']['content'];
+            
+            // Log the usage
+            $this->logLLMUsage($userId, $message, $answer);
+            
+            return [
+                'answer' => $answer,
+                'mode' => 'llm',
+                'source' => $needsResearch ? 'openrouter+search' : 'openrouter',
+                'model' => OPENROUTER_MODEL,
+                'used_research' => $needsResearch,
+            ];
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Build context string from farm data
+     */
+    private function buildFarmContext($farmContext) {
+        $context = "FARM DATA CONTEXT:\n";
+        $context .= "The user has access to the Wangari farm management system. " .
+                    "Use this context to give personalized advice:\n\n";
+        
+        if (!empty($farmContext['farm_name'])) {
+            $context .= "- Farm Name: " . $farmContext['farm_name'] . "\n";
+        }
+        if (!empty($farmContext['farm_type'])) {
+            $context .= "- Farm Type: " . $farmContext['farm_type'] . "\n";
+        }
+        if (!empty($farmContext['location'])) {
+            $context .= "- Location: " . $farmContext['location'] . "\n";
+        }
+        if (!empty($farmContext['animals'])) {
+            $context .= "- Animals: " . json_encode($farmContext['animals']) . "\n";
+        }
+        if (!empty($farmContext['recent_activity'])) {
+            $context .= "- Recent Activity: " . $farmContext['recent_activity'] . "\n";
+        }
+        
+        return $context;
+    }
+    
+    /**
+     * Log LLM usage for tracking
+     */
+    private function logLLMUsage($userId, $question, $answer) {
+        if ($userId <= 0) return;
+        
+        try {
+            if (function_exists('getDatabaseConnection')) {
+                $pdo = getDatabaseConnection();
+                if ($pdo) {
+                    $stmt = $pdo->prepare("INSERT INTO ai_chat_logs (user_id, question, answer, mode) VALUES (?, ?, ?, 'llm')");
+                    $stmt->execute([$userId, $question, $answer]);
+                }
+            }
+        } catch (Exception $e) {
+            // Silently fail - don't break the chat
+        }
+    }
+    
+    /**
+     * Simple HTTP POST helper
+     */
+    private function httpPost($url, $data, $headers = []) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return $response;
+        }
+        
+        return null;
     }
     
     public function getConversationHistory() {
