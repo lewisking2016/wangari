@@ -170,7 +170,7 @@ if ($pdo) {
         $workers = $pdo->query('SELECT * FROM labour_workers ORDER BY is_active DESC, full_name')->fetchAll();
         foreach ($workers as $w) $workerOptions[$w['id']] = $w['name'];
         $attendance = $pdo->query('SELECT a.*, w.full_name AS worker_name FROM labour_attendance a LEFT JOIN labour_workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
-        $payments = $pdo->query('SELECT p.*, w.full_name AS worker_name FROM labour_payments p LEFT JOIN labour_workers w ON w.id=p.worker_id ORDER BY p.paid_at DESC LIMIT 200')->fetchAll();
+        $payments = $pdo->query('SELECT p.*, w.full_name AS worker_name FROM labour_payments p LEFT JOIN labour_workers w ON w.id=p.worker_id ORDER BY p.payment_date DESC LIMIT 200')->fetchAll();
         // Worker connection codes
         $workerCodes = $pdo->prepare('SELECT * FROM worker_connection_codes WHERE farm_user_id = ? ORDER BY created_at DESC');
         $workerCodes->execute([$farmUserId]);
