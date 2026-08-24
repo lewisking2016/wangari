@@ -89,11 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         html { 
-            overflow-x: hidden;
+            overflow-x: clip;
             overflow-y: auto;
         }
         body.admin-layout { 
-            overflow-x: hidden;
+            overflow-x: clip;
             overflow-y: auto;
             background: var(--admin-body-bg); 
             color: var(--admin-text-main);
@@ -365,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-left: 268px;
             width: calc(100% - 268px);
             box-sizing: border-box;
-            overflow-x: hidden;
+            overflow-x: clip;
             min-width: 0;
         }
 
