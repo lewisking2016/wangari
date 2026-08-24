@@ -585,14 +585,11 @@ class FarmAI {
     }
     
     private function getDefaultResponse($message) {
-        // First check if this is an ACTION request (create/edit/add/delete)
-        $actionResult = $this->handleAction($message);
-        if ($actionResult) {
-            return $actionResult;
-        }
+        // Check if user is logged in for tool actions
+        $userId = $_SESSION['user_id'] ?? 0;
         
-        // Try OpenRouter LLM with web search for complex queries
-        $llmResult = $this->callOpenRouterWithSearch($message);
+        // Try OpenRouter with tool calling (Notion AI style)
+        $llmResult = $this->callOpenRouterWithTools($message, $userId);
         
         if ($llmResult && isset($llmResult['answer'])) {
             return $llmResult['answer'];
@@ -1147,6 +1144,192 @@ class FarmAI {
         } catch (Exception $e) {
             // Silently fail - don't break the chat
         }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // TOOL CALLING - Notion AI Style
+    // ═══════════════════════════════════════════════════════════════
+    
+    /**
+     * Call OpenRouter with tool calling support
+     * This lets the AI decide which tools to use and execute them
+     */
+    public function callOpenRouterWithTools($message, $userId = 0) {
+        // Check if OpenRouter is configured
+        if (!file_exists(dirname(__DIR__, 2) . '/Backend/config/openrouter.php')) {
+            return null;
+        }
+        require_once dirname(__DIR__, 2) . '/Backend/config/openrouter.php';
+        
+        if (!openrouter_is_configured()) {
+            return null;
+        }
+        
+        // Check rate limit
+        $subStatus = $_SESSION['subscription_status'] ?? 'trial';
+        
+        if ($userId > 0 && openrouter_is_rate_limited($userId, $subStatus)) {
+            return [
+                'answer' => "I've reached my daily limit for AI-powered responses. Please try again tomorrow or upgrade your plan for more queries.\n\n" .
+                           "💡 **Tip:** I can still help with basic farming questions using my built-in knowledge base!",
+                'mode' => 'rate_limited'
+            ];
+        }
+        
+        // Check if this query needs research
+        $needsResearch = $this->needsResearch($message);
+        $webContext = '';
+        
+        if ($needsResearch) {
+            require_once dirname(__DIR__, 2) . '/Backend/config/web_search.php';
+            $searchResults = wangari_web_search($message, 3);
+            
+            if (!empty($searchResults)) {
+                $webContext = "\n\nWEB SEARCH RESULTS:\n";
+                foreach ($searchResults as $i => $result) {
+                    $webContext .= ($i + 1) . ". " . $result['title'] . "\n";
+                    $webContext .= "   " . $result['snippet'] . "\n";
+                    $webContext .= "   Source: " . $result['url'] . "\n\n";
+                }
+            }
+        }
+        
+        // Build context with farm data
+        $contextPrompt = $this->buildFarmContext([]);
+        
+        // Get tool definitions
+        require_once dirname(__DIR__, 2) . '/Backend/config/ai_tools.php';
+        $tools = wangari_get_ai_tools();
+        
+        // Prepare messages
+        $messages = [
+            ['role' => 'system', 'content' => OPENROUTER_SYSTEM_PROMPT . "\n\n" . $contextPrompt . $webContext],
+        ];
+        
+        // Add conversation history (last 10 messages)
+        $recentHistory = array_slice($this->conversationHistory, -10);
+        foreach ($recentHistory as $msg) {
+            $messages[] = $msg;
+        }
+        
+        // Add current message
+        $messages[] = ['role' => 'user', 'content' => $message];
+        
+        // Build request with tools
+        $payload = [
+            'model' => OPENROUTER_MODEL,
+            'messages' => $messages,
+            'max_tokens' => OPENROUTER_MAX_TOKENS,
+            'temperature' => OPENROUTER_TEMPERATURE,
+            'tools' => $tools,
+            'tool_choice' => 'auto',
+        ];
+        
+        // Enable reasoning if configured
+        if (defined('OPENROUTER_ENABLE_REASONING') && OPENROUTER_ENABLE_REASONING) {
+            $payload['reasoning'] = [
+                'effort' => 'medium',
+                'exclude' => false,
+            ];
+        }
+        
+        // Call OpenRouter API
+        $response = $this->httpPost(
+            OPENROUTER_API_URL,
+            $payload,
+            [
+                'Authorization: Bearer ' . OPENROUTER_API_KEY,
+                'HTTP-Referer: https://wangari.imeantech.com',
+                'X-Title: Wangari Farm AI',
+                'Content-Type: application/json',
+            ]
+        );
+        
+        if (!$response) {
+            return null;
+        }
+        
+        $data = json_decode($response, true);
+        
+        if (!isset($data['choices'][0]['message'])) {
+            return null;
+        }
+        
+        $assistantMessage = $data['choices'][0]['message'];
+        
+        // Check if AI wants to call tools
+        if (isset($assistantMessage['tool_calls']) && !empty($assistantMessage['tool_calls'])) {
+            // Execute each tool call
+            require_once dirname(__DIR__, 2) . '/Backend/config/ai_tool_executor.php';
+            $executor = new WangariAIToolExecutor($userId);
+            
+            // Add assistant message with tool calls to conversation
+            $messages[] = $assistantMessage;
+            
+            // Process each tool call
+            foreach ($assistantMessage['tool_calls'] as $toolCall) {
+                $toolName = $toolCall['function']['name'];
+                $toolArgs = json_decode($toolCall['function']['arguments'], true);
+                
+                // Execute the tool
+                $toolResult = $executor->execute($toolName, $toolArgs);
+                
+                // Add tool result to messages
+                $messages[] = [
+                    'role' => 'tool',
+                    'tool_call_id' => $toolCall['id'],
+                    'content' => json_encode($toolResult)
+                ];
+            }
+            
+            // Get AI's response after tool execution
+            $payload2 = [
+                'model' => OPENROUTER_MODEL,
+                'messages' => $messages,
+                'max_tokens' => OPENROUTER_MAX_TOKENS,
+                'temperature' => OPENROUTER_TEMPERATURE,
+            ];
+            
+            $response2 = $this->httpPost(
+                OPENROUTER_API_URL,
+                $payload2,
+                [
+                    'Authorization: Bearer ' . OPENROUTER_API_KEY,
+                    'HTTP-Referer: https://wangari.imeantech.com',
+                    'X-Title: Wangari Farm AI',
+                    'Content-Type: application/json',
+                ]
+            );
+            
+            if ($response2) {
+                $data2 = json_decode($response2, true);
+                if (isset($data2['choices'][0]['message']['content'])) {
+                    $finalAnswer = $data2['choices'][0]['message']['content'];
+                    $this->logLLMUsage($userId, $message, $finalAnswer);
+                    
+                    return [
+                        'answer' => $finalAnswer,
+                        'mode' => 'tool_call',
+                        'tools_used' => array_column($assistantMessage['tool_calls'], 'function.name'),
+                        'source' => 'openrouter+tools'
+                    ];
+                }
+            }
+        }
+        
+        // No tools called - return the text response
+        if (isset($assistantMessage['content']) && !empty($assistantMessage['content'])) {
+            $answer = $assistantMessage['content'];
+            $this->logLLMUsage($userId, $message, $answer);
+            
+            return [
+                'answer' => $answer,
+                'mode' => 'llm',
+                'source' => $needsResearch ? 'openrouter+search' : 'openrouter'
+            ];
+        }
+        
+        return null;
     }
     
     /**
