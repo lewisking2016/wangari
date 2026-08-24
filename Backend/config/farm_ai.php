@@ -595,6 +595,14 @@ class FarmAI {
             return $llmResult['answer'];
         }
         
+        // Fallback: try text-based action detection (regex)
+        if ($userId > 0) {
+            $actionResult = $this->handleAction($message);
+            if ($actionResult) {
+                return $actionResult;
+            }
+        }
+        
         // Fall back to local knowledge base response
         return "🤔 I'm not sure I understand. I can help with:\n\n" .
                "🐔 **Chickens** - feeding, health, housing, breeding\n" .
@@ -1227,20 +1235,25 @@ class FarmAI {
             'tool_choice' => 'auto',
         ];
         
-        // Call OpenRouter API
-        $response = $this->httpPost(
-            OPENROUTER_API_URL,
-            $payload,
-            [
-                'Authorization: Bearer ' . OPENROUTER_API_KEY,
-                'HTTP-Referer: https://wangari.imeantech.com',
-                'X-Title: Wangari Farm AI',
-                'Content-Type: application/json',
-            ]
-        );
+        // Call OpenRouter API with retry
+        $response = null;
+        for ($retry = 0; $retry < 2; $retry++) {
+            $response = $this->httpPost(
+                OPENROUTER_API_URL,
+                $payload,
+                [
+                    'Authorization: Bearer ' . OPENROUTER_API_KEY,
+                    'HTTP-Referer: https://wangari.imeantech.com',
+                    'X-Title: Wangari Farm AI',
+                    'Content-Type: application/json',
+                ]
+            );
+            if ($response) break;
+            sleep(1); // Wait before retry
+        }
         
         if (!$response) {
-            error_log('[AI-DEBUG] First API call returned null');
+            error_log('[AI-DEBUG] First API call returned null after retries');
             return null;
         }
         
