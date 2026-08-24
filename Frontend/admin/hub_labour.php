@@ -17,7 +17,7 @@ $page_title = 'Labour & Workers - Admin';
 include __DIR__ . '/includes/admin_header.php';
 
 $tab = $_GET['tab'] ?? 'workers';
-$validTabs = ['workers','attendance','payments'];
+$validTabs = ['workers','attendance','payments','codes','connected'];
 if (!in_array($tab, $validTabs, true)) $tab = 'workers';
 
 $pdo = getDB();
@@ -122,17 +122,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         }
         $tab = 'payments';
     }
+
+    /* ── Generate Worker Code ── */
+    if ($postAction === 'generate_code') {
+        $maxUses = (int)($_POST['max_uses'] ?? 10);
+        $expiresDays = (int)($_POST['expires_days'] ?? 30);
+        $code = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 4) . '-' . substr(md5(uniqid(mt_rand(), true)), 0, 4));
+        try {
+            $stmt = $pdo->prepare('INSERT INTO worker_connection_codes (farm_user_id, code, max_uses, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL ? DAY))');
+            $stmt->execute([(int)$_SESSION['user_id'], $code, $maxUses, $expiresDays]);
+            $message = "Code generated: {$code}";
+        } catch (Exception $e) { $error_message = $e->getMessage(); }
+        $tab = 'codes';
+    }
+
+    /* ── Delete Code ── */
+    if ($postAction === 'delete_code') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('DELETE FROM worker_connection_codes WHERE id=? AND farm_user_id=?')->execute([$id, (int)$_SESSION['user_id']]);
+                $message = 'Code deleted.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'codes';
+    }
+
+    /* ── Disconnect Worker ── */
+    if ($postAction === 'disconnect_worker') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pdo->prepare('UPDATE worker_farm_links SET is_active = 0 WHERE id=? AND farm_user_id=?')->execute([$id, (int)$_SESSION['user_id']]);
+                $message = 'Worker disconnected.';
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'connected';
+    }
 }
 
 /* ═══ Load data ═══ */
-$workers = $attendance = $payments = [];
+$workers = $attendance = $payments = $workerCodes = $connectedWorkers = [];
 $workerOptions = [];
+$farmUserId = (int)$_SESSION['user_id'];
 if ($pdo) {
     try {
         $workers = $pdo->query('SELECT * FROM workers ORDER BY status="active" DESC, name')->fetchAll();
         foreach ($workers as $w) $workerOptions[$w['id']] = $w['name'];
         $attendance = $pdo->query('SELECT a.*, w.name AS worker_name FROM worker_attendance a LEFT JOIN workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
         $payments = $pdo->query('SELECT p.*, w.name AS worker_name FROM worker_payments p LEFT JOIN workers w ON w.id=p.worker_id ORDER BY p.paid_at DESC LIMIT 200')->fetchAll();
+        // Worker connection codes
+        $workerCodes = $pdo->prepare('SELECT * FROM worker_connection_codes WHERE farm_user_id = ? ORDER BY created_at DESC');
+        $workerCodes->execute([$farmUserId]);
+        $workerCodes = $workerCodes->fetchAll(PDO::FETCH_ASSOC);
+        // Connected workers
+        $connectedWorkers = $pdo->prepare('SELECT wfl.*, u.full_name, u.username, u.email FROM worker_farm_links wfl JOIN users u ON u.id = wfl.worker_user_id WHERE wfl.farm_user_id = ? AND wfl.is_active = 1 ORDER BY wfl.connected_at DESC');
+        $connectedWorkers->execute([$farmUserId]);
+        $connectedWorkers = $connectedWorkers->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { $error_message = $e->getMessage(); }
 }
 
@@ -140,6 +186,8 @@ $tabs = [
     'workers'    => ['icon' => 'users',         'label' => 'Workers'],
     'attendance' => ['icon' => 'calendar-check', 'label' => 'Attendance'],
     'payments'   => ['icon' => 'wallet',         'label' => 'Wage Payments'],
+    'codes'      => ['icon' => 'key',            'label' => 'Worker Codes'],
+    'connected'  => ['icon' => 'link',           'label' => 'Connected Workers'],
 ];
 ?>
 
@@ -361,3 +409,9 @@ function editWorker(w) {
 <?php endif; ?>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>
+
+<?php if ($tab === 'codes'): ?>
+<?php include __DIR__ . '/labour_codes_tab.php'; ?>
+<?php elseif ($tab === 'connected'): ?>
+<?php include __DIR__ . '/labour_connected_tab.php'; ?>
+<?php endif; ?>
