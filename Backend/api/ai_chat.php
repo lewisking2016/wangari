@@ -45,16 +45,40 @@ $lang = $input['lang'] ?? 'en';
 
 // Load the AI engine
 require_once __DIR__ . '/../config/farm_ai.php';
+require_once __DIR__ . '/../config/openrouter.php';
 
 // Initialize AI
 $ai = new FarmAI();
 
-// Process message
+// Process message with timing
+$startTime = microtime(true);
 $response = $ai->processMessage($message);
+$responseTime = round((microtime(true) - $startTime) * 1000); // ms
 
-// Return response
+// Get usage info
+$userId = $_SESSION['user_id'] ?? 0;
+$subStatus = $_SESSION['subscription_status'] ?? 'trial';
+$usageInfo = openrouter_get_usage_info($userId, $subStatus);
+
+// Detect mode from response
+$mode = 'local';
+$model = '';
+if (strpos($response, 'AI Powered') !== false || strpos($response, 'AI-powered') !== false) {
+    $mode = 'llm';
+    $model = 'Ox Alpha';
+}
+
+// Return response with metadata
 echo json_encode([
     'success' => true,
     'response' => $response,
-    'timestamp' => date('Y-m-d H:i:s')
+    'timestamp' => date('Y-m-d H:i:s'),
+    'metadata' => [
+        'response_time_ms' => $responseTime,
+        'mode' => $mode,
+        'model' => $model,
+        'tokens_used' => $usageInfo['used'],
+        'tokens_limit' => $usageInfo['limit'],
+        'tokens_remaining' => $usageInfo['remaining'],
+    ]
 ]);

@@ -341,6 +341,18 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 .ai-typing span:nth-child(2) { animation-delay: .2s; } .ai-typing span:nth-child(3) { animation-delay: .4s; }
 @keyframes aiBlink { 0%,80%,100% { opacity:.3; transform: translateY(0); } 40% { opacity:1; transform: translateY(-3px); } }
 
+/* Response metadata */
+.ai-response-meta {
+    font-size: 0.72rem;
+    color: #64748B;
+    margin-top: 6px;
+    padding: 4px 0;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* ── follow-up chips under answers ── */
 .ai-followups { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .ai-followup { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #d7d7d7; border-radius: 999px; padding: 7px 14px; font-size: 0.78rem; cursor: pointer; transition: all .15s; font-family: inherit; }
@@ -455,7 +467,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         <div class="ai-mode-line">
             <span class="ai-mode-badge" id="ai-mode-badge">
                 <span class="ai-mode-dot"></span>
-                <span id="ai-mode-label"><?= $thinkingActive ? '🧠 LLM active — ' . htmlspecialchars(ucfirst($aiProvider)) . ($aiModel !== '' ? ' (' . htmlspecialchars($aiModel) . ')' : '') : '🌱 Local engine — offline, instant & private' ?></span>
+                <span id="ai-mode-label">Wangari - Ox Alpha</span>
             </span>
             <span class="ai-disc">Wangari can make mistakes — check important numbers in your records.</span>
         </div>
@@ -475,7 +487,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         d.textContent = s;
         return d.innerHTML;
     }
-    function addBubble(text, who) {
+    function addBubble(text, who, meta) {
         var d = document.createElement('div');
         d.className = 'ai-bubble ' + who;
         // Render newlines and **bold** safely (used by calculator answers).
@@ -483,6 +495,21 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         esc = esc.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
         esc = esc.replace(/\n/g, '<br>');
         d.innerHTML = esc;
+        
+        // Add metadata for bot messages
+        if (who === 'bot' && meta) {
+            var metaDiv = document.createElement('div');
+            metaDiv.className = 'ai-response-meta';
+            var parts = [];
+            if (meta.response_time_ms) parts.push(meta.response_time_ms + 'ms');
+            if (meta.tokens_used !== undefined) parts.push(meta.tokens_used + '/' + meta.tokens_limit + ' tokens');
+            if (meta.model) parts.push(meta.model);
+            if (parts.length) {
+                metaDiv.textContent = parts.join(' • ');
+                d.appendChild(metaDiv);
+            }
+        }
+        
         msgs.appendChild(d);
         msgs.scrollTop = msgs.scrollHeight;
         return d;
@@ -524,7 +551,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
             .then(function(j){
                 typing.remove();
                 if (j && j.success) {
-                    addBubble(j.answer, 'bot');
+                    addBubble(j.answer, 'bot', j.metadata);
                     if (j.suggestions && j.suggestions.length) addFollowups(j.suggestions);
                 } else {
                     addBubble('Sorry, I could not read the records just now. Please try again.', 'bot');
@@ -546,7 +573,7 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         if (chat) chat.classList.toggle('llm-mode', on);
         if (label) label.textContent = on
             ? '🧠 LLM active — <?= htmlspecialchars(ucfirst($aiProvider)) ?><?= $aiModel !== '' ? ' (' . htmlspecialchars($aiModel) . ')' : '' ?>'
-            : '🌱 Local engine — offline, instant & private';
+            : 'Wangari - Ox Alpha';
         if (badge) badge.style.background = on ? 'rgba(34,197,94,0.14)' : '';
         if (pill) {
             pill.classList.toggle('on', on);

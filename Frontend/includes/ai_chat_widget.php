@@ -125,13 +125,18 @@
     gap: 6px;
 }
 
-.ai-chat-status::before {
-    content: '';
+.ai-status-dot {
     width: 8px;
     height: 8px;
     background: #86EFAC;
     border-radius: 50%;
     animation: blink 1.5s infinite;
+    flex-shrink: 0;
+}
+
+#ai-model-badge {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 @keyframes blink {
@@ -407,6 +412,46 @@
     background: #F1F5F9;
 }
 
+/* Metadata bar */
+.ai-meta-bar {
+    padding: 6px 16px;
+    display: flex;
+    gap: 16px;
+    background: #F8FAFC;
+    border-top: 1px solid #E2E8F0;
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.ai-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ai-meta-item::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #CBD5E1;
+    border-radius: 50%;
+}
+
+/* Response time animation */
+.ai-response-time {
+    font-size: 11px;
+    color: #94A3B8;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ai-response-time::before {
+    content: '⚡';
+    font-size: 10px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 480px) {
     .ai-chat-window {
@@ -446,7 +491,10 @@
                 <div class="ai-chat-avatar">🌾</div>
                 <div>
                     <div class="ai-chat-title">Wangari AI</div>
-                    <div class="ai-chat-status">Online • Ready to help</div>
+                    <div class="ai-chat-status">
+                        <span class="ai-status-dot"></span>
+                        <span id="ai-model-badge">Wangari - Ox Alpha</span>
+                    </div>
                 </div>
             </div>
             <button class="ai-chat-close" id="aiChatClose">
@@ -502,10 +550,16 @@ How can I help you today?
             <button class="ai-chat-input-btn ai-voice-btn" id="aiVoiceBtn" title="Voice input">
                 <i class="fas fa-microphone"></i>
             </button>
-            <input type="text" id="aiChatInput" placeholder="Ask about farming...">
+            <input type="text" id="aiChatInput" placeholder="Ask Wangari anything...">
             <button class="ai-chat-input-btn ai-send-btn" id="aiSendBtn">
                 <i class="fas fa-paper-plane"></i>
             </button>
+        </div>
+        
+        <!-- Metadata bar -->
+        <div class="ai-meta-bar" id="aiMetaBar">
+            <span class="ai-meta-item" id="aiResponseTime"></span>
+            <span class="ai-meta-item" id="aiTokensUsed"></span>
         </div>
     </div>
     
@@ -617,7 +671,7 @@ How can I help you today?
         .then(response => response.json())
         .then(data => {
             hideTyping();
-            addMessage('assistant', data.response || "I'm sorry, I couldn't process that. Please try again.");
+            addMessage('assistant', data.response || "I'm sorry, I couldn't process that. Please try again.", data.metadata);
         })
         .catch(error => {
             hideTyping();
@@ -626,12 +680,34 @@ How can I help you today?
     }
     
     // Add Message to Chat
-    function addMessage(role, content) {
+    function addMessage(role, content, metadata) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `ai-message ${role}`;
-        messageDiv.innerHTML = `<div class="ai-message-bubble">${content}</div>`;
+        
+        let metaHtml = '';
+        if (role === 'assistant' && metadata) {
+            const responseTime = metadata.response_time_ms ? `${metadata.response_time_ms}ms` : '';
+            const tokens = metadata.tokens_used !== undefined ? `${metadata.tokens_used}/${metadata.tokens_limit}` : '';
+            const model = metadata.model || '';
+            
+            if (responseTime || tokens) {
+                metaHtml = `<div class="ai-response-time">
+                    ${responseTime ? `<span>${responseTime}</span>` : ''}
+                    ${tokens ? `<span>• ${tokens} tokens</span>` : ''}
+                    ${model ? `<span>• ${model}</span>` : ''}
+                </div>`;
+            }
+        }
+        
+        messageDiv.innerHTML = `<div class="ai-message-bubble">${content}</div>${metaHtml}`;
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Update model badge if metadata available
+        if (metadata && metadata.model) {
+            const badge = document.getElementById('ai-model-badge');
+            if (badge) badge.textContent = `Wangari - ${metadata.model}`;
+        }
     }
     
     // Show/Hide Typing
