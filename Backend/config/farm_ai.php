@@ -1198,9 +1198,10 @@ class FarmAI {
         // Build context with farm data
         $contextPrompt = $this->buildFarmContext([]);
         
-        // Get tool definitions
+        // Get tool definitions (max 2 per request - stealth model limit)
         require_once dirname(__DIR__, 2) . '/Backend/config/ai_tools.php';
-        $tools = wangari_get_ai_tools();
+        $allTools = wangari_get_ai_tools();
+        $tools = $this->selectRelevantTools($message, $allTools, 2);
         
         // Prepare messages
         $messages = [
@@ -1216,7 +1217,7 @@ class FarmAI {
         // Add current message
         $messages[] = ['role' => 'user', 'content' => $message];
         
-        // Build request with tools
+        // Build request with tools (no reasoning param - causes 400 with tools)
         $payload = [
             'model' => OPENROUTER_MODEL,
             'messages' => $messages,
@@ -1225,14 +1226,6 @@ class FarmAI {
             'tools' => $tools,
             'tool_choice' => 'auto',
         ];
-        
-        // Enable reasoning if configured
-        if (defined('OPENROUTER_ENABLE_REASONING') && OPENROUTER_ENABLE_REASONING) {
-            $payload['reasoning'] = [
-                'effort' => 'medium',
-                'exclude' => false,
-            ];
-        }
         
         // Call OpenRouter API
         $response = $this->httpPost(
@@ -1341,6 +1334,102 @@ class FarmAI {
         }
         
         return null;
+    }
+    
+    /**
+     * Select the most relevant tools for a given message
+     * Stealth/ox-alpha has a 2-tool limit per request
+     */
+    private function selectRelevantTools($message, $allTools, $maxTools = 2) {
+        $lower = strtolower($message);
+        $scores = [];
+        
+        foreach ($allTools as $tool) {
+            $name = $tool['function']['name'];
+            $desc = strtolower($tool['function']['description']);
+            $score = 0;
+            
+            // Poultry tools
+            if (preg_match('/(add|create|new|start).*(flock|batch|broiler|layer|chicken|poultry)/i', $message)) {
+                if ($name === 'add_flock') $score += 10;
+            }
+            if (preg_match('/(record|log|add).*(production|eggs|mortality|feed)/i', $message)) {
+                if ($name === 'record_poultry_production') $score += 10;
+            }
+            if (preg_match('/(show|list|view).*(flock|batch|chicken|poultry)/i', $message)) {
+                if ($name === 'list_flocks') $score += 10;
+            }
+            
+            // Livestock tools
+            if (preg_match('/(add|create|new).*(animal|cow|goat|sheep|cattle)/i', $message)) {
+                if ($name === 'add_animal') $score += 10;
+            }
+            if (preg_match('/(record|log).*(milk|maziwa)/i', $message)) {
+                if ($name === 'record_milk') $score += 10;
+            }
+            if (preg_match('/(show|list|view).*(animal|cow|goat|herd)/i', $message)) {
+                if ($name === 'list_animals') $score += 10;
+            }
+            
+            // Crop tools
+            if (preg_match('/(add|create|new).*(field|shamba|plot)/i', $message)) {
+                if ($name === 'add_field') $score += 10;
+            }
+            if (preg_match('/(show|list|view).*(field|crop)/i', $message)) {
+                if ($name === 'list_fields') $score += 10;
+            }
+            
+            // Finance tools
+            if (preg_match('/(record|log|add).*(expense|cost|spend)/i', $message)) {
+                if ($name === 'record_expense') $score += 10;
+            }
+            if (preg_match('/(record|log|add).*(income|sale|revenue|money)/i', $message)) {
+                if ($name === 'record_income') $score += 10;
+            }
+            if (preg_match('/(finance|money|profit|revenue|summary)/i', $message)) {
+                if ($name === 'get_finance_summary') $score += 10;
+            }
+            
+            // Customer tools
+            if (preg_match('/(add|create|new).*(customer|client|buyer)/i', $message)) {
+                if ($name === 'add_customer') $score += 10;
+            }
+            if (preg_match('/(create|make|new).*(order|sale)/i', $message)) {
+                if ($name === 'create_order') $score += 10;
+            }
+            if (preg_match('/(show|list|view).*(customer|client|buyer)/i', $message)) {
+                if ($name === 'list_customers') $score += 10;
+            }
+            
+            // Query tools
+            if (preg_match('/(summary|overview|dashboard|status|how.*doing)/i', $message)) {
+                if ($name === 'get_farm_summary') $score += 10;
+            }
+            if (preg_match('/(search|find|look|google|current|latest|price|market)/i', $message)) {
+                if ($name === 'search_web') $score += 10;
+            }
+            
+            $scores[] = ['tool' => $tool, 'score' => $score];
+        }
+        
+        // Sort by score descending
+        usort($scores, function($a, $b) { return $b['score'] - $a['score']; });
+        
+        // Always include get_farm_summary as a fallback
+        $selected = [];
+        foreach ($scores as $item) {
+            if ($item['score'] > 0 || count($selected) < $maxTools) {
+                $selected[] = $item['tool'];
+                if (count($selected) >= $maxTools) break;
+            }
+        }
+        
+        // If no match, return first 2 tools as fallback
+        if (empty($selected)) {
+            return array_slice($allTools, 0, $maxTools);
+        }
+        
+        return $selected;
     }
     
     /**
