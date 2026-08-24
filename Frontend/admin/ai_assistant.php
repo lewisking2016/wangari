@@ -349,6 +349,29 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 .ai-typing span:nth-child(2) { animation-delay: .2s; } .ai-typing span:nth-child(3) { animation-delay: .4s; }
 @keyframes aiBlink { 0%,80%,100% { opacity:.3; transform: translateY(0); } 40% { opacity:1; transform: translateY(-3px); } }
 
+/* Typing with status words */
+.ai-typing-modern { display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; background: rgba(255,255,255,0.06); border-radius: 12px; max-width: 80%; }
+.ai-typing-modern .status-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #94A3B8; }
+.ai-typing-modern .spinner { width: 16px; height: 16px; border: 2px solid #22C55E; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-typing-modern .status-word { color: #22C55E; font-weight: 500; }
+.ai-typing-modern .timer { font-size: 11px; color: #64748B; font-variant-numeric: tabular-nums; }
+.ai-typing-modern .dots { display: flex; gap: 4px; padding: 4px 0; }
+.ai-typing-modern .dots span { width: 5px; height: 5px; background: #5b6472; border-radius: 50%; animation: aiBlink 1.4s infinite ease-in-out; }
+.ai-typing-modern .dots span:nth-child(2) { animation-delay: -0.16s; }
+
+/* Response metadata */
+.ai-response-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #64748B;
+}
+.ai-response-meta .meta-time { color: #22C55E; font-weight: 500; }
+.ai-response-meta .meta-tokens { color: #F59E0B; }
+
 /* Response metadata */
 .ai-response-meta {
     font-size: 0.72rem;
@@ -559,12 +582,40 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         msgs.scrollTop = msgs.scrollHeight;
         return d;
     }
+    var statusWords = ['Connecting', 'Thinking', 'Analyzing', 'Working', 'Researching', 'Composing'];
+    var statusIdx = 0;
+    var statusTimer = null;
+    var clockTimer = null;
+    var clockStart = 0;
+    
     function addTyping() {
+        statusIdx = 0;
+        clockStart = Date.now();
         var d = document.createElement('div');
-        d.className = 'ai-bubble bot ai-typing';
-        d.innerHTML = '<span></span><span></span><span></span>';
+        d.className = 'ai-bubble bot';
+        d.id = 'aiTypingModern';
+        d.innerHTML = '<div class="ai-typing-modern">' +
+            '<div class="status-row"><div class="spinner"></div><span class="status-word">' + statusWords[0] + '</span></div>' +
+            '<div class="dots"><span></span><span></span><span></span></div>' +
+            '<div class="timer">0.0s</div>' +
+            '</div>';
         msgs.appendChild(d);
         msgs.scrollTop = msgs.scrollHeight;
+        
+        // Rotate status words
+        statusTimer = setInterval(function() {
+            statusIdx = (statusIdx + 1) % statusWords.length;
+            var sw = d.querySelector('.status-word');
+            if (sw) sw.textContent = statusWords[statusIdx];
+        }, 1500);
+        
+        // Update timer
+        clockTimer = setInterval(function() {
+            var elapsed = ((Date.now() - clockStart) / 1000).toFixed(1);
+            var t = d.querySelector('.timer');
+            if (t) t.textContent = elapsed + 's';
+        }, 100);
+        
         return d;
     }
     function addFollowups(sugs) {
@@ -594,6 +645,8 @@ function answerFarmQuestion(PDO $pdo, string $q): array
         fetch(window.location.href, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function(r){ return r.json(); })
             .then(function(j){
+                if (statusTimer) clearInterval(statusTimer);
+                if (clockTimer) clearInterval(clockTimer);
                 typing.remove();
                 if (j && j.success) {
                     addBubble(j.answer, 'bot', j.metadata);
@@ -603,6 +656,8 @@ function answerFarmQuestion(PDO $pdo, string $q): array
                 }
             })
             .catch(function(){
+                if (statusTimer) clearInterval(statusTimer);
+                if (clockTimer) clearInterval(clockTimer);
                 typing.remove();
                 addBubble('Network error — please try again.', 'bot');
             });

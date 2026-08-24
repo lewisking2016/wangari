@@ -250,7 +250,74 @@
     border-bottom-left-radius: 4px;
 }
 
-/* Typing indicator */
+/* Typing indicator with status words */
+.ai-typing-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    max-width: 85%;
+}
+
+.ai-typing-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748B;
+}
+
+.ai-typing-status .status-icon {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #22C55E;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.ai-typing-status .status-text {
+    font-weight: 500;
+    color: #22C55E;
+}
+
+.ai-typing-timer {
+    font-size: 11px;
+    color: #94A3B8;
+    font-variant-numeric: tabular-nums;
+}
+
+.ai-typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.ai-typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #CBD5E1;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+
+.ai-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.ai-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Legacy typing */
 .ai-typing {
     display: flex;
     gap: 4px;
@@ -437,19 +504,65 @@
     border-radius: 50%;
 }
 
-/* Response time animation */
-.ai-response-time {
+/* Response time and context */
+.ai-response-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
     font-size: 11px;
     color: #94A3B8;
-    margin-top: 4px;
+}
+
+.ai-response-meta .meta-item {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-.ai-response-time::before {
-    content: '⚡';
+.ai-response-meta .meta-item i {
     font-size: 10px;
+}
+
+.ai-response-meta .meta-time {
+    color: #22C55E;
+    font-weight: 500;
+}
+
+.ai-response-meta .meta-tokens {
+    color: #F59E0B;
+}
+
+.ai-context-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: #F8FAFC;
+    border-top: 1px solid #E2E8F0;
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.ai-context-bar .context-remaining {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ai-context-bar .context-bar {
+    width: 60px;
+    height: 4px;
+    background: #E2E8F0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.ai-context-bar .context-bar-fill {
+    height: 100%;
+    background: #22C55E;
+    border-radius: 2px;
+    transition: width 0.3s;
 }
 
 /* Input wrapper */
@@ -882,17 +995,31 @@ How can I help you today?
         
         let metaHtml = '';
         if (role === 'assistant' && metadata) {
-            const responseTime = metadata.response_time_ms ? `${metadata.response_time_ms}ms` : '';
-            const tokens = metadata.tokens_used !== undefined ? `${metadata.tokens_used}/${metadata.tokens_limit}` : '';
+            const responseTime = metadata.response_time_ms ? (metadata.response_time_ms / 1000).toFixed(1) + 's' : '';
+            const tokensUsed = metadata.tokens_used || 0;
+            const tokensLimit = metadata.tokens_limit || 30;
+            const tokensRemaining = metadata.tokens_remaining !== undefined ? metadata.tokens_remaining : (tokensLimit - tokensUsed);
             const model = metadata.model || '';
             
-            if (responseTime || tokens) {
-                metaHtml = `<div class="ai-response-time">
-                    ${responseTime ? `<span>${responseTime}</span>` : ''}
-                    ${tokens ? `<span>• ${tokens} tokens</span>` : ''}
-                    ${model ? `<span>• ${model}</span>` : ''}
-                </div>`;
+            // Response time
+            let timeHtml = '';
+            if (responseTime) {
+                timeHtml = `<span class="meta-item meta-time"><i class="fas fa-clock"></i> ${responseTime}</span>`;
             }
+            
+            // Tokens used
+            let tokensHtml = '';
+            if (tokensUsed > 0) {
+                tokensHtml = `<span class="meta-item meta-tokens"><i class="fas fa-database"></i> ${tokensUsed}/${tokensLimit} tokens</span>`;
+            }
+            
+            // Model
+            let modelHtml = '';
+            if (model) {
+                modelHtml = `<span class="meta-item"><i class="fas fa-microchip"></i> ${model}</span>`;
+            }
+            
+            metaHtml = `<div class="ai-response-meta">${timeHtml}${tokensHtml}${modelHtml}</div>`;
         }
         
         messageDiv.innerHTML = `<div class="ai-message-bubble">${content}</div>${metaHtml}`;
@@ -904,25 +1031,85 @@ How can I help you today?
             const badge = document.getElementById('ai-model-badge');
             if (badge) badge.textContent = `Wangari - ${metadata.model}`;
         }
+        
+        // Update context bar
+        if (metadata && metadata.tokens_used !== undefined) {
+            updateContextBar(metadata.tokens_used, metadata.tokens_limit || 30);
+        }
     }
     
-    // Show/Hide Typing
+    function updateContextBar(used, limit) {
+        const metaBar = document.getElementById('aiMetaBar');
+        if (!metaBar) return;
+        
+        const remaining = Math.max(0, limit - used);
+        const percentage = Math.min(100, (used / limit) * 100);
+        
+        metaBar.innerHTML = `
+            <span class="ai-meta-item"><i class="fas fa-clock"></i> Today: ${remaining} requests left</span>
+            <span class="ai-meta-item">
+                <div class="context-bar">
+                    <div class="context-bar-fill" style="width: ${percentage}%"></div>
+                </div>
+                ${used}/${limit}
+            </span>
+        `;
+    }
+    
+    // Status words animation
+    const statusWords = [
+        { text: 'Connecting', icon: 'fas fa-plug' },
+        { text: 'Thinking', icon: 'fas fa-brain' },
+        { text: 'Analyzing', icon: 'fas fa-search' },
+        { text: 'Working', icon: 'fas fa-cog' },
+        { text: 'Researching', icon: 'fas fa-book' },
+        { text: 'Composing', icon: 'fas fa-pen' },
+    ];
+    let statusInterval = null;
+    let timerInterval = null;
+    let startTime = 0;
+    
+    // Show/Hide Typing with status words and timer
     function showTyping() {
+        startTime = Date.now();
+        let statusIndex = 0;
+        
         const typingDiv = document.createElement('div');
         typingDiv.className = 'ai-message assistant';
         typingDiv.id = 'typingIndicator';
         typingDiv.innerHTML = `
-            <div class="ai-typing">
-                <div class="ai-typing-dot"></div>
-                <div class="ai-typing-dot"></div>
-                <div class="ai-typing-dot"></div>
+            <div class="ai-typing-wrap">
+                <div class="ai-typing-status">
+                    <div class="status-icon"></div>
+                    <span class="status-text">${statusWords[0].text}</span>
+                </div>
+                <div class="ai-typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="ai-typing-timer">0.0s</div>
             </div>
         `;
         messagesContainer.appendChild(typingDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Rotate status words
+        statusInterval = setInterval(() => {
+            statusIndex = (statusIndex + 1) % statusWords.length;
+            const statusText = typingDiv.querySelector('.status-text');
+            if (statusText) statusText.textContent = statusWords[statusIndex].text;
+        }, 1500);
+        
+        // Update timer
+        timerInterval = setInterval(() => {
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            const timer = typingDiv.querySelector('.ai-typing-timer');
+            if (timer) timer.textContent = elapsed + 's';
+        }, 100);
     }
     
     function hideTyping() {
+        if (statusInterval) clearInterval(statusInterval);
+        if (timerInterval) clearInterval(timerInterval);
         const typing = document.getElementById('typingIndicator');
         if (typing) typing.remove();
     }
