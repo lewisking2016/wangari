@@ -23,10 +23,8 @@ body {
     overscroll-behavior: none;
 }
 
-/* Prevent horizontal scroll — use clip instead of hidden so vertical scroll still works */
-html, body {
-    overflow-x: clip;
-}
+/* Allow natural scrolling — no overflow restrictions on html/body */
+
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* TINY PHONES (320px - 359px)                                    */
