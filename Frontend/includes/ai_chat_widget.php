@@ -452,6 +452,170 @@
     font-size: 10px;
 }
 
+/* Input wrapper */
+.ai-chat-input-wrap {
+    padding: 12px 16px;
+    background: white;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ai-chat-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #F1F5F9;
+    border-radius: 24px;
+    padding: 6px 6px 6px 16px;
+}
+
+/* Mode Toggle */
+.ai-mode-toggle {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    justify-content: center;
+}
+
+.ai-mode-btn {
+    padding: 6px 14px;
+    border: 1px solid #E2E8F0;
+    border-radius: 20px;
+    background: white;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ai-mode-btn:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.ai-mode-btn.active {
+    background: #1E293B;
+    color: white;
+    border-color: #1E293B;
+}
+
+.ai-mode-btn i {
+    font-size: 11px;
+}
+
+/* Build mode locked indicator */
+.ai-mode-btn.locked {
+    opacity: 0.6;
+    position: relative;
+}
+
+.ai-mode-btn.locked::after {
+    content: '\f023';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 9px;
+    margin-left: 2px;
+}
+
+/* Upgrade Modal */
+.ai-upgrade-modal {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+}
+
+.ai-upgrade-modal.show {
+    display: flex;
+}
+
+.ai-upgrade-content {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    max-width: 300px;
+    margin: 20px;
+    animation: slideUp 0.3s ease;
+}
+
+.ai-upgrade-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.ai-upgrade-icon i {
+    font-size: 24px;
+    color: white;
+}
+
+.ai-upgrade-content h3 {
+    margin: 0 0 8px;
+    color: #1E293B;
+    font-size: 18px;
+}
+
+.ai-upgrade-content p {
+    margin: 0 0 8px;
+    color: #64748B;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ai-upgrade-sub {
+    font-size: 13px !important;
+    color: #94A3B8 !important;
+}
+
+.ai-upgrade-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.ai-upgrade-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+}
+
+.ai-upgrade-close {
+    padding: 8px 16px;
+    background: transparent;
+    color: #94A3B8;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ai-upgrade-close:hover {
+    color: #64748B;
+}
+
 /* Mobile Responsive */
 @media (max-width: 480px) {
     .ai-chat-window {
@@ -546,14 +710,38 @@ How can I help you today?
         </div>
         
         <!-- Input -->
-        <div class="ai-chat-input">
-            <button class="ai-chat-input-btn ai-voice-btn" id="aiVoiceBtn" title="Voice input">
-                <i class="fas fa-microphone"></i>
-            </button>
-            <input type="text" id="aiChatInput" placeholder="Ask Wangari anything...">
-            <button class="ai-chat-input-btn ai-send-btn" id="aiSendBtn">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+        <div class="ai-chat-input-wrap">
+            <div class="ai-chat-input">
+                <button class="ai-chat-input-btn ai-voice-btn" id="aiVoiceBtn" title="Voice input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <input type="text" id="aiChatInput" placeholder="Ask Wangari anything...">
+                <button class="ai-chat-input-btn ai-send-btn" id="aiSendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="ai-mode-toggle">
+                <button class="ai-mode-btn active" data-mode="plan" id="aiModePlan">
+                    <i class="fas fa-comment-dots"></i> Plan
+                </button>
+                <button class="ai-mode-btn" data-mode="build" id="aiModeBuild">
+                    <i class="fas fa-hammer"></i> Build
+                </button>
+            </div>
+        </div>
+        
+        <!-- Upgrade Modal -->
+        <div class="ai-upgrade-modal" id="aiUpgradeModal">
+            <div class="ai-upgrade-content">
+                <div class="ai-upgrade-icon"><i class="fas fa-lock"></i></div>
+                <h3>Upgrade to Plus</h3>
+                <p>Build mode lets Wangari take action on your farm — create records, generate reports, and automate tasks.</p>
+                <p class="ai-upgrade-sub">Available on <strong>Plus</strong> and <strong>Custom</strong> plans.</p>
+                <div class="ai-upgrade-actions">
+                    <a href="/Frontend/pages/pricing.php" class="ai-upgrade-btn">View Plans</a>
+                    <button class="ai-upgrade-close" id="aiUpgradeClose">Maybe Later</button>
+                </div>
+            </div>
         </div>
         
         <!-- Metadata bar -->
@@ -586,6 +774,13 @@ How can I help you today?
     let isRecording = false;
     let recognition = null;
     let currentLang = 'en';
+    let currentMode = 'plan'; // 'plan' or 'build'
+    
+    // Subscription status (set from PHP)
+    const userSubStatus = '<?= $_SESSION["subscription_status"] ?? "trial" ?>';
+    const userTrialEnd = '<?= $_SESSION["trial_end_date"] ?? "" ?>';
+    const isTrialActive = userSubStatus === 'trial' && (userTrialEnd === '' || new Date(userTrialEnd) > new Date());
+    const canUseBuild = isTrialActive || userSubStatus === 'plus' || userSubStatus === 'custom';
     
     // Initialize Speech Recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -665,7 +860,8 @@ How can I help you today?
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 message: text,
-                lang: currentLang
+                lang: currentLang,
+                mode: currentMode
             })
         })
         .then(response => response.json())
@@ -773,6 +969,45 @@ How can I help you today?
         voiceBtn.classList.remove('recording');
         voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
         isRecording = false;
+    }    // Mode Toggle
+    const modeBtns = document.querySelectorAll('.ai-mode-btn');
+    const upgradeModal = document.getElementById('aiUpgradeModal');
+    const upgradeClose = document.getElementById('aiUpgradeClose');
+    
+    modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode;
+            
+            if (mode === 'build' && !canUseBuild) {
+                // Show upgrade modal
+                upgradeModal.classList.add('show');
+                return;
+            }
+            
+            currentMode = mode;
+            modeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update placeholder
+            if (mode === 'build') {
+                chatInput.placeholder = 'Tell Wangari what to do...';
+            } else {
+                chatInput.placeholder = 'Ask Wangari anything...';
+            }
+        });
+    });
+    
+    // Close upgrade modal
+    if (upgradeClose) {
+        upgradeClose.addEventListener('click', () => {
+            upgradeModal.classList.remove('show');
+        });
+    }
+    
+    // Mark build button as locked if user can't use it
+    if (!canUseBuild) {
+        const buildBtn = document.getElementById('aiModeBuild');
+        if (buildBtn) buildBtn.classList.add('locked');
     }
     
     // Send on Enter
@@ -785,5 +1020,4 @@ How can I help you today?
     sendBtn.addEventListener('click', () => {
         sendMessage(chatInput.value);
     });
-})();
-</script>
+})();</script>

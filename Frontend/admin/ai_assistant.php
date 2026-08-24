@@ -359,7 +359,12 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 .ai-followup:hover { background: var(--w2-lime, #22C55E); border-color: var(--w2-lime, #22C55E); color: #0B1220; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
 
 /* ── composer (rounded, Gemini-like) ── */
-.ai-composer-wrap { padding: 14px 24px 20px; }
+.ai-composer-wrap { padding: 14px 24px 20px; position: relative; }
+.ai-mode-toggle-admin { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.ai-mode-btn-admin { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; background: transparent; color: #94A3B8; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+.ai-mode-btn-admin:hover { background: rgba(255,255,255,0.05); color: #CBD5E1; }
+.ai-mode-btn-admin.active { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
+.ai-mode-btn-admin.locked { opacity: 0.5; }
 .ai-composer { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16); border-radius: 26px; padding: 7px 7px 7px 20px; transition: border-color .25s, box-shadow .25s; }
 .ai-composer:focus-within { border-color: rgba(255,255,255,0.35); box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
 .ai-composer input { flex: 1; background: transparent; border: none; outline: none; color: #f1f1f1; font-size: 1rem; font-family: inherit; padding: 9px 0; }
@@ -460,6 +465,14 @@ function answerFarmQuestion(PDO $pdo, string $q): array
 
     <!-- composer (Gemini-style) -->
     <div class="ai-composer-wrap">
+        <div class="ai-mode-toggle-admin">
+            <button type="button" class="ai-mode-btn-admin active" data-mode="plan" id="aiModePlanAdmin">
+                <i data-lucide="message-square" style="width:14px;height:14px;"></i> Plan
+            </button>
+            <button type="button" class="ai-mode-btn-admin" data-mode="build" id="aiModeBuildAdmin">
+                <i data-lucide="hammer" style="width:14px;height:14px;"></i> Build
+            </button>
+        </div>
         <form class="ai-composer" id="ai-form">
             <input type="text" name="question" id="ai-question" placeholder="Ask Wangari…" autocomplete="off" required>
             <button type="submit" class="ai-send" aria-label="Send">Send <i data-lucide="arrow-up"></i></button>
@@ -481,6 +494,30 @@ function answerFarmQuestion(PDO $pdo, string $q): array
     var msgs = document.getElementById('ai-messages');
     var askToken = (window.WangariAdmin && window.WangariAdmin.csrfToken) || document.querySelector('meta[name="csrf-token"]')?.content || '';
     var thinkingOn = <?= $aiConnected && $thinkingEnabled ? 'true' : 'false' ?>;
+    var currentMode = 'plan';
+    var userSubStatus = '<?= $_SESSION["subscription_status"] ?? "trial" ?>';
+    var isTrialActive = userSubStatus === 'trial';
+    var canUseBuild = isTrialActive || userSubStatus === 'plus' || userSubStatus === 'custom';
+    
+    // Mode toggle
+    document.querySelectorAll('.ai-mode-btn-admin').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var mode = this.dataset.mode;
+            if (mode === 'build' && !canUseBuild) {
+                alert('Build mode requires Plus subscription. Upgrade to use agentic features.');
+                return;
+            }
+            currentMode = mode;
+            document.querySelectorAll('.ai-mode-btn-admin').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            input.placeholder = mode === 'build' ? 'Tell Wangari what to do...' : 'Ask Wangari...';
+        });
+    });
+    
+    if (!canUseBuild) {
+        var buildBtn = document.getElementById('aiModeBuildAdmin');
+        if (buildBtn) buildBtn.classList.add('locked');
+    }
 
     function escapeHtml(s) {
         var d = document.createElement('div');

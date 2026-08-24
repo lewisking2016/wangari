@@ -42,6 +42,24 @@ if (!isset($input['message'])) {
 
 $message = $input['message'];
 $lang = $input['lang'] ?? 'en';
+$mode = $input['mode'] ?? 'plan'; // 'plan' or 'build'
+
+// Check if user can use build mode
+$subStatus = $_SESSION['subscription_status'] ?? 'trial';
+$trialEnd = $_SESSION['trial_end_date'] ?? '';
+$isTrialActive = $subStatus === 'trial' && (empty($trialEnd) || strtotime($trialEnd) > time());
+$canUseBuild = $isTrialActive || $subStatus === 'plus' || $subStatus === 'custom';
+
+// Block build mode for non-plus users
+if ($mode === 'build' && !$canUseBuild) {
+    echo json_encode([
+        'success' => false,
+        'error' => 'upgrade_required',
+        'message' => 'Build mode requires Plus subscription. Please upgrade to use agentic features.',
+        'response' => 'Build mode is available on Plus and Custom plans. During your 30-day trial, you have full access to all features. After the trial, upgrade to Plus to continue using Build mode.'
+    ]);
+    exit;
+}
 
 // Load the AI engine
 require_once __DIR__ . '/../config/farm_ai.php';
