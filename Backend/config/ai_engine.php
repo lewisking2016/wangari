@@ -327,9 +327,9 @@ function aiLLM(PDO $pdo, string $q, string $provider = '', string $apiKey = '', 
     $provider = $provider ?: (string)aiSetting($pdo, 'ai_provider');
     $apiKey   = $apiKey   ?: (string)aiSetting($pdo, 'ai_api_key');
     $model    = $model    ?: (string)aiSetting($pdo, 'ai_model');
-    if ($apiKey === '' && $provider !== 'ollama') return null;
-    /* Default provider is Groq (free, fast, generous limits). */
-    if ($provider === '') $provider = 'groq';
+    if ($apiKey === '' && $provider !== 'ollama' && $provider !== 'openrouter') return null;
+    /* Default provider is OpenRouter (free Ox Alpha model). */
+    if ($provider === '') $provider = 'openrouter';
     /* Model defaults per provider */
     $modelDefaults = [
         'groq'    => 'llama-3.3-70b-versatile',
@@ -358,6 +358,31 @@ function aiLLM(PDO $pdo, string $q, string $provider = '', string $apiKey = '', 
     }
 
     try {
+        /* OpenRouter — free Ox Alpha model */
+        if ($provider === 'openrouter') {
+            require_once dirname(__DIR__, 2) . '/Backend/config/openrouter.php';
+            if (openrouter_is_configured()) {
+                $res = aiHttpPost(OPENROUTER_API_URL, json_encode([
+                    'model' => OPENROUTER_MODEL,
+                    'messages' => [
+                        ['role' => 'system', 'content' => $system],
+                        ['role' => 'user', 'content' => $q],
+                    ],
+                    'temperature' => 0.4,
+                    'max_tokens' => 1024,
+                ]), [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . OPENROUTER_API_KEY,
+                    'HTTP-Referer: https://wangari.imeantech.com',
+                    'X-Title: Wangari Farm AI',
+                ]);
+                if ($res && isset($res['choices'][0]['message']['content'])) {
+                    return ['answer' => $res['choices'][0]['message']['content'], 'suggestions' => aiSmartSuggestions($pdo, $q)];
+                }
+            }
+            return null;
+        }
+        
         /* Groq — free, fast, generous limits (14,400 req/day) */
         if ($provider === 'groq') {
             $res = aiHttpPost('https://api.groq.com/openai/v1/chat/completions', json_encode([
