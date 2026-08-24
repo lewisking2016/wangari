@@ -88,8 +88,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --admin-shadow-hover: 0 8px 32px rgba(15, 23, 42, 0.08);
         }
 
-        html, body.admin-layout { 
+        html { 
             overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body.admin-layout { 
+            overflow-x: hidden;
+            overflow-y: auto;
             background: var(--admin-body-bg); 
             color: var(--admin-text-main);
             font-family: 'Inter Tight', sans-serif;
@@ -97,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 0;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
         }
 
         /* Serif accent for big numbers, Growvi style */
@@ -417,7 +423,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 24px;
             box-sizing: border-box;
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
+            overflow: visible;
             min-width: 0;
             position: relative;
         }
@@ -478,7 +484,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: space-between;
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             min-width: 0;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
         }
 
