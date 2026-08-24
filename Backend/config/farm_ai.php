@@ -1340,7 +1340,7 @@ class FarmAI {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         
         $response = curl_exec($ch);
@@ -1348,6 +1348,13 @@ class FarmAI {
         curl_close($ch);
         
         if ($httpCode >= 200 && $httpCode < 300) {
+            // Trim whitespace and extract JSON
+            $response = trim($response);
+            // Find the JSON object in the response
+            $start = strpos($response, '{');
+            if ($start !== false) {
+                $response = substr($response, $start);
+            }
             return $response;
         }
         
