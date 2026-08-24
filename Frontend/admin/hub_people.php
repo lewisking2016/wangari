@@ -252,7 +252,7 @@ $tabs = [
 function openStaffModal(d) {
     document.getElementById('staff-modal-title').textContent = d?.id ? 'Edit Staff Account' : 'Add Staff Account';
     document.getElementById('staff-id').value = d?.id || '';
-    document.getElementById('st-fname').value = d?.full_name || d?.first_name || '';
+    document.getElementById('st-fname').value = d?.full_name || '';
     document.getElementById('st-uname').value = d?.username || '';
     document.getElementById('st-email').value = d?.email || '';
     document.getElementById('st-phone').value = d?.phone_number || '';
@@ -431,7 +431,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('task-mod
                 <select class="admin-form-control" name="recipient_id" id="msg-recipient" required>
                     <option value="">-- Choose recipient --</option>
                     <?php foreach ($staffList as $s): ?>
-                    <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars(trim($s['first_name'] . ' ' . $s['last_name']) ?: $s['username'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars(trim($s['full_name'] ?? '') ?: $s['username'], ENT_QUOTES, 'UTF-8') ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
