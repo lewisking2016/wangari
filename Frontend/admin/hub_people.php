@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } else {
             try {
                 if ($id > 0) {
-                    $pdo->prepare('UPDATE users SET username=?,email=?,full_name=?,phone_number=?,role=? WHERE id=?')
+                    $pdo->prepare('UPDATE users SET username=?,email=?,full_name=?,phone=?,role=? WHERE id=?')
                         ->execute([$username,$email,$fullName,$phone,$role,$id]);
                     if ($password !== '') {
                         $pdo->prepare('UPDATE users SET password=? WHERE id=?')->execute([password_hash($password, PASSWORD_DEFAULT), $id]);
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
                     $message = 'Staff member updated.';
                 } else {
                     $hash = password_hash($password !== '' ? $password : 'Staff@123', PASSWORD_DEFAULT);
-                    $pdo->prepare('INSERT INTO users (username,email,password,role,full_name,phone_number) VALUES (?,?,?,?,?,?)')
+                    $pdo->prepare('INSERT INTO users (username,email,password,role,full_name,phone) VALUES (?,?,?,?,?,?)')
                         ->execute([$username,$email,$hash,$role,$fullName,$phone]);
                     $message = 'Staff member added. Default password: Staff@123';
                 }
@@ -71,11 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         } else {
             try {
                 if ($id > 0) {
-                    $pdo->prepare('UPDATE tasks SET title=?,description=?,assigned_to=?,due_date=?,status=? WHERE id=?')
+                    $pdo->prepare('UPDATE worker_tasks SET title=?,description=?,assigned_to_worker_id=?,task_date=?,status=? WHERE id=?')
                         ->execute([$title,$desc,$assignedTo,$dueDate?:null,$status,$id]);
                     $message = 'Task updated.';
                 } else {
-                    $pdo->prepare('INSERT INTO tasks (title,description,assigned_to,due_date,status,created_by) VALUES (?,?,?,?,?,?)')
+                    $pdo->prepare('INSERT INTO worker_tasks (title,description,assigned_to_worker_id,task_date,status,farm_user_id) VALUES (?,?,?,?,?,?)')
                         ->execute([$title,$desc,$assignedTo,$dueDate?:null,$status,$currentAdminId]);
                     $message = 'Task created.';
                 }
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             try {
-                $pdo->prepare('DELETE FROM farm_tasks WHERE id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM worker_tasks WHERE id=?')->execute([$id]);
                 $message = 'Task deleted.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
         }
@@ -141,10 +141,10 @@ if ($pdo) {
     try {
         $staffList = $pdo->query("SELECT * FROM users WHERE role IN ('super_admin','farm_manager','stock_manager') ORDER BY full_name ASC, username ASC")->fetchAll(PDO::FETCH_ASSOC);
         if ($tab === 'users') {
-            $customerList = $pdo->query("SELECT id, username, email, full_name, phone, phone_number, role, is_active, created_at FROM users WHERE role = 'customer' ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+            $customerList = $pdo->query("SELECT lw.id, lw.full_name, lw.phone, lw.role, lw.is_active, lw.created_at FROM labour_workers lw WHERE lw.is_active = 1 ORDER BY lw.full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         }
         if ($tab === 'tasks') {
-            $taskList = $pdo->query("SELECT t.*, COALESCE(u.full_name, u.username, 'Unassigned') AS assigned_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id ORDER BY COALESCE(t.due_date,t.created_at) ASC")->fetchAll(PDO::FETCH_ASSOC);
+            $taskList = $pdo->query("SELECT t.*, COALESCE(lw.full_name, 'Unassigned') AS assigned_name FROM worker_tasks t LEFT JOIN labour_workers lw ON t.assigned_to_worker_id = lw.id ORDER BY COALESCE(t.task_date,t.created_at) ASC")->fetchAll(PDO::FETCH_ASSOC);
         }
         if ($tab === 'messages') {
             $stmt = $pdo->prepare("SELECT m.*, su.username AS from_user, ru.username AS to_user FROM messages m LEFT JOIN users su ON m.sender_id=su.id LEFT JOIN users ru ON m.recipient_id=ru.id WHERE m.sender_id=? OR m.recipient_id=? ORDER BY m.created_at DESC");
@@ -212,7 +212,7 @@ $tabs = [
                     <td><?= htmlspecialchars($s['username'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td><span class="badge-pill badge-pill-warning"><?= htmlspecialchars(ucwords(str_replace('_',' ',$s['role'])), ENT_QUOTES, 'UTF-8') ?></span></td>
                     <td><?= htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars($s['phone_number'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($s['phone'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                     <td><div class="tbl-actions"><button class="btn btn-trans btn-sm" onclick='openStaffModal(<?= htmlspecialchars(json_encode($s), ENT_QUOTES, "UTF-8") ?>)'><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button><form method="POST" style="display:inline;" onsubmit="return confirm('Delete this staff member?');"><input type="hidden" name="_action" value="delete_staff"><input type="hidden" name="id" value="<?= (int)$s['id'] ?>"><button class="btn btn-danger btn-sm"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></form></div></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -255,7 +255,7 @@ function openStaffModal(d) {
     document.getElementById('st-fname').value = d?.full_name || '';
     document.getElementById('st-uname').value = d?.username || '';
     document.getElementById('st-email').value = d?.email || '';
-    document.getElementById('st-phone').value = d?.phone_number || '';
+    document.getElementById('st-phone').value = d?.phone || '';
     document.getElementById('st-role').value = d?.role || 'farm_manager';
     document.getElementById('st-pass').value = '';
     document.getElementById('staff-modal').style.display = 'flex';
@@ -281,7 +281,7 @@ document.addEventListener('click',e=>{ const m=document.getElementById('staff-mo
                 <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No customer accounts found.</td></tr>
             <?php else: foreach ($customerList as $customer):
                 $customerName = trim((string)($customer['full_name'] ?? '')) ?: (string)$customer['username'];
-                $customerPhone = $customer['phone'] ?? $customer['phone_number'] ?? '-';
+                $customerPhone = $customer['phone'] ?? '-';
             ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($customerName, ENT_QUOTES, 'UTF-8') ?></strong></td>

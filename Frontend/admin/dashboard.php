@@ -451,17 +451,29 @@ try {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
             <div>
-                <div style="font-weight: 700; font-size: 1rem;"><?php echo $dashSubStatus === 'trial' ? 'You\'re on a 30-day free trial' : 'Your subscription has expired'; ?></div>
-                <div style="font-size: 0.85rem; opacity: 0.9;">
-                    <?php if ($dashSubExpires): ?>
-                        <?php $daysLeft = max(0, (int)((strtotime($dashSubExpires) - time()) / 86400)); ?>
-                        <?php if ($dashSubStatus === 'trial'): ?>
-                            <strong><?php echo $daysLeft; ?> days remaining</strong> — Upgrade to keep all features
-                        <?php else: ?>
-                            Expired <?php echo date('M j, Y', strtotime($dashSubExpires)); ?> — Subscribe now to continue
-                        <?php endif; ?>
+                <?php
+                    // Calculate trial days remaining
+                    if ($dashSubExpires) {
+                        $trialEndDate = $dashSubExpires;
+                    } else {
+                        // Fallback: calculate from user creation date + 30 days
+                        $trialEndDate = date('Y-m-d', strtotime($_SESSION['created_at'] ?? date('Y-m-d')) . ' +30 days');
+                    }
+                    $daysLeft = max(0, (int)((strtotime($trialEndDate) - time()) / 86400));
+                    $hoursLeft = max(0, (int)((strtotime($trialEndDate) - time()) % 86400 / 3600));
+                ?>
+                <div style="font-weight: 700; font-size: 1rem;">
+                    <?php if ($dashSubStatus === 'trial'): ?>
+                        You're on a <strong><?php echo $daysLeft; ?>-day free trial</strong>
                     <?php else: ?>
-                        Upgrade to unlock all features
+                        Your subscription has expired
+                    <?php endif; ?>
+                </div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">
+                    <?php if ($dashSubStatus === 'trial'): ?>
+                        <strong><?php echo $daysLeft; ?>d <?php echo $hoursLeft; ?>h remaining</strong> — Upgrade to keep all features after your trial
+                    <?php else: ?>
+                        Expired <?php echo date('M j, Y', strtotime($dashSubExpires ?? date('Y-m-d'))); ?> — Subscribe now to continue
                     <?php endif; ?>
                 </div>
             </div>

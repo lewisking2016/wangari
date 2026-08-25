@@ -72,7 +72,7 @@ function exportOrders($pdo) {
 
 function exportCustomers($pdo) {
     $stmt = $pdo->query("
-        SELECT id, username, email, first_name, last_name, phone_number, role, 
+        SELECT id, username, email, full_name, , phone, role, 
                created_at
         FROM users
         WHERE role IN ('customer', 'demo')
@@ -385,8 +385,8 @@ function importCustomers($pdo, $file_path) {
                 // Expected: Username, Email, First Name, Last Name, Phone
                 $username = trim($data[0] ?? '');
                 $email = trim($data[1] ?? '');
-                $first_name = trim($data[2] ?? '');
-                $last_name = trim($data[3] ?? '');
+                $full_name = trim($data[2] ?? '');
+                $ = trim($data[3] ?? '');
                 $phone = trim($data[4] ?? '');
                 
                 if (empty($username) || empty($email)) {
@@ -397,12 +397,12 @@ function importCustomers($pdo, $file_path) {
                 $password_hash = password_hash('password123', PASSWORD_DEFAULT);
                 
                 $stmt = $pdo->prepare("
-                    INSERT INTO users (username, email, password_hash, first_name, last_name, phone_number, role)
+                    INSERT INTO users (username, email, password_hash, full_name, , phone, role)
                     VALUES (?, ?, ?, ?, ?, ?, 'customer')
                     ON DUPLICATE KEY UPDATE 
-                    first_name = VALUES(first_name), last_name = VALUES(last_name), phone_number = VALUES(phone_number)
+                    full_name = VALUES(full_name),  = VALUES(), phone = VALUES(phone)
                 ");
-                $stmt->execute([$username, $email, $password_hash, $first_name, $last_name, $phone]);
+                $stmt->execute([$username, $email, $password_hash, $full_name, $, $phone]);
                 $success++;
             } catch (Exception $e) {
                 $errors++;

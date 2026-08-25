@@ -15,19 +15,18 @@ $errorMsg = '';
 
 // Handle Profile Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
-    $firstName = trim($_POST['first_name'] ?? '');
-    $lastName  = trim($_POST['last_name'] ?? '');
-    $phone     = trim($_POST['phone_number'] ?? '');
+    $fullName = trim($_POST['full_name'] ?? '');
+    $phone     = trim($_POST['phone'] ?? '');
     $farmName  = trim($_POST['farm_name'] ?? '');
     
     if (empty($firstName)) {
         $errorMsg = 'First name is required.';
     } else {
         try {
-            $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, phone_number = ?, farm_name = ? WHERE id = ?");
-            $stmt->execute([$firstName, $lastName, $phone, $farmName, $userId]);
+            $stmt = $pdo->prepare("UPDATE users SET full_name = ?, phone = ?, farm_name = ? WHERE id = ?");
+            $stmt->execute([$fullName, $phone, $farmName, $userId]);
             
-            $_SESSION['first_name'] = $firstName;
+            $_SESSION['full_name'] = $fullName;
             $successMsg = 'Profile details updated successfully!';
         } catch (Exception $e) {
             $errorMsg = 'Failed to update profile: ' . $e->getMessage();
@@ -71,10 +70,9 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: [
     'username' => $_SESSION['username'] ?? 'User',
     'email' => $_SESSION['email'] ?? '',
-    'first_name' => $_SESSION['first_name'] ?? 'Admin',
-    'last_name' => '',
+    'full_name' => $_SESSION['full_name'] ?? 'Admin',
     'role' => $_SESSION['role'] ?? 'farm_manager',
-    'phone_number' => '',
+    'phone' => '',
     'farm_name' => '',
     'google_id' => '',
     'profile_pic' => $_SESSION['profile_pic'] ?? ''
@@ -122,7 +120,7 @@ $avatarUrl = $user['profile_pic'] ?: '';
                     <img src="<?php echo htmlspecialchars($avatarUrl); ?>" alt="Avatar" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #22C55E; box-shadow: 0 4px 14px rgba(0,0,0,0.08);">
                 <?php else: ?>
                     <div style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #166534 0%, #22C55E 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 700; box-shadow: 0 4px 14px rgba(22,101,52,0.25);">
-                        <?php echo strtoupper(substr($user['first_name'] ?: ($user['username'] ?: 'U'), 0, 1)); ?>
+                        <?php echo strtoupper(substr($user['full_name'] ?: ($user['username'] ?: 'U'), 0, 1)); ?>
                     </div>
                 <?php endif; ?>
                 
@@ -136,7 +134,7 @@ $avatarUrl = $user['profile_pic'] ?: '';
             <div style="flex: 1; min-width: 240px;">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
                     <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--admin-text-heading); margin: 0;">
-                        <?php echo htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')); ?>
+                        <?php echo htmlspecialchars($user['full_name'] ?? $user['username'] ?? 'User'); ?>
                     </h2>
                     <span style="background: rgba(34, 197, 94, 0.12); color: #166534; font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 999px;">
                         <?php echo htmlspecialchars($roleLabels[$user['role'] ?? ''] ?? 'Member'); ?>
@@ -147,7 +145,7 @@ $avatarUrl = $user['profile_pic'] ?: '';
                 </p>
                 <div style="display: flex; gap: 16px; font-size: 0.85rem; color: var(--admin-text-muted);">
                     <div><strong style="color: var(--admin-text-heading);">Farm:</strong> <?php echo htmlspecialchars($user['farm_name'] ?: 'Wangari Farm'); ?></div>
-                    <div><strong style="color: var(--admin-text-heading);">Phone:</strong> <?php echo htmlspecialchars($user['phone_number'] ?: 'Not set'); ?></div>
+                    <div><strong style="color: var(--admin-text-heading);">Phone:</strong> <?php echo htmlspecialchars($user['phone'] ?: 'Not set'); ?></div>
                 </div>
             </div>
         </div>
@@ -257,11 +255,11 @@ $avatarUrl = $user['profile_pic'] ?: '';
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                         <div>
                             <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--admin-text-main);">First Name</label>
-                            <input type="text" name="first_name" value="<?php echo htmlspecialchars($user['first_name'] ?? ''); ?>" required class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+                            <input type="text" name="full_name" value="<?php echo htmlspecialchars($user['first_name'] ?? ''); ?>" required class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--admin-text-main);">Last Name</label>
-                            <input type="text" name="last_name" value="<?php echo htmlspecialchars($user['last_name'] ?? ''); ?>" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+                            <input type="text" name="full_name" value="<?php echo htmlspecialchars($user['last_name'] ?? ''); ?>" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
                         </div>
                     </div>
 
@@ -273,7 +271,7 @@ $avatarUrl = $user['profile_pic'] ?: '';
 
                     <div style="margin-bottom: 14px;">
                         <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--admin-text-main);">Phone Number</label>
-                        <input type="text" name="phone_number" value="<?php echo htmlspecialchars($user['phone_number'] ?? ''); ?>" placeholder="+254 114 971 070" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
+                        <input type="text" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" placeholder="+254 114 971 070" class="form-control" style="width: 100%; padding: 10px 14px; border: 1px solid var(--admin-border); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;">
                     </div>
 
                     <div style="margin-bottom: 20px;">
