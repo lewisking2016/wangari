@@ -21,13 +21,11 @@ $pdo = getDB();
 $message = '';
 $error_message = '';
 
-$roles = ['super_admin', 'farm_manager', 'stock_manager', 'sales_staff', 'customer'];
+$roles = ['farm_manager', 'stock_manager', 'sales_staff'];
 $roleLabels = [
-    'super_admin'  => 'Super Admin',
     'farm_manager' => 'Farm Manager',
     'stock_manager'=> 'Stock Manager',
     'sales_staff'  => 'Sales Staff',
-    'customer'     => 'Customer',
 ];
 
 // Module groups shown in the matrix
@@ -72,8 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
             foreach ($moduleKeys as $m) {
                 $view = isset($_POST['view'][$role][$m]) ? 1 : 0;
                 $edit = isset($_POST['edit'][$role][$m]) ? 1 : 0;
-                // super_admin is always fully allowed — keep the row as view/edit for safety
-                if ($role === 'super_admin') { $view = 1; $edit = 1; }
                 $upsert->execute([$role, $m, $view, $edit]);
                 $changed++;
             }
@@ -92,7 +88,7 @@ $matrix = function_exists('wangariRolePermissions') ? wangariRolePermissions($pd
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
     <div>
         <h1 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.6rem;color:var(--admin-text-heading);font-weight:800;">Roles &amp; Permissions</h1>
-        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Control which modules each role can open. Super Admin always has full access. Account creation &amp; role changes live in <a href="/Frontend/admin/users.php" style="color:var(--admin-primary);font-weight:600;">Users &amp; Accounts</a>.</p>
+        <p style="margin:4px 0 0;color:#64748b;font-size:0.9rem;">Control which modules each role can open. Account creation &amp; role changes live in <a href="/Frontend/admin/users.php" style="color:var(--admin-primary);font-weight:600;">Users &amp; Accounts</a>.</p>
     </div>
 </div>
 
@@ -111,12 +107,8 @@ $matrix = function_exists('wangariRolePermissions') ? wangariRolePermissions($pd
 <div class="admin-card" style="margin-bottom:22px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <div style="display:flex;align-items:center;gap:10px;">
-            <span class="badge-pill <?= $role==='super_admin'?'badge-pill-danger':($role==='farm_manager'?'badge-pill-success':'badge-pill-info') ?>" style="font-size:0.8rem;padding:6px 12px;"><?= $roleLabels[$role] ?></span>
-            <?php if ($role === 'super_admin'): ?>
-                <small style="color:#94a3b8;">Always has full access to every module.</small>
-            <?php else: ?>
-                <small style="color:#94a3b8;">Check a module to let this role open it.</small>
-            <?php endif; ?>
+            <span class="badge-pill <?= $role==='farm_manager'?'badge-pill-success':'badge-pill-info' ?>" style="font-size:0.8rem;padding:6px 12px;"><?= $roleLabels[$role] ?></span>
+            <small style="color:#94a3b8;">Check a module to let this role open it.</small>
         </div>
         <button type="button" class="btn btn-outline btn-sm perm-expand" style="border-radius:6px;">
             <i data-lucide="chevron-down" style="width:14px;height:14px;"></i> Show / hide modules
@@ -131,9 +123,9 @@ $matrix = function_exists('wangariRolePermissions') ? wangariRolePermissions($pd
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 18px;">
                     <?php foreach ($mods as $modKey => $modLabel): ?>
                         <?php
-                        $canView = ($matrix[$role][$modKey]['view'] ?? 0) || $role === 'super_admin';
-                        $canEdit = ($matrix[$role][$modKey]['edit'] ?? 0) || $role === 'super_admin';
-                        $locked = $role === 'super_admin';
+                        $canView = ($matrix[$role][$modKey]['view'] ?? 0) ;
+                        $canEdit = ($matrix[$role][$modKey]['edit'] ?? 0) ;
+                        $locked = false;
                         ?>
                         <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;color:#1e293b;padding:5px 0;cursor:pointer;">
                             <input type="checkbox" name="view[<?= $role ?>][<?= $modKey ?>]" <?= $canView ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?> style="width:16px;height:16px;accent-color:var(--admin-primary);">
