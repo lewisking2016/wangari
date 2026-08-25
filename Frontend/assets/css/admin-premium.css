@@ -1,14 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
-   WANGARI PREMIUM OVERRIDES — Fixed version
+   WANGARI PREMIUM OVERRIDES v3
+   Handles all inline style patterns across module pages
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Typography: only on text elements, NOT on icons ── */
+/* ── Typography ── */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--w-font-display) !important;
     letter-spacing: -0.01em;
 }
 
-/* ── Cards — Premium Treatment ── */
+/* ── Cards ── */
 .admin-card {
     border-radius: var(--w-radius-xl) !important;
     border: 1px solid var(--w-border) !important;
@@ -18,7 +19,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--w-shadow-md) !important;
 }
 
-/* ── KPI Cards — Premium Hover ── */
+/* ── KPI Cards ── */
 .d2-kpi {
     border-radius: var(--w-radius-xl) !important;
     overflow: visible !important;
@@ -40,7 +41,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--w-shadow-xl) !important;
 }
 
-/* ── Tables — Cleaner ── */
+/* ── Tables ── */
 .admin-table th {
     font-size: var(--w-text-xs) !important;
     font-weight: var(--w-weight-bold) !important;
@@ -64,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: none !important;
 }
 
-/* ── Buttons — Premium ── */
+/* ── Buttons ── */
 .btn,
 button.btn,
 a.btn {
@@ -96,6 +97,10 @@ button.btn-outline {
     border-color: var(--w-primary) !important;
     color: var(--w-primary) !important;
     background: var(--w-success-bg) !important;
+}
+.btn-danger,
+button.btn-danger {
+    border-radius: var(--w-radius-full) !important;
 }
 
 /* ── Badges ── */
@@ -150,7 +155,113 @@ textarea:focus {
     box-shadow: var(--w-shadow-focus) !important;
 }
 
-/* ── Sidebar Active ── */
+/* ── Inline Style Overrides ── */
+
+/* Cards with inline border-radius:12px → 20px */
+[style*="border-radius:12px"] {
+    border-radius: var(--w-radius-xl) !important;
+}
+[style*="border-radius: 12px"] {
+    border-radius: var(--w-radius-xl) !important;
+}
+[style*="border-radius:8px"] {
+    border-radius: var(--w-radius-md) !important;
+}
+[style*="border-radius: 8px"] {
+    border-radius: var(--w-radius-md) !important;
+}
+[style*="border-radius:20px"] {
+    border-radius: var(--w-radius-xl) !important;
+}
+[style*="border-radius: 20px"] {
+    border-radius: var(--w-radius-xl) !important;
+}
+
+/* White background cards → softer border */
+[style*="background:#fff"] {
+    border: 1px solid var(--w-border) !important;
+}
+[style*="background: white"] {
+    border: 1px solid var(--w-border) !important;
+}
+[style*="background: #fff"] {
+    border: 1px solid var(--w-border) !important;
+}
+
+/* Status backgrounds → consistent with design tokens */
+[style*="background:#F0FDF4"] {
+    background: var(--w-success-bg) !important;
+}
+[style*="background:#f0fdf4"] {
+    background: var(--w-success-bg) !important;
+}
+[style*="background:#dcfce7"] {
+    background: var(--w-success-bg) !important;
+}
+[style*="background:#DCFCE7"] {
+    background: var(--w-success-bg) !important;
+}
+[style*="background:#FEF2F2"] {
+    background: var(--w-error-bg) !important;
+}
+[style*="background:#fef2f2"] {
+    background: var(--w-error-bg) !important;
+}
+[style*="background:#fee2e2"] {
+    background: var(--w-error-bg) !important;
+}
+[style*="background:#FEF5E0"] {
+    background: var(--w-warning-bg) !important;
+}
+[style*="background:#fef5e0"] {
+    background: var(--w-warning-bg) !important;
+}
+[style*="background:#fef3c7"] {
+    background: var(--w-warning-bg) !important;
+}
+[style*="background:#FEF3C7"] {
+    background: var(--w-warning-bg) !important;
+}
+[style*="background:#EFF6FF"] {
+    background: var(--w-info-bg) !important;
+}
+[style*="background:#eff6ff"] {
+    background: var(--w-info-bg) !important;
+}
+
+/* Text colors → consistent */
+[style*="color:#166534"] {
+    color: var(--w-primary) !important;
+}
+[style*="color: #166534"] {
+    color: var(--w-primary) !important;
+}
+[style*="color:#16a34a"] {
+    color: var(--w-success) !important;
+}
+[style*="color: #16a34a"] {
+    color: var(--w-success) !important;
+}
+[style*="color:#991B1B"] {
+    color: var(--w-error) !important;
+}
+[style*="color: #991B1B"] {
+    color: var(--w-error) !important;
+}
+[style*="color:#b45309"] {
+    color: var(--w-warning) !important;
+}
+[style*="color: #b45309"] {
+    color: var(--w-warning) !important;
+}
+[style*="color:#92400E"] {
+    color: var(--w-warning) !important;
+}
+[style*="color: #92400E"] {
+    color: var(--w-warning) !important;
+}
+
+/* ── Sidebar ── */
 .w2-nav-item.active {
     background: linear-gradient(135deg, var(--w-primary) 0%, var(--w-primary-light) 100%) !important;
     border-radius: 10px !important;
@@ -173,67 +284,4 @@ textarea:focus {
     transition: all var(--w-duration-base) var(--w-ease) !important;
 }
 .tab-nav a.active,
-.tab-nav button.active {
-    background: var(--w-primary) !important;
-    color: white !important;
-}
-
-/* ── Table Responsive ── */
-.table-responsive {
-    border-radius: var(--w-radius-lg) !important;
-    border: 1px solid var(--w-border) !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* ── Focus Visible — Accessibility ── */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-    outline: 2px solid var(--w-primary) !important;
-    outline-offset: 2px !important;
-}
-
-/* ── Responsive ── */
-@media (max-width: 768px) {
-    .d2-kpis,
-    .stat-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-    .d2-main,
-    .dashboard-main-grid {
-        grid-template-columns: 1fr !important;
-    }
-    .d2-hero {
-        padding: var(--w-space-5) var(--w-space-4) !important;
-    }
-    .d2-hero h1 {
-        font-size: var(--w-text-xl) !important;
-    }
-    .d2-ai-input-wrap {
-        flex-direction: column !important;
-    }
-}
-@media (max-width: 480px) {
-    .d2-kpis,
-    .stat-grid {
-        grid-template-columns: 1fr !important;
-    }
-}
-
-/* ── Print ── */
-@media print {
-    .admin-sidebar,
-    .admin-top-bar,
-    .w2-mobile-hamburger,
-    .btn,
-    .w2-signout {
-        display: none !important;
-    }
-    .admin-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-}
+.tab-na
