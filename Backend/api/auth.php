@@ -136,7 +136,11 @@ if (!empty($googleCode)) {
         unset($_SESSION['google_registration_profile']);
 
         // Role-based redirect
-        $redirect = '/Frontend/admin/dashboard.php';
+        // Check if user needs onboarding
+        $onbCheck = $pdo->prepare('SELECT onboarding_step FROM users WHERE id = ?');
+        $onbCheck->execute([$_SESSION['user_id']]);
+        $onbStep = (int)($onbCheck->fetchColumn() ?? 0);
+        $redirect = ($onbStep < 1) ? '/Frontend/admin/onboarding.php' : '/Frontend/admin/dashboard.php';
         if (($user['role'] ?? '') === 'super_admin') {
             $redirect = '/Frontend/admin/super_admin.php';
         } elseif (($user['role'] ?? '') === 'customer') {
@@ -206,7 +210,11 @@ try {
     $session_id = session_id();
 
     // Role-based redirect
-    $redirect = '/Frontend/admin/dashboard.php';
+    // Check if user needs onboarding
+        $onbCheck = $pdo->prepare('SELECT onboarding_step FROM users WHERE id = ?');
+        $onbCheck->execute([$_SESSION['user_id']]);
+        $onbStep = (int)($onbCheck->fetchColumn() ?? 0);
+        $redirect = ($onbStep < 1) ? '/Frontend/admin/onboarding.php' : '/Frontend/admin/dashboard.php';
     if (($user['role'] ?? '') === 'super_admin') {
         $redirect = '/Frontend/admin/super_admin.php';
     } elseif (($user['role'] ?? '') === 'customer') {
