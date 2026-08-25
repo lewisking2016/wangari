@@ -125,25 +125,105 @@ include '../includes/header.php';
             <h2>Built by <span class="g-serif">iMeanTech</span></h2>
             <p>Wangari is designed and maintained by iMeanTech — a technology company based in Nairobi, Kenya — around the workflows farm owners, managers and record keepers need every day.</p>
         </div>
-        <div class="g-grid-3">
-            <div class="g-card g-reveal g-delay-1" style="text-align: center; padding: 2.5rem 1.7rem;">
-                <div style="width: 84px; height: 84px; margin: 0 auto 1.2rem; border-radius: 50%; background: var(--g-ink); color: var(--g-lime); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700;">S</div>
-                <h3>Farm Operations</h3>
-                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Built around daily records</p>
-                <p style="color: var(--g-muted); font-size: 0.9rem;">The system connects production, health, inventory and sales information in one workflow.</p>
+        <!-- Swiper Slideshow -->
+        <div style="position:relative;padding-bottom:60px;">
+            <div class="swiper about-slideshow" style="overflow:hidden;">
+                <div class="swiper-wrapper">
+                    <!-- Slide 1: Farm Operations -->
+                    <div class="swiper-slide">
+                        <div style="background:var(--g-card,#fff);border:1px solid var(--g-border,#e2e8f0);border-radius:16px;padding:40px;min-height:300px;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#22C55E22,#16A34A11);display:flex;align-items:center;justify-content:center;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;font-weight:700;color:#22C55E;text-transform:uppercase;letter-spacing:0.08em;">Farm Operations</div>
+                                    <div style="font-size:1.1rem;font-weight:700;">Daily Records & Health</div>
+                                </div>
+                            </div>
+                            <p style="color:var(--g-muted,#64748b);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Record egg counts, mortality, weight gain and vaccinations in one place. No more scattered notebooks — every entry connects to your batch and updates your profit report automatically.</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Egg Tracking</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Mortality Log</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Vaccinations</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Weight Records</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide 2: Inventory -->
+                    <div class="swiper-slide">
+                        <div style="background:var(--g-card,#fff);border:1px solid var(--g-border,#e2e8f0);border-radius:16px;padding:40px;min-height:300px;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#F59E0B22,#D9770611);display:flex;align-items:center;justify-content:center;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;font-weight:700;color:#F59E0B;text-transform:uppercase;letter-spacing:0.08em;">Inventory & Store</div>
+                                    <div style="font-size:1.1rem;font-weight:700;">Feed, Stock & Costs</div>
+                                </div>
+                            </div>
+                            <p style="color:var(--g-muted,#64748b);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Know exactly how much feed, medicine and supplies you have left. Track every bag of layers mash and every bottle of vaccine — the system alerts you before you run out and shows what each batch is costing you.</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Feed Stock</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Low Alerts</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Cost Tracking</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Auto Reorder</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide 3: Sales & Credit -->
+                    <div class="swiper-slide">
+                        <div style="background:var(--g-card,#fff);border:1px solid var(--g-border,#e2e8f0);border-radius:16px;padding:40px;min-height:300px;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#10B98122,#05966911);display:flex;align-items:center;justify-content:center;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;font-weight:700;color:#10B981;text-transform:uppercase;letter-spacing:0.08em;">Sales & Finance</div>
+                                    <div style="font-size:1.1rem;font-weight:700;">Orders, Credit & M-Pesa</div>
+                                </div>
+                            </div>
+                            <p style="color:var(--g-muted,#64748b);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Track who bought eggs today, who still owes you money, and how much you made this week. Every sale — cash, M-Pesa or credit — shows up in your profit report so you always know where your money is.</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">M-Pesa Sales</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Credit Tracking</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Customer Accounts</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Profit Reports</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Slide 4: Teams -->
+                    <div class="swiper-slide">
+                        <div style="background:var(--g-card,#fff);border:1px solid var(--g-border,#e2e8f0);border-radius:16px;padding:40px;min-height:300px;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#6366F122,#4F46E511);display:flex;align-items:center;justify-content:center;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:0.08em;">Teams & Workers</div>
+                                    <div style="font-size:1.1rem;font-weight:700;">Roles & Access Control</div>
+                                </div>
+                            </div>
+                            <p style="color:var(--g-muted,#64748b);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Your farm worker records daily tasks, your manager handles sales, and you see everything. Each person gets the right access — nobody sees what they shouldn't, and you stay in control of your data.</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Worker Access</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Manager View</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Owner Dashboard</span>
+                                <span style="background:var(--g-cream,#f0fdf4);color:var(--g-muted,#64748b);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Secure Data</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="g-card g-reveal g-delay-2" style="text-align: center; padding: 2.5rem 1.7rem;">
-                <div style="width: 84px; height: 84px; margin: 0 auto 1.2rem; border-radius: 50%; background: var(--g-ink); color: var(--g-lime); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700;">G</div>
-                <h3>People &amp; Permissions</h3>
-                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">Every team member sees their work</p>
-                <p style="color: var(--g-muted); font-size: 0.9rem;">Role-based access helps owners share work without giving away administrative control.</p>
+            <!-- Navigation arrows -->
+            <div class="about-prev" style="position:absolute;left:-16px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--g-card,#fff);border:1px solid var(--g-border,#e2e8f0);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
             </div>
-            <div class="g-card g-reveal g-delay-3" style="text-align: center; padding: 2.5rem 1.7rem;">
-                <div style="width: 84px; height: 84px; margin: 0 auto 1.2rem; border-radius: 50%; background: var(--g-ink); color: var(--g-lime); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700;">P</div>
-                <h3>Reports &amp; Decisions</h3>
-                <p style="color: var(--g-tan); font-weight: 600; margin-bottom: 0.8rem;">From records to action</p>
-                <p style="color: var(--g-muted); font-size: 0.9rem;">Dashboards, reports and exports help teams understand costs, stock, production and revenue.</p>
+            <div class="about-next" style="position:absolute;right:-16px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--g-card,#fff);border:1px solid var(--g-border,#e2e8f0);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
+            <!-- Pagination dots -->
+            <div class="about-pagination" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;gap:8px;"></div>
         </div>
     </div>
 </section>
@@ -160,6 +240,34 @@ include '../includes/header.php';
         </div>
     </div>
 </section>
+
+<script>
+function initAboutSlideshow() {
+    var el = document.querySelector('.about-slideshow');
+    if (!el || typeof Swiper === 'undefined') return;
+    var s = new Swiper(el, {
+        slidesPerView: 1,
+        spaceBetween: 24,
+        loop: true,
+        autoplay: { delay: 5000, disableOnInteraction: false },
+        pagination: { el: '.about-pagination', clickable: true },
+        navigation: { prevEl: '.about-prev', nextEl: '.about-next' },
+        breakpoints: { 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+    });
+    // Style dots
+    function styleDots() {
+        document.querySelectorAll('.about-pagination .swiper-pagination-bullet').forEach(function(d) {
+            d.style.width = '8px'; d.style.height = '8px'; d.style.background = 'var(--g-border,#cbd5e1)'; d.style.opacity = '1'; d.style.borderRadius = '50%'; d.style.transition = 'all 0.3s';
+        });
+        var a = document.querySelector('.about-pagination .swiper-pagination-bullet-active');
+        if (a) { a.style.background = '#22C55E'; a.style.width = '24px'; a.style.borderRadius = '4px'; }
+    }
+    styleDots();
+    s.on('slideChange', styleDots);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAboutSlideshow);
+else initAboutSlideshow();
+</script>
 
 <?php
 include '../includes/footer.php';
