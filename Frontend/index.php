@@ -407,6 +407,69 @@ if (($_SESSION['role'] ?? '') === 'customer') {
         </div>
     </section>
 
+    <!-- ── WHY WANGARI ── -->
+    <section class="xai-section" style="background: linear-gradient(180deg, #0D3320 0%, #0a2a19 100%); padding: 100px 0; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(34,197,94,0.3), transparent);"></div>
+        <div style="position: absolute; bottom: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%); pointer-events: none;"></div>
+        <div class="xai-container" style="position: relative; z-index: 1;">
+            <div class="why-wangari-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+                <!-- Left: Story -->
+                <div>
+                    <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 100px; padding: 6px 16px; margin-bottom: 24px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span style="color: #22C55E; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Our Inspiration</span>
+                    </div>
+                    <h2 style="color: #fff; font-size: 2.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 24px; font-family: 'Outfit', sans-serif;">
+                        Why we named it<br><span style="color: #22C55E; font-family: var(--font-serif); font-style: italic;">Wangari</span>
+                    </h2>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 1.05rem; line-height: 1.8; margin-bottom: 20px;">
+                        Wangari is named after <strong style="color: #fff;">Prof. Wangari Maathai</strong> (1940–2011) — Kenya’s Nobel Peace Prize laureate, founder of the <strong style="color: #22C55E;">Green Belt Movement</strong>, and the first African woman to win the Nobel Prize.
+                    </p>
+                    <p style="color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px;">
+                        She planted over <strong style="color: #fff;">51 million trees</strong> across Kenya, empowering rural women to reclaim their land, fight deforestation, and build sustainable livelihoods. She believed that a healthy environment starts with the people who work the land.
+                    </p>
+                    <p style="color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.8; margin-bottom: 32px;">
+                        We carry her vision forward. Wangari gives farmers the tools to manage their land sustainably — tracking every animal, every crop, every shilling — so they can feed their families and grow their businesses with confidence.
+                    </p>
+                    <div style="display: flex; gap: 32px;">
+                        <div>
+                            <div style="color: #22C55E; font-size: 2rem; font-weight: 800;">51M+</div>
+                            <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">Trees Planted</div>
+                        </div>
+                        <div>
+                            <div style="color: #22C55E; font-size: 2rem; font-weight: 800;">2004</div>
+                            <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">Nobel Peace Prize</div>
+                        </div>
+                        <div>
+                            <div style="color: #22C55E; font-size: 2rem; font-weight: 800;">1977</div>
+                            <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">Green Belt Founded</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: Quote -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 48px; position: relative;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="rgba(34,197,94,0.15)" style="margin-bottom: 20px;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                    <blockquote style="color: rgba(255,255,255,0.85); font-size: 1.3rem; line-height: 1.7; font-family: var(--font-serif); font-style: italic; margin-bottom: 24px;">
+                        “It’s the little things citizens do. That’s what will make the difference. My little thing is planting trees.”
+                    </blockquote>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #22C55E, #16A34A); display: flex; align-items: center; justify-content: center;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div>
+                            <div style="color: #fff; font-weight: 600; font-size: 0.95rem;">Prof. Wangari Maathai</div>
+                            <div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">1940 – 2011 · Nobel Peace Prize Laureate</div>
+                        </div>
+                    </div>
+                    <!-- Decorative leaves -->
+                    <div style="position: absolute; top: -20px; right: -20px; opacity: 0.1;">
+                        <svg width="120" height="120" viewBox="0 0 24 24" fill="#22C55E"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ── HOW IT WORKS ── -->
     <section class="xai-section xai-hiw-section">
         <div class="xai-container">
@@ -887,5 +950,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<style>
+    @media (max-width: 768px) {
+        .why-wangari-grid {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+        }
+    }
+</style>
 </body>
 </html>

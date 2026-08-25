@@ -1636,3 +1636,11 @@ a {
     }
 }
 
+
+/* Why Wangari Section - Mobile */
+@media (max-width: 768px) {
+    .why-wangari-grid {
+        grid-template-columns: 1fr !important;
+        gap: 40px !important;
+    }
+}
