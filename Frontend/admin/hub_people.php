@@ -139,8 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 $staffList = $taskList = $messageList = $customerList = [];
 if ($pdo) {
     try {
-        // Show only this user's account + staff they created + super admins
-        $staffList = $pdo->prepare("SELECT * FROM users WHERE id = ? OR created_by = ? OR role = 'super_admin' ORDER BY full_name ASC, username ASC");
+        // Show only this user's account + staff they created (super admin hidden for security)
+        $staffList = $pdo->prepare("SELECT * FROM users WHERE id = ? OR created_by = ? ORDER BY full_name ASC, username ASC");
         $staffList->execute([$currentAdminId, $currentAdminId]);
         $staffList = $staffList->fetchAll(PDO::FETCH_ASSOC);
         if ($tab === 'users') {
@@ -239,7 +239,7 @@ $tabs = [
                     <select class="admin-form-control" name="role" id="st-role">
                         <option value="farm_manager">Farm Manager</option>
                         <option value="stock_manager">Stock Manager</option>
-                        <option value="super_admin">Super Admin</option>
+
                     </select>
                 </div>
                 <div class="admin-form-group" style="grid-column:span 2"><label class="admin-form-label">Password (Keep empty to preserve current)</label><input class="admin-form-control" type="password" name="password" id="st-pass"></div>
