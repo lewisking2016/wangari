@@ -31,7 +31,7 @@ function getCurrentFarmId(): ?int {
     
     // Get from database
     try {
-        $pdo = wangariGetPdo();
+        $pdo = getDB();
         $stmt = $pdo->prepare("SELECT current_farm_id FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -80,7 +80,7 @@ function switchFarm(int $farmId): bool {
     }
     
     try {
-        $pdo = wangariGetPdo();
+        $pdo = getDB();
         $stmt = $pdo->prepare("UPDATE users SET current_farm_id = ? WHERE id = ?");
         $stmt->execute([$farmId, $userId]);
         $_SESSION['current_farm_id'] = $farmId;
@@ -98,7 +98,7 @@ function switchFarm(int $farmId): bool {
  */
 function getUserFarms(int $userId): array {
     try {
-        $pdo = wangariGetPdo();
+        $pdo = getDB();
         
         // Get user role
         $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
@@ -172,7 +172,7 @@ function getCurrentFarmName(): string {
     if (!$farmId) return 'No Farm';
     
     try {
-        $pdo = wangariGetPdo();
+        $pdo = getDB();
         $stmt = $pdo->prepare("SELECT name FROM farms WHERE id = ?");
         $stmt->execute([$farmId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -190,7 +190,7 @@ function getCurrentFarm(): ?array {
     if (!$farmId) return null;
     
     try {
-        $pdo = wangariGetPdo();
+        $pdo = getDB();
         $stmt = $pdo->prepare("SELECT * FROM farms WHERE id = ?");
         $stmt->execute([$farmId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
@@ -227,7 +227,7 @@ function addFarmFilter(string $sql, int $userId, string $tableAlias = ''): strin
  */
 function getBranchFarmStats(int $farmId): array {
     try {
-        $pdo = wangariGetPdo();
+        $pdo = getDB();
         $stats = [];
         
         // Animals count
