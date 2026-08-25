@@ -1,0 +1,288 @@
+/* ═══════════════════════════════════════════════════════════════
+   WANGARI PREMIUM OVERRIDES
+   Makes all existing admin pages look premium without rewriting
+   them — applied via CSS specificity on top of existing styles.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Global Typography Upgrade ── */
+* {
+    font-family: var(--w-font-body) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--w-font-display) !important;
+    letter-spacing: -0.01em;
+}
+
+/* ── All Cards Get Premium Treatment ── */
+.admin-card,
+.d2-kpi,
+[style*="background:#fff"],
+[style*="background: white"] {
+    border-radius: var(--w-radius-xl) !important;
+    border: 1px solid var(--w-border) !important;
+    box-shadow: var(--w-shadow-sm) !important;
+    transition: box-shadow var(--w-duration-base) var(--w-ease),
+                transform var(--w-duration-base) var(--w-ease) !important;
+}
+
+.admin-card:hover {
+    box-shadow: var(--w-shadow-md) !important;
+}
+
+/* ── KPI Cards — Premium Hover ── */
+.d2-kpi {
+    border-radius: var(--w-radius-xl) !important;
+    overflow: visible !important;
+}
+
+.d2-kpi:hover {
+    transform: translateY(-4px) scale(1.01) !important;
+    box-shadow: var(--w-shadow-lg) !important;
+}
+
+.d2-kpi strong {
+    font-family: var(--w-font-display) !important;
+    font-weight: var(--w-weight-extrabold) !important;
+    letter-spacing: -0.02em;
+}
+
+/* ── Hero Card — Premium Gradient ── */
+.d2-hero,
+.dashboard-hero-card {
+    border-radius: var(--w-radius-2xl) !important;
+    box-shadow: var(--w-shadow-xl) !important;
+}
+
+/* ── Tables — Cleaner Look ── */
+.admin-table th {
+    font-family: var(--w-font-body) !important;
+    font-size: var(--w-text-xs) !important;
+    font-weight: var(--w-weight-bold) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: var(--w-text-muted) !important;
+    background: var(--w-surface-alt) !important;
+    border-bottom: 1px solid var(--w-border) !important;
+    padding: var(--w-space-3) var(--w-space-4) !important;
+}
+
+.admin-table td {
+    font-size: var(--w-text-sm) !important;
+    color: var(--w-text) !important;
+    border-bottom: 1px solid var(--w-border-light) !important;
+    padding: var(--w-space-3) var(--w-space-4) !important;
+}
+
+.admin-table tr:hover td {
+    background: rgba(22, 101, 52, 0.015) !important;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* ── Buttons — Consistent Premium Look ── */
+.btn,
+button.btn,
+a.btn {
+    border-radius: var(--w-radius-full) !important;
+    font-family: var(--w-font-body) !important;
+    font-weight: var(--w-weight-semibold) !important;
+    transition: all var(--w-duration-base) var(--w-ease) !important;
+    min-height: var(--w-touch-min) !important;
+    cursor: pointer !important;
+}
+
+.btn:active,
+button.btn:active {
+    transform: scale(0.97) !important;
+}
+
+.btn-primary,
+button.btn-primary {
+    background: linear-gradient(135deg, var(--w-primary) 0%, var(--w-primary-light) 100%) !important;
+    box-shadow: 0 2px 8px rgba(22, 101, 52, 0.2) !important;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 4px 16px rgba(22, 101, 52, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-outline,
+button.btn-outline {
+    border: 1.5px solid var(--w-border) !important;
+    color: var(--w-text-secondary) !important;
+    background: var(--w-surface) !important;
+}
+
+.btn-outline:hover {
+    border-color: var(--w-primary) !important;
+    color: var(--w-primary) !important;
+    background: var(--w-success-bg) !important;
+}
+
+/* Small buttons still meet touch target */
+.btn-sm,
+button.btn-sm {
+    min-height: 32px !important;
+    padding: var(--w-space-1-5) var(--w-space-3) !important;
+    font-size: var(--w-text-xs) !important;
+}
+
+/* ── Badges — Consistent Pills ── */
+.badge-pill {
+    border-radius: var(--w-radius-full) !important;
+    font-size: var(--w-text-xs) !important;
+    font-weight: var(--w-weight-semibold) !important;
+    padding: var(--w-space-1) var(--w-space-3) !important;
+}
+
+.badge-pill-success {
+    background: var(--w-success-bg) !important;
+    color: var(--w-success) !important;
+    border: 1px solid var(--w-success-border) !important;
+}
+
+.badge-pill-warning {
+    background: var(--w-warning-bg) !important;
+    color: var(--w-warning) !important;
+    border: 1px solid var(--w-warning-border) !important;
+}
+
+.badge-pill-danger {
+    background: var(--w-error-bg) !important;
+    color: var(--w-error) !important;
+    border: 1px solid var(--w-error-border) !important;
+}
+
+.badge-pill-info {
+    background: var(--w-info-bg) !important;
+    color: var(--w-info) !important;
+    border: 1px solid var(--w-info-border) !important;
+}
+
+/* ── Form Inputs — Consistent Premium ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+select,
+textarea {
+    border-radius: var(--w-radius-md) !important;
+    border: 1.5px solid var(--w-border) !important;
+    font-family: var(--w-font-body) !important;
+    font-size: var(--w-text-base) !important;
+    padding: var(--w-space-2-5) var(--w-space-3-5) !important;
+    min-height: var(--w-touch-min) !important;
+    transition: border-color var(--w-duration-fast) var(--w-ease),
+                box-shadow var(--w-duration-fast) var(--w-ease) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none !important;
+    border-color: var(--w-primary) !important;
+    box-shadow: var(--w-shadow-focus) !important;
+}
+
+/* ── Section Headers ── */
+h1 {
+    font-size: var(--w-text-2xl) !important;
+    font-weight: var(--w-weight-extrabold) !important;
+    color: var(--w-text) !important;
+    letter-spacing: -0.02em !important;
+}
+
+h3 {
+    font-size: var(--w-text-lg) !important;
+    font-weight: var(--w-weight-bold) !important;
+    color: var(--w-text) !important;
+}
+
+/* ── Modal Upgrade ── */
+.modal,
+[style*="position:fixed"][style*="z-index"] {
+    border-radius: var(--w-radius-2xl) !important;
+}
+
+/* ── Sidebar Active State — Premium ── */
+.w2-nav-item.active {
+    background: linear-gradient(135deg, var(--w-primary) 0%, var(--w-primary-light) 100%) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2) !important;
+}
+
+/* ── Top Bar — Cleaner ── */
+.admin-top-bar {
+    border-radius: var(--w-radius-xl) !important;
+    border: 1px solid var(--w-border) !important;
+    box-shadow: var(--w-shadow-xs) !important;
+    background: var(--w-surface) !important;
+}
+
+/* ── Stat Cards with Inline Styles ── */
+[style*="border-radius:20px"],
+[style*="border-radius: 20px"] {
+    border-radius: var(--w-radius-xl) !important;
+}
+
+/* ── Status Indicators ── */
+.status-active,
+[style*="color:#16a34a"],
+[style*="color: #16a34a"] {
+    color: var(--w-success) !important;
+}
+
+.status-expired,
+[style*="color:#dc2626"],
+[style*="color: #dc2626"] {
+    color: var(--w-error) !important;
+}
+
+/* ── Tab Navigation ── */
+.tab-nav a,
+.tab-nav button {
+    border-radius: var(--w-radius-full) !important;
+    font-weight: var(--w-weight-semibold) !important;
+    transition: all var(--w-duration-base) var(--w-ease) !important;
+}
+
+.tab-nav a.active,
+.tab-nav button.active {
+    background: var(--w-primary) !important;
+    color: white !important;
+}
+
+/* ── Scroll Containers ── */
+.table-responsive {
+    border-radius: var(--w-radius-lg) !important;
+    border: 1px solid var(--w-border) !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* ── Cards in Grid Layouts ── */
+.stat-grid,
+[style*="grid-template-columns"] {
+    gap: var(--w-space-5) !important;
+}
+
+/* ── Loading Skeleton ── */
+@keyframes w-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton,
+[style*="background: linear-gradient(90deg"] {
+    background: linear-gradient(90deg, var(--w-surface-alt) 25%, var(--w-border-light) 50%, var(--w-surface-alt) 75%) !important;
+    background-size: 200% 100% !important;
+    animation: w-shimmer 1.5s ease-in-out infinite !important;
+}
+
+/* ── Touch Target Enforcement 
