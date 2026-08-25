@@ -74,6 +74,9 @@ HTML;
         <p class="w2-nav-section">Overview</p>
         <?= w2NavItem('/Frontend/admin/dashboard.php', 'layout-dashboard', 'Dashboard', w2IsActive('dashboard.php')) ?>
         <?= w2NavItem('/Frontend/admin/ai_assistant.php', 'sparkles', 'Ask Wangari AI', w2IsActive('ai_assistant.php'), 'AI') ?>
+        <?php if (($_SESSION['role'] ?? '') !== 'super_admin'): ?>
+        <?= w2NavItem('/Frontend/admin/hub_branches.php', 'git-branch', 'Farm Branches', w2IsActive('hub_branches.php')) ?>
+        <?php endif; ?>
 
         <p class="w2-nav-section">Farm Operations</p>
         <?= w2NavGroup('sprout', 'Farm Operations', 'hub_operations.php', [
@@ -167,8 +170,38 @@ HTML;
         ], $tab ?: 'calendar') ?>
 
     </div>
-
-    <!-- User footer -->
+\    <!-- Branch Switcher -->
+    <?php
+    if (($_SESSION['role'] ?? '') !== 'super_admin') {
+        require_once dirname(__DIR__, 2) . '/includes/branch_helpers.php';
+        $currentFarmName = getCurrentFarmName();
+        $userFarms = getUserFarms((int)($_SESSION['user_id'] ?? 0));
+        if (count($userFarms) > 1) {
+    ?>
+    <div style="padding:0 14px 10px;">
+        <form method="POST" action="/Frontend/admin/hub_branches.php">
+            <input type="hidden" name="action" value="switch">
+            <select name="farm_id" onchange="this.form.submit()" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid #E7EAF0;background:#F8FAFC;font-size:0.8rem;font-weight:600;color:#0F172A;cursor:pointer;outline:none;">
+                <?php foreach ($userFarms as $farm): ?>
+                <option value="<?php echo $farm['id']; ?>" <?php echo ((int)$farm['id'] === (int)getCurrentFarmId()) ? 'selected' : ''; ?>><?php echo htmlspecialchars($farm['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+    </div>
+    <?php
+        } elseif (count($userFarms) === 1) {
+    ?>
+    <div style="padding:0 14px 10px;">
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 10px;background:#F0FDF4;border-radius:8px;font-size:0.78rem;color:#166534;font-weight:600;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#22C55E;"></span>
+            <?php echo htmlspecialchars($currentFarmName); ?>
+        </div>
+    </div>
+    <?php
+        }
+    }
+    ?>
+\    <!-- User footer -->
     <div class="w2-side-foot">
         <div class="w2-user">
             <div class="w2-user-avatar"><?php echo strtoupper(substr($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'A', 0, 1)); ?></div>

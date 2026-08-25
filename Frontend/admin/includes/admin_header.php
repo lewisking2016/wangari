@@ -1300,9 +1300,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="admin-top-bar">
             <div class="welcome-message">
                 <p style="margin:0 0 2px;color:var(--w2-muted);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Wangari Admin</p>
-                <h2 style="margin:0;display:flex;align-items:center;gap:10px;">
+                <h2 style="margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     Hello, <?php echo htmlspecialchars($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'Admin'); ?>
                     <span class="badge-pill badge-pill-success" style="font-size:0.7rem;"><?php echo htmlspecialchars(str_replace('_', ' ', $_SESSION['role'] ?? 'super_admin')); ?></span>
+                    <?php if (($_SESSION['role'] ?? '') !== 'super_admin' && file_exists(__DIR__ . '/../../includes/branch_helpers.php')): ?>
+                    <?php require_once __DIR__ . '/../../includes/branch_helpers.php'; ?>
+                    <?php $currentFarmName = getCurrentFarmName(); ?>
+                    <?php if ($currentFarmName && $currentFarmName !== 'No Farm'): ?>
+                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:rgba(22,101,52,0.08);color:#166534;font-size:0.68rem;font-weight:600;">
+                        <i data-lucide="map-pin" style="width:11px;height:11px;"></i>
+                        <?php echo htmlspecialchars($currentFarmName); ?>
+                    </span>
+                    <?php endif; ?>
+                    <?php endif; ?>
                 </h2>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
