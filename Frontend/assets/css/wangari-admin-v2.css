@@ -931,3 +931,19 @@ td[colspan][style*="text-align:center"] {
     .admin-top-bar > div:last-child > button,
     .admin-top-bar > div:last-child > a{width:34px;height:34px;}
 }
+/* ═══════ FORCE VISIBILITY FIX ═══════ */
+.admin-content,
+.admin-content .d2-hero,
+.admin-content .d2-kpi,
+.admin-content .d2-ai,
+.admin-content .d2-main,
+.admin-content .admin-card,
+.admin-content .admin-top-bar,
+.admin-content section {
+    animation: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
