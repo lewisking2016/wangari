@@ -443,7 +443,13 @@ try {
                 $dashSubPlan = $dashMaxAnimals >= 200 ? 'Plus' : 'Pro';
             }
         }
-        // If no subscription_expires, calculate from registration date + 30 days
+        // Fallback: get registration date from users table if not in platform_users
+        if (!$dashRegisteredAt) {
+            $stmt2 = $wPdo->prepare('SELECT created_at FROM users WHERE id = ?');
+            $stmt2->execute([(int)($_SESSION['user_id'] ?? 0)]);
+            $dashRegisteredAt = $stmt2->fetchColumn() ?? '';
+        }
+        // Calculate trial end from registration date + 30 days
         if (!$dashSubExpires && $dashRegisteredAt) {
             $dashSubExpires = date('Y-m-d', strtotime($dashRegisteredAt) . ' +30 days');
         }
