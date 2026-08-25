@@ -27,6 +27,30 @@ $message = ''; $error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
     $postAction = $_POST['_action'] ?? '';
 
+    if ($postAction === 'save_customer') {
+        $custId = (int)($_POST['id'] ?? 0);
+        $name   = trim($_POST['customer_name'] ?? '');
+        $phone  = trim($_POST['phone'] ?? '');
+        $type   = trim($_POST['customer_type'] ?? 'retail');
+        $addr   = trim($_POST['address'] ?? '');
+        $notes  = trim($_POST['notes'] ?? '');
+        if (!$name) { $error_message = 'Customer name is required.'; }
+        else {
+            try {
+                if ($custId > 0) {
+                    $pdo->prepare('UPDATE walk_in_customers SET customer_name=?,phone=?,customer_type=?,address=?,notes=? WHERE id=?')
+                        ->execute([$name,$phone,$type,$addr,$notes,$custId]);
+                    $message = 'Customer updated.';
+                } else {
+                    $pdo->prepare('INSERT INTO walk_in_customers (customer_name,phone,customer_type,address,notes) VALUES (?,?,?,?,?)')
+                        ->execute([$name,$phone,$type,$addr,$notes]);
+                    $message = 'Customer added.';
+                }
+            } catch (Exception $e) { $error_message = $e->getMessage(); }
+        }
+        $tab = 'customers';
+    }
+
     if ($postAction === 'save_segment') {
         $id   = (int)($_POST['id'] ?? 0);
         $name = trim($_POST['name'] ?? '');
@@ -142,15 +166,12 @@ if ($pdo) {
     try {
         $segments = $pdo->query('SELECT * FROM crm_segments ORDER BY name')->fetchAll();
 
-        // Customers: registered users + walk-ins merged into one list
-        $users = $pdo->query('SELECT id, username, email, phone, created_at FROM users ORDER BY username')->fetchAll();
-        foreach ($users as $u) {
-            $label = ($u['username'] ?: $u['email']) . ' <span style="color:#94a3b8;font-weight:400;">(account)</span>';
-            $customerOptions['u' . $u['id']] = $label;
-        }
-        $walkins = $pdo->query('SELECT id, customer_name, phone, created_at FROM walk_in_customers ORDER BY customer_name')->fetchAll();
+        // Customers: only walk-in customers and customers with credits
+        $users = [];
+        $walkins = $pdo->query('SELECT id, customer_name, phone, customer_type, address, notes, created_at FROM walk_in_customers ORDER BY customer_name DESC')->fetchAll();
         foreach ($walkins as $w) {
-            $customerOptions['w' . $w['id']] = htmlspecialchars($w['customer_name'] ?: 'Walk-in #' . $w['id'], ENT_QUOTES, 'UTF-8') . ' <span style="color:#94a3b8;font-weight:400;">(walk-in)</span>';
+            $label = htmlspecialchars($w['customer_name'] ?: 'Walk-in #' . $w['id'], ENT_QUOTES, 'UTF-8');
+            $customerOptions['w' . $w['id']] = $label;
         }
 
         $followups = $pdo->query('SELECT f.*, u.username AS user_name, w.customer_name AS walkin_name FROM crm_followups f
@@ -218,8 +239,11 @@ $tabs = [
 <?php if ($tab === 'customers'): ?>
 <div class="admin-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">All Customers <?= helpTip('Every person and business that buys from your farm. Track their contact details, purchase history, and preferences.') ?></h3>
-        <span style="color:#64748b;font-size:0.85rem;"><?= count($customerOptions) ?> customers</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">All Customers <?= helpTip('Every person and business that buys from your farm. Track their contact details, purchase history, and preferences.') ?></h3>
+            <button class="btn btn-primary" onclick="document.getElementById('customer-modal').style.display='flex'" style="white-space:nowrap;"><i data-lucide="plus" style="width:15px;height:15px;"></i> Add Customer</button>
+        </div>
+        <span style="color:#64748b;font-size:0.85rem;"><?= count($walkins) ?> customers</span>
     </div>
 
     <?php if (!empty($customerBalances)): ?>
@@ -240,8 +264,7 @@ $tabs = [
             <tbody>
             <?php
             $rows = [];
-            foreach ($users as $u) $rows[] = ['name' => $u['username'] ?: $u['email'], 'phone' => $u['phone'] ?? '', 'type' => 'Account', 'key' => 'u' . $u['id'], 'since' => substr($u['created_at'] ?? '', 0, 10)];
-            foreach ($walkins as $w) $rows[] = ['name' => $w['customer_name'] ?: 'Walk-in #' . $w['id'], 'phone' => $w['phone'] ?? '', 'type' => 'Walk-in', 'key' => 'w' . $w['id'], 'since' => substr($w['created_at'] ?? '', 0, 10)];
+            foreach ($walkins as $w) $rows[] = ['name' => $w['customer_name'] ?: 'Walk-in #' . $w['id'], 'phone' => $w['phone'] ?? '', 'type' => ucfirst($w['customer_type'] ?? 'Walk-in'), 'key' => 'w' . $w['id'], 'since' => substr($w['created_at'] ?? '', 0, 10)];
             if (empty($rows)): ?>
                 <tr><td colspan="5" style="text-align:center;padding:28px;color:#94a3b8;">No customers yet.</td></tr>
             <?php else: foreach ($rows as $r): ?>
@@ -416,5 +439,49 @@ document.querySelector('#followup-modal select[name=customer_id]').addEventListe
     </div>
 </div>
 <?php endif; ?>
+
+<!-- Add/Edit Customer Modal -->
+<div id="customer-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:14px;padding:28px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.15rem;">Add Customer</h3>
+            <button onclick="document.getElementById('customer-modal').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:1.3rem;color:#64748b;">&times;</button>
+        </div>
+        <form method="POST">
+            <input type="hidden" name="_action" value="save_customer">
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;">Customer Name *</label>
+                <input type="text" name="customer_name" required placeholder="e.g. John Kamau" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                <div>
+                    <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;">Phone</label>
+                    <input type="text" name="phone" placeholder="+254 712 345 678" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;">Type</label>
+                    <select name="customer_type" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">
+                        <option value="retail">Retail</option>
+                        <option value="wholesale">Wholesale</option>
+                        <option value="institution">Institution</option>
+                        <option value="agent">Agent</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;">Address</label>
+                <input type="text" name="address" placeholder="Town / Area" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:4px;">Notes</label>
+                <textarea name="notes" rows="2" placeholder="Optional notes about this customer" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:8px;font-size:0.95rem;box-sizing:border-box;resize:vertical;"></textarea>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button type="button" onclick="document.getElementById('customer-modal').style.display='none'" style="padding:10px 20px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;cursor:pointer;font-size:0.9rem;">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php include __DIR__ . '/includes/admin_footer.php'; ?>
