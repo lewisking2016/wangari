@@ -122,8 +122,8 @@ include '../includes/header.php';
     <div class="g-container">
         <div class="g-section-head center g-reveal">
             <span class="g-eyebrow">How We Work</span>
-            <h2>The team behind <span class="g-serif">the platform</span></h2>
-            <p>Wangari is improved around the workflows farm owners, managers and record keepers need every day.</p>
+            <h2>Built by <span class="g-serif">iMeanTech</span></h2>
+            <p>Wangari is designed and maintained by iMeanTech — a technology company based in Nairobi, Kenya — around the workflows farm owners, managers and record keepers need every day.</p>
         </div>
         <div class="g-grid-3">
             <div class="g-card g-reveal g-delay-1" style="text-align: center; padding: 2.5rem 1.7rem;">
