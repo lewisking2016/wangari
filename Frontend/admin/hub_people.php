@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
                     $message = 'Staff member updated.';
                 } else {
                     $hash = password_hash($password !== '' ? $password : 'Staff@123', PASSWORD_DEFAULT);
-                    $pdo->prepare('INSERT INTO users (username,email,password,role,full_name,phone) VALUES (?,?,?,?,?,?)')
-                        ->execute([$username,$email,$hash,$role,$fullName,$phone]);
+                    $pdo->prepare('INSERT INTO users (username,email,password,role,full_name,phone,created_by) VALUES (?,?,?,?,?,?,?)')
+                        ->execute([$username,$email,$hash,$role,$fullName,$phone,$currentAdminId]);
                     $message = 'Staff member added. Default password: Staff@123';
                 }
             } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -139,7 +139,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
 $staffList = $taskList = $messageList = $customerList = [];
 if ($pdo) {
     try {
-        $staffList = $pdo->query("SELECT * FROM users WHERE role IN ('super_admin','farm_manager','stock_manager') ORDER BY full_name ASC, username ASC")->fetchAll(PDO::FETCH_ASSOC);
+        // Show only this user's account + staff they created + super admins
+        $staffList = $pdo->prepare("SELECT * FROM users WHERE id = ? OR created_by = ? OR role = 'super_admin' ORDER BY full_name ASC, username ASC");
+        $staffList->execute([$currentAdminId, $currentAdminId]);
+        $staffList = $staffList->fetchAll(PDO::FETCH_ASSOC);
         if ($tab === 'users') {
             $customerList = $pdo->query("SELECT lw.id, lw.full_name, lw.phone, lw.role, lw.is_active, lw.created_at FROM labour_workers lw WHERE lw.is_active = 1 ORDER BY lw.full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
         }
