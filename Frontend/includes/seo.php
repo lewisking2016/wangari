@@ -25,7 +25,7 @@ function generateOrganizationSchema(): string
         ],
         'address' => [
             '@type' => 'PostalAddress',
-            'streetAddress' => 'Nasira AC sub-location, Busibwabo Location',
+            'streetAddress' => 'Waris Mall, Ruiru',
             'addressLocality' => 'Nairobi',
             'addressRegion' => 'Nairobi County',
             'postalCode' => '50400',
