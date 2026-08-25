@@ -58,7 +58,7 @@ function w2NavGroup(string $icon, string $label, string $hub, array $items, stri
 HTML;
 }
 ?>
-<nav class="w2-side">
+<nav class="w2-side" role="navigation" aria-label="Main navigation">
     <!-- Brand -->
     <div class="w2-side-brand">
         <img src="/Frontend/images/wangari-logo.png" alt="Wangari" class="w2-logo">

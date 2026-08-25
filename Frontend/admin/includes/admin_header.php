@@ -65,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/vendor/swiper/swiper-bundle.min.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/tokens.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
     <style>
@@ -1248,6 +1249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include __DIR__ . '/help_tooltips.php'; ?>
 </head>
 <body class="admin-layout">
+<a href="#main-content" class="skip-link">Skip to main content</a>
 <script>
     window.WangariAdmin = window.WangariAdmin || {};
     window.WangariAdmin.csrfToken = <?php echo json_encode($csrf_token); ?>;
@@ -1295,9 +1297,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="w2-nav-overlay" id="w2-nav-overlay"></div>
 <div class="admin-shell">
     <?php include __DIR__ . '/admin_sidebar.php'; ?>
-    <div class="admin-content">
+    <div class="admin-content" id="main-content">
         <!-- Top utility bar (V2) -->
-        <div class="admin-top-bar">
+        <div class="admin-top-bar" role="banner">
             <div class="welcome-message">
                 <p style="margin:0 0 2px;color:var(--w2-muted);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Wangari Admin</p>
                 <h2 style="margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -1317,17 +1319,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button class="w2-mobile-hamburger" id="w2-mobile-hamburger" title="Menu" aria-label="Open menu"><i data-lucide="menu" style="width:20px;height:20px;"></i></button>
-                <button id="open-command-palette" title="Quick search & commands (Ctrl+K)" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
+                <button id="open-command-palette" aria-label="Quick search and commands" title="Quick search & commands (Ctrl+K)" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
                     <i data-lucide="search" style="width:20px;height:20px;"></i>
                 </button>
-                <button id="open-system-guide" title="System Walkthrough Guide" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
+                <button id="open-system-guide" aria-label="System walkthrough guide" title="System Walkthrough Guide" style="background:#F4F6F9;border:1px solid var(--w2-border);cursor:pointer;color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;transition:all 0.2s;outline:none;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
                     <i data-lucide="help-circle" style="width:20px;height:20px;"></i>
                 </button>
-                <a href="/Frontend/admin/ai_assistant.php" title="Ask Wangari AI" style="background:#F4F6F9;border:1px solid var(--w2-border);color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
+                <a href="/Frontend/admin/ai_assistant.php" aria-label="Ask Wangari AI assistant" title="Ask Wangari AI" style="background:#F4F6F9;border:1px solid var(--w2-border);color:var(--w2-primary);display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='#E8F5EC'" onmouseout="this.style.background='#F4F6F9'">
                     <i data-lucide="sparkles" style="width:20px;height:20px;"></i>
                 </a>
                 <div class="admin-profile-badge" style="display:flex;align-items:center;gap:10px;background:#F8FAFC;border:1px solid var(--w2-border);border-radius:999px;padding:5px 14px 5px 6px;">
-                    <div class="admin-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#14532D,#22C55E);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Inter Tight',sans-serif;font-size:0.9rem;">
+                    <div class="admin-avatar" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#14532D,#22C55E);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Inter Tight',sans-serif;font-size:0.9rem;">
                         <?php 
                         $initial = strtoupper(substr($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'A', 0, 1));
                         echo $initial;

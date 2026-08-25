@@ -1,0 +1,311 @@
+/* ═══════════════════════════════════════════════════════════════
+   WANGARI DESIGN TOKENS — Single source of truth
+   All colors, spacing, typography, shadows, and motion
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand Colors ── */
+  --w-primary: #166534;
+  --w-primary-light: #1B7A3D;
+  --w-primary-hover: #14532D;
+  --w-accent: #22C55E;
+  --w-accent-light: #4ADE80;
+  --w-accent-dark: #15803D;
+
+  /* ── Surface Colors ── */
+  --w-surface: #FFFFFF;
+  --w-surface-alt: #F8FAFC;
+  --w-surface-raised: #FFFFFF;
+  --w-background: #F5F6F8;
+  --w-background-warm: #FAFBFC;
+
+  /* ── Border Colors ── */
+  --w-border: #E2E8F0;
+  --w-border-light: #F1F5F9;
+  --w-border-focus: var(--w-primary);
+
+  /* ── Text Colors ── */
+  --w-text: #0F172A;
+  --w-text-secondary: #475569;
+  --w-text-muted: #94A3B8;
+  --w-text-inverse: #FFFFFF;
+  --w-text-accent: var(--w-primary);
+
+  /* ── Semantic Colors ── */
+  --w-error: #DC2626;
+  --w-error-bg: #FEF2F2;
+  --w-error-border: #FECACA;
+  --w-success: #16A34A;
+  --w-success-bg: #F0FDF4;
+  --w-success-border: #BBF7D0;
+  --w-warning: #D97706;
+  --w-warning-bg: #FFFBEB;
+  --w-warning-border: #FDE68A;
+  --w-info: #2563EB;
+  --w-info-bg: #EFF6FF;
+  --w-info-border: #BFDBFE;
+
+  /* ── Typography ── */
+  --w-font-display: 'Outfit', 'Inter Tight', sans-serif;
+  --w-font-body: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --w-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Font Sizes ── */
+  --w-text-xs: 0.75rem;
+  --w-text-sm: 0.8125rem;
+  --w-text-base: 0.9375rem;
+  --w-text-md: 1rem;
+  --w-text-lg: 1.125rem;
+  --w-text-xl: 1.25rem;
+  --w-text-2xl: 1.5rem;
+  --w-text-3xl: 1.875rem;
+  --w-text-4xl: 2.25rem;
+
+  /* ── Font Weights ── */
+  --w-weight-normal: 400;
+  --w-weight-medium: 500;
+  --w-weight-semibold: 600;
+  --w-weight-bold: 700;
+  --w-weight-extrabold: 800;
+
+  /* ── Line Heights ── */
+  --w-leading-tight: 1.2;
+  --w-leading-snug: 1.375;
+  --w-leading-normal: 1.5;
+  --w-leading-relaxed: 1.625;
+
+  /* ── Spacing (4px base grid) ── */
+  --w-space-0: 0;
+  --w-space-px: 1px;
+  --w-space-0-5: 2px;
+  --w-space-1: 4px;
+  --w-space-1-5: 6px;
+  --w-space-2: 8px;
+  --w-space-2-5: 10px;
+  --w-space-3: 12px;
+  --w-space-3-5: 14px;
+  --w-space-4: 16px;
+  --w-space-5: 20px;
+  --w-space-6: 24px;
+  --w-space-7: 28px;
+  --w-space-8: 32px;
+  --w-space-9: 36px;
+  --w-space-10: 40px;
+  --w-space-12: 48px;
+  --w-space-14: 56px;
+  --w-space-16: 64px;
+  --w-space-20: 80px;
+  --w-space-24: 96px;
+
+  /* ── Border Radius ── */
+  --w-radius-xs: 4px;
+  --w-radius-sm: 8px;
+  --w-radius-md: 12px;
+  --w-radius-lg: 16px;
+  --w-radius-xl: 20px;
+  --w-radius-2xl: 24px;
+  --w-radius-full: 9999px;
+
+  /* ── Shadows (soft, tinted with primary) ── */
+  --w-shadow-xs: 0 1px 2px rgba(22, 101, 52, 0.03);
+  --w-shadow-sm: 0 1px 3px rgba(22, 101, 52, 0.04), 0 1px 2px rgba(22, 101, 52, 0.02);
+  --w-shadow-md: 0 4px 12px rgba(22, 101, 52, 0.05), 0 2px 4px rgba(22, 101, 52, 0.03);
+  --w-shadow-lg: 0 12px 40px rgba(22, 101, 52, 0.07), 0 4px 12px rgba(22, 101, 52, 0.03);
+  --w-shadow-xl: 0 20px 60px rgba(22, 101, 52, 0.09), 0 8px 20px rgba(22, 101, 52, 0.04);
+  --w-shadow-glow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  --w-shadow-focus: 0 0 0 3px rgba(22, 101, 52, 0.2);
+
+  /* ── Transitions ── */
+  --w-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --w-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --w-ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --w-duration-fast: 120ms;
+  --w-duration-base: 200ms;
+  --w-duration-slow: 350ms;
+  --w-duration-slower: 500ms;
+
+  /* ── Z-Index Scale ── */
+  --w-z-base: 0;
+  --w-z-dropdown: 100;
+  --w-z-sticky: 200;
+  --w-z-overlay: 300;
+  --w-z-modal: 400;
+  --w-z-toast: 500;
+
+  /* ── Layout ── */
+  --w-sidebar-width: 268px;
+  --w-sidebar-collapsed: 72px;
+  --w-topbar-height: 68px;
+  --w-max-content: 1400px;
+  --w-max-form: 640px;
+  --w-max-card: 480px;
+
+  /* ── Touch Targets (WCAG 2.2) ── */
+  --w-touch-min: 44px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT STYLES — Shared across all admin pages
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Skip Navigation Link (Accessibility) ── */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: var(--w-space-4);
+  z-index: 9999;
+  padding: var(--w-space-3) var(--w-space-6);
+  background: var(--w-primary);
+  color: var(--w-text-inverse);
+  font-weight: var(--w-weight-semibold);
+  font-size: var(--w-text-sm);
+  border-radius: 0 0 var(--w-radius-sm) var(--w-radius-sm);
+  text-decoration: none;
+  transition: top var(--w-duration-base) var(--w-ease);
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--w-accent);
+  outline-offset: 2px;
+}
+
+/* ── Focus Visible (Accessibility) ── */
+:focus-visible {
+  outline: 2px solid var(--w-primary);
+  outline-offset: 2px;
+  border-radius: var(--w-radius-xs);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--w-primary);
+  outline-offset: 2px;
+}
+
+/* ── Reduced Motion (Accessibility) ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Card Component ── */
+.w-card {
+  background: var(--w-surface);
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius-xl);
+  box-shadow: var(--w-shadow-sm);
+  padding: var(--w-space-6);
+  transition: box-shadow var(--w-duration-base) var(--w-ease),
+              transform var(--w-duration-base) var(--w-ease);
+  position: relative;
+  overflow: visible;
+}
+.w-card:hover {
+  box-shadow: var(--w-shadow-md);
+}
+.w-card--interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--w-shadow-lg);
+}
+
+/* ── Stat Card ── */
+.w-stat {
+  background: var(--w-surface);
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius-xl);
+  box-shadow: var(--w-shadow-sm);
+  padding: var(--w-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--w-duration-base) var(--w-ease);
+  position: relative;
+  overflow: visible;
+}
+.w-stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--w-primary);
+  opacity: 0;
+  transition: opacity var(--w-duration-base) var(--w-ease);
+  border-radius: var(--w-radius-xl) 0 0 var(--w-radius-xl);
+}
+.w-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--w-shadow-lg);
+}
+.w-stat:hover::before {
+  opacity: 1;
+}
+.w-stat:hover .w-stat-icon {
+  transform: scale(1.12) rotate(3deg);
+  background: rgba(22, 101, 52, 0.12);
+}
+.w-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--w-space-1);
+}
+.w-stat-label {
+  font-size: var(--w-text-xs);
+  font-weight: var(--w-weight-semibold);
+  color: var(--w-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.w-stat-value {
+  font-family: var(--w-font-display);
+  font-size: var(--w-text-3xl);
+  font-weight: var(--w-weight-bold);
+  color: var(--w-text);
+  line-height: var(--w-leading-tight);
+  letter-spacing: -0.02em;
+  transition: color var(--w-duration-base) var(--w-ease);
+}
+.w-stat:hover .w-stat-value {
+  color: var(--w-primary);
+}
+.w-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--w-radius-md);
+  background: rgba(22, 101, 52, 0.07);
+  color: var(--w-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--w-duration-base) var(--w-ease);
+  flex-shrink: 0;
+}
+.w-stat-icon svg,
+.w-stat-icon i {
+  width: 22px;
+  height: 22px;
+}
+
+/* ── Button System ── */
+.w-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--w-space-2);
+  padding: var(--w-space-2-5) var(--w-space-5);
+  border-radius: var(--w-radius-full);
+  font-family: var(--w-font-body);
+  font-size: var(--w-text-sm);
+  font-weight: var(--w-weight-semibold);
+  line-height: var(--w-leading-tight);
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: al
