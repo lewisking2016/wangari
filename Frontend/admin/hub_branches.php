@@ -9,7 +9,7 @@ $page_title = 'Farm Branches';
 require_once __DIR__ . '/includes/admin_header.php';
 require_once dirname(__DIR__) . '/includes/branch_helpers.php';
 
-$pdo = wangariGetPdo();
+$pdo = getDB();
 $userId = $_SESSION['user_id'];
 $currentFarmId = getCurrentFarmId();
 $action = $_GET['action'] ?? 'list';
