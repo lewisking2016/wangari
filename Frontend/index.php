@@ -1005,6 +1005,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<script src="/Frontend/assets/vendor/swiper/swiper-bundle.min.js"></script>
+
 <style>
     @media (max-width: 768px) {
         .why-wangari-grid {
