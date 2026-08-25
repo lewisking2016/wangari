@@ -450,8 +450,8 @@ try {
             $dashRegisteredAt = $stmt2->fetchColumn() ?? '';
         }
         // Calculate trial end from registration date + 30 days
-        if (!$dashSubExpires && $dashRegisteredAt) {
-            $dashSubExpires = date('Y-m-d', strtotime($dashRegisteredAt) . ' +30 days');
+        if (!$dashSubExpires && $dashRegisteredAt && strtotime($dashRegisteredAt) !== false) {
+            $dashSubExpires = date('Y-m-d', strtotime($dashRegisteredAt . ' +30 days'));
         }
     }
     
@@ -465,10 +465,11 @@ try {
             <div>
                 <?php
                     // Trial countdown from registration date
-                    $trialEndDate = $dashSubExpires ?: date('Y-m-d', strtotime($dashRegisteredAt ?: date('Y-m-d')) . ' +30 days');
-                    $daysLeft = max(0, (int)((strtotime($trialEndDate) - time()) / 86400));
-                    $hoursLeft = max(0, (int)((strtotime($trialEndDate) - time()) % 86400 / 3600));
-                    $registeredDate = $dashRegisteredAt ? date('M j, Y', strtotime($dashRegisteredAt)) : 'today';
+                    $trialEndDate = $dashSubExpires ?: date('Y-m-d', strtotime($dashRegisteredAt . ' +30 days') ?: strtotime('+30 days'));
+                    $trialTimestamp = strtotime($trialEndDate);
+                    $daysLeft = max(0, (int)(($trialTimestamp - time()) / 86400));
+                    $hoursLeft = max(0, (int)(($trialTimestamp - time()) % 86400 / 3600));
+                    $registeredDate = ($dashRegisteredAt && strtotime($dashRegisteredAt) !== false) ? date('M j, Y', strtotime($dashRegisteredAt)) : 'today';
                 ?>
                 <div style="font-weight: 700; font-size: 1rem;">
                     <?php if ($dashSubStatus === 'trial'): ?>
