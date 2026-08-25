@@ -115,7 +115,7 @@ if ($action === 'edit' && $branchId) {
 }
 
 // ── Include sidebar ──
-include __DIR__ . '/includes/admin_sidebar.php';
+// sidebar already included by admin_header.php
 ?>
 
 <div class="admin-content" style="margin-left:268px; width:calc(100% - 268px);">
