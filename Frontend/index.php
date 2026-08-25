@@ -27,6 +27,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
+    <link rel="stylesheet" href="/Frontend/assets/vendor/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="/Frontend/assets/css/xai-sections.css">
 
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
@@ -552,59 +553,113 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                 <h2>See what your team can <span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">manage</span></h2>
                 <p>Use the trial with your own records and judge the workflow before choosing a paid plan.</p>
             </div>
-            <div class="xai-testimonials">
-                <div class="xai-testimonial xai-reveal">
-                    <div class="xai-testimonial-stars">
-                        <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
-                    </div>
-                    <p>Keep production, feed costs, sales and credit records together instead of switching between notebooks and spreadsheets.</p>
-                    <div class="xai-testimonial-author">
-                        <div class="xai-testimonial-avatar">N</div>
-                        <div>
-                            <div class="xai-testimonial-name">Farm operations</div>
-                            <div class="xai-testimonial-role">Production and health records</div>
+            <!-- Swiper Slideshow -->
+            <div class="xai-slideshow-wrap xai-reveal" style="position:relative;padding-bottom:60px;">
+                <div class="swiper xai-slideshow" style="overflow:hidden;">
+                    <div class="swiper-wrapper">
+                        <!-- Slide 1: Farm Operations -->
+                        <div class="swiper-slide">
+                            <div style="background:var(--xai-card-bg);border:1px solid var(--xai-border);border-radius:16px;padding:40px;min-height:320px;display:flex;flex-direction:column;justify-content:space-between;">
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#22C55E22,#16A34A11);display:flex;align-items:center;justify-content:center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:0.75rem;font-weight:700;color:var(--xai-lime);text-transform:uppercase;letter-spacing:0.08em;">Farm Operations</div>
+                                            <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Daily Records & Health</div>
+                                        </div>
+                                    </div>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Record egg counts, mortality, weight gain and vaccinations in one place. No more scattered notebooks — every entry connects to your batch and updates your profit report automatically.</p>
+                                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Egg Tracking</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Mortality Log</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Vaccinations</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Weight Records</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 2: Inventory -->
+                        <div class="swiper-slide">
+                            <div style="background:var(--xai-card-bg);border:1px solid var(--xai-border);border-radius:16px;padding:40px;min-height:320px;display:flex;flex-direction:column;justify-content:space-between;">
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#F59E0B22,#D9770611);display:flex;align-items:center;justify-content:center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:0.75rem;font-weight:700;color:#F59E0B;text-transform:uppercase;letter-spacing:0.08em;">Inventory & Store</div>
+                                            <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Feed, Stock & Costs</div>
+                                        </div>
+                                    </div>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Know exactly how much feed, medicine and supplies you have left. Track every bag of layers mash and every bottle of vaccine — the system alerts you before you run out and shows what each batch is costing you.</p>
+                                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Feed Stock</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Low Alerts</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Cost Tracking</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Auto Reorder</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 3: Sales & Credit -->
+                        <div class="swiper-slide">
+                            <div style="background:var(--xai-card-bg);border:1px solid var(--xai-border);border-radius:16px;padding:40px;min-height:320px;display:flex;flex-direction:column;justify-content:space-between;">
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#10B98122,#05966911);display:flex;align-items:center;justify-content:center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:0.75rem;font-weight:700;color:#10B981;text-transform:uppercase;letter-spacing:0.08em;">Sales & Finance</div>
+                                            <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Orders, Credit & M-Pesa</div>
+                                        </div>
+                                    </div>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Track who bought eggs today, who still owes you money, and how much you made this week. Every sale — cash, M-Pesa or credit — shows up in your profit report so you always know where your money is.</p>
+                                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">M-Pesa Sales</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Credit Tracking</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Customer Accounts</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Profit Reports</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 4: Teams -->
+                        <div class="swiper-slide">
+                            <div style="background:var(--xai-card-bg);border:1px solid var(--xai-border);border-radius:16px;padding:40px;min-height:320px;display:flex;flex-direction:column;justify-content:space-between;">
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                                        <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#6366F122,#4F46E511);display:flex;align-items:center;justify-content:center;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:0.75rem;font-weight:700;color:#6366F1;text-transform:uppercase;letter-spacing:0.08em;">Teams & Workers</div>
+                                            <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Roles & Access Control</div>
+                                        </div>
+                                    </div>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Your farm worker records daily tasks, your manager handles sales, and you see everything. Each person gets the right access — nobody sees what they shouldn't, and you stay in control of your data.</p>
+                                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Worker Access</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Manager View</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Owner Dashboard</span>
+                                        <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Secure Data</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="xai-testimonial xai-reveal">
-                    <div class="xai-testimonial-stars">
-                        <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
-                    </div>
-                    <p>Track feed formulas, stock movement and production costs so your reports start with the records your team entered.</p>
-                    <div class="xai-testimonial-author">
-                        <div class="xai-testimonial-avatar">O</div>
-                        <div>
-                            <div class="xai-testimonial-name">Inventory and production</div>
-                            <div class="xai-testimonial-role">Stock, formulas and costing</div>
-                        </div>
-                    </div>
+                <!-- Navigation arrows -->
+                <div class="xai-slideshow-prev" style="position:absolute;left:-16px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--xai-card-bg);border:1px solid var(--xai-border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;transition:all 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--xai-text)" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
                 </div>
-                <div class="xai-testimonial xai-reveal">
-                    <div class="xai-testimonial-stars">
-                        <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
-                    </div>
-                    <p>Manage customers, orders and credit from the same account, with responsive screens for phones and computers.</p>
-                    <div class="xai-testimonial-author">
-                        <div class="xai-testimonial-avatar">A</div>
-                        <div>
-                            <div class="xai-testimonial-name">Sales and customers</div>
-                            <div class="xai-testimonial-role">Orders, invoices and credit</div>
-                        </div>
-                    </div>
+                <div class="xai-slideshow-next" style="position:absolute;right:-16px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--xai-card-bg);border:1px solid var(--xai-border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;transition:all 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--xai-text)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
-                <div class="xai-testimonial xai-reveal">
-                    <div class="xai-testimonial-stars">
-                        <?php for($i=0;$i<5;$i++): ?><svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><?php endfor; ?>
-                    </div>
-                    <p>Give owners, managers and record keepers the access they need while keeping permissions and farm data under your control.</p>
-                    <div class="xai-testimonial-author">
-                        <div class="xai-testimonial-avatar">M</div>
-                        <div>
-                            <div class="xai-testimonial-name">Teams and permissions</div>
-                            <div class="xai-testimonial-role">Role-based access</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Pagination dots -->
+                <div class="xai-slideshow-pagination" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;gap:8px;"></div>
             </div>
         </div>
     </section>
@@ -956,7 +1011,54 @@ document.addEventListener('DOMContentLoaded', () => {
             grid-template-columns: 1fr !important;
             gap: 40px !important;
         }
+        .xai-slideshow-prev, .xai-slideshow-next {
+            display: none !important;
+        }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var slideshow = new Swiper('.xai-slideshow', {
+        slidesPerView: 1,
+        spaceBetween: 24,
+        loop: true,
+        autoplay: { delay: 5000, disableOnInteraction: false },
+        pagination: { el: '.xai-slideshow-pagination', clickable: true },
+        navigation: { prevEl: '.xai-slideshow-prev', nextEl: '.xai-slideshow-next' },
+        breakpoints: {
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 }
+        }
+    });
+    // Style pagination dots
+    document.querySelectorAll('.xai-slideshow-pagination .swiper-pagination-bullet').forEach(function(dot) {
+        dot.style.width = '8px';
+        dot.style.height = '8px';
+        dot.style.background = 'var(--xai-border)';
+        dot.style.opacity = '1';
+        dot.style.transition = 'all 0.3s';
+    });
+    document.querySelectorAll('.xai-slideshow-pagination .swiper-pagination-bullet-active').forEach(function(dot) {
+        dot.style.background = 'var(--xai-lime)';
+        dot.style.width = '24px';
+        dot.style.borderRadius = '4px';
+    });
+    slideshow.on('slideChange', function() {
+        document.querySelectorAll('.xai-slideshow-pagination .swiper-pagination-bullet').forEach(function(dot) {
+            dot.style.width = '8px';
+            dot.style.borderRadius = '50%';
+            dot.style.background = 'var(--xai-border)';
+        });
+        var active = document.querySelector('.xai-slideshow-pagination .swiper-pagination-bullet-active');
+        if (active) {
+            active.style.background = 'var(--xai-lime)';
+            active.style.width = '24px';
+            active.style.borderRadius = '4px';
+        }
+    });
+});
+</script>
+
 </body>
 </html>
