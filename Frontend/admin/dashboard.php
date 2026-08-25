@@ -429,17 +429,23 @@ try {
     $dashSubExpires = '';
     $dashMaxAnimals = 5;
     
+    $dashRegisteredAt = '';
     if (isset($wPdo) && $wPdo) {
-        $stmt = $wPdo->prepare('SELECT subscription_status, subscription_expires, max_animals FROM platform_users WHERE id = ?');
+        $stmt = $wPdo->prepare('SELECT subscription_status, subscription_expires, max_animals, created_at FROM platform_users WHERE id = ?');
         $stmt->execute([(int)($_SESSION['user_id'] ?? 0)]);
         $dashSub = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($dashSub) {
             $dashSubStatus = $dashSub['subscription_status'] ?? 'trial';
             $dashSubExpires = $dashSub['subscription_expires'] ?? '';
             $dashMaxAnimals = (int)($dashSub['max_animals'] ?? 5);
+            $dashRegisteredAt = $dashSub['created_at'] ?? '';
             if ($dashSubStatus === 'active') {
                 $dashSubPlan = $dashMaxAnimals >= 200 ? 'Plus' : 'Pro';
             }
+        }
+        // If no subscription_expires, calculate from registration date + 30 days
+        if (!$dashSubExpires && $dashRegisteredAt) {
+            $dashSubExpires = date('Y-m-d', strtotime($dashRegisteredAt) . ' +30 days');
         }
     }
     
@@ -452,15 +458,11 @@ try {
             </div>
             <div>
                 <?php
-                    // Calculate trial days remaining
-                    if ($dashSubExpires) {
-                        $trialEndDate = $dashSubExpires;
-                    } else {
-                        // Fallback: calculate from user creation date + 30 days
-                        $trialEndDate = date('Y-m-d', strtotime($_SESSION['created_at'] ?? date('Y-m-d')) . ' +30 days');
-                    }
+                    // Trial countdown from registration date
+                    $trialEndDate = $dashSubExpires ?: date('Y-m-d', strtotime($dashRegisteredAt ?: date('Y-m-d')) . ' +30 days');
                     $daysLeft = max(0, (int)((strtotime($trialEndDate) - time()) / 86400));
                     $hoursLeft = max(0, (int)((strtotime($trialEndDate) - time()) % 86400 / 3600));
+                    $registeredDate = $dashRegisteredAt ? date('M j, Y', strtotime($dashRegisteredAt)) : 'today';
                 ?>
                 <div style="font-weight: 700; font-size: 1rem;">
                     <?php if ($dashSubStatus === 'trial'): ?>
@@ -471,7 +473,7 @@ try {
                 </div>
                 <div style="font-size: 0.85rem; opacity: 0.9;">
                     <?php if ($dashSubStatus === 'trial'): ?>
-                        <strong><?php echo $daysLeft; ?>d <?php echo $hoursLeft; ?>h remaining</strong> — Upgrade to keep all features after your trial
+                        <strong><?php echo $daysLeft; ?>d <?php echo $hoursLeft; ?>h remaining</strong> — Trial started <?php echo $registeredDate; ?>. Upgrade to keep all features
                     <?php else: ?>
                         Expired <?php echo date('M j, Y', strtotime($dashSubExpires ?? date('Y-m-d'))); ?> — Subscribe now to continue
                     <?php endif; ?>
