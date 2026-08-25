@@ -18,6 +18,7 @@ $validTabs = ['calendar','dropdowns','settings','logs','audit'];
 if (!in_array($tab, $validTabs, true)) $tab = 'calendar';
 
 $pdo = getDB();
+$currentUserId = (int)($_SESSION['user_id'] ?? 0);
 $message = ''; $error_message = '';
 
 /* ── Handle POST ─────────────────────────────────── */
@@ -56,11 +57,14 @@ if ($pdo) {
             $settingsList = $pdo->query('SELECT * FROM settings ORDER BY setting_key ASC')->fetchAll(PDO::FETCH_ASSOC);
         }
         if ($tab === 'logs') {
-            $logsList = $pdo->query('SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+            // Only show logs for this user and workers they created
+            $stmtLogs = $pdo->prepare('SELECT al.* FROM activity_logs al WHERE al.user_id = ? OR al.user_id IN (SELECT id FROM users WHERE created_by = ?) ORDER BY al.created_at DESC LIMIT 200');
+            $stmtLogs->execute([$currentUserId, $currentUserId]);
+            $logsList = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
         }
         if ($tab === 'calendar') {
             // Tasks with due dates for the calendar
-            $tasksDue = $pdo->query("SELECT t.*, CONCAT(COALESCE(u.first_name,''),' ',COALESCE(u.last_name,'')) AS assigned_name FROM tasks t LEFT JOIN users u ON t.assigned_to=u.id WHERE t.due_date IS NOT NULL AND t.status NOT IN ('Completed','Cancelled') ORDER BY t.due_date ASC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
+            $tasksDue = $pdo->query("SELECT t.*, COALESCE(u.full_name, u.username, 'Unassigned') AS assigned_name FROM worker_tasks t LEFT JOIN labour_workers lw ON t.assigned_to_worker_id = lw.id WHERE t.task_date IS NOT NULL AND t.status NOT IN ('completed','skipped') ORDER BY t.task_date ASC LIMIT 50")->fetchAll(PDO::FETCH_ASSOC);
         }
     } catch (Exception $e) { /* non-fatal */ }
 }
@@ -246,7 +250,9 @@ $tabs = [
     $auditSearch = trim($_GET['q'] ?? '');
     if ($pdo) {
         try {
-            $aq = 'SELECT al.*, u.username, u.first_name, u.last_name FROM activity_log al LEFT JOIN users u ON al.user_id = u.id WHERE 1=1';
+            $aq = 'SELECT al.*, u.username, COALESCE(u.full_name, u.username) AS user_name FROM activity_log al LEFT JOIN users u ON al.user_id = u.id WHERE (al.user_id = ? OR al.user_id IN (SELECT id FROM users WHERE created_by = ?))';
+            $aparams[] = $currentUserId;
+            $aparams[] = $currentUserId;
             $aparams = [];
             if ($auditModule !== '') { $aq .= ' AND al.module = ?'; $aparams[] = $auditModule; }
             if ($auditSearch !== '') { $aq .= ' AND al.description LIKE ?'; $aparams[] = "%$auditSearch%"; }
