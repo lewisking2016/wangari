@@ -16,7 +16,7 @@ if (empty($_SESSION['user_id'])) {
 }
 
 $userId = (int)$_SESSION['user_id'];
-$farmUserId = (int)($_SESSION['farm_user_id'] ?? 0);
+$farmUserId = (int)($_SESSION['farm_id'] ?? 0);
 $action = $_GET['action'] ?? '';
 
 $pdo = getDB();
@@ -30,7 +30,7 @@ switch ($action) {
         // Get pending reminders for this worker's farm
         $stmt = $pdo->prepare("
             SELECT * FROM reminders 
-            WHERE farm_user_id = ? 
+            WHERE farm_id = ? 
             AND status = 'pending' 
             AND remind_at <= NOW()
             ORDER BY remind_at ASC 
@@ -48,7 +48,7 @@ switch ($action) {
         $stmt = $pdo->prepare("
             SELECT * FROM worker_tasks 
             WHERE (assigned_to_worker_id = ? OR assigned_to_worker_id IS NULL)
-            AND farm_user_id = ?
+            AND farm_id = ?
             AND task_date = ?
             AND status IN ('pending', 'in_progress')
             AND due_time <= DATE_ADD(NOW(), INTERVAL 30 MINUTE)
@@ -69,7 +69,7 @@ switch ($action) {
         $stmt = $pdo->prepare("
             SELECT 'reminder' as type, id, title, description as message, remind_at as time
             FROM reminders 
-            WHERE farm_user_id = ? AND status = 'pending'
+            WHERE farm_id = ? AND status = 'pending'
             ORDER BY remind_at DESC LIMIT 5
         ");
         $stmt->execute([$farmUserId]);
@@ -98,7 +98,7 @@ switch ($action) {
         $id = (int)($_POST['id'] ?? 0);
         
         if ($type === 'reminder' && $id > 0) {
-            $pdo->prepare("UPDATE reminders SET status = 'done' WHERE id = ? AND farm_user_id = ?")
+            $pdo->prepare("UPDATE reminders SET status = 'done' WHERE id = ? AND farm_id = ?")
                 ->execute([$id, $farmUserId]);
         }
         
@@ -109,7 +109,7 @@ switch ($action) {
         // Get current clock status
         $stmt = $pdo->prepare("
             SELECT * FROM worker_clock_records 
-            WHERE worker_user_id = ? AND farm_user_id = ? 
+            WHERE worker_user_id = ? AND farm_id = ? 
             AND clock_out IS NULL 
             ORDER BY id DESC LIMIT 1
         ");
@@ -148,7 +148,7 @@ switch ($action) {
         $stmt = $pdo->prepare("
             SELECT COALESCE(SUM(TIMESTAMPDIFF(SECOND, clock_in, COALESCE(clock_out, NOW())) - (break_minutes * 60)), 0) as seconds
             FROM worker_clock_records 
-            WHERE worker_user_id = ? AND farm_user_id = ? AND DATE(clock_in) = ?
+            WHERE worker_user_id = ? AND farm_id = ? AND DATE(clock_in) = ?
         ");
         $stmt->execute([$userId, $farmUserId, $today]);
         $hours = round($stmt->fetchColumn() / 3600, 1);
