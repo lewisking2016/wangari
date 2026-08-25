@@ -1,23 +1,15 @@
 <?php
 /**
- * Global Footer, Wangari
- * Standardized footer used across all public pages.
+ * Unified Footer for Wangari
+ * Used across all pages (public + admin)
  */
-
-declare(strict_types=1);
-
-if (!isset($path_prefix)) {
-    $path_prefix = '';
-}
 ?>
-
 <!-- ═══════════════════════════════════════════════ -->
 <!-- FOOTER — Wangari Standardized                  -->
 <!-- ═══════════════════════════════════════════════ -->
-<footer class="g-footer" style="background: #1a1a2e; color: #e0e0e0; padding: 60px 0 0; font-family: 'Outfit', sans-serif;">
-    <div class="g-container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+<footer style="background: #1a1a2e; color: #e0e0e0; padding: 60px 0 0; font-family: 'Outfit', sans-serif;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; padding-bottom: 40px;">
-            
             <!-- Brand Column -->
             <div>
                 <a href="/" style="display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 16px;">
@@ -67,50 +59,3 @@ if (!isset($path_prefix)) {
         </div>
     </div>
 </footer>
-
-<!-- Global Javascript Files -->
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/vendor/gsap/gsap.min.js"></script>
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/vendor/swiper/swiper-bundle.min.js"></script>
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/vendor/lucide/lucide.min.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-
-        if (typeof gsap !== 'undefined') {
-            const heroContent = document.querySelectorAll('.hero-content > *');
-            if (heroContent.length > 0) {
-                gsap.fromTo(heroContent,
-                    { opacity: 0, y: 30 },
-                    { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power2.out" }
-                );
-            }
-
-            const revealObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        gsap.fromTo(entry.target,
-                            { opacity: 0, y: 40 },
-                            { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
-                        );
-                        revealObserver.unobserve(entry.target);
-                    }
-                });
-            }, { rootMargin: '0px 0px -80px 0px', threshold: 0.1 });
-
-            document.querySelectorAll('section:not(:first-of-type)').forEach(section => {
-                section.style.opacity = '0';
-                revealObserver.observe(section);
-            });
-        }
-    });
-</script>
-
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/main.js" defer></script>
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/hero-slider.js" defer></script>
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/professional-animations.js" defer></script>
-<script src="<?php echo BASE_URL ?? '/Frontend/'; ?>assets/js/growvi-animations.js" defer></script>
-</body>
-</html>
