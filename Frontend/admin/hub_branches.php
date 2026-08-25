@@ -153,7 +153,7 @@ include __DIR__ . '/includes/admin_sidebar.php';
 <!-- Branch Cards Grid -->
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">
 <?php foreach ($farms as $farm): 
-    $stats = getFarmStats((int)$farm['id']);
+    $stats = getBranchFarmStats((int)$farm['id']);
     $isActive = (int)$farm['is_active'];
     $isCurrent = (int)$farm['id'] === $currentFarmId;
     $borderColor = $isCurrent ? $farm['branch_color'] : '#E7EAF0';

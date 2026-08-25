@@ -225,7 +225,7 @@ function addFarmFilter(string $sql, int $userId, string $tableAlias = ''): strin
 /**
  * Get farm statistics for a specific branch.
  */
-function getFarmStats(int $farmId): array {
+function getBranchFarmStats(int $farmId): array {
     try {
         $pdo = wangariGetPdo();
         $stats = [];
