@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $expiresDays = (int)($_POST['expires_days'] ?? 30);
         $code = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 4) . '-' . substr(md5(uniqid(mt_rand(), true)), 0, 4));
         try {
-            $stmt = $pdo->prepare('INSERT INTO worker_connection_codes (farm_user_id, code, max_uses, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL ? DAY))');
+            $stmt = $pdo->prepare('INSERT INTO worker_connection_codes (farm_id, code, max_uses, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL ? DAY))');
             $stmt->execute([(int)$_SESSION['user_id'], $code, $maxUses, $expiresDays]);
             $message = "Code generated: {$code}";
         } catch (Exception $e) { $error_message = $e->getMessage(); }
@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             try {
-                $pdo->prepare('DELETE FROM worker_connection_codes WHERE id=? AND farm_user_id=?')->execute([$id, (int)$_SESSION['user_id']]);
+                $pdo->prepare('DELETE FROM worker_connection_codes WHERE id=? AND farm_id=?')->execute([$id, (int)$_SESSION['user_id']]);
                 $message = 'Code deleted.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
         }
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             try {
-                $pdo->prepare('UPDATE worker_farm_links SET is_active = 0 WHERE id=? AND farm_user_id=?')->execute([$id, (int)$_SESSION['user_id']]);
+                $pdo->prepare('UPDATE worker_farm_links SET is_active = 0 WHERE id=? AND farm_id=?')->execute([$id, (int)$_SESSION['user_id']]);
                 $message = 'Worker disconnected.';
             } catch (Exception $e) { $error_message = $e->getMessage(); }
         }
@@ -172,11 +172,11 @@ if ($pdo) {
         $attendance = $pdo->query('SELECT a.*, w.full_name AS worker_name FROM labour_attendance a LEFT JOIN labour_workers w ON w.id=a.worker_id ORDER BY a.work_date DESC LIMIT 200')->fetchAll();
         $payments = $pdo->query('SELECT p.*, w.full_name AS worker_name FROM labour_payments p LEFT JOIN labour_workers w ON w.id=p.worker_id ORDER BY p.payment_date DESC LIMIT 200')->fetchAll();
         // Worker connection codes
-        $workerCodes = $pdo->prepare('SELECT * FROM worker_connection_codes WHERE farm_user_id = ? ORDER BY created_at DESC');
+        $workerCodes = $pdo->prepare('SELECT * FROM worker_connection_codes WHERE farm_id = ? ORDER BY created_at DESC');
         $workerCodes->execute([$farmUserId]);
         $workerCodes = $workerCodes->fetchAll(PDO::FETCH_ASSOC);
         // Connected workers
-        $connectedWorkers = $pdo->prepare('SELECT wfl.*, u.full_name, u.username, u.email FROM worker_farm_links wfl JOIN users u ON u.id = wfl.worker_user_id WHERE wfl.farm_user_id = ? AND wfl.is_active = 1 ORDER BY wfl.connected_at DESC');
+        $connectedWorkers = $pdo->prepare('SELECT wfl.*, u.full_name, u.username, u.email FROM worker_farm_links wfl JOIN users u ON u.id = wfl.worker_user_id WHERE wfl.farm_id = ? AND wfl.is_active = 1 ORDER BY wfl.connected_at DESC');
         $connectedWorkers->execute([$farmUserId]);
         $connectedWorkers = $connectedWorkers->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { $error_message = $e->getMessage(); }

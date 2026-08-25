@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo) {
                         ->execute([$title,$desc,$assignedTo,$dueDate?:null,$status,$id]);
                     $message = 'Task updated.';
                 } else {
-                    $pdo->prepare('INSERT INTO worker_tasks (title,description,assigned_to_worker_id,task_date,status,farm_user_id) VALUES (?,?,?,?,?,?)')
+                    $pdo->prepare('INSERT INTO worker_tasks (title,description,assigned_to_worker_id,task_date,status,farm_id) VALUES (?,?,?,?,?,?)')
                         ->execute([$title,$desc,$assignedTo,$dueDate?:null,$status,$currentAdminId]);
                     $message = 'Task created.';
                 }
