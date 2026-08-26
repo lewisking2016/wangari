@@ -283,3 +283,101 @@
         height: 12px !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* CARD STYLE CONSISTENCY — Remove green borders & hover effects   */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/* Remove ALL left borders on stat cards */
+.stat-card,
+.stat-box,
+.d2-kpi,
+.admin-card {
+    border-left: none !important;
+    border-left-width: 0 !important;
+    border-left-color: transparent !important;
+}
+
+/* Remove colored accent borders on stat cards */
+.stat-card.accent,
+.stat-card.info,
+.stat-card.warning {
+    border-left: none !important;
+}
+
+/* Remove hover transform and shadow on all cards */
+.stat-card:hover,
+.stat-card:focus,
+.stat-box:hover,
+.stat-box:focus,
+.d2-kpi:hover,
+.d2-kpi:focus,
+.admin-card:hover,
+.admin-card:focus,
+.card:hover,
+.card:focus,
+.hub-tile:hover {
+    transform: none !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    border-color: var(--w2-border, #E5E7EB) !important;
+}
+
+/* Remove green border from hub alerts (keep the text color) */
+.hub-alert-success,
+.hub-alert-error,
+.hub-alert-warning,
+.hub-alert-info {
+    border-left: none !important;
+}
+
+/* Remove green border from batch analytics widget */
+.admin-card[style*="border-left:4px"],
+.admin-card[style*="border-left: 4px"] {
+    border-left: none !important;
+}
+
+/* Make all KPI/stat cards consistent: white bg, subtle border, no left accent */
+.stat-card,
+.stat-box,
+.d2-kpi {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 12px !important;
+}
+
+/* Consistent card styling across all modules */
+.admin-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+
+/* Remove colored status borders from field status cards */
+.field-status-card,
+.status-card {
+    border-left: none !important;
+}
+
+/* Remove green left line from "Today's Milk" style cards */
+.d2-kpi[style*="border-left"],
+.d2-kpi[style*="border-left: 4px"] {
+    border-left: none !important;
+}
+
+/* Tab active state - keep green underline but no card border */
+.tab-btn.active,
+.w2-tab.active {
+    border-bottom: 2px solid #166534 !important;
+}
+
+/* Clean up any inline style borders on KPI cards */
+.d2-kpi[style*="border-left"] {
+    border-left: none !important;
+}
+
+/* Remove the green left accent from batch analytics */
+.admin-card[style*="border-left:4px solid"] {
+    border-left: none !important;
+    border-left-width: 0 !important;
+}
