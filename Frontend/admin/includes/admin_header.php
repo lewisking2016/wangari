@@ -1248,6 +1248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
     <?php include __DIR__ . '/help_tooltips.php'; ?>
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body class="admin-layout">
 <a href="#main-content" class="skip-link">Skip to main content</a>

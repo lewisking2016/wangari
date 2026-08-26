@@ -70,6 +70,7 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 

@@ -114,6 +114,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Frontend/assets/css/xai-public.css">
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 

@@ -31,6 +31,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
     <link rel="stylesheet" href="/Frontend/assets/css/xai-sections.css">
 
     <link rel="icon" type="image/png" href="/Frontend/images/wangari-logo.png">
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 

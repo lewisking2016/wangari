@@ -264,6 +264,7 @@ if (session_status() === PHP_SESSION_ACTIVE) {
             .step-dot { width: 8px; height: 8px; }
         }
     </style>
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 <div class="xai-auth">

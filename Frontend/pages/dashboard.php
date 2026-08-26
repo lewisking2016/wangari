@@ -96,6 +96,7 @@ $page_title = 'Dashboard — Wangari';
         .dash-quick-btn:hover { background: rgba(34,197,94,0.08); border-color: var(--xai-lime); color: var(--xai-green); }
         .dash-quick-btn svg { color: var(--xai-lime); }
     </style>
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 

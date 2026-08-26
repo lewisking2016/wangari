@@ -36,6 +36,7 @@ $page_title = 'Privacy Policy — Wangari';
         .data-table td { padding: 12px 16px; border-bottom: 1px solid rgba(201, 223, 208, 0.4); color: var(--xai-text-secondary); }
         .data-table tr:last-child td { border-bottom: none; }
     </style>
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 <div class="legal-page">

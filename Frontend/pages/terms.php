@@ -39,6 +39,7 @@ $page_title = 'Terms & Conditions — Wangari';
         .toc a { color: var(--xai-text-secondary); text-decoration: none; }
         .toc a:hover { color: var(--xai-lime-dark); }
     </style>
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 <div class="legal-page">

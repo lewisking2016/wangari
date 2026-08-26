@@ -88,6 +88,7 @@ $minDisk = '500 MB free space';
         .changelog-entry li { font-size:13px; color:var(--slate-400); line-height:1.8; }
         @media (max-width:768px) { .dl-topbar { padding-top:14px; } .dl-brand { font-size:1rem; } .dl-home { padding:8px 12px; } .reqs-grid { grid-template-columns:1fr; } .dl-buttons { flex-direction:column; align-items:center; } .dl-btn { width:100%; max-width:320px; justify-content:center; } }
     </style>
+    <link rel="stylesheet" href="/Frontend/assets/css/mobile-fix.css">
 </head>
 <body>
 <header class="dl-topbar" aria-label="Wangari navigation">
