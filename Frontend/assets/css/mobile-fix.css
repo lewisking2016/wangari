@@ -1,7 +1,10 @@
 /**
- * Wangari Mobile Responsive Fix
+ * Wangari Mobile Responsive Fix v3
+ * Preserves dashboard card design (d2-kpi) 
+ * Fixes overflow on other module cards
  */
 
+/* ═══════ GLOBAL MOBILE RESETS ═══════ */
 @media (max-width: 768px) {
   * { max-width: 100% !important; box-sizing: border-box; }
   html, body { overflow-x: hidden; }
@@ -9,6 +12,7 @@
   h1, h2, h3, p, span, div { word-wrap: break-word; overflow-wrap: break-word; }
 }
 
+/* ═══════ HERO SECTION ═══════ */
 @media (max-width: 768px) {
   .xai-hero { min-height: auto; padding: 100px 16px 40px; text-align: center; }
   .xai-hero-content { max-width: 100%; padding: 0; }
@@ -22,13 +26,13 @@
   .xai-stat-label { font-size: 0.75rem; }
   .xai-hero-eyebrow { font-size: 0.7rem; padding: 6px 12px; margin-bottom: 16px; }
 }
-
 @media (max-width: 359px) {
   .xai-hero { padding: 80px 12px 30px; }
   .xai-hero h1 { font-size: 1.6rem !important; }
   .xai-hero-stats { flex-direction: column; gap: 12px; }
 }
 
+/* ═══════ NAVIGATION ═══════ */
 @media (max-width: 768px) {
   .xai-nav { padding: 12px 0; }
   .xai-nav-inner { padding: 0 16px; }
@@ -42,6 +46,10 @@
   .xai-mobile-menu-links a { padding: 16px 20px; font-size: 1rem; }
   .xai-mobile-menu-footer { padding: 16px 20px; gap: 12px; }
   .xai-mobile-menu-footer .xai-m-signin, .xai-mobile-menu-footer .xai-m-cta { width: 100%; text-align: center; }
+}
+
+/* ═══════ VIDEO PREVIEW ═══════ */
+@media (max-width: 768px) {
   .xai-preview { margin-top: -20px; margin-left: 16px; margin-right: 16px; }
   .xai-preview-frame { border-radius: 12px; }
   .xai-preview-bar { padding: 12px 16px; }
@@ -53,6 +61,7 @@
   .xai-impact-label { font-size: 0.7rem; }
 }
 
+/* ═══════ PUBLIC SECTIONS ═══════ */
 @media (max-width: 768px) {
   .xai-section { padding: 60px 16px; }
   .xai-container { padding: 0 16px; }
@@ -80,6 +89,10 @@
   .why-wangari-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
   .hub-tile-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
   .hub-tile { padding: 16px !important; }
+}
+
+/* ═══════ ADMIN DASHBOARD (preserves d2-kpi design) ═══════ */
+@media (max-width: 768px) {
   .admin-content { margin-left: 0 !important; padding: 12px !important; }
   .d2-hero { padding: 16px !important; }
   .d2-hero h1 { font-size: 1.3rem !important; }
@@ -119,265 +132,116 @@
   .xai-nav, .xai-mobile-toggle, .xai-mobile-menu, .xai-footer { display: none !important; }
   body { background: white; color: black; }
 }
-/* ═══════════════════════════════════════════════════════════════ */
-/* ADMIN CARD HEADER OVERFLOW FIX (Batch Analytics, Recent Activity) */
-/* ═══════════════════════════════════════════════════════════════ */
 
+/* ═══════ ADMIN CARD HEADER OVERFLOW ═══════ */
 @media (max-width: 768px) {
-    /* Card header with title + action buttons */
-    .admin-card > div[style*="flex"],
-    .admin-card > div[style*="display: flex"],
-    .admin-card-header {
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-    
-    /* Batch analytics header */
-    .admin-card h3 {
-        width: 100% !important;
-        margin-bottom: 8px !important;
-    }
-    
-    /* Action buttons row */
-    .admin-card .btn-group,
-    .admin-card button + button,
-    [style*="display:flex"][style*="gap"] {
-        flex-wrap: wrap !important;
-    }
-    
-    /* Print/CSV/Excel buttons */
-    .admin-card button[onclick*="print"],
-    .admin-card button[onclick*="Print"],
-    .admin-card button[onclick*="export"],
-    .admin-card button[onclick*="Export"],
-    .admin-card button[onclick*="refresh"],
-    .admin-card button[onclick*="Refresh"] {
-        padding: 8px 12px !important;
-        font-size: 0.75rem !important;
-        white-space: nowrap !important;
-    }
-    
-    /* Tables inside cards */
-    .admin-card table {
-        min-width: 500px !important;
-        font-size: 0.75rem !important;
-    }
-    
-    /* KPI grids inside cards */
-    .admin-card [style*="grid-template-columns"] {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-    }
-    
-    /* Dashboard recent activity */
-    .admin-card [style*="overflow-x"] {
-        -webkit-overflow-scrolling: touch !important;
-    }
-    
-    /* SACCO Report button */
-    .admin-card button[onclick*="SACCO"],
-    .admin-card button[onclick*="sacco"] {
-        width: 100% !important;
-        padding: 12px 16px !important;
-        font-size: 0.8rem !important;
-        text-align: center !important;
-    }
+  .admin-card > div[style*="flex"],
+  .admin-card > div[style*="display: flex"],
+  .admin-card-header {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .admin-card h3 { width: 100% !important; margin-bottom: 8px !important; }
+  .admin-card .btn-group,
+  .admin-card button + button,
+  [style*="display:flex"][style*="gap"] { flex-wrap: wrap !important; }
+  .admin-card button[onclick*="print"],
+  .admin-card button[onclick*="Print"],
+  .admin-card button[onclick*="export"],
+  .admin-card button[onclick*="Export"],
+  .admin-card button[onclick*="refresh"],
+  .admin-card button[onclick*="Refresh"] {
+    padding: 8px 12px !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+  }
+  .admin-card table { min-width: 500px !important; font-size: 0.75rem !important; }
+  .admin-card [style*="grid-template-columns"] { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .admin-card [style*="overflow-x"] { -webkit-overflow-scrolling: touch !important; }
+  .admin-card button[onclick*="SACCO"],
+  .admin-card button[onclick*="sacco"] {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 0.8rem !important;
+    text-align: center !important;
+  }
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* PRINT / EXPORT / CSV BUTTONS WRAP ON MOBILE                    */
-/* ═══════════════════════════════════════════════════════════════ */
-
+/* ═══════ PRINT / EXPORT BUTTONS ═══════ */
 @media (max-width: 768px) {
-    /* Print button added by print-reports.js */
-    .print-btn {
-        margin-top: 8px !important;
-        padding: 6px 12px !important;
-        font-size: 0.75rem !important;
-    }
-    
-    /* Export buttons added by export.js */
-    .export-btn {
-        padding: 6px 12px !important;
-        font-size: 0.75rem !important;
-    }
-    
-    /* Any flex container with action buttons inside admin cards */
-    .admin-card .card-header-row {
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-    
-    /* Header h3 with print button inside */
-    .admin-card h3[style*="flex"],
-    .admin-card h3[style*="display: flex"] {
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-        row-gap: 4px !important;
-    }
-    
-    /* The button container after h3 */
-    .admin-card h3 + div[style*="flex"],
-    .admin-card h3 + div[style*="display: flex"] {
-        flex-wrap: wrap !important;
-    }
-    
-    /* "Action / Log Details" column header overflow */
-    .admin-table th {
-        font-size: 0.7rem !important;
-        padding: 8px !important;
-        white-space: nowrap !important;
-    }
-    
-    /* SACCO button full width */
-    .admin-card button[style*="background:#6366f1"] {
-        width: 100% !important;
-        display: block !important;
-        text-align: center !important;
-    }
+  .print-btn { margin-top: 8px !important; padding: 6px 12px !important; font-size: 0.75rem !important; }
+  .export-btn { padding: 6px 12px !important; font-size: 0.75rem !important; }
+  .admin-card .card-header-row { flex-wrap: wrap !important; gap: 8px !important; }
+  .admin-card h3[style*="flex"],
+  .admin-card h3[style*="display: flex"] { flex-wrap: wrap !important; gap: 8px !important; row-gap: 4px !important; }
+  .admin-card h3 + div[style*="flex"],
+  .admin-card h3 + div[style*="display: flex"] { flex-wrap: wrap !important; }
+  .admin-table th { font-size: 0.7rem !important; padding: 8px !important; white-space: nowrap !important; }
+  .admin-card button[style*="background:#6366f1"] { width: 100% !important; display: block !important; text-align: center !important; }
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* CARD ACTION BAR — Unified button row for Print/CSV/Excel        */
-/* ═══════════════════════════════════════════════════════════════ */
-
-/* Desktop: buttons in a row after the title */
+/* ═══════ CARD ACTION BAR ═══════ */
 .card-action-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
 }
-
-/* Help tip icon should sit next to the title, not in the action bar */
 .admin-card h3 .help-tip,
 .admin-card h3 .w2-help-tip,
-.admin-card h3 [style*="cursor: help"] {
-    vertical-align: middle;
-    margin-left: 6px;
-}
-
-/* Buttons in the action bar */
-.card-action-bar .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-}
-
-/* Mobile: stack buttons if needed */
+.admin-card h3 [style*="cursor: help"] { vertical-align: middle; margin-left: 6px; }
+.card-action-bar .btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 @media (max-width: 768px) {
-    .card-action-bar {
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-    
-    .card-action-bar .btn {
-        padding: 5px 10px !important;
-        font-size: 0.7rem !important;
-    }
-    
-    .card-action-bar .btn svg {
-        width: 12px !important;
-        height: 12px !important;
-    }
+  .card-action-bar { gap: 6px; margin-bottom: 10px; }
+  .card-action-bar .btn { padding: 5px 10px !important; font-size: 0.7rem !important; }
+  .card-action-bar .btn svg { width: 12px !important; height: 12px !important; }
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* CARD STYLE CONSISTENCY — Remove green borders & hover effects   */
-/* ═══════════════════════════════════════════════════════════════ */
-
-/* Remove ALL left borders on stat cards */
+/* ═══════ NON-DASHBOARD MODULE CARD FIXES ═══════ */
+/* Removes green left borders from OTHER modules (not dashboard d2-kpi) */
 .stat-card,
-.stat-box,
-.d2-kpi,
-.admin-card {
-    border-left: none !important;
-    border-left-width: 0 !important;
-    border-left-color: transparent !important;
+.stat-box {
+  border-left: none !important;
 }
-
-/* Remove colored accent borders on stat cards */
 .stat-card.accent,
 .stat-card.info,
 .stat-card.warning {
-    border-left: none !important;
+  border-left: none !important;
 }
-
-/* Remove hover transform and shadow on all cards */
 .stat-card:hover,
 .stat-card:focus,
 .stat-box:hover,
-.stat-box:focus,
-.d2-kpi:hover,
-.d2-kpi:focus,
-.admin-card:hover,
-.admin-card:focus,
-.card:hover,
-.card:focus,
-.hub-tile:hover {
-    transform: none !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
-    border-color: var(--w2-border, #E5E7EB) !important;
+.stat-box:focus {
+  transform: none !important;
 }
 
-/* Remove green border from hub alerts (keep the text color) */
+/* Hub alerts - remove left border accent */
 .hub-alert-success,
 .hub-alert-error,
 .hub-alert-warning,
 .hub-alert-info {
-    border-left: none !important;
+  border-left: none !important;
 }
 
-/* Remove green border from batch analytics widget */
+/* Batch analytics widget - remove green left border */
 .admin-card[style*="border-left:4px"],
 .admin-card[style*="border-left: 4px"] {
-    border-left: none !important;
+  border-left: none !important;
+}
+.admin-card[style*="border-left:4px solid"] {
+  border-left: none !important;
+  border-left-width: 0 !important;
 }
 
-/* Make all KPI/stat cards consistent: white bg, subtle border, no left accent */
-.stat-card,
-.stat-box,
-.d2-kpi {
-    background: #FFFFFF !important;
-    border: 1px solid #E5E7EB !important;
-    border-radius: 12px !important;
-}
-
-/* Consistent card styling across all modules */
-.admin-card {
-    background: #FFFFFF !important;
-    border: 1px solid #E5E7EB !important;
-    border-radius: 12px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
-}
-
-/* Remove colored status borders from field status cards */
+/* Field status cards - remove colored borders */
 .field-status-card,
 .status-card {
-    border-left: none !important;
+  border-left: none !important;
 }
 
-/* Remove green left line from "Today's Milk" style cards */
-.d2-kpi[style*="border-left"],
-.d2-kpi[style*="border-left: 4px"] {
-    border-left: none !important;
-}
-
-/* Tab active state - keep green underline but no card border */
+/* Tab active state */
 .tab-btn.active,
 .w2-tab.active {
-    border-bottom: 2px solid #166534 !important;
-}
-
-/* Clean up any inline style borders on KPI cards */
-.d2-kpi[style*="border-left"] {
-    border-left: none !important;
-}
-
-/* Remove the green left accent from batch analytics */
-.admin-card[style*="border-left:4px solid"] {
-    border-left: none !important;
-    border-left-width: 0 !important;
+  border-bottom: 2px solid #166534 !important;
 }
