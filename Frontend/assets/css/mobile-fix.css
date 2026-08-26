@@ -236,3 +236,50 @@
         text-align: center !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* CARD ACTION BAR — Unified button row for Print/CSV/Excel        */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/* Desktop: buttons in a row after the title */
+.card-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+/* Help tip icon should sit next to the title, not in the action bar */
+.admin-card h3 .help-tip,
+.admin-card h3 .w2-help-tip,
+.admin-card h3 [style*="cursor: help"] {
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+/* Buttons in the action bar */
+.card-action-bar .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* Mobile: stack buttons if needed */
+@media (max-width: 768px) {
+    .card-action-bar {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    
+    .card-action-bar .btn {
+        padding: 5px 10px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .card-action-bar .btn svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+}

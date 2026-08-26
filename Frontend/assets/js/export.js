@@ -22,8 +22,7 @@ class WangariExport {
         const header = card.querySelector('h3, h4');
         if (!header) return;
 
-        const btnContainer = document.createElement('div');
-        btnContainer.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;';
+        // Use card-action-bar instead
 
         const csvBtn = document.createElement('button');
         csvBtn.className = 'btn btn-outline btn-sm export-btn';
@@ -35,9 +34,15 @@ class WangariExport {
         excelBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Excel';
         excelBtn.onclick = () => this.exportToExcel(table);
 
-        btnContainer.appendChild(csvBtn);
-        btnContainer.appendChild(excelBtn);
-        header.parentElement.insertBefore(btnContainer, header.nextSibling);
+        // Look for existing card-action-bar or create one
+        let bar = header.nextElementSibling;
+        if (!bar || !bar.classList.contains('card-action-bar')) {
+            bar = document.createElement('div');
+            bar.className = 'card-action-bar';
+            header.parentElement.insertBefore(bar, header.nextSibling);
+        }
+        bar.appendChild(csvBtn);
+        bar.appendChild(excelBtn);
     }
 
     exportToCSV(table) {
