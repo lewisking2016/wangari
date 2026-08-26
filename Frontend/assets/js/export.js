@@ -23,7 +23,7 @@ class WangariExport {
         if (!header) return;
 
         const btnContainer = document.createElement('div');
-        btnContainer.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;';
+        btnContainer.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;';
 
         const csvBtn = document.createElement('button');
         csvBtn.className = 'btn btn-outline btn-sm export-btn';

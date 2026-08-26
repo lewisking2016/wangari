@@ -10,7 +10,7 @@ $analyticsApiUrl = '/Backend/api/batch_analytics.php';
 
 <!-- Batch Analytics Widget -->
 <div class="admin-card" style="margin-bottom:20px; border-left:4px solid #10B981;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div class="card-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <h3 style="margin:0;font-family:'Outfit',sans-serif;font-size:1.1rem;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" style="vertical-align:middle;margin-right:6px;">
                 <path d="M18 20V10M12 20V4M6 20v-6"/>
