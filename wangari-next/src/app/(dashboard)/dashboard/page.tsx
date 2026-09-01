@@ -1,87 +1,266 @@
 "use client";
 
 import * as React from "react";
-import { Bird, Egg, DollarSign, TrendingDown, ArrowUpRight, ArrowDownRight, Plus, ShoppingCart } from "lucide-react";
-import { KpiCard } from "@/components/dashboard/kpi-card";
+import { motion } from "framer-motion";
+import {
+  Bird,
+  Egg,
+  DollarSign,
+  TrendingDown,
+  TrendingUp,
+  ArrowUpRight,
+  ArrowDownRight,
+  Plus,
+  ShoppingCart,
+  Activity,
+  Clock,
+  BarChart3,
+} from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+/* ── Animation Variants ── */
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+};
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.92 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
+};
 
 export default function DashboardPage() {
   const [data, setData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch("/api/dashboard").then(r => r.json()).then(d => { setData(d); setLoading(false); }).catch(() => setLoading(false));
+    fetch("/api/dashboard")
+      .then((r) => r.json())
+      .then((d) => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" />
+      </div>
+    );
 
   const txs = data?.recentTransactions || [];
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
   const now = new Date();
   const chartData = monthNames.slice(0, now.getMonth() + 1).map((m, i) => ({
     month: m,
-    income: Math.floor(data?.monthlyRevenue || 0) * (0.6 + Math.random() * 0.8),
-    expenses: Math.floor(data?.monthlyExpenses || 0) * (0.5 + Math.random() * 0.6),
+    income:
+      Math.floor(data?.monthlyRevenue || 0) * (0.6 + Math.random() * 0.8),
+    expenses:
+      Math.floor(data?.monthlyExpenses || 0) * (0.5 + Math.random() * 0.6),
   }));
 
+  const kpis = [
+    {
+      title: "Total Birds",
+      value: (data?.totalBirds || 0).toLocaleString(),
+      icon: <Bird className="h-5 w-5" />,
+      change: data?.totalFlocks + " active flocks",
+      changeType: "positive",
+      color: "from-emerald-500 to-green-600",
+    },
+    {
+      title: "Eggs Today",
+      value: (data?.eggsToday || 0).toLocaleString(),
+      icon: <Egg className="h-5 w-5" />,
+      change: data?.mortalityToday + " mortality",
+      changeType: data?.mortalityToday > 0 ? "negative" : "positive",
+      color: "from-amber-500 to-orange-600",
+    },
+    {
+      title: "Monthly Revenue",
+      value: "KES " + (data?.monthlyRevenue || 0).toLocaleString(),
+      icon: <TrendingUp className="h-5 w-5" />,
+      change: "This month",
+      changeType: "positive",
+      color: "from-blue-500 to-indigo-600",
+    },
+    {
+      title: "Monthly Expenses",
+      value: "KES " + (data?.monthlyExpenses || 0).toLocaleString(),
+      icon: <TrendingDown className="h-5 w-5" />,
+      change: "This month",
+      changeType: "negative",
+      color: "from-red-500 to-rose-600",
+    },
+  ];
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-[#0F172A]">{greeting} 👋</h1>
-        <p className="text-sm text-[#64748B] mt-1">Here is what is happening on your farm today.</p>
-      </div>
+    <div className="space-y-6">
+      {/* Greeting */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+        <h1 className="text-2xl font-extrabold text-[#0F172A] tracking-tight">
+          {greeting} 👋
+        </h1>
+        <p className="text-sm text-[#64748B] mt-1">
+          Here&apos;s what&apos;s happening on your farm today.
+        </p>
+      </motion.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard title="Total Birds" value={(data?.totalBirds || 0).toLocaleString()} icon={<Bird className="h-5 w-5" />} change={data?.totalFlocks + " active flocks"} changeType="positive" />
-        <KpiCard title="Eggs Today" value={(data?.eggsToday || 0).toLocaleString()} icon={<Egg className="h-5 w-5" />} change={data?.mortalityToday + " mortality"} changeType={data?.mortalityToday > 0 ? "negative" : "positive"} />
-        <KpiCard title="Monthly Revenue" value={"KES " + (data?.monthlyRevenue || 0).toLocaleString()} icon={<DollarSign className="h-5 w-5" />} change="This month" changeType="positive" />
-        <KpiCard title="Monthly Expenses" value={"KES " + (data?.monthlyExpenses || 0).toLocaleString()} icon={<TrendingDown className="h-5 w-5" />} change="This month" changeType="negative" />
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Transactions</CardTitle>
-            <Link href="/finances" className="text-sm text-[#166534] font-medium hover:underline">View All</Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {txs.length === 0 && <p className="text-sm text-[#64748B]">No transactions yet.</p>}
-              {txs.map((tx: any) => (
-                <div key={tx.id} className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={"flex h-9 w-9 items-center justify-center rounded-lg " + (tx.type === "income" ? "bg-[#F0FDF4] text-[#166534]" : "bg-red-50 text-red-600")}>
-                      {tx.type === "income" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-[#0F172A]">{tx.description || tx.category}</p>
-                      <p className="text-xs text-[#64748B]">{new Date(tx.date).toLocaleDateString()}</p>
-                    </div>
+      {/* KPI Cards */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={stagger}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        {kpis.map((kpi, i) => (
+          <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
+            <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:border-[#BBF7D0] transition-all duration-300">
+              {/* Gradient accent stripe */}
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${kpi.color}`} />
+              <CardContent className="pt-6 pb-4 px-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-md`}>
+                    {kpi.icon}
                   </div>
-                  <p className={"text-sm font-bold " + (tx.type === "income" ? "text-[#166534]" : "text-red-600")}>
-                    {tx.type === "income" ? "+" : "-"}KES {Number(tx.amount).toLocaleString()}
-                  </p>
+                  {kpi.changeType === "positive" ? (
+                    <ArrowUpRight className="h-4 w-4 text-[#16A34A]" />
+                  ) : (
+                    <ArrowDownRight className="h-4 w-4 text-[#EF4444]" />
+                  )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">
+                  {kpi.title}
+                </p>
+                <p className="text-2xl font-extrabold text-[#0F172A] tracking-tight">
+                  {kpi.value}
+                </p>
+                <p className="text-xs text-[#94A3B8] mt-1">{kpi.change}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
 
-        <Card>
-          <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/production"><Button className="w-full justify-start" variant="outline"><Plus className="h-4 w-4 mr-2" />Log Production</Button></Link>
-            <Link href="/sales"><Button className="w-full justify-start" variant="outline"><ShoppingCart className="h-4 w-4 mr-2" />Record Sale</Button></Link>
-            <Link href="/finances"><Button className="w-full justify-start" variant="outline"><DollarSign className="h-4 w-4 mr-2" />Add Expense</Button></Link>
-            <Link href="/inventory"><Button className="w-full justify-start" variant="outline"><TrendingDown className="h-4 w-4 mr-2" />Check Inventory</Button></Link>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Transactions + Quick Actions */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={stagger}
+        className="grid lg:grid-cols-3 gap-6"
+      >
+        {/* Recent Transactions */}
+        <motion.div variants={fadeUp} className="lg:col-span-2">
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow duration-300">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-[#166534]" />
+                <CardTitle className="text-base font-bold">Recent Transactions</CardTitle>
+              </div>
+              <Link
+                href="/finances"
+                className="text-sm text-[#166534] font-semibold hover:underline"
+              >
+                View All
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {txs.length === 0 && (
+                  <p className="text-sm text-[#64748B] py-4 text-center">No transactions yet.</p>
+                )}
+                {txs.map((tx: any, i: number) => (
+                  <motion.div
+                    key={tx.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-[#F8FAFC] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={
+                          "flex h-9 w-9 items-center justify-center rounded-xl " +
+                          (tx.type === "income"
+                            ? "bg-[#F0FDF4] text-[#166534]"
+                            : "bg-red-50 text-red-600")
+                        }
+                      >
+                        {tx.type === "income" ? (
+                          <ArrowUpRight className="h-4 w-4" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#0F172A]">
+                          {tx.description || tx.category}
+                        </p>
+                        <p className="text-xs text-[#94A3B8]">
+                          {new Date(tx.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <p
+                      className={
+                        "text-sm font-bold tabular-nums " +
+                        (tx.type === "income" ? "text-[#166534]" : "text-red-600")
+                      }
+                    >
+                      {tx.type === "income" ? "+" : "-"}KES{" "}
+                      {Number(tx.amount).toLocaleString()}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div variants={fadeUp}>
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#166534]" />
+                <CardTitle className="text-base font-bold">Quick Actions</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { href: "/production", icon: <Plus className="h-4 w-4" />, label: "Log Production", color: "hover:bg-[#F0FDF4] hover:border-[#BBF7D0] hover:text-[#166534]" },
+                { href: "/sales", icon: <ShoppingCart className="h-4 w-4" />, label: "Record Sale", color: "hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700" },
+                { href: "/finances", icon: <DollarSign className="h-4 w-4" />, label: "Add Expense", color: "hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700" },
+                { href: "/inventory", icon: <BarChart3 className="h-4 w-4" />, label: "Check Inventory", color: "hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700" },
+              ].map((action) => (
+                <Link key={action.href} href={action.href}>
+                  <Button
+                    className={`w-full justify-start border border-[#E5E7EB] bg-white font-semibold transition-all duration-200 ${action.color}`}
+                    variant="outline"
+                  >
+                    {action.icon}
+                    <span className="ml-2">{action.label}</span>
+                  </Button>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

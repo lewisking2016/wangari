@@ -1,11 +1,17 @@
 "use client";
 import * as React from "react";
-import { Bird, Plus, Trash2, Search } from "lucide-react";
+import { motion } from "framer-motion";
+import { Bird, Plus, Trash2, Search, Calendar, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
+
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } };
+const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
+const scaleIn = { hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
 
 export default function FlocksPage() {
   const [flocks, setFlocks] = React.useState<any[]>([]);
@@ -37,44 +43,69 @@ export default function FlocksPage() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <PageHeader title="Flocks" description="Manage your flocks and poultry" action={<Button onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4 mr-2" />Add Flock</Button>} />
+    <div className="space-y-6">
+      <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+        <PageHeader title="Flocks" description="Manage your flocks and poultry" action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Flock</Button>} />
+      </motion.div>
 
       {showForm && (
-        <Card><CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <input placeholder="Flock name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm" />
-            <input placeholder="Breed" value={form.breed} onChange={e => setForm({...form, breed: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm" />
-            <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm"><option value="layers">Layers</option><option value="broilers">Broilers</option></select>
-            <input type="number" placeholder="Bird count" value={form.initialCount} onChange={e => setForm({...form, initialCount: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm" />
-          </div>
-          <div className="mt-4 flex gap-2"><Button onClick={handleCreate}>Save</Button><Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button></div>
-        </CardContent></Card>
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <h3 className="text-sm font-bold text-[#0F172A] mb-4">New Flock</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <input placeholder="Flock name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all" />
+                <input placeholder="Breed" value={form.breed} onChange={e => setForm({...form, breed: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all" />
+                <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all">
+                  <option value="layers">Layers</option>
+                  <option value="broilers">Broilers</option>
+                </select>
+                <input type="number" placeholder="Bird count" value={form.initialCount} onChange={e => setForm({...form, initialCount: e.target.value})} className="rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all" />
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button onClick={handleCreate} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+                <Button variant="outline" onClick={() => setShowForm(false)} className="cursor-pointer">Cancel</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" /><input placeholder="Search flocks..." value={search} onChange={e => setSearch(e.target.value)} className="w-full rounded-xl border border-[#E5E7EB] bg-white pl-10 pr-4 py-2.5 text-sm" /></div>
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+        <Input placeholder="Search flocks..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-12 rounded-xl border-[#E5E7EB]" />
+      </motion.div>
 
       {filtered.length === 0 ? <EmptyState title="No flocks" description="Add your first flock to get started." /> : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(f => (
-            <Card key={f.id} className="hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0FDF4] text-[#166534]"><Bird className="h-6 w-6" /></div>
-                  <Badge variant={f.status === "active" ? "default" : "secondary"}>{f.status}</Badge>
-                </div>
-                <h3 className="mt-4 text-lg font-bold text-[#0F172A]">{f.name}</h3>
-                <p className="text-sm text-[#64748B]">{f.breed || f.type}</p>
-                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                  <div><p className="text-[#94A3B8]">Initial</p><p className="font-semibold text-[#0F172A]">{f.initialCount.toLocaleString()}</p></div>
-                  <div><p className="text-[#94A3B8]">Current</p><p className="font-semibold text-[#0F172A]">{f.currentCount.toLocaleString()}</p></div>
-                  <div><p className="text-[#94A3B8]">Mortality</p><p className="font-semibold text-red-600">{f.mortality}</p></div>
-                  <div><p className="text-[#94A3B8]">Started</p><p className="font-semibold text-[#0F172A]">{f.hatchDate ? new Date(f.hatchDate).toLocaleDateString() : "-"}</p></div>
-                </div>
-              </CardContent>
-            </Card>
+            <motion.div key={f.id} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
+              <Card className="border border-[#E5E7EB] hover:shadow-xl hover:border-[#BBF7D0] transition-all duration-300 relative overflow-hidden">
+                {/* Accent stripe */}
+                <div className={`absolute top-0 left-0 right-0 h-1 ${f.type === "layers" ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-blue-400 to-indigo-500"}`} />
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0FDF4] text-[#166534]">
+                      <Bird className="h-6 w-6" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge variant={f.status === "active" ? "default" : "secondary"} className={f.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : ""}>{f.status}</Badge>
+                      <button onClick={() => handleDelete(f.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-4 w-4" /></button>
+                    </div>
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold text-[#0F172A]">{f.name}</h3>
+                  <p className="text-sm text-[#64748B] capitalize">{f.breed || f.type}</p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div><p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Initial</p><p className="font-bold text-[#0F172A] tabular-nums">{f.initialCount.toLocaleString()}</p></div>
+                    <div><p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Current</p><p className="font-bold text-[#0F172A] tabular-nums">{f.currentCount.toLocaleString()}</p></div>
+                    <div><p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Mortality</p><p className="font-bold text-red-600 tabular-nums">{f.mortality}</p></div>
+                    <div><p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Started</p><p className="font-bold text-[#0F172A]">{f.hatchDate ? new Date(f.hatchDate).toLocaleDateString() : "-"}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

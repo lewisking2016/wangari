@@ -1,13 +1,23 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Leaf, Loader2 } from "lucide-react";
+import { Loader2, ArrowRight, User, Mail, Lock, Sprout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+};
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -38,7 +48,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto sign-in after registration
       const result = await signIn("credentials", {
         email: form.email,
         password: form.password,
@@ -48,7 +57,7 @@ export default function RegisterPage() {
       if (result?.error) {
         router.push("/login");
       } else {
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch {
@@ -58,98 +67,108 @@ export default function RegisterPage() {
     }
   };
 
+  const fields = [
+    { id: "name", label: "Full Name", type: "text", placeholder: "John Kamau", icon: User, key: "name" as const },
+    { id: "email", label: "Email", type: "email", placeholder: "you@example.com", icon: Mail, key: "email" as const },
+    { id: "farmName", label: "Farm Name", type: "text", placeholder: "Kamau Poultry Farm", icon: Sprout, key: "farmName" as const },
+    { id: "password", label: "Password", type: "password", placeholder: "At least 6 characters", icon: Lock, key: "password" as const },
+  ];
+
   return (
-    <div className="space-y-8">
-      <div className="text-center lg:text-left">
-        <Link href="/" className="inline-flex items-center gap-2 text-wangari-green-800 lg:hidden">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-wangari-green-800">
-            <Leaf className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-lg font-bold">Wangari</span>
-        </Link>
-        <h1 className="mt-6 text-2xl font-bold text-wangari-heading">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={stagger}
+      className="space-y-8"
+    >
+      {/* Heading */}
+      <motion.div variants={fadeUp}>
+        <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight">
           Create your farm account
         </h1>
-        <p className="mt-1 text-sm text-wangari-muted">
+        <p className="mt-2 text-sm text-[#64748B]">
           Start managing your farm in minutes — it&apos;s free
         </p>
-      </div>
+      </motion.div>
 
+      {/* Error */}
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input
-            id="name"
-            placeholder="John Kamau"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-        </div>
+      {/* Form */}
+      <motion.form
+        variants={fadeUp}
+        onSubmit={handleSubmit}
+        className="space-y-4"
+      >
+        {fields.map((field) => (
+          <motion.div key={field.id} variants={fadeUp} className="space-y-2">
+            <Label htmlFor={field.id} className="text-sm font-semibold text-[#334155]">
+              {field.label}
+            </Label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]">
+                <field.icon className="h-4 w-4" />
+              </div>
+              <Input
+                id={field.id}
+                type={field.type}
+                placeholder={field.placeholder}
+                value={form[field.key]}
+                onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                required
+                minLength={field.key === "password" ? 6 : undefined}
+                className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 transition-all pl-10"
+              />
+            </div>
+          </motion.div>
+        ))}
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-          />
-        </div>
+        <motion.div variants={fadeUp} className="pt-2">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 rounded-xl bg-[#166534] hover:bg-[#14532D] text-white font-bold text-sm transition-all duration-200 hover:shadow-lg hover:shadow-[#166534]/25 hover:-translate-y-0.5 cursor-pointer"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Creating account...
+              </>
+            ) : (
+              <>
+                Create Account
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
+          </Button>
+        </motion.div>
+      </motion.form>
 
-        <div className="space-y-2">
-          <Label htmlFor="farmName">Farm Name</Label>
-          <Input
-            id="farmName"
-            placeholder="Kamau Poultry Farm"
-            value={form.farmName}
-            onChange={(e) => setForm({ ...form, farmName: e.target.value })}
-            required
-          />
-        </div>
+      {/* Divider */}
+      <motion.div variants={fadeUp} className="flex items-center gap-4">
+        <div className="flex-1 h-px bg-[#E5E7EB]" />
+        <span className="text-xs text-[#94A3B8] font-medium">or</span>
+        <div className="flex-1 h-px bg-[#E5E7EB]" />
+      </motion.div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="At least 6 characters"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-            minLength={6}
-          />
-        </div>
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            "Create Account"
-          )}
-        </Button>
-      </form>
-
-      <p className="text-center text-sm text-wangari-muted">
+      {/* Login link */}
+      <motion.p variants={fadeUp} className="text-center text-sm text-[#64748B]">
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-semibold text-wangari-green-800 hover:underline"
+          className="font-bold text-[#166534] hover:underline"
         >
           Sign in
         </Link>
-      </p>
-    </div>
+      </motion.p>
+    </motion.div>
   );
 }
