@@ -31,7 +31,7 @@ export default function AIFeaturePage() {
       ]}
       stats={[
         { value: "<2s", label: "Response Time" },
-        { value: "10K+", label: "Questions Answered Daily" },
+        { value: "24/7", label: "AI Available" },
         { value: "EN/SW", label: "Language Support" },
         { value: "24/7", label: "Availability" },
       ]}

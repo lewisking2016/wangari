@@ -15,10 +15,10 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2024", title: "Founded", desc: "Wangari was conceived by iMeanTech to solve farm management challenges in Kenya." },
-  { year: "2025", title: "MVP Launch", desc: "First version deployed to 100 pilot farmers in Nakuru and Eldoret counties." },
-  { year: "2025", title: "10K Farmers", desc: "Rapid adoption across Kenya — 10,000 farmers managing over 1 million birds." },
-  { year: "2026", title: "Full Platform", desc: "Launched AI assistant, WhatsApp integration, and desktop app. 50,000+ active farmers." },
+  { year: "2026", title: "Wangari Founded", desc: "iMeanTech begins building a farm management platform designed specifically for African farmers." },
+  { year: "2026", title: "Platform Launch", desc: "Full web platform with flock management, production tracking, inventory, finances, AI assistant, and WhatsApp integration." },
+  { year: "2026", title: "Pilot Program", desc: "Onboarding our first farmers across Kenya. Real-world testing with poultry, dairy, and mixed farms." },
+  { year: "2027", title: "Scaling Across Kenya", desc: "Targeting 1,000 active farmers through field agents, cooperative partnerships, and agro-vet networks." },
 ];
 
 const team = [
@@ -54,9 +54,8 @@ export default function AboutPage() {
             <div className="flex items-center gap-2 mb-4">
               <Target className="h-5 w-5 text-[#166534]" />
               <p className="text-sm font-bold uppercase tracking-widest text-[#22C55E]">Our Mission</p>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight leading-tight">
-              Technology that serves the farmer, not the other way around
+            </div>              <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight leading-tight">
+              Technology built for African farmers, from day one
             </h2>
             <p className="mt-5 text-lg text-[#64748B] leading-relaxed">
               Farming feeds Africa. Yet most farmers still track their flocks in notebooks, manage finances in their heads, and guess at feed requirements. The tools that exist are built for Western industrial farms — complex, expensive, and disconnected from the reality of African agriculture.
@@ -67,10 +66,10 @@ export default function AboutPage() {
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="grid grid-cols-2 gap-4">
             {[
-              { icon: Users, value: "50K+", label: "Active Farmers" },
-              { icon: Zap, value: "2M+", label: "Birds Tracked" },
-              { icon: Target, value: "KES 500M+", label: "Revenue Managed" },
-              { icon: Shield, value: "99.9%", label: "Uptime" },
+              { icon: Users, value: "7", label: "Hubs Built" },
+              { icon: Zap, value: "30s", label: "To See Your Profit" },
+              { icon: Target, value: "KES 500", label: "Starting Price/Month" },
+              { icon: Shield, value: "Free", label: "30-Day Trial" },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center hover:shadow-lg hover:border-[#BBF7D0] transition-all">
                 <s.icon className="h-6 w-6 text-[#166534] mx-auto mb-3" />
@@ -121,7 +120,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-3xl">
           <div className="text-center mb-16">
             <p className="text-sm font-bold uppercase tracking-widest text-[#22C55E] mb-3">Our Journey</p>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight">From idea to 50K farmers</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0F172A] tracking-tight">Our Journey So Far</h2>
           </div>
           <div className="space-y-8">
             {milestones.map((m, i) => (

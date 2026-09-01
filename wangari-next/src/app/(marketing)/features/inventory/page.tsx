@@ -30,7 +30,7 @@ export default function InventoryFeaturePage() {
         { title: "Value Reports", desc: "See the total value of your inventory at any point in time. Generate reports for accounting, insurance, or business planning purposes." },
       ]}
       stats={[
-        { value: "KES 50K+", label: "Saved Per Month" },
+        { value: "Low Stock", label: "Alerts Enabled" },
         { value: "0", label: "Stockouts After Setup" },
         { value: "24/7", label: "Monitoring" },
         { value: "99%", label: "Stock Accuracy" },
@@ -38,7 +38,7 @@ export default function InventoryFeaturePage() {
       testimonial={{
         name: "Peter Ochieng",
         role: "Broiler Farm, Eldoret",
-        text: "The inventory alerts alone saved me KES 50,000 last month. I used to over-order feed because I was afraid of running out. Now Wangari tells me exactly when to order and how much. I also caught a discrepancy that turned out to be feed theft — the system flagged unusual consumption patterns.",
+        text: "The inventory alerts help me know exactly when to reorder. No more over-ordering feed out of fear. The system tracks every bag in and out.",
       }}
     />
   );

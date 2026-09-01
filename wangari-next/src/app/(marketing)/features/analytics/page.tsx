@@ -30,7 +30,7 @@ export default function AnalyticsFeaturePage() {
         { title: "Benchmark Comparisons", desc: "Compare your farm's performance against industry averages and your own historical data. See where you excel and where there's room for improvement." },
       ]}
       stats={[
-        { value: "KES 500M+", label: "Revenue Tracked" },
+        { value: "Real-Time", label: "Revenue Tracking" },
         { value: "40%", label: "Better Decision Making" },
         { value: "15%", label: "Average Cost Reduction" },
         { value: "Real-time", label: "Data Updates" },

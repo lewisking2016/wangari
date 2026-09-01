@@ -30,7 +30,7 @@ export default function FlocksFeaturePage() {
         { title: "Financial Per Flock", desc: "See exactly how much each flock costs to raise and how much revenue it generates. Calculate ROI per bird, per kg, or per egg — giving you clear profitability insights." },
       ]}
       stats={[
-        { value: "2M+", label: "Birds Tracked" },
+        { value: "Every Bird", label: "Tracked Individually" },
         { value: "98%", label: "Health Alert Accuracy" },
         { value: "3x", label: "Faster Disease Detection" },
         { value: "25%", label: "Average Cost Savings" },

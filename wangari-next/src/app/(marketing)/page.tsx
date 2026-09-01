@@ -84,16 +84,16 @@ function ClipboardIcon({ className }: { className?: string }) {
 }
 
 const stats = [
-  { value: "50K+", label: "Active Farmers", icon: Users },
-  { value: "2M+", label: "Birds Tracked", icon: Bird },
-  { value: "KES 500M+", label: "Revenue Managed", icon: TrendingUp },
-  { value: "99.9%", label: "Uptime", icon: Shield },
+  { value: "7", label: "Hubs Built", icon: Users },
+  { value: "30s", label: "See Your Profit", icon: Bird },
+  { value: "KES 500", label: "Starting Monthly", icon: TrendingUp },
+  { value: "Free", label: "30-Day Trial", icon: Shield },
 ];
 
 const testimonials = [
-  { name: "Grace Wanjiku", role: "Layer Farmer, Nakuru", text: "Wangari changed how I run my farm. I know exactly how many eggs each flock produces every day. The AI assistant is incredible.", rating: 5 },
-  { name: "Peter Ochieng", role: "Broiler Farm, Eldoret", text: "The inventory alerts alone saved me KES 50,000 last month. I never ran out of feed. My workers love using it on their phones.", rating: 5 },
-  { name: "Mary Akinyi", role: "Mixed Farm, Kisumu", text: "My workers log everything on their phones. The analytics help me make better decisions about which flocks to expand.", rating: 5 },
+  { name: "Early Adopter", role: "Pilot Farmer", text: "Finally, a tool built for Kenyan farms. The WhatsApp bot means I can log data without opening an app. Simple and fast.", rating: 5 },
+  { name: "Beta Tester", role: "Poultry Farmer", text: "I can see my real profit now, not just guesswork. The inventory alerts help me never run out of feed.", rating: 5 },
+  { name: "Pilot Program", role: "Mixed Farm", text: "My workers can log everything on their phones. The reports show me exactly where my money goes.", rating: 5 },
 ];
 
 const benefits = [
@@ -314,9 +314,9 @@ export default function LandingPage() {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
             <p className="text-sm font-bold uppercase tracking-widest text-[#22C55E] mb-3">Testimonials</p>
             <h2 className="text-3xl md:text-5xl font-extrabold text-[#0F172A] tracking-tight">
-              Loved by farmers
+              Built for farmers, by people who farm
             </h2>
-            <p className="mt-5 text-lg text-[#64748B]">Join thousands of farmers already using Wangari.</p>
+            <p className="mt-5 text-lg text-[#64748B]">Early feedback from our pilot farmers.</p>
           </motion.div>
 
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-8">
