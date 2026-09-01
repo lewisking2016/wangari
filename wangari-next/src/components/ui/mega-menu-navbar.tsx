@@ -49,6 +49,7 @@ export interface MegaMenuNavbarProps
   loginHref?: string;
   ctaHref?: string;
   ctaLabel?: string;
+  variant?: "transparent" | "light";
 }
 
 type DesktopMenu = "features" | "resources" | null;
@@ -116,12 +117,14 @@ function NavAction({
   href,
   children,
   variant = "primary",
+  lightOnDark = false,
   className,
   onClick,
 }: {
   href: string;
   children: React.ReactNode;
   variant?: "primary" | "ghost" | "outline";
+  lightOnDark?: boolean;
   className?: string;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }) {
@@ -134,8 +137,10 @@ function NavAction({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2",
         variant === "primary" &&
           "bg-[#166534] text-white shadow-sm hover:bg-[#14532D]",
-        variant === "ghost" &&
+        variant === "ghost" && !lightOnDark &&
           "text-[#64748B] hover:bg-[#F0FDF4] hover:text-[#166534]",
+        variant === "ghost" && lightOnDark &&
+          "text-white/80 hover:bg-white/10 hover:text-white",
         variant === "outline" &&
           "border border-[#E5E7EB] bg-white text-[#0F172A] shadow-sm hover:bg-[#F0FDF4]",
         className,
@@ -150,18 +155,20 @@ function Brand({
   brandName,
   brandHref,
   logo,
+  lightOnDark = false,
   onNavigate,
 }: {
   brandName: string;
   brandHref: string;
   logo?: React.ReactNode;
+  lightOnDark?: boolean;
   onNavigate?: () => void;
 }) {
   return (
     <Link
       href={brandHref}
       onClick={onNavigate}
-      className="relative z-10 flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight text-[#0F172A]"
+      className={cn("relative z-10 flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight", lightOnDark ? "text-white" : "text-[#0F172A]")}
     >
       {logo ? (
         <>{logo}</>
@@ -176,12 +183,14 @@ function MenuTrigger({
   id,
   label,
   isOpen,
+  lightOnDark = false,
   onToggle,
   onOpen,
 }: {
   id: string;
   label: string;
   isOpen: boolean;
+  lightOnDark?: boolean;
   onToggle: () => void;
   onOpen: () => void;
 }) {
@@ -194,8 +203,11 @@ function MenuTrigger({
       onFocus={onOpen}
       className={cn(
         "flex items-center gap-1 rounded-md px-4 py-2 text-sm font-medium transition-colors",
-        "text-[#64748B] hover:bg-[#F0FDF4] hover:text-[#166534] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]",
-        isOpen && "bg-[#F0FDF4] text-[#166534]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]",
+        !lightOnDark && "text-[#64748B] hover:bg-[#F0FDF4] hover:text-[#166534]",
+        !lightOnDark && isOpen && "bg-[#F0FDF4] text-[#166534]",
+        lightOnDark && "text-white/80 hover:bg-white/10 hover:text-white",
+        lightOnDark && isOpen && "bg-white/10 text-white",
       )}
     >
       {label}
@@ -280,13 +292,26 @@ export function MegaMenuNavbar({
   loginHref = "/login",
   ctaHref = "/register",
   ctaLabel = "Get Started Free",
+  variant = "light",
   className,
   ...props
 }: MegaMenuNavbarProps) {
   const [openMenu, setOpenMenu] = React.useState<DesktopMenu>(null);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [scrolled, setScrolled] = React.useState(false);
   const navRef = React.useRef<HTMLElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  const isTransparent = variant === "transparent";
+  const isSolid = !isTransparent || scrolled;
+
+  React.useEffect(() => {
+    if (!isTransparent) return;
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isTransparent]);
 
   React.useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
@@ -324,7 +349,10 @@ export function MegaMenuNavbar({
       {...props}
       ref={navRef}
       className={cn(
-        "sticky top-0 z-50 w-full border-b border-[#E5E7EB] bg-white/80 backdrop-blur-lg",
+        "sticky top-0 z-50 w-full transition-all duration-300",
+        isSolid
+          ? "border-b border-[#E5E7EB] bg-white/95 backdrop-blur-lg"
+          : "bg-transparent",
         className,
       )}
       onMouseLeave={() => setOpenMenu(null)}
@@ -332,7 +360,7 @@ export function MegaMenuNavbar({
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Brand brandName={brandName} brandHref={brandHref} logo={logo} />
+            <Brand brandName={brandName} brandHref={brandHref} logo={logo} lightOnDark={!isSolid} />
 
             <nav aria-label="Primary navigation" className="hidden items-center lg:flex">
               <ul className="flex items-center gap-1">
@@ -341,6 +369,7 @@ export function MegaMenuNavbar({
                     id="features-mega-menu"
                     label="Features"
                     isOpen={openMenu === "features"}
+                    lightOnDark={!isSolid}
                     onToggle={() => toggleDesktopMenu("features")}
                     onOpen={() => setOpenMenu("features")}
                   />
@@ -360,7 +389,10 @@ export function MegaMenuNavbar({
                 <li>
                   <Link
                     href={pricingHref}
-                    className="inline-flex rounded-md px-4 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#F0FDF4] hover:text-[#166534] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]"
+                    className={cn(
+                      "inline-flex rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]",
+                      isSolid ? "text-[#64748B] hover:bg-[#F0FDF4] hover:text-[#166534]" : "text-white/80 hover:bg-white/10 hover:text-white",
+                    )}
                   >
                     Pricing
                   </Link>
@@ -371,6 +403,7 @@ export function MegaMenuNavbar({
                     id="resources-mega-menu"
                     label="Resources"
                     isOpen={openMenu === "resources"}
+                    lightOnDark={!isSolid}
                     onToggle={() => toggleDesktopMenu("resources")}
                     onOpen={() => setOpenMenu("resources")}
                   />
@@ -401,7 +434,10 @@ export function MegaMenuNavbar({
                 <li>
                   <Link
                     href="/about"
-                    className="inline-flex rounded-md px-4 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#F0FDF4] hover:text-[#166534] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]"
+                    className={cn(
+                      "inline-flex rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]",
+                      isSolid ? "text-[#64748B] hover:bg-[#F0FDF4] hover:text-[#166534]" : "text-white/80 hover:bg-white/10 hover:text-white",
+                    )}
                   >
                     About
                   </Link>
@@ -412,15 +448,15 @@ export function MegaMenuNavbar({
 
           <div className="flex items-center gap-2">
             <div className="hidden items-center gap-2 lg:flex">
-              <NavAction href={loginHref} variant="ghost">Sign In</NavAction>
-              <NavAction href={ctaHref}>{ctaLabel}</NavAction>
+              <NavAction href={loginHref} variant="ghost" lightOnDark={!isSolid}>Sign In</NavAction>
+              <NavAction href={ctaHref} lightOnDark={!isSolid}>{ctaLabel}</NavAction>
             </div>
             <button
               type="button"
               aria-label="Open navigation menu"
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen(true)}
-              className="flex size-10 items-center justify-center rounded-md text-[#64748B] transition-colors hover:bg-[#F0FDF4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534] lg:hidden"
+              className={cn("flex size-10 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534] lg:hidden", isSolid ? "text-[#64748B] hover:bg-[#F0FDF4]" : "text-white hover:bg-white/10")}
             >
               <Menu className="size-6" />
             </button>

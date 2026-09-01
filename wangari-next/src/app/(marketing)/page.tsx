@@ -108,7 +108,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* ═══════ HERO ═══════ */}
-      <section className="relative overflow-hidden text-white min-h-[90vh]">
+      <section className="relative overflow-hidden text-white min-h-[90vh] -mt-16 pt-16">
         <WaveGridBackground
           colorBase="#0B1220"
           colorHigh="#22C55E"
