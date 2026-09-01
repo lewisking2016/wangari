@@ -16,6 +16,7 @@ import {
   Clock,
   BarChart3,
 } from "lucide-react";
+import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -56,6 +57,7 @@ export default function DashboardPage() {
     );
 
   const txs = data?.recentTransactions || [];
+  const prodData = data?.recentProduction || [];
 
   const kpis = [
     {
@@ -122,6 +124,28 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </motion.div>
+
+      {prodData.length > 0 && (
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-[#166534]" />
+                <CardTitle className="text-base font-bold">Egg Production (7 days)</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ResponsiveContainer width="100%" height={120}>
+                <AreaChart data={prodData.slice(-7).map((r: any) => ({ date: new Date(r.date).toLocaleDateString("en-KE", { weekday: "short" }), eggs: r.eggsCollected }))}>
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid #E5E7EB", fontSize: 11 }} />
+                  <Area type="monotone" dataKey="eggs" stroke="#166534" fill="#166534" fillOpacity={0.08} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid lg:grid-cols-3 gap-6">
         <motion.div variants={fadeUp} className="lg:col-span-2">

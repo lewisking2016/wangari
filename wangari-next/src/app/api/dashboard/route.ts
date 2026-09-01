@@ -10,7 +10,7 @@ export async function GET() {
   const today = new Date();
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  const [flocks, allFlocks, todayProd, monthIncome, monthExpense, lowStock, recentTx] = await Promise.all([
+  const [flocks, allFlocks, todayProd, monthIncome, monthExpense, lowStock, recentTx, recentProd] = await Promise.all([
     prisma.flock.count({ where: { farmId, status: "active" } }),
     prisma.flock.findMany({ where: { farmId, status: "active" }, select: { currentCount: true } }),
     prisma.dailyProduction.findMany({ where: { farmId, date: today } }),
@@ -18,6 +18,7 @@ export async function GET() {
     prisma.transaction.aggregate({ where: { farmId, type: "expense", date: { gte: monthStart } }, _sum: { amount: true } }),
     prisma.inventory.findMany({ where: { farmId, quantity: { lte: prisma.inventory.fields ? 0 : 0 } } }).catch(() => []),
     prisma.transaction.findMany({ where: { farmId }, orderBy: { createdAt: "desc" }, take: 5 }),
+    prisma.dailyProduction.findMany({ where: { farmId }, orderBy: { date: "desc" }, take: 14, select: { date: true, eggsCollected: true, mortality: true } }),
   ]);
 
   const totalBirds = allFlocks.reduce((s: number, f: any) => s + f.currentCount, 0);
@@ -29,5 +30,6 @@ export async function GET() {
     monthlyRevenue: Number(monthIncome._sum.amount || 0),
     monthlyExpenses: Number(monthExpense._sum.amount || 0),
     recentTransactions: recentTx,
+    recentProduction: recentProd.reverse(),
   });
 }
