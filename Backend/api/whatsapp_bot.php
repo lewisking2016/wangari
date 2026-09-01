@@ -253,11 +253,11 @@ function logProduction(PDO $pdo, int $user_id, int $farm_id, string $date, strin
     
     if ($existing) {
         // Update existing record
-        $field = match($type) {
-            'eggs' => 'eggs_collected',
-            'mortality' => 'mortality',
-            'milk' => 'milk_litres',
-            default => null
+        $field = null;
+        switch($type) {
+            case 'eggs': $field = 'eggs_collected'; break;
+            case 'mortality': $field = 'mortality'; break;
+            case 'milk': $field = 'milk_litres'; break;
         };
         if ($field) {
             $stmt = $pdo->prepare("UPDATE daily_production SET $field = ? WHERE id = ?");
@@ -266,11 +266,11 @@ function logProduction(PDO $pdo, int $user_id, int $farm_id, string $date, strin
     } else {
         // Insert new record
         $fields = ['user_id' => $user_id, 'farm_id' => $farm_id, 'record_date' => $date];
-        $field = match($type) {
-            'eggs' => 'eggs_collected',
-            'mortality' => 'mortality',
-            'milk' => 'milk_litres',
-            default => null
+        $field = null;
+        switch($type) {
+            case 'eggs': $field = 'eggs_collected'; break;
+            case 'mortality': $field = 'mortality'; break;
+            case 'milk': $field = 'milk_litres'; break;
         };
         if ($field) {
             $fields[$field] = $value;
@@ -280,11 +280,11 @@ function logProduction(PDO $pdo, int $user_id, int $farm_id, string $date, strin
         }
     }
     
-    $label = match($type) {
-        'eggs' => '🥚 Eggs',
-        'mortality' => '⚠️ Mortality',
-        'milk' => '🥛 Milk',
-        default => ucfirst($type)
+    $label = ucfirst($type);
+    switch($type) {
+        case 'eggs': $label = '🥚 Eggs'; break;
+        case 'mortality': $label = '⚠️ Mortality'; break;
+        case 'milk': $label = '🥛 Milk'; break;
     };
     
     $display_val = $type === 'milk' ? number_format($value, 1) . 'L' : (int)$value;
