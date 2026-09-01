@@ -685,38 +685,38 @@ if (($_SESSION['role'] ?? '') === 'customer') {
         </div>
     </section>
 
-    <!-- ── SOCIAL PROOF / CASE STUDY PLACEHOLDER ── -->
+    <!-- SOCIAL PROOF -->
     <section class="xai-section" id="proof">
         <div class="xai-container">
             <div class="xai-header xai-reveal">
-                <div class="xai-header-eyebrow">Real Farmers, Real Results</div>
-                <h2>See how Wangari changes<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">real farm businesses</span></h2>
+                <div class="xai-header-eyebrow">Why Farmers Switch</div>
+                <h2>The problems Wangari<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">actually solves</span></h2>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 900px; margin: 48px auto 0;">
-                <!-- Testimonial 1 -->
+                <!-- Problem 1 -->
                 <div style="background: var(--xai-card-bg); border: 1px solid var(--xai-border); border-radius: 16px; padding: 36px; position: relative;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--xai-lime)" opacity="0.15" style="margin-bottom: 16px;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-                    <p style="color: var(--xai-text); font-size: 1rem; line-height: 1.7; margin-bottom: 20px; font-style: italic;">"I used to guess my profit. Now I know exactly how much I make from every batch. Wangari showed me I was losing KES 15,000 a month on feed waste."</p>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #22C55E, #16A34A); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1rem;">JM</div>
-                        <div>
-                            <div style="color: var(--xai-text); font-weight: 600; font-size: 0.9rem;">James Mwangi</div>
-                            <div style="color: var(--xai-text-secondary); font-size: 0.8rem;">Poultry Farmer · Kiambu County</div>
-                        </div>
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                    </div>
+                    <h3 style="color: var(--xai-text); font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;">The feed theft problem</h3>
+                    <p style="color: var(--xai-text-secondary); font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">A poultry farmer in Kiambu had no inventory system. Feed disappeared for months before he noticed. KES 180,000 gone. Wangari tracks every bag from store to shed.</p>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></div>
+                        <span style="color: var(--xai-text-secondary); font-size: 0.85rem;">74% of Kenyan farms lose money from poor records</span>
                     </div>
                 </div>
 
-                <!-- Testimonial 2 -->
+                <!-- Problem 2 -->
                 <div style="background: var(--xai-card-bg); border: 1px solid var(--xai-border); border-radius: 16px; padding: 36px; position: relative;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--xai-lime)" opacity="0.15" style="margin-bottom: 16px;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-                    <p style="color: var(--xai-text); font-size: 1rem; line-height: 1.7; margin-bottom: 20px; font-style: italic;">"My workers can't lie about mortality anymore. Every death is recorded, every bag of feed is tracked. I sleep better knowing my numbers are real."</p>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #D97706); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1rem;">WN</div>
-                        <div>
-                            <div style="color: var(--xai-text); font-weight: 600; font-size: 0.9rem;">Wanjiku Njeri</div>
-                            <div style="color: var(--xai-text-secondary); font-size: 0.8rem;">Dairy Farmer · Nakuru County</div>
-                        </div>
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245,158,11,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <h3 style="color: var(--xai-text); font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;">The profit guessing game</h3>
+                    <p style="color: var(--xai-text-secondary); font-size: 0.95rem; line-height: 1.7; margin-bottom: 16px;">Most farmers cannot tell you their cost per bird or per litre of milk. They guess. Then they run out of cash and wonder why. Wangari calculates it automatically.</p>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></div>
+                        <span style="color: var(--xai-text-secondary); font-size: 0.85rem;">You will know your exact profit every day</span>
                     </div>
                 </div>
             </div>
@@ -848,7 +848,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
 
 
 
-    <!-- ── MOBILE APP COMING SOON ── -->
+    <!-- MOBILE APP -->
     <section class="xai-section xai-app-section" id="mobile-app">
         <div class="xai-container">
             <div class="xai-app-wrap xai-reveal">
@@ -887,24 +887,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         </div>
                     </div>
 
-                    <div class="xai-app-badges">
-                        <div class="xai-badge-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.22.67-2.94 1.51-.64.74-1.2 1.88-1.05 2.99 1.12.09 2.26-.58 3-1.44"/></svg>
-                            <div>
-                                <span>Download on the</span>
-                                <strong>App Store</strong>
-                            </div>
-                            <span class="xai-badge-soon">Soon</span>
-                        </div>
-                        <div class="xai-badge-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.27v13.46c0 .76.43 1.45 1.11 1.79l9.3-9.3L4.11 3.48C3.43 3.82 3 4.51 3 5.27m15.42 6.73-3.66-3.66-1.07 1.07 4.73 4.73c.46-.23.78-.71.78-1.26a1.4 1.4 0 0 0-.78-1.26M10.14 2.11 4.75.05A1.4 1.4 0 0 0 3 1.31v1.17l7.14 7.14M16.5 8.3l-5.29-5.29-1.07 1.07 6.36 6.36c.46-.23.78-.71.78-1.26 0-.55-.32-1.03-.78-1.26"/></svg>
-                            <div>
-                                <span>Get it on</span>
-                                <strong>Google Play</strong>
-                            </div>
-                            <span class="xai-badge-soon">Soon</span>
-                        </div>
-                    </div>
+                    <a href="/Frontend/pages/register.php" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: #22C55E; color: #000; font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.2s; margin-top: 8px;">Try Wangari Free <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
                 </div>
                 
                 <!-- Phone Frame Visual -->
@@ -983,14 +966,14 @@ if (($_SESSION['role'] ?? '') === 'customer') {
             <div class="xai-faq xai-reveal">
                 <?php
                 $faqs = [
-                    ["What exactly is Wangari?", "Wangari is an all-in-one farm management system - a mix of ERP, CRM and operations software. It handles production, inventory, feed, sales, credit, and finance for farms and agribusinesses of every size."],
+                    ["What exactly is Wangari?", "Wangari is a farm management system. It tracks your production, inventory, feed, sales, credit, and finances in one place. You can use it from your phone, tablet, or computer."],
                     ["Which types of farms does it support?", "Wangari supports poultry farms (broilers & layers), dairy & livestock farms, crop farms, feed mills, agro-vets and mixed farming operations. Each hub can be turned on or off based on what your farm does."],
-                    ["Do I need internet to use Wangari?", "Wangari is a web app that requires internet to sync data. However, you can install it on a local server on your farm so it works on your LAN without an internet connection."],
+                    ["Do I need internet to use Wangari?", "You can use WhatsApp to enter data, which works on any phone. The web app works best with internet, but offline mode lets you record data without a connection and syncs later."],
                     ["Does it work on my phone?", "Yes. Wangari is fully responsive and works on any smartphone, tablet or computer. Capture production in the shed and check reports from home - no app download needed."],
                     ["How many users can I add?", "There is no hard limit on users. You can add as many team members as you need, each with their own role (Admin, Manager, Worker, Viewer) controlling what they can see and do."],
                     ["Is my data safe and who owns it?", "You own your data, always. Records are encrypted, access is role-based, and you can export or delete everything at any time. No lock-in, no hidden fees."],
                     ["Can I export my data?", "Yes. Every report, ledger and record can be exported as CSV or PDF. You can also run database backups at any time."],
-                    ["Does it integrate with M-Pesa?", "The finance hub lets you record M-Pesa payments and reconcile them with your cashbook. Direct payment API checkout is not being advertised until the live integration is configured and tested."],
+                    ["Does it integrate with M-Pesa?", "You can record M-Pesa payments and track them in your cashbook. Direct M-Pesa checkout is coming soon."],
                     ["How do I get started?", "Click Get Started Free above, create your farm profile, add your first flock or herd and begin recording. Our setup wizard and support team walk you through everything."],
                 ];
                 foreach ($faqs as $i => $faq):
@@ -1020,7 +1003,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                     <img src="/Frontend/images/wangari-logo.png" alt="Wangari">
                     Wangari<span>.</span>
                 </div>
-                <p class="xai-footer-desc">Smart Farming for a Sustainable Future. All-in-one farm management system for poultry, livestock, crops, and finances - built for African agriculture.</p>
+                <p class="xai-footer-desc">Farm management system for poultry, livestock, crops, and finances. Built for African agriculture by iMeanTech.</p>
                 <div class="xai-footer-contact">
                     <a href="mailto:info@imeantech.com" class="xai-footer-contact-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
