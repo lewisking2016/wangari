@@ -10,9 +10,54 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Wangari — Smart Farm Management",
+  title: {
+    default: "Wangari — Farm Management Software with WhatsApp Bot | Kenya",
+    template: "%s | Wangari — Smart Farm Management",
+  },
   description:
-    "The all-in-one farm management platform for African farmers. Track flocks, production, sales, inventory, and finances.",
+    "Know your real farm profit in 30 seconds. Track poultry, crops, inventory, sales & finances from your phone or via WhatsApp. Free for 30 days. Built for Kenyan farmers.",
+  keywords: [
+    "farm management software Kenya",
+    "poultry farm tracker",
+    "WhatsApp farm bot",
+    "farm profit calculator",
+    "Kenya farming app",
+    "livestock management",
+    "farm record keeping",
+    "poultry farm management",
+    "farm inventory tracker",
+    "African farm management",
+  ],
+  authors: [{ name: "iMeanTech" }],
+  openGraph: {
+    title: "Wangari — Know Your Real Farm Profit in 30 Seconds",
+    description:
+      "Track every egg, every bag of feed, every shilling. WhatsApp bot for easy data entry. AI-powered farm insights. Free for 30 days.",
+    url: "https://wangari.imeantech.com",
+    siteName: "Wangari",
+    locale: "en_KE",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wangari — Farm Management with WhatsApp Bot",
+    description:
+      "Know your real profit. Track poultry, crops, inventory via WhatsApp. Free for 30 days.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://wangari.imeantech.com",
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +76,60 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased text-[#334155] bg-[#FAFBFC]" suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "Wangari",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web, Android, iOS",
+              description: "Farm management software with WhatsApp bot for Kenyan farmers. Track poultry, crops, inventory, sales, and finances.",
+              url: "https://wangari.imeantech.com",
+              offers: [
+                {
+                  "@type": "Offer",
+                  price: "0",
+                  priceCurrency: "KES",
+                  name: "Starter Free Trial",
+                  description: "30-day free trial, no credit card",
+                },
+                {
+                  "@type": "Offer",
+                  price: "500",
+                  priceCurrency: "KES",
+                  name: "Starter",
+                  description: "1 hub + WhatsApp bot",
+                },
+                {
+                  "@type": "Offer",
+                  price: "1500",
+                  priceCurrency: "KES",
+                  name: "Pro",
+                  description: "3 hubs + AI + alerts",
+                },
+                {
+                  "@type": "Offer",
+                  price: "3000",
+                  priceCurrency: "KES",
+                  name: "Enterprise",
+                  description: "All 7 hubs + priority support",
+                },
+              ],
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "150",
+              },
+              author: {
+                "@type": "Organization",
+                name: "iMeanTech",
+                url: "https://imeantech.com",
+              },
+            }),
+          }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

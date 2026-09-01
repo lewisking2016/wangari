@@ -16,7 +16,7 @@ export const TextRoll: React.FC<{
       initial="initial"
       whileHover="hovered"
       className={cn("relative block overflow-hidden cursor-default", className)}
-      style={{ lineHeight: 0.75 }}
+      style={{ lineHeight: 0.75, whiteSpace: "pre" }}
     >
       <div>
         {children.split("").map((l, i) => {
