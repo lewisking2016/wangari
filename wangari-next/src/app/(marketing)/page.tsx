@@ -125,17 +125,17 @@ export default function LandingPage() {
             <motion.div variants={fadeDown} className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
               <img src="/images/wangari-real-logo.png" alt="" className="h-5 w-5 rounded-full object-cover" />
               <span className="text-white/80">Named after Prof. Wangari Maathai</span>
-            </motion.div>            <motion.h1 variants={fadeUp} className="max-w-5xl mx-auto">
-              <div className="text-4xl md:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.1] tracking-tight">
-                <TextRoll center>Your Feed Manager Stole KES 180,000.</TextRoll>
+            </motion.div>            <motion.h1 variants={fadeUp} className="max-w-4xl mx-auto px-4">
+              <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
+                <TextRoll center>Stop Guessing.</TextRoll>
               </div>
-              <div className="text-4xl md:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.1] tracking-tight mt-2">
-                <TextRoll center className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">Wangari Stops That.</TextRoll>
+              <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight mt-2">
+                <TextRoll center className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">Start Knowing.</TextRoll>
               </div>
             </motion.h1>
-            <motion.p variants={fadeUp} className="mt-10 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
+            <motion.p variants={fadeUp} className="mt-8 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
               Know your real profit in 30 seconds. Track every egg, every bag of feed,
-              every shilling — from your phone or via WhatsApp. Start free for 30 days.
+              every shilling — from your phone or via WhatsApp.
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">

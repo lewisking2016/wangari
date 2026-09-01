@@ -9,13 +9,12 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Wangari — Farm Management Software with WhatsApp Bot | Kenya",
+export const metadata: Metadata = {    title: {
+    default: "Wangari — Stop Guessing. Start Knowing. | Farm Management Kenya",
     template: "%s | Wangari — Smart Farm Management",
   },
   description:
-    "Know your real farm profit in 30 seconds. Track poultry, crops, inventory, sales & finances from your phone or via WhatsApp. Free for 30 days. Built for Kenyan farmers.",
+    "Stop guessing your farm profit. Know it in 30 seconds. Track poultry, crops, inventory, sales & finances from your phone or via WhatsApp. Free for 30 days.",
   keywords: [
     "farm management software Kenya",
     "poultry farm tracker",
@@ -30,9 +29,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "iMeanTech" }],
   openGraph: {
-    title: "Wangari — Know Your Real Farm Profit in 30 Seconds",
+    title: "Wangari — Stop Guessing. Start Knowing.",
     description:
-      "Track every egg, every bag of feed, every shilling. WhatsApp bot for easy data entry. AI-powered farm insights. Free for 30 days.",
+      "Track every egg, every bag of feed, every shilling. Know your real farm profit in 30 seconds. WhatsApp bot for easy data entry.",
     url: "https://wangari.imeantech.com",
     siteName: "Wangari",
     locale: "en_KE",
@@ -40,9 +39,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wangari — Farm Management with WhatsApp Bot",
+    title: "Wangari — Stop Guessing. Start Knowing.",
     description:
-      "Know your real profit. Track poultry, crops, inventory via WhatsApp. Free for 30 days.",
+      "Know your real farm profit. Track poultry, crops, inventory via WhatsApp. Free for 30 days.",
   },
   robots: {
     index: true,

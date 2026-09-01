@@ -13,7 +13,7 @@ export default function MarketingLayout({
   const isHome = pathname === "/";
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC]">
+    <div className="min-h-screen bg-[#FAFBFC] overflow-x-hidden">
       <MegaMenuNavbar
         variant={isHome ? "transparent" : "light"}
         logo={
