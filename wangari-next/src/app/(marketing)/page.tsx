@@ -55,12 +55,12 @@ const slideInRight = {
 
 /* ── Data ── */
 const features = [
-  { icon: Bird, title: "Flock Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time.", color: "from-emerald-500 to-green-600" },
-  { icon: BarChart3, title: "Smart Analytics", desc: "See your costs, revenue, and margins at a glance. Know exactly which flock is most profitable.", color: "from-blue-500 to-indigo-600" },
-  { icon: Package, title: "Inventory Control", desc: "Never run out of feed or medication. Get low-stock alerts and track every bag in and out.", color: "from-amber-500 to-orange-600" },
-  { icon: Users, title: "Team Management", desc: "Manage workers, attendance, and wages. Assign tasks and track who did what.", color: "from-purple-500 to-violet-600" },
-  { icon: Smartphone, title: "Mobile First", desc: "Works on any phone, even with slow internet. Log production from the field in 3 taps.", color: "from-pink-500 to-rose-600" },
-  { icon: Sparkles, title: "AI Assistant", desc: "Ask your farm anything and get instant answers from your data.", color: "from-cyan-500 to-teal-600" },
+  { icon: Bird, title: "Flock Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time." },
+  { icon: BarChart3, title: "Smart Analytics", desc: "See your costs, revenue, and margins at a glance. Know exactly which flock is most profitable." },
+  { icon: Package, title: "Inventory Control", desc: "Never run out of feed or medication. Get low-stock alerts and track every bag in and out." },
+  { icon: Users, title: "Team Management", desc: "Manage workers, attendance, and wages. Assign tasks and track who did what." },
+  { icon: Smartphone, title: "Mobile First", desc: "Works on any phone, even with slow internet. Log production from the field in 3 taps." },
+  { icon: Sparkles, title: "AI Assistant", desc: "Ask your farm anything and get instant answers from your data." },
 ];
 
 const steps = [
@@ -224,7 +224,7 @@ export default function LandingPage() {
                 {/* Hover gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F0FDF4]/0 to-[#F0FDF4]/0 group-hover:from-[#F0FDF4]/50 group-hover:to-white/0 transition-all duration-500" />
                 <div className="relative">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${f.color} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#166534] text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <f.icon className="h-7 w-7" />
                   </div>
                   <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{f.title}</h3>
@@ -339,11 +339,11 @@ export default function LandingPage() {
                 whileHover={{ y: -6 }}
                 className="relative rounded-2xl border border-[#E5E7EB] bg-white p-8 hover:shadow-2xl hover:shadow-[#166534]/5 transition-all duration-500"
               >
-                <Quote className="h-8 w-8 text-[#22C55E]/20 mb-4" />
+                <Quote className="h-8 w-8 text-[#166534]/20 mb-4" />
                 <p className="text-sm text-[#334155] leading-relaxed mb-6">{t.text}</p>
                 <div className="flex items-center gap-1 mb-3">
                   {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#FACC15] text-[#FACC15]" />
+                    <Star key={i} className="h-4 w-4 fill-[#166534] text-[#166534]" />
                   ))}
                 </div>
                 <div>
@@ -403,52 +403,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════ FOOTER ═══════ */}
-      <footer className="border-t border-[#E5E7EB] bg-white py-16 px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-4 gap-10">
-            <div className="md:col-span-1">
-              <div className="flex items-center gap-2.5 mb-4">
-                <img src="/images/wangari-mark.svg" alt="Wangari" className="h-8 w-8" />
-                <span className="text-xl font-extrabold text-[#0F172A]">Wangari</span>
-              </div>
-              <p className="text-sm text-[#64748B] leading-relaxed">
-                Smart farm management for African farmers. Built with love in Kenya.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4">Product</h3>
-              <ul className="space-y-3 text-sm text-[#64748B]">
-                <li><Link href="/pricing" className="hover:text-[#166534] transition-colors">Pricing</Link></li>
-                <li><Link href="/features" className="hover:text-[#166534] transition-colors">Features</Link></li>
-                <li><Link href="/ai" className="hover:text-[#166534] transition-colors">AI Assistant</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4">Company</h3>
-              <ul className="space-y-3 text-sm text-[#64748B]">
-                <li><Link href="/about" className="hover:text-[#166534] transition-colors">About Us</Link></li>
-                <li><a href="mailto:hello@wangari.app" className="hover:text-[#166534] transition-colors">Contact</a></li>
-                <li><Link href="/privacy" className="hover:text-[#166534] transition-colors">Privacy</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4">Connect</h3>
-              <ul className="space-y-3 text-sm text-[#64748B]">
-                <li><a href="https://twitter.com/wangari_app" className="hover:text-[#166534] transition-colors">Twitter</a></li>
-                <li><a href="https://github.com/wangari" className="hover:text-[#166534] transition-colors">GitHub</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-[#E5E7EB] flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-[#94A3B8]">&copy; {new Date().getFullYear()} Wangari. All rights reserved.</p>
-            <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
-              <Heart className="h-3 w-3 text-[#EF4444] fill-[#EF4444]" />
-              <span>Built for African farmers</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }
