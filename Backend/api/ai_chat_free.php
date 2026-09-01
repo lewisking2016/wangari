@@ -131,12 +131,12 @@ KENYA-SPECIFIC KNOWLEDGE:
 - Weather: Rainy seasons Mar-May, Oct-Dec. Dry seasons Jun-Sep, Jan-Feb
 
 FARMER'S CURRENT DATA:
-- Eggs today: {$farmData['eggs_today'] ?? 'No data'}
-- Mortality today: {$farmData['mortality_today'] ?? 'No data'}
-- Eggs this month: {$farmData['eggs_month'] ?? 'No data'}
-- Mortality this month: {$farmData['mortality_month'] ?? 'No data'}
-- Profit this month: KES " . number_format($farmData['profit_month'] ?? 0) . "
-- Feed stock: {$farmData['feed_stock'] ?? 'Unknown'} bags
+- Eggs today: " . ($farmData['eggs_today'] ?? 'No data') . "
+- Mortality today: " . ($farmData['mortality_today'] ?? 'No data') . "
+- Eggs this month: " . ($farmData['eggs_month'] ?? 'No data') . "
+- Mortality this month: " . ($farmData['mortality_month'] ?? 'No data') . "
+- Profit this month: KES " . number_format((float)($farmData['profit_month'] ?? 0)) . "
+- Feed stock: " . ($farmData['feed_stock'] ?? 'Unknown') . " bags
 EOT;
 
     return $system . "\n\nFarmer asks: " . $message . "\n\nWangari answers:";

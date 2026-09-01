@@ -10,9 +10,9 @@
  * - Inactive user re-engagement
  * 
  * Run via cron:
- *   */30 * * * * php /path/to/push_notifications.php  (every 30 min for urgent alerts)
- *   0 7 * * * php /path/to/push_notifications.php?action=daily  (daily at 7am)
- *   0 18 * * * php /path/to/push_notifications.php?action=summary  (daily at 6pm)
+ *   every-30-min: php /path/to/push_notifications.php  (urgent alerts)
+ *   daily-7am: php /path/to/push_notifications.php?action=daily
+ *   daily-6pm: php /path/to/push_notifications.php?action=summary
  */
 declare(strict_types=1);
 

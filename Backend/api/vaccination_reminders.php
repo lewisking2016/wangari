@@ -114,11 +114,12 @@ switch ($action) {
 function getUpcomingReminders(PDO $pdo, int $user_id): array {
     $stmt = $pdo->prepare("
         SELECT v.id, v.vaccine_name, v.scheduled_date, v.status,
-               f.name as flock_name, f.bird_type,
+               f.flock_name, f.bird_type,
                DATEDIFF(v.scheduled_date, CURDATE()) as days_until
         FROM vaccinations v
         JOIN flocks f ON v.flock_id = f.id
-        WHERE f.user_id = ? 
+        JOIN farms fm ON f.farm_id = fm.id
+        WHERE fm.owner_id = ? 
         AND v.status = 'scheduled'
         AND v.scheduled_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY)
         ORDER BY v.scheduled_date ASC
@@ -130,12 +131,13 @@ function getUpcomingReminders(PDO $pdo, int $user_id): array {
 function getAllUpcomingReminders(PDO $pdo): array {
     $stmt = $pdo->prepare("
         SELECT v.id, v.vaccine_name, v.scheduled_date, v.status,
-               f.name as flock_name, f.bird_type, f.user_id,
+               f.flock_name, f.bird_type, fm.owner_id as user_id,
                u.full_name, u.email, u.phone_number,
                DATEDIFF(v.scheduled_date, CURDATE()) as days_until
         FROM vaccinations v
         JOIN flocks f ON v.flock_id = f.id
-        JOIN users u ON f.user_id = u.id
+        JOIN farms fm ON f.farm_id = fm.id
+        JOIN users u ON fm.owner_id = u.id
         WHERE v.status = 'scheduled'
         AND v.scheduled_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
         ORDER BY v.scheduled_date ASC
