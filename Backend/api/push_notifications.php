@@ -78,8 +78,8 @@ switch ($action) {
 // Store notifications in database for later sending
 $inserted = 0;
 foreach ($notifications as $n) {
-    $stmt = $pdo->prepare("INSERT IGNORE INTO notifications (user_id, type, title, message, priority, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-    $stmt->execute([$n['user_id'], $n['type'], $n['title'], $n['message'], $n['priority']]);
+    $stmt = $pdo->prepare("INSERT IGNORE INTO notifications (user_id, type, title, message, created_at) VALUES (?, ?, ?, ?, NOW())");
+    $stmt->execute([$n['user_id'], $n['type'], $n['title'], $n['message']]);
     if ($stmt->rowCount() > 0) $inserted++;
 }
 
