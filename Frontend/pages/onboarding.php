@@ -226,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['goal'])) {
                 Step 1 of 2
             </div>
             <h1 class="onboarding-title">What's the <span>#1 thing</span><br>you want to track?</h1>
-            <p class="onboarding-subtitle">Pick one. You can always add more later. We'll show you exactly what you need — nothing confusing, nothing extra.</p>
+            <p class="onboarding-subtitle">Pick one. You can always add more later. We'll show you exactly what you need, nothing confusing, nothing extra.</p>
         </div>
 
         <form method="POST" id="goalForm">
@@ -278,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['goal'])) {
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     </div>
                     <h3>💰 My Money</h3>
-                    <p>Track income, expenses, M-Pesa payments, and see your real profit — calculated automatically.</p>
+                    <p>Track income, expenses, M-Pesa payments, and see your real profit, calculated automatically.</p>
                 </label>
 
                 <!-- Sales -->
@@ -297,7 +297,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['goal'])) {
             </button>
         </form>
 
-        <a href="/Frontend/admin/dashboard.php" class="skip-link">Skip for now — I'll explore on my own</a>
+        <a href="/Frontend/admin/dashboard.php" class="skip-link">Skip for now, I'll explore on my own</a>
     </div>
 
     <script>

@@ -208,10 +208,10 @@ $page_title = 'Help Center — Wangari';
             
             <h3>Your Daily Routine</h3>
             <ol style="padding-left: 20px; margin: 12px 0;">
-                <li style="margin-bottom: 8px;"><strong>8:00 AM</strong> — Check Agent Dashboard (which farmers are inactive?)</li>
-                <li style="margin-bottom: 8px;"><strong>9:00 AM - 5:00 PM</strong> — Visit 5 farms per day</li>
+                <li style="margin-bottom: 8px;"><strong>8:00 AM</strong>: Check Agent Dashboard (which farmers are inactive?)</li>
+                    <li style="margin-bottom: 8px;"><strong>9:00 AM - 5:00 PM</strong>: Visit 5 farms per day</li>
                 <li style="margin-bottom: 8px;"><strong>At each farm:</strong> Enter data for the farmer, check their progress, answer questions</li>
-                <li style="margin-bottom: 8px;"><strong>6:00 PM</strong> — Update Agent Dashboard, submit daily report</li>
+                <li style="margin-bottom: 8px;"><strong>6:00 PM</strong>: Update Agent Dashboard, submit daily report</li>
             </ol>
             
             <h3>Creating an Account for a Farmer</h3>

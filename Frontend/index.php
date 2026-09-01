@@ -125,7 +125,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                 Built for real farm teams
             </div>
             <h1>Last Month, Your Farm<br>Made <span>KES _____</span> or<br>Lost <span>KES _____</span>.<br><span>Wangari Tells You in 30 Seconds.</span></h1>
-            <p class="xai-hero-sub">Stop guessing your profit. Stop losing feed to theft. Stop relying on notebooks that get wet. Wangari tracks every egg, every bag, every shilling — so you know exactly where your money goes.</p>
+            <p class="xai-hero-sub">Stop guessing your profit. Stop losing feed to theft. Stop relying on notebooks that get wet. Wangari tracks every egg, every bag, every shilling. So you know exactly where your money goes.</p>
             <div class="xai-hero-actions">
                 <?php if ($is_logged_in): ?>
                     <a href="<?php echo $dashboard_url; ?>" class="xai-btn xai-btn-primary xai-btn-lg">
@@ -207,11 +207,11 @@ if (($_SESSION['role'] ?? '') === 'customer') {
             <div class="xai-impact-grid">
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">30</div>
-                    <div class="xai-impact-label">Day free trial — no credit card</div>
+                    <div class="xai-impact-label">Day free trial, no credit card</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">WhatsApp</div>
-                    <div class="xai-impact-label">Enter data by text — no app needed</div>
+                    <div class="xai-impact-label">Enter data by text, no app needed</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">AI</div>
@@ -219,7 +219,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                 </div>
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">Offline</div>
-                    <div class="xai-impact-label">Works without internet — syncs later</div>
+                    <div class="xai-impact-label">Works without internet, syncs later</div>
                 </div>
             </div>
         </div>
@@ -241,21 +241,21 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     </div>
                     <h3>Stop guessing your numbers</h3>
-                    <p>You suspect feed is going missing. You don't know your real cost per bird. Wangari tracks every bag, every egg, every shilling — so you know exactly where your money goes.</p>
+                    <p>You suspect feed is going missing. You don't know your real cost per bird. Wangari tracks every bag, every egg, every shilling. So you know exactly where your money goes.</p>
                 </div>
                 <div class="xai-trio-card">
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#3b82f622,#1d4ed811);">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     </div>
                     <h3>Know your real profit</h3>
-                    <p>Stop doing mental math. Wangari calculates your cost per bird, revenue per customer, and net profit automatically — updated every time you enter data.</p>
+                    <p>Stop doing mental math. Wangari calculates your cost per bird, revenue per customer, and net profit automatically, updated every time you enter data.</p>
                 </div>
                 <div class="xai-trio-card">
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#a855f722,#7c3aed11);">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     </div>
                     <h3>AI that catches problems early</h3>
-                    <p>"Why are my layers losing eggs?" "When should I vaccinate?" "Which batch is losing money?" Ask in plain language — even in Swahili — and get answers from YOUR data.</p>
+                    <p>"Why are my layers losing eggs?" "When should I vaccinate?" "Which batch is losing money?" Ask in plain language (even in Swahili) and get answers from YOUR data.</p>
                 </div>
             </div>
         </div>
@@ -267,7 +267,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
             <div class="xai-header xai-reveal">
                 <div class="xai-header-eyebrow">Everything Connected</div>
                 <h2>One system for<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">every part of your farm</span></h2>
-                <p>Feed, livestock, crops, sales, finance — all in one place. When you buy feed, it updates your costs. When you sell eggs, it updates your profit. Nothing gets lost.</p>
+                <p>Feed, livestock, crops, sales, finance, all in one place. When you buy feed, it updates your costs. When you sell eggs, it updates your profit. Nothing gets lost.</p>
             </div>
 
             <div class="xai-modules-grid">
@@ -428,10 +428,10 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         Wangari is named after <strong style="color: #fff;">Prof. Wangari Maathai</strong> (1940–2011) — Kenya’s Nobel Peace Prize laureate, founder of the <strong style="color: #22C55E;">Green Belt Movement</strong>, and the first African woman to win the Nobel Prize.
                     </p>
                     <p style="color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px;">
-                        She planted over <strong style="color: #fff;">51 million trees</strong> across Kenya, empowering rural women to reclaim their land, fight deforestation, and build sustainable livelihoods. She believed that a healthy environment starts with the people who work the land.
+                        She planted over <strong style="color: #fff;">51 million trees</strong> across Kenya, helping rural women reclaim their land, fight deforestation, and build sustainable livelihoods. She believed that a healthy environment starts with the people who work the land.
                     </p>
                     <p style="color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.8; margin-bottom: 32px;">
-                        We carry her vision forward. Wangari gives farmers the tools to manage their land sustainably — tracking every animal, every crop, every shilling — so they can feed their families and grow their businesses with confidence.
+                        We carry her vision forward. Wangari gives farmers the tools to manage their land sustainably. Tracking every animal, every crop, every shilling, so they can feed their families and grow their businesses with confidence.
                     </p>
                     <div style="display: flex; gap: 32px;">
                         <div>
@@ -495,7 +495,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     </div>
                     <h3>See your real numbers</h3>
-                    <p>Wangari shows your cost per bird, revenue per customer, and net profit — calculated automatically. No more guessing. No more spreadsheets.</p>
+                    <p>Wangari shows your cost per bird, revenue per customer, and net profit, calculated automatically. No more guessing. No more spreadsheets.</p>
                     <div class="xai-hiw-badge">Instant</div>
                 </div>
                 <div class="xai-hiw-card xai-reveal">
@@ -545,7 +545,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                                 </div>
                                 <!-- Bot AI response -->
                                 <div style="display: flex; justify-content: flex-start;">
-                                    <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: rgba(255,255,255,0.9); padding: 10px 14px; border-radius: 14px 14px 14px 4px; font-size: 0.85rem; max-width: 85%; line-height: 1.5;">📊 <strong>AI Analysis:</strong><br>Your production dropped 15% this week.<br><br>Possible causes:<br>1) Feed quality — check FCR<br>2) Disease — check mortality<br>3) Heat stress — check weather<br><br>💡 Recommendation: Check feed stock for moisture.</div>
+                                    <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: rgba(255,255,255,0.9); padding: 10px 14px; border-radius: 14px 14px 14px 4px; font-size: 0.85rem; max-width: 85%; line-height: 1.5;">📊 <strong>AI Analysis:</strong><br>Your production dropped 15% this week.<br><br>Possible causes:<br>1) Feed quality: check FCR<br>2) Disease: check mortality<br>3) Heat stress: check weather<br><br>💡 Recommendation: Check feed stock for moisture.</div>
                                 </div>
                             </div>
                         </div>
@@ -562,13 +562,13 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         Text your numbers.<br>We do the math.
                     </h2>
                     <p style="color: var(--xai-text-secondary); font-size: 1rem; line-height: 1.7; margin-bottom: 24px;">
-                        No app to download. No forms to fill. Just send a WhatsApp message like you already do every day. Wangari records it, calculates your costs, and sends you a profit report — all automatically.
+                        No app to download. No forms to fill. Just send a WhatsApp message like you already do every day. Wangari records it, calculates your costs, and sends you a profit report, all automatically.
                     </p>
                     <ul style="list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 14px;">
-                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Send "eggs 40, mortality 2, feed 3 bags" — done</li>
-                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Ask "why low eggs?" — AI analyzes your data</li>
-                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Get daily profit summary at 6pm — automatically</li>
-                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Works on ANY phone — smartphone or basic</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Send "eggs 40, mortality 2, feed 3 bags". Done.</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Ask "why low eggs?" and the AI analyzes your data</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Get daily profit summary at 6pm, automatically</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Works on ANY phone, smartphone or basic</li>
                     </ul>
                     <a href="/Frontend/pages/register.php" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: #22C55E; color: #000; font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.2s;">Try the WhatsApp Bot Free <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
                 </div>
@@ -618,7 +618,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
             <div class="xai-header xai-reveal">
                 <div class="xai-header-eyebrow" style="color: #22C55E;">Start Free. Upgrade When You See Results.</div>
                 <h2 style="color: #fff;">Choose the plan that<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">fits your farm</span></h2>
-                <p style="color: rgba(255,255,255,0.6); max-width: 640px; margin: 0 auto;">Every plan includes the WhatsApp bot, mobile access, and daily profit reports. Start free for 30 days — no credit card required.</p>
+                <p style="color: rgba(255,255,255,0.6); max-width: 640px; margin: 0 auto;">Every plan includes the WhatsApp bot, mobile access, and daily profit reports. Start free for 30 days, no credit card required.</p>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 48px auto 0;">
@@ -752,7 +752,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                                             <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Daily Records & Health</div>
                                         </div>
                                     </div>
-                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Record egg counts, mortality, weight gain and vaccinations in one place. No more scattered notebooks — every entry connects to your batch and updates your profit report automatically.</p>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Record egg counts, mortality, weight gain and vaccinations in one place. No more scattered notebooks. Every entry connects to your batch and updates your profit report automatically.</p>
                                     <div style="display:flex;flex-wrap:wrap;gap:8px;">
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Egg Tracking</span>
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Mortality Log</span>
@@ -775,7 +775,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                                             <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Feed, Stock & Costs</div>
                                         </div>
                                     </div>
-                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Know exactly how much feed, medicine and supplies you have left. Track every bag of layers mash and every bottle of vaccine — the system alerts you before you run out and shows what each batch is costing you.</p>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Know exactly how much feed, medicine and supplies you have left. Track every bag of layers mash and every bottle of vaccine. The system alerts you before you run out and shows what each batch is costing you.</p>
                                     <div style="display:flex;flex-wrap:wrap;gap:8px;">
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Feed Stock</span>
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Low Alerts</span>
@@ -798,7 +798,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                                             <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Orders, Credit & M-Pesa</div>
                                         </div>
                                     </div>
-                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Track who bought eggs today, who still owes you money, and how much you made this week. Every sale — cash, M-Pesa or credit — shows up in your profit report so you always know where your money is.</p>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Track who bought eggs today, who still owes you money, and how much you made this week. Every sale, whether cash, M-Pesa or credit, shows up in your profit report so you always know where your money is.</p>
                                     <div style="display:flex;flex-wrap:wrap;gap:8px;">
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">M-Pesa Sales</span>
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Credit Tracking</span>
@@ -821,7 +821,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                                             <div style="font-size:1.1rem;font-weight:700;color:var(--xai-text);">Roles & Access Control</div>
                                         </div>
                                     </div>
-                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Your farm worker records daily tasks, your manager handles sales, and you see everything. Each person gets the right access — nobody sees what they shouldn't, and you stay in control of your data.</p>
+                                    <p style="color:var(--xai-text-secondary);font-size:0.95rem;line-height:1.7;margin:0 0 16px;">Your farm worker records daily tasks, your manager handles sales, and you see everything. Each person gets the right access. Nobody sees what they shouldn't, and you stay in control of your data.</p>
                                     <div style="display:flex;flex-wrap:wrap;gap:8px;">
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Worker Access</span>
                                         <span style="background:var(--xai-surface);color:var(--xai-text-secondary);font-size:0.8rem;padding:4px 12px;border-radius:100px;">Manager View</span>
