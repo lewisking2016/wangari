@@ -12,11 +12,10 @@ export const TextRoll: React.FC<{
   center?: boolean;
 }> = ({ children, className, center = false }) => {
   const words = children.split(" ");
+  const totalChars = children.replace(/ /g, "").length;
 
   return (
-    <motion.span
-      initial="initial"
-      animate="visible"
+    <span
       className={cn("relative block", className)}
       style={{ lineHeight: 1.1, textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}
     >
@@ -27,19 +26,16 @@ export const TextRoll: React.FC<{
             {wi > 0 && <span className="inline-block">&nbsp;</span>}
             {word.split("").map((char, ci) => {
               const charIndex = globalOffset + ci;
-              const totalChars = children.replace(/ /g, "").length;
               const delay = center
                 ? STAGGER * Math.abs(charIndex - totalChars / 2)
                 : STAGGER * charIndex;
 
               return (
                 <motion.span
-                  variants={{
-                    initial: { opacity: 0, y: 20 },
-                    visible: { opacity: 1, y: 0 },
-                  }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{
-                    duration: 0.4,
+                    duration: 0.5,
                     delay,
                     ease: [0.22, 1, 0.36, 1],
                   }}
@@ -53,6 +49,6 @@ export const TextRoll: React.FC<{
           </React.Fragment>
         );
       })}
-    </motion.span>
+    </span>
   );
 };
