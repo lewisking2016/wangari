@@ -123,7 +123,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-28 md:pt-48 md:pb-36 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeDown} className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
-              <img src="/images/wangari-logo.svg" alt="" className="h-5 w-5" />
+              <img src="/images/wangari-real-logo.png" alt="" className="h-5 w-5 rounded-full object-cover" />
               <span className="text-white/80">Named after Prof. Wangari Maathai</span>
             </motion.div>            <motion.h1 variants={fadeUp} className="max-w-5xl mx-auto">
               <div className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold leading-[1.05] tracking-tight">
@@ -353,7 +353,6 @@ export default function LandingPage() {
             variants={scaleIn}
             className="relative rounded-3xl bg-gradient-to-br from-[#0B1220] via-[#14532D] to-[#166534] p-12 md:p-16 text-center text-white overflow-hidden"
           >
-            {/* Decorative blobs */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               <div className="absolute -top-20 -right-20 h-[300px] w-[300px] rounded-full bg-[#22C55E]/10 blur-[80px]" />
               <div className="absolute -bottom-20 -left-20 h-[300px] w-[300px] rounded-full bg-[#4ADE80]/10 blur-[80px]" />
@@ -361,28 +360,30 @@ export default function LandingPage() {
             <div className="relative">
               <motion.div variants={fadeUp}>
                 <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-                  Ready to transform
+                  Wangari technology by
                   <br />
-                  your farm?
+                  <span className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">iMeanTech</span>
                 </h2>
               </motion.div>
               <motion.p variants={fadeUp} className="mt-6 text-lg text-white/70 max-w-xl mx-auto">
-                Join 50,000+ farmers who are already growing smarter with Wangari.
+                Visit iMeanTech to learn about the technology, services and support behind Wangari.
                 Start for free — upgrade when you&apos;re ready.
               </motion.p>
               <motion.div variants={fadeUp} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  href="/register"
+                <a
+                  href="https://imeantech.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group inline-flex items-center gap-3 rounded-full bg-white text-[#166534] px-8 py-4 text-base font-bold hover:bg-[#F0FDF4] transition-all duration-300 shadow-2xl hover:-translate-y-1"
                 >
-                  Get Started Free
+                  Visit iMeanTech.com
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1.5" />
-                </Link>
+                </a>
                 <Link
-                  href="/about"
+                  href="/register"
                   className="inline-flex items-center gap-2 rounded-full border-2 border-white/25 px-8 py-4 text-base font-semibold text-white hover:bg-white/10 transition-all duration-300"
                 >
-                  Learn More
+                  Get Started Free
                 </Link>
               </motion.div>
             </div>

@@ -164,10 +164,11 @@ function Brand({
       onClick={onNavigate}
       className="relative z-10 flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-tight text-[#0F172A]"
     >
-      {logo ?? (
-        <img src="/images/wangari-logo.svg" alt="Wangari" className="h-8 w-8" />
+      {logo ? (
+        <>{logo}</>
+      ) : (
+        <><img src="/images/wangari-real-logo.png" alt="Wangari" className="h-8 w-8 rounded-full object-cover" /><span>{brandName}</span></>
       )}
-      <span>{brandName}</span>
     </Link>
   );
 }

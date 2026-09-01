@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, Bird, Mail, Phone, MapPin } from "lucide-react";
+import { Heart, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import { Link002 } from "@/components/ui/animated-link";
 
 export function Footer() {
@@ -13,7 +13,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <img src="/images/wangari-logo.svg" alt="Wangari" className="h-9 w-9" />
+              <img src="/images/wangari-real-logo.png" alt="Wangari" className="h-9 w-9 rounded-full object-cover" />
               <span className="text-xl font-extrabold text-[#0F172A]">Wangari</span>
             </div>
             <p className="text-sm text-[#64748B] leading-relaxed max-w-sm">
@@ -24,11 +24,11 @@ export function Footer() {
             <div className="mt-5 space-y-2.5">
               <div className="flex items-center gap-2.5 text-sm text-[#64748B]">
                 <Mail className="h-4 w-4 text-[#166534]" />
-                <Link002 href="mailto:hello@wangari.app" className="text-sm text-[#64748B] hover:text-[#166534]">hello@wangari.app</Link002>
+                <Link002 href="mailto:info@imeantech.com" className="text-sm text-[#64748B] hover:text-[#166534]">info@imeantech.com</Link002>
               </div>
               <div className="flex items-center gap-2.5 text-sm text-[#64748B]">
                 <Phone className="h-4 w-4 text-[#166534]" />
-                <span>+254 700 123 456</span>
+                <span>+254 114 971 070</span>
               </div>
               <div className="flex items-center gap-2.5 text-sm text-[#64748B]">
                 <MapPin className="h-4 w-4 text-[#166534]" />
@@ -54,9 +54,9 @@ export function Footer() {
             <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-widest mb-4">Company</h3>
             <ul className="space-y-3">
               <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">About Us</Link002></li>
-              <li><Link002 href="mailto:hello@wangari.app" className="text-sm text-[#64748B] hover:text-[#166534]">Contact</Link002></li>
+              <li><Link002 href="mailto:info@imeantech.com" className="text-sm text-[#64748B] hover:text-[#166534]">Contact</Link002></li>
+              <li><Link002 href="https://imeantech.com" className="text-sm text-[#64748B] hover:text-[#166534]">iMeanTech</Link002></li>
               <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">Careers</Link002></li>
-              <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">Blog</Link002></li>
             </ul>
           </div>
 
@@ -84,17 +84,17 @@ export function Footer() {
       <div className="border-t border-[#E5E7EB] bg-[#FAFBFC]">
         <div className="mx-auto max-w-7xl px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#94A3B8]">
-            &copy; {currentYear} Wangari Technologies Ltd. All rights reserved.
+            &copy; {currentYear} iMeanTech Limited. All rights reserved. &middot; Wangari Smart Farm Manager
           </p>
           <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
             <span>Made with</span>
             <Heart className="h-3 w-3 text-[#166534] fill-[#166534]" />
             <span>for African farmers</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
-            <Bird className="h-3.5 w-3.5 text-[#166534]" />
-            <span>Wangari v1.0</span>
-          </div>
+          <a href="https://imeantech.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-[#166534] font-semibold hover:underline">
+            Built by iMeanTech
+            <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
       </div>
     </footer>

@@ -8,7 +8,14 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="min-h-screen bg-white">
-      <MegaMenuNavbar />
+      <MegaMenuNavbar
+        logo={
+          <div className="flex items-center gap-2.5">
+            <img src="/images/wangari-real-logo.png" alt="Wangari" className="h-8 w-8 rounded-full object-cover" />
+            <span className="text-base font-bold text-[#0F172A] tracking-tight">Wangari</span>
+          </div>
+        }
+      />
       <main className="pt-16">{children}</main>
       <Footer />
     </div>
