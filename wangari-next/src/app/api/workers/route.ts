@@ -1,45 +1,33 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const member = await prisma.farmMember.findFirst({ where: { userId: Number(session.user.id) } });
-  if (!member) return NextResponse.json([]);
-
-  const workers = await prisma.worker.findMany({
-    where: { farmId: member.farmId },
-    orderBy: { createdAt: "desc" },
+  const data = await prisma.worker.findMany({
+    where: { farmId: user.farmId! },
+    orderBy: { name: "asc" },
   });
-
-  return NextResponse.json(workers);
+  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
-    const member = await prisma.farmMember.findFirst({ where: { userId: Number(session.user.id) } });
-    if (!member) return NextResponse.json({ error: "No farm" }, { status: 400 });
-
-    const worker = await prisma.worker.create({
+    const result = await prisma.worker.create({
       data: {
-        farmId: member.farmId,
-        name: body.name,
-        phone: body.phone || null,
-        role: body.role || null,
-        dailyWage: body.dailyWage ? Number(body.dailyWage) : null,
-        createdBy: Number(session.user.id),
+        farmId: user.farmId!, name: body.name, role: body.role || null,
+        phone: body.phone || null, dailyWage: Number(body.dailyWage || 0), status: "active",
       },
     });
-
-    return NextResponse.json(worker, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error("Worker error:", error);
+    console.error("Error:", error);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }

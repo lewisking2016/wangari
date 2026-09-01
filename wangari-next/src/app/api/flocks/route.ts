@@ -1,68 +1,36 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const flocks = await prisma.flock.findMany({
+  const data = await prisma.flock.findMany({
+    where: { farmId: user.farmId! },
     orderBy: { createdAt: "desc" },
   });
-
-  return NextResponse.json(flocks);
+  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
-    const { name, breed, type, initialCount, hatchDate } = body;
-
-    if (!name || !initialCount) {
-      return NextResponse.json(
-        { error: "Name and count are required" },
-        { status: 400 }
-      );
-    }
-
-    // Get user's primary farm
-    const member = await prisma.farmMember.findFirst({
-      where: { userId: Number(session.user.id) },
-    });
-
-    if (!member) {
-      return NextResponse.json(
-        { error: "No farm found. Create a farm first." },
-        { status: 400 }
-      );
-    }
-
-    const flock = await prisma.flock.create({
+    const result = await prisma.flock.create({
       data: {
-        farmId: member.farmId,
-        name,
-        breed: breed || null,
-        type: type || "layers",
-        initialCount: Number(initialCount),
-        currentCount: Number(initialCount),
-        hatchDate: hatchDate ? new Date(hatchDate) : null,
-        createdBy: Number(session.user.id),
+        farmId: user.farmId!, name: body.name, breed: body.breed || null,
+        type: body.type || "layers", initialCount: Number(body.initialCount),
+        currentCount: Number(body.initialCount),
+        hatchDate: body.hatchDate ? new Date(body.hatchDate) : null,
+        createdBy: user.userId,
       },
     });
-
-    return NextResponse.json(flock, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error("Create flock error:", error);
-    return NextResponse.json(
-      { error: "Failed to create flock" },
-      { status: 500 }
-    );
+    console.error("Error:", error);
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }

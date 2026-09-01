@@ -1,63 +1,35 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const records = await prisma.dailyProduction.findMany({
-    orderBy: { date: "desc" },
-    take: 50,
+  const data = await prisma.dailyProduction.findMany({
+    where: { farmId: user.farmId! },
+    orderBy: { date: "desc" }, take: 50,
     include: { flock: { select: { name: true } } },
   });
-
-  return NextResponse.json(records);
+  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
-    const { flockId, date, eggsCollected, mortality, feedUsed, notes } = body;
-
-    if (!flockId || !date) {
-      return NextResponse.json({ error: "Flock and date are required" }, { status: 400 });
-    }
-
-    const flock = await prisma.flock.findUnique({ where: { id: Number(flockId) } });
-    if (!flock) {
-      return NextResponse.json({ error: "Flock not found" }, { status: 404 });
-    }
-
-    const record = await prisma.dailyProduction.upsert({
-      where: { flockId_date: { flockId: Number(flockId), date: new Date(date) } },
-      update: {
-        eggsCollected: Number(eggsCollected || 0),
-        mortality: Number(mortality || 0),
-        feedUsed: Number(feedUsed || 0),
-        notes: notes || null,
-      },
-      create: {
-        flockId: Number(flockId),
-        farmId: flock.farmId,
-        date: new Date(date),
-        eggsCollected: Number(eggsCollected || 0),
-        mortality: Number(mortality || 0),
-        feedUsed: Number(feedUsed || 0),
-        notes: notes || null,
-      },
+    const flock = await prisma.flock.findUnique({ where: { id: Number(body.flockId) } });
+    if (!flock) return NextResponse.json({ error: "Flock not found" }, { status: 404 });
+    const result = await prisma.dailyProduction.upsert({
+      where: { flockId_date: { flockId: Number(body.flockId), date: new Date(body.date) } },
+      update: { eggsCollected: Number(body.eggsCollected || 0), mortality: Number(body.mortality || 0), feedUsed: Number(body.feedUsed || 0), notes: body.notes || null },
+      create: { flockId: Number(body.flockId), farmId: user.farmId!, date: new Date(body.date), eggsCollected: Number(body.eggsCollected || 0), mortality: Number(body.mortality || 0), feedUsed: Number(body.feedUsed || 0), notes: body.notes || null },
     });
-
-    return NextResponse.json(record, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error("Production log error:", error);
-    return NextResponse.json({ error: "Failed to log production" }, { status: 500 });
+    console.error("Error:", error);
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }

@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const farms = await prisma.farm.findMany({
-    where: {
-      members: { some: { userId: Number(session.user.id) } },
-    },
-    include: { members: true },
+    where: { id: user.farmId! },
   });
-
-  return NextResponse.json(farms);
+  return NextResponse.json(farms[0] || null);
 }

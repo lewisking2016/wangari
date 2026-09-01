@@ -1,47 +1,36 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const member = await prisma.farmMember.findFirst({ where: { userId: Number(session.user.id) } });
-  if (!member) return NextResponse.json([]);
-
-  const sales = await prisma.sale.findMany({
-    where: { farmId: member.farmId },
-    orderBy: { saleDate: "desc" },
+  const data = await prisma.sale.findMany({
+    where: { farmId: user.farmId! },
+    orderBy: { saleDate: "desc" }, take: 100,
     include: { customer: { select: { name: true } } },
   });
-
-  return NextResponse.json(sales);
+  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const body = await req.json();
-    const member = await prisma.farmMember.findFirst({ where: { userId: Number(session.user.id) } });
-    if (!member) return NextResponse.json({ error: "No farm" }, { status: 400 });
-
-    const sale = await prisma.sale.create({
+    const result = await prisma.sale.create({
       data: {
-        farmId: member.farmId,
-        customerId: body.customerId || null,
-        items: body.items || [],
-        totalAmount: Number(body.totalAmount),
-        paymentStatus: body.paymentStatus || "paid",
-        amountPaid: Number(body.amountPaid || body.totalAmount),
-        createdBy: Number(session.user.id),
+        farmId: user.farmId!, customerId: body.customerId ? Number(body.customerId) : null,
+        saleDate: new Date(body.saleDate || new Date()), items: body.items || "",
+        totalAmount: Number(body.totalAmount), amountPaid: Number(body.amountPaid || 0),
+        paymentStatus: body.paymentStatus || "pending", createdBy: user.userId,
       },
     });
-
-    return NextResponse.json(sale, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    console.error("Sale error:", error);
+    console.error("Error:", error);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
