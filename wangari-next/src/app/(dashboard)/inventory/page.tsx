@@ -24,12 +24,13 @@ export default function InventoryPage() {
   const lowStock = items.filter(i => Number(i.quantity) <= i.reorderLevel);
   const totalValue = items.reduce((s, i) => s + Number(i.quantity) * Number(i.unitCost), 0);
 
+  // Uniform green palette for all categories
   const categoryColors: Record<string, string> = {
-    feed: "from-amber-400 to-orange-500",
-    vaccine: "from-blue-400 to-indigo-500",
-    packaging: "from-purple-400 to-violet-500",
-    medication: "from-red-400 to-rose-500",
-    general: "from-emerald-400 to-green-500",
+    feed: "from-[#166534] to-[#14532D]",
+    vaccine: "from-[#15803D] to-[#166534]",
+    packaging: "from-[#22C55E] to-[#16A34A]",
+    medication: "from-[#14532D] to-[#0B1220]",
+    general: "from-[#15803D] to-[#14532D]",
   };
 
   return (
@@ -40,27 +41,26 @@ export default function InventoryPage() {
 
       {lowStock.length > 0 && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50 hover:shadow-md transition-shadow">
+          <Card className="border-[#166534]/20 bg-gradient-to-r from-[#F0FDF4] to-white hover:shadow-md transition-shadow">
             <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534]/10 text-[#166534]">
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-red-800">{lowStock.length} items below reorder level</p>
-                <p className="text-xs text-red-600/70">{lowStock.map(i => i.itemName).join(", ")}</p>
+                <p className="text-sm font-bold text-[#166534]">{lowStock.length} items below reorder level</p>
+                <p className="text-xs text-[#64748B]">{lowStock.map(i => i.itemName).join(", ")}</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      {/* Summary KPIs */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <motion.div variants={scaleIn}>
           <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-green-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#166534] to-[#22C55E]" />
             <CardContent className="pt-6 pb-4 px-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 text-white shadow-md mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#166534] to-[#22C55E] text-white shadow-md mb-3">
                 <Package className="h-5 w-5" />
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">Total Items</p>
@@ -70,9 +70,9 @@ export default function InventoryPage() {
         </motion.div>
         <motion.div variants={scaleIn}>
           <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-indigo-500" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#15803D] to-[#166534]" />
             <CardContent className="pt-6 pb-4 px-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-md mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#15803D] to-[#166534] text-white shadow-md mb-3">
                 <CircleDollarSign className="h-5 w-5" />
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">Total Value</p>
@@ -82,9 +82,9 @@ export default function InventoryPage() {
         </motion.div>
         <motion.div variants={scaleIn}>
           <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <div className={`absolute top-0 left-0 right-0 h-1 ${lowStock.length > 0 ? "bg-gradient-to-r from-red-400 to-rose-500" : "bg-gradient-to-r from-emerald-400 to-green-500"}`} />
+            <div className={`absolute top-0 left-0 right-0 h-1 ${lowStock.length > 0 ? "bg-gradient-to-r from-[#14532D] to-[#0B1220]" : "bg-gradient-to-r from-[#22C55E] to-[#16A34A]"}`} />
             <CardContent className="pt-6 pb-4 px-5">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${lowStock.length > 0 ? "from-red-400 to-rose-500" : "from-emerald-400 to-green-500"} text-white shadow-md mb-3`}>
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${lowStock.length > 0 ? "from-[#14532D] to-[#0B1220]" : "from-[#22C55E] to-[#16A34A]"} text-white shadow-md mb-3`}>
                 <TrendingUp className="h-5 w-5" />
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">Low Stock</p>
@@ -101,14 +101,14 @@ export default function InventoryPage() {
             const gradient = categoryColors[item.category?.toLowerCase()] || categoryColors.general;
             return (
               <motion.div key={item.id} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
-                <Card className={`border hover:shadow-xl transition-all duration-300 relative overflow-hidden ${isLow ? "border-red-200" : "border-[#E5E7EB] hover:border-[#BBF7D0]"}`}>
+                <Card className={`border hover:shadow-xl transition-all duration-300 relative overflow-hidden ${isLow ? "border-[#14532D]/30" : "border-[#E5E7EB] hover:border-[#BBF7D0]"}`}>
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-md`}>
                         <Package className="h-6 w-6" />
                       </div>
-                      {isLow ? <Badge className="bg-red-100 text-red-700 border-red-200">Low Stock</Badge> : <Badge className="bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]">In Stock</Badge>}
+                      {isLow ? <Badge className="bg-[#14532D]/10 text-[#166534] border-[#14532D]/20">Low Stock</Badge> : <Badge className="bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]">In Stock</Badge>}
                     </div>
                     <h3 className="mt-4 text-lg font-bold text-[#0F172A]">{item.itemName}</h3>
                     <p className="text-sm text-[#64748B] capitalize">{item.category || "General"}</p>

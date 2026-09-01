@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { ShoppingCart, DollarSign, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { DollarSign, CheckCircle, Clock } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +26,9 @@ export default function SalesPage() {
   const pending = totalRevenue - totalPaid;
 
   const kpis = [
-    { title: "Total Revenue", value: "KES " + totalRevenue.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, change: sales.length + " sales", color: "from-emerald-400 to-green-500" },
-    { title: "Paid", value: "KES " + totalPaid.toLocaleString(), icon: <CheckCircle className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus === "paid").length + " orders", color: "from-blue-400 to-indigo-500" },
-    { title: "Pending", value: "KES " + pending.toLocaleString(), icon: <Clock className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus !== "paid").length + " orders", color: "from-amber-400 to-orange-500" },
+    { title: "Total Revenue", value: "KES " + totalRevenue.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, change: sales.length + " sales", color: "from-[#166534] to-[#14532D]" },
+    { title: "Paid", value: "KES " + totalPaid.toLocaleString(), icon: <CheckCircle className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus === "paid").length + " orders", color: "from-[#22C55E] to-[#16A34A]" },
+    { title: "Pending", value: "KES " + pending.toLocaleString(), icon: <Clock className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus !== "paid").length + " orders", color: "from-[#15803D] to-[#166534]" },
   ];
 
   return (
@@ -72,19 +72,13 @@ export default function SalesPage() {
                   </thead>
                   <tbody>
                     {sales.slice(0, 30).map((s, i) => (
-                      <motion.tr
-                        key={s.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
-                      >
+                      <motion.tr key={s.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3.5 text-[#0F172A] font-medium">{new Date(s.saleDate).toLocaleDateString()}</td>
                         <td className="px-5 py-3.5 text-[#64748B]">{s.customer?.name || "Walk-in"}</td>
                         <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(s.totalAmount).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-right text-[#64748B] tabular-nums">KES {Number(s.amountPaid).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-center">
-                          <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-amber-100 text-amber-700 border-amber-200"}>
+                          <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-[#14532D]/10 text-[#14532D] border-[#14532D]/20"}>
                             {s.paymentStatus}
                           </Badge>
                         </td>

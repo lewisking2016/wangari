@@ -25,9 +25,9 @@ export default function FinancesPage() {
   const profit = income - expenses;
 
   const kpis = [
-    { title: "Total Income", value: "KES " + income.toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, change: txs.filter(t => t.type === "income").length + " transactions", color: "from-emerald-400 to-green-500" },
-    { title: "Total Expenses", value: "KES " + expenses.toLocaleString(), icon: <TrendingDown className="h-5 w-5" />, change: txs.filter(t => t.type === "expense").length + " transactions", color: "from-red-400 to-rose-500" },
-    { title: "Net Profit", value: "KES " + profit.toLocaleString(), icon: <Wallet className="h-5 w-5" />, change: profit >= 0 ? "Profitable" : "Loss", color: profit >= 0 ? "from-blue-400 to-indigo-500" : "from-red-400 to-rose-500" },
+    { title: "Total Income", value: "KES " + income.toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, change: txs.filter(t => t.type === "income").length + " transactions", color: "from-[#166534] to-[#14532D]" },
+    { title: "Total Expenses", value: "KES " + expenses.toLocaleString(), icon: <TrendingDown className="h-5 w-5" />, change: txs.filter(t => t.type === "expense").length + " transactions", color: "from-[#14532D] to-[#0B1220]" },
+    { title: "Net Profit", value: "KES " + profit.toLocaleString(), icon: <Wallet className="h-5 w-5" />, change: profit >= 0 ? "Profitable" : "Loss", color: "from-[#22C55E] to-[#16A34A]" },
   ];
 
   return (
@@ -78,17 +78,11 @@ export default function FinancesPage() {
                   {txs.slice(0, 25).map((t: any, i: number) => {
                     const isIncome = t.type === "income";
                     return (
-                      <motion.tr
-                        key={t.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
-                      >
+                      <motion.tr key={t.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3.5 text-[#0F172A] font-medium">{new Date(t.date).toLocaleDateString()}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${isIncome ? "bg-[#F0FDF4] text-[#166534]" : "bg-red-50 text-red-600"}`}>
+                            <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${isIncome ? "bg-[#F0FDF4] text-[#166534]" : "bg-[#14532D]/10 text-[#14532D]"}`}>
                               {isIncome ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                             </div>
                             <span className="text-[#64748B]">{t.description || "-"}</span>
@@ -97,7 +91,7 @@ export default function FinancesPage() {
                         <td className="px-5 py-3.5">
                           <Badge variant="outline" className="capitalize text-xs">{t.category || "-"}</Badge>
                         </td>
-                        <td className={"px-5 py-3.5 text-right font-bold tabular-nums " + (isIncome ? "text-[#166534]" : "text-red-600")}>
+                        <td className={"px-5 py-3.5 text-right font-bold tabular-nums " + (isIncome ? "text-[#166534]" : "text-[#64748B]")}>
                           {isIncome ? "+" : "-"}KES {Number(t.amount).toLocaleString()}
                         </td>
                         <td className="px-5 py-3.5 text-center text-[#94A3B8] uppercase text-xs font-semibold">{t.paymentMethod || "-"}</td>

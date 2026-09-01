@@ -80,7 +80,7 @@ export default function DashboardPage() {
       icon: <Bird className="h-5 w-5" />,
       change: data?.totalFlocks + " active flocks",
       changeType: "positive",
-      color: "from-emerald-500 to-green-600",
+      color: "from-[#166534] to-[#14532D]",
     },
     {
       title: "Eggs Today",
@@ -88,7 +88,7 @@ export default function DashboardPage() {
       icon: <Egg className="h-5 w-5" />,
       change: data?.mortalityToday + " mortality",
       changeType: data?.mortalityToday > 0 ? "negative" : "positive",
-      color: "from-amber-500 to-orange-600",
+      color: "from-[#15803D] to-[#166534]",
     },
     {
       title: "Monthly Revenue",
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       icon: <TrendingUp className="h-5 w-5" />,
       change: "This month",
       changeType: "positive",
-      color: "from-blue-500 to-indigo-600",
+      color: "from-[#22C55E] to-[#16A34A]",
     },
     {
       title: "Monthly Expenses",
@@ -104,7 +104,7 @@ export default function DashboardPage() {
       icon: <TrendingDown className="h-5 w-5" />,
       change: "This month",
       changeType: "negative",
-      color: "from-red-500 to-rose-600",
+      color: "from-[#14532D] to-[#0B1220]",
     },
   ];
 
@@ -243,9 +243,9 @@ export default function DashboardPage() {
             <CardContent className="space-y-3">
               {[
                 { href: "/production", icon: <Plus className="h-4 w-4" />, label: "Log Production", color: "hover:bg-[#F0FDF4] hover:border-[#BBF7D0] hover:text-[#166534]" },
-                { href: "/sales", icon: <ShoppingCart className="h-4 w-4" />, label: "Record Sale", color: "hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700" },
-                { href: "/finances", icon: <DollarSign className="h-4 w-4" />, label: "Add Expense", color: "hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700" },
-                { href: "/inventory", icon: <BarChart3 className="h-4 w-4" />, label: "Check Inventory", color: "hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700" },
+                { href: "/sales", icon: <ShoppingCart className="h-4 w-4" />, label: "Record Sale", color: "hover:bg-[#F0FDF4] hover:border-[#BBF7D0] hover:text-[#166534]" },
+                { href: "/finances", icon: <DollarSign className="h-4 w-4" />, label: "Add Expense", color: "hover:bg-[#F0FDF4] hover:border-[#BBF7D0] hover:text-[#166534]" },
+                { href: "/inventory", icon: <BarChart3 className="h-4 w-4" />, label: "Check Inventory", color: "hover:bg-[#F0FDF4] hover:border-[#BBF7D0] hover:text-[#166534]" },
               ].map((action) => (
                 <Link key={action.href} href={action.href}>
                   <Button

@@ -1,11 +1,9 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Egg, Wheat, AlertTriangle, TrendingUp, ClipboardList } from "lucide-react";
+import { Egg, Wheat, AlertTriangle, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } };
@@ -28,10 +26,10 @@ export default function ProductionPage() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
   const kpis = [
-    { title: "Total Eggs", value: totalEggs.toLocaleString(), icon: <Egg className="h-5 w-5" />, change: "All time", changeType: "positive", color: "from-amber-400 to-orange-500" },
-    { title: "Avg Daily", value: avgEggs.toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, change: "Per day", changeType: "positive", color: "from-emerald-400 to-green-500" },
-    { title: "Total Feed", value: totalFeed.toFixed(0) + " kg", icon: <Wheat className="h-5 w-5" />, change: "All time", changeType: "positive", color: "from-blue-400 to-indigo-500" },
-    { title: "Mortality", value: String(totalMortality), icon: <AlertTriangle className="h-5 w-5" />, change: "All time", changeType: "negative", color: "from-red-400 to-rose-500" },
+    { title: "Total Eggs", value: totalEggs.toLocaleString(), icon: <Egg className="h-5 w-5" />, change: "All time", color: "from-[#166534] to-[#14532D]" },
+    { title: "Avg Daily", value: avgEggs.toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, change: "Per day", color: "from-[#22C55E] to-[#16A34A]" },
+    { title: "Total Feed", value: totalFeed.toFixed(0) + " kg", icon: <Wheat className="h-5 w-5" />, change: "All time", color: "from-[#15803D] to-[#166534]" },
+    { title: "Mortality", value: String(totalMortality), icon: <AlertTriangle className="h-5 w-5" />, change: "All time", color: "from-[#14532D] to-[#0B1220]" },
   ];
 
   return (
@@ -75,22 +73,15 @@ export default function ProductionPage() {
                   </thead>
                   <tbody>
                     {records.slice(0, 30).map((r, i) => (
-                      <motion.tr
-                        key={r.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
-                      >
+                      <motion.tr key={r.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3.5 text-[#0F172A] font-medium">{new Date(r.date).toLocaleDateString()}</td>
                         <td className="px-5 py-3.5 text-[#64748B]">{r.flock?.name || "-"}</td>
                         <td className="px-5 py-3.5 text-right">
                           <span className="inline-flex items-center gap-1 font-bold text-[#166534]">
-                            <Egg className="h-3.5 w-3.5" />
-                            {r.eggsCollected.toLocaleString()}
+                            <Egg className="h-3.5 w-3.5" />{r.eggsCollected.toLocaleString()}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-right font-semibold text-red-600">{r.mortality}</td>
+                        <td className="px-5 py-3.5 text-right font-semibold text-[#64748B]">{r.mortality}</td>
                         <td className="px-5 py-3.5 text-right text-[#0F172A] font-medium tabular-nums">{Number(r.feedUsed).toFixed(1)}</td>
                       </motion.tr>
                     ))}

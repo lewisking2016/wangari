@@ -27,9 +27,9 @@ export default function WorkersPage() {
   const totalWages = workers.reduce((s, w) => s + Number(w.dailyWage || w.wage || 0), 0);
 
   const kpis = [
-    { title: "Total Workers", value: String(workers.length), icon: <Users className="h-5 w-5" />, color: "from-emerald-400 to-green-500" },
-    { title: "Daily Wages", value: "KES " + totalWages.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, color: "from-amber-400 to-orange-500" },
-    { title: "Monthly Cost", value: "KES " + (totalWages * 30).toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, color: "from-blue-400 to-indigo-500" },
+    { title: "Total Workers", value: String(workers.length), icon: <Users className="h-5 w-5" />, color: "from-[#166534] to-[#14532D]" },
+    { title: "Daily Wages", value: "KES " + totalWages.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, color: "from-[#22C55E] to-[#16A34A]" },
+    { title: "Monthly Cost", value: "KES " + (totalWages * 30).toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, color: "from-[#15803D] to-[#166534]" },
   ];
 
   return (
@@ -82,13 +82,7 @@ export default function WorkersPage() {
                   </thead>
                   <tbody>
                     {workers.map((w, i) => (
-                      <motion.tr
-                        key={w.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
-                      >
+                      <motion.tr key={w.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             <Avatar name={w.name} size="sm" />
@@ -99,9 +93,7 @@ export default function WorkersPage() {
                         <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(w.dailyWage || w.wage || 0).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-[#64748B]">{w.phone || "-"}</td>
                         <td className="px-5 py-3.5 text-center">
-                          <Badge className={w.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-gray-600"}>
-                            {w.status || "active"}
-                          </Badge>
+                          <Badge className={w.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-gray-600"}>{w.status || "active"}</Badge>
                         </td>
                       </motion.tr>
                     ))}
