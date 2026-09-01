@@ -345,7 +345,6 @@ export function MegaMenuNavbar({
 }: MegaMenuNavbarProps) {
   const [openMenu, setOpenMenu] = React.useState<DesktopMenu>(null);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [mobileSection, setMobileSection] = React.useState<MobileSection | null>(null);
   const navRef = React.useRef<HTMLElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
@@ -374,12 +373,9 @@ export function MegaMenuNavbar({
     return () => { document.body.style.overflow = previousOverflow; };
   }, [mobileOpen]);
 
-  const closeMobile = () => { setMobileOpen(false); setMobileSection(null); };
+  const closeMobile = () => { setMobileOpen(false); };
   const toggleDesktopMenu = (menu: Exclude<DesktopMenu, null>) => {
     setOpenMenu((current) => (current === menu ? null : menu));
-  };
-  const toggleMobileSection = (section: MobileSection) => {
-    setMobileSection((current) => (current === section ? null : section));
   };
 
   return (
@@ -524,28 +520,28 @@ export function MegaMenuNavbar({
           </button>
         </div>
 
-        <nav aria-label="Mobile navigation" className="-mx-6 flex-1 overflow-y-auto px-6">
-          <MobileAccordion title="Features" value="features" openSection={mobileSection} onToggle={toggleMobileSection}>
+        <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mt-2 mb-2">Features</p>
             {features.map((item) => (
               <MobileMenuItem key={item.title} item={item} onNavigate={closeMobile} />
             ))}
-          </MobileAccordion>
 
-          <Link href={pricingHref} onClick={closeMobile} className="block border-b border-[#E5E7EB] py-4 text-sm font-medium text-[#0F172A]">
-            Pricing
-          </Link>
+            <Link href={pricingHref} onClick={closeMobile} className="block rounded-lg px-3 py-3 text-sm font-medium text-[#0F172A] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors">
+              Pricing
+            </Link>
 
-          <MobileAccordion title="Resources" value="resources" openSection={mobileSection} onToggle={toggleMobileSection}>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mt-4 mb-2">Resources</p>
             {resourceGroups.flatMap((group) =>
               group.links.map((item) => (
                 <MobileMenuItem key={`${group.title}-${item.title}`} item={item} onNavigate={closeMobile} />
               )),
             )}
-          </MobileAccordion>
 
-          <Link href="/about" onClick={closeMobile} className="block border-b border-[#E5E7EB] py-4 text-sm font-medium text-[#0F172A]">
-            About
-          </Link>
+            <Link href="/about" onClick={closeMobile} className="block rounded-lg px-3 py-3 text-sm font-medium text-[#0F172A] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors">
+              About
+            </Link>
+          </div>
         </nav>
 
         <div className="mt-auto grid grid-cols-2 gap-3 pt-6">
