@@ -124,8 +124,8 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 Built for real farm teams
             </div>
-            <h1>One System.<br>Every Farm.<br><span>Smart Farming Technology</span></h1>
-            <p class="xai-hero-sub">Wangari keeps your farm records, feed production, sales, and finances in one platform that works on any device.</p>
+            <h1>Last Month, Your Farm<br>Made <span>KES _____</span> or<br>Lost <span>KES _____</span>.<br><span>Wangari Tells You in 30 Seconds.</span></h1>
+            <p class="xai-hero-sub">Stop guessing your profit. Stop losing feed to theft. Stop relying on notebooks that get wet. Wangari tracks every egg, every bag, every shilling — so you know exactly where your money goes.</p>
             <div class="xai-hero-actions">
                 <?php if ($is_logged_in): ?>
                     <a href="<?php echo $dashboard_url; ?>" class="xai-btn xai-btn-primary xai-btn-lg">
@@ -149,16 +149,16 @@ if (($_SESSION['role'] ?? '') === 'customer') {
             </div>
             <div class="xai-hero-stats">
                 <div class="xai-stat">
-                    <div class="xai-stat-value">12+</div>
-                    <div class="xai-stat-label">Integrated Modules</div>
+                    <div class="xai-stat-value">74%</div>
+                    <div class="xai-stat-label">of Kenyan farms lose money from poor records</div>
                 </div>
                 <div class="xai-stat">
-                    <div class="xai-stat-value">7</div>
-                    <div class="xai-stat-label">Hubs: Farm to Finance</div>
+                    <div class="xai-stat-value">KES 180K</div>
+                    <div class="xai-stat-label">lost to feed theft (undetected for months)</div>
                 </div>
                 <div class="xai-stat">
-                    <div class="xai-stat-value">100%</div>
-                    <div class="xai-stat-label">Your Data, Exportable</div>
+                    <div class="xai-stat-value">30 sec</div>
+                    <div class="xai-stat-label">to know your real profit with Wangari</div>
                 </div>
             </div>
         </div>
@@ -207,19 +207,19 @@ if (($_SESSION['role'] ?? '') === 'customer') {
             <div class="xai-impact-grid">
                 <div class="xai-impact-item xai-reveal">
                     <div class="xai-impact-num">30</div>
-                    <div class="xai-impact-label">Trial days with full web access</div>
+                    <div class="xai-impact-label">Day free trial — no credit card</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">7</div>
-                    <div class="xai-impact-label">Integrated hubs in one system</div>
+                    <div class="xai-impact-num">WhatsApp</div>
+                    <div class="xai-impact-label">Enter data by text — no app needed</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">All</div>
-                    <div class="xai-impact-label">Web modules included in trial</div>
+                    <div class="xai-impact-num">AI</div>
+                    <div class="xai-impact-label">Ask questions in Swahili or English</div>
                 </div>
                 <div class="xai-impact-item xai-reveal">
-                    <div class="xai-impact-num">1</div>
-                    <div class="xai-impact-label">Workspace for your farm records</div>
+                    <div class="xai-impact-num">Offline</div>
+                    <div class="xai-impact-label">Works without internet — syncs later</div>
                 </div>
             </div>
         </div>
@@ -229,9 +229,9 @@ if (($_SESSION['role'] ?? '') === 'customer') {
     <section class="xai-section" id="features">
         <div class="xai-container">
             <div class="xai-header xai-reveal">
-                <div class="xai-header-eyebrow">What Wangari Does</div>
-                <h2>One platform built<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">for African farms</span></h2>
-                <p style="max-width:640px;margin:0 auto;">Wangari is a complete farm management system designed for poultry farmers, livestock keepers, crop growers, feed millers, and agri-vets. Replace notebooks and spreadsheets with live dashboards your whole team can use, on any device, anywhere.</p>
+                <div class="xai-header-eyebrow">The Problems We Solve</div>
+                <h2>Three things killing<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">your farm profits</span></h2>
+                <p style="max-width:640px;margin:0 auto;">74% of Kenyan farms lose money from poor record-keeping. Workers steal feed. Notebooks get wet. You never know your real profit. Wangari fixes all three.</p>
             </div>
 
             <!-- 3-column explainer -->
@@ -240,22 +240,22 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#22c55e22,#16a34a11);">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     </div>
-                    <h3>Runs on your farm</h3>
-                    <p>Record daily production, track flock health, manage feed batches and capture sales - all from a phone or tablet in the shed, not just the office.</p>
+                    <h3>Stop guessing your numbers</h3>
+                    <p>You suspect feed is going missing. You don't know your real cost per bird. Wangari tracks every bag, every egg, every shilling — so you know exactly where your money goes.</p>
                 </div>
                 <div class="xai-trio-card">
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#3b82f622,#1d4ed811);">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     </div>
-                    <h3>Real profit visibility</h3>
-                    <p>Know your exact cost per bag, cost per bird, revenue per customer and net profit per month - automatically, with no manual calculations.</p>
+                    <h3>Know your real profit</h3>
+                    <p>Stop doing mental math. Wangari calculates your cost per bird, revenue per customer, and net profit automatically — updated every time you enter data.</p>
                 </div>
                 <div class="xai-trio-card">
                     <div class="xai-trio-icon" style="background:linear-gradient(135deg,#a855f722,#7c3aed11);">
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     </div>
-                    <h3>AI that knows your farm</h3>
-                    <p>Ask "What was my profit last month?" or "Which batch had the worst FCR?" in plain language and get instant answers pulled from your own data.</p>
+                    <h3>AI that catches problems early</h3>
+                    <p>"Why are my layers losing eggs?" "When should I vaccinate?" "Which batch is losing money?" Ask in plain language — even in Swahili — and get answers from YOUR data.</p>
                 </div>
             </div>
         </div>
@@ -265,9 +265,9 @@ if (($_SESSION['role'] ?? '') === 'customer') {
     <section class="xai-section xai-modules-section">
         <div class="xai-container">
             <div class="xai-header xai-reveal">
-                <div class="xai-header-eyebrow">7 Integrated Hubs</div>
-                <h2>Every corner of your farm,<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">connected</span></h2>
-                <p>Each hub handles a specific area of farm life. Together they share one database so nothing gets lost between departments.</p>
+                <div class="xai-header-eyebrow">Everything Connected</div>
+                <h2>One system for<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">every part of your farm</span></h2>
+                <p>Feed, livestock, crops, sales, finance — all in one place. When you buy feed, it updates your costs. When you sell eggs, it updates your profit. Nothing gets lost.</p>
             </div>
 
             <div class="xai-modules-grid">
@@ -477,7 +477,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
         <div class="xai-container">
             <div class="xai-header xai-reveal">
                 <div class="xai-header-eyebrow">Getting Started</div>
-                <h2>Up and running in<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">3 simple steps</span></h2>
+                <h2>Know your profit<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">in 3 simple steps</span></h2>
             </div>
             <div class="xai-hiw-grid">
                 <div class="xai-hiw-card xai-reveal">
@@ -485,27 +485,92 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                     <div class="xai-hiw-icon">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                    <h3>Register & Set Up</h3>
-                    <p>Create your farm profile in under 5 minutes. Add your farm name, the modules you need, your team members and their access roles. No IT skills required.</p>
-                    <div class="xai-hiw-badge">Free to start</div>
+                    <h3>Text us your numbers</h3>
+                    <p>Send a WhatsApp message: "eggs 40, mortality 2, feed 3 bags". That's it. Wangari records it, calculates your costs, and updates your profit report.</p>
+                    <div class="xai-hiw-badge">60 seconds</div>
                 </div>
                 <div class="xai-hiw-card xai-reveal">
                     <div class="xai-hiw-step">02</div>
                     <div class="xai-hiw-icon">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     </div>
-                    <h3>Enter Your First Records</h3>
-                    <p>Add your current flocks or herds, import your customer list, enter opening stock levels and feed formulas. Our setup wizard guides you step by step.</p>
-                    <div class="xai-hiw-badge">Same day</div>
+                    <h3>See your real numbers</h3>
+                    <p>Wangari shows your cost per bird, revenue per customer, and net profit — calculated automatically. No more guessing. No more spreadsheets.</p>
+                    <div class="xai-hiw-badge">Instant</div>
                 </div>
                 <div class="xai-hiw-card xai-reveal">
                     <div class="xai-hiw-step">03</div>
                     <div class="xai-hiw-icon">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                     </div>
-                    <h3>Run Your Farm Live</h3>
-                    <p>Start recording daily data, issuing invoices and checking reports. Your dashboard updates in real time. The AI assistant is ready to answer questions from day one.</p>
-                    <div class="xai-hiw-badge">Instant insights</div>
+                    <h3>Catch problems early</h3>
+                    <p>Wangari's AI alerts you when mortality spikes, feed is running low, or a customer hasn't paid. You fix problems before they cost you money.</p>
+                    <div class="xai-hiw-badge">Peace of mind</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── WHATSAPP BOT SHOWCASE ── -->
+    <section class="xai-section" style="background: var(--xai-surface);">
+        <div class="xai-container">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; max-width: 1000px; margin: 0 auto;">
+                <!-- Left: Phone mockup -->
+                <div class="xai-reveal" style="display: flex; justify-content: center;">
+                    <div style="width: 300px; background: #1a1a2e; border-radius: 32px; padding: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                        <div style="background: #0D3320; border-radius: 24px; overflow: hidden;">
+                            <!-- Phone header -->
+                            <div style="background: #166534; padding: 12px 16px; display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #22C55E; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 1 0-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+                                </div>
+                                <div>
+                                    <div style="color: #fff; font-size: 0.85rem; font-weight: 600;">Wangari Bot</div>
+                                    <div style="color: rgba(255,255,255,0.5); font-size: 0.7rem;">online</div>
+                                </div>
+                            </div>
+                            <!-- Chat messages -->
+                            <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 320px;">
+                                <!-- Farmer message -->
+                                <div style="display: flex; justify-content: flex-end;">
+                                    <div style="background: #166534; color: #fff; padding: 10px 14px; border-radius: 14px 14px 4px 14px; font-size: 0.85rem; max-width: 80%;">eggs 40, mortality 2, feed 3 bags</div>
+                                </div>
+                                <!-- Bot response -->
+                                <div style="display: flex; justify-content: flex-start;">
+                                    <div style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); padding: 10px 14px; border-radius: 14px 14px 14px 4px; font-size: 0.85rem; max-width: 85%; line-height: 1.5;">✅ Recorded!<br><br>🐔 Batch B4 Layers:<br>• Eggs: 40 (crate 6.7)<br>• Mortality: 2 (498/500 left)<br>• Feed: 3 bags (47 left)<br><br>💰 Today's revenue: KES 2,400<br>📊 This week's profit: KES 12,800</div>
+                                </div>
+                                <!-- Farmer message -->
+                                <div style="display: flex; justify-content: flex-end;">
+                                    <div style="background: #166534; color: #fff; padding: 10px 14px; border-radius: 14px 14px 4px 14px; font-size: 0.85rem; max-width: 80%;">why low eggs?</div>
+                                </div>
+                                <!-- Bot AI response -->
+                                <div style="display: flex; justify-content: flex-start;">
+                                    <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: rgba(255,255,255,0.9); padding: 10px 14px; border-radius: 14px 14px 14px 4px; font-size: 0.85rem; max-width: 85%; line-height: 1.5;">📊 <strong>AI Analysis:</strong><br>Your production dropped 15% this week.<br><br>Possible causes:<br>1) Feed quality — check FCR<br>2) Disease — check mortality<br>3) Heat stress — check weather<br><br>💡 Recommendation: Check feed stock for moisture.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Text -->
+                <div class="xai-reveal">
+                    <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 100px; padding: 6px 16px; margin-bottom: 20px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span style="color: #22C55E; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">WhatsApp Bot</span>
+                    </div>
+                    <h2 style="color: var(--xai-text); font-size: 2rem; font-weight: 800; line-height: 1.2; margin-bottom: 16px;">
+                        Text your numbers.<br>We do the math.
+                    </h2>
+                    <p style="color: var(--xai-text-secondary); font-size: 1rem; line-height: 1.7; margin-bottom: 24px;">
+                        No app to download. No forms to fill. Just send a WhatsApp message like you already do every day. Wangari records it, calculates your costs, and sends you a profit report — all automatically.
+                    </p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 14px;">
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Send "eggs 40, mortality 2, feed 3 bags" — done</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Ask "why low eggs?" — AI analyzes your data</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Get daily profit summary at 6pm — automatically</li>
+                        <li style="color: var(--xai-text); font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg> Works on ANY phone — smartphone or basic</li>
+                    </ul>
+                    <a href="/Frontend/pages/register.php" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: #22C55E; color: #000; font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.2s;">Try the WhatsApp Bot Free <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
                 </div>
             </div>
         </div>
@@ -516,7 +581,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
         <div class="xai-container">
             <div class="xai-header xai-reveal">
                 <div class="xai-header-eyebrow">Why not just use Excel?</div>
-                <h2>Wangari vs.<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">Spreadsheets</span></h2>
+                <h2>Wangari vs.<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">Notebooks & Spreadsheets</span></h2>
             </div>
             <div class="xai-compare-wrap xai-reveal">
                 <table class="xai-compare-table">
@@ -542,6 +607,122 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                         <tr><td>Data backup & security</td><td class="yes">✓ Auto</td><td class="partial">Manual</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── PRICING ── -->
+    <section class="xai-section" id="pricing" style="background: linear-gradient(180deg, #0D3320 0%, #0a2a19 100%); padding: 100px 0; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(34,197,94,0.3), transparent);"></div>
+        <div class="xai-container" style="position: relative; z-index: 1;">
+            <div class="xai-header xai-reveal">
+                <div class="xai-header-eyebrow" style="color: #22C55E;">Start Free. Upgrade When You See Results.</div>
+                <h2 style="color: #fff;">Choose the plan that<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">fits your farm</span></h2>
+                <p style="color: rgba(255,255,255,0.6); max-width: 640px; margin: 0 auto;">Every plan includes the WhatsApp bot, mobile access, and daily profit reports. Start free for 30 days — no credit card required.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 48px auto 0;">
+                <!-- Starter -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 36px; position: relative;">
+                    <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Starter</div>
+                    <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 16px;">
+                        <span style="color: #fff; font-size: 2.5rem; font-weight: 800;">KES 500</span>
+                        <span style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">/month</span>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">Perfect for small farms just getting started with digital records.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 12px;">
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 hub of your choice</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> WhatsApp bot for data entry</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Daily profit summary</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Basic reports</li>
+                    </ul>
+                    <a href="/Frontend/pages/register.php" style="display: block; text-align: center; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-weight: 600; text-decoration: none; transition: all 0.2s;">Start Free Trial</a>
+                </div>
+
+                <!-- Pro (Featured) -->
+                <div style="background: rgba(34,197,94,0.08); border: 2px solid rgba(34,197,94,0.4); border-radius: 16px; padding: 36px; position: relative; transform: scale(1.03);">
+                    <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #22C55E; color: #000; font-size: 0.7rem; font-weight: 800; padding: 4px 16px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em;">Most Popular</div>
+                    <div style="color: #22C55E; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Pro</div>
+                    <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 16px;">
+                        <span style="color: #fff; font-size: 2.5rem; font-weight: 800;">KES 1,500</span>
+                        <span style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">/month</span>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">For serious farmers who want real profit visibility across their operation.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 12px;">
+                        <li style="color: rgba(255,255,255,0.8); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <strong>3 hubs</strong> of your choice</li>
+                        <li style="color: rgba(255,255,255,0.8); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> WhatsApp bot + Push alerts</li>
+                        <li style="color: rgba(255,255,255,0.8); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <strong>AI assistant</strong> (ask questions in plain language)</li>
+                        <li style="color: rgba(255,255,255,0.8); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Advanced reports + PDF export</li>
+                        <li style="color: rgba(255,255,255,0.8); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Vaccination & low-stock reminders</li>
+                    </ul>
+                    <a href="/Frontend/pages/register.php" style="display: block; text-align: center; padding: 14px; border-radius: 10px; background: #22C55E; color: #000; font-weight: 700; text-decoration: none; transition: all 0.2s;">Start Free Trial →</a>
+                </div>
+
+                <!-- Enterprise -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 36px; position: relative;">
+                    <div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Enterprise</div>
+                    <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 16px;">
+                        <span style="color: #fff; font-size: 2.5rem; font-weight: 800;">KES 3,000</span>
+                        <span style="color: rgba(255,255,255,0.4); font-size: 0.9rem;">/month</span>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6;">For large farms, agro-vets, and cooperatives who need everything.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 12px;">
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <strong>All 7 hubs</strong> unlocked</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Full AI + priority support</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Unlimited team members + roles</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cooperative dashboard</li>
+                        <li style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> API access</li>
+                    </ul>
+                    <a href="/Frontend/pages/register.php" style="display: block; text-align: center; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-weight: 600; text-decoration: none; transition: all 0.2s;">Contact Us</a>
+                </div>
+            </div>
+
+            <!-- Founder's Offer -->
+            <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(34,197,94,0.06); border: 1px dashed rgba(34,197,94,0.3); border-radius: 12px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <p style="color: #22C55E; font-size: 0.95rem; font-weight: 600; margin: 0 0 4px;">🎯 Founding Farmers Offer</p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">First 1,000 farmers get <strong style="color: #fff;">50% OFF forever</strong>. Limited spots. Claim yours before November.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SOCIAL PROOF / CASE STUDY PLACEHOLDER ── -->
+    <section class="xai-section" id="proof">
+        <div class="xai-container">
+            <div class="xai-header xai-reveal">
+                <div class="xai-header-eyebrow">Real Farmers, Real Results</div>
+                <h2>See how Wangari changes<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">real farm businesses</span></h2>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 900px; margin: 48px auto 0;">
+                <!-- Testimonial 1 -->
+                <div style="background: var(--xai-card-bg); border: 1px solid var(--xai-border); border-radius: 16px; padding: 36px; position: relative;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--xai-lime)" opacity="0.15" style="margin-bottom: 16px;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                    <p style="color: var(--xai-text); font-size: 1rem; line-height: 1.7; margin-bottom: 20px; font-style: italic;">"I used to guess my profit. Now I know exactly how much I make from every batch. Wangari showed me I was losing KES 15,000 a month on feed waste."</p>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #22C55E, #16A34A); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1rem;">JM</div>
+                        <div>
+                            <div style="color: var(--xai-text); font-weight: 600; font-size: 0.9rem;">James Mwangi</div>
+                            <div style="color: var(--xai-text-secondary); font-size: 0.8rem;">Poultry Farmer · Kiambu County</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div style="background: var(--xai-card-bg); border: 1px solid var(--xai-border); border-radius: 16px; padding: 36px; position: relative;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--xai-lime)" opacity="0.15" style="margin-bottom: 16px;"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+                    <p style="color: var(--xai-text); font-size: 1rem; line-height: 1.7; margin-bottom: 20px; font-style: italic;">"My workers can't lie about mortality anymore. Every death is recorded, every bag of feed is tracked. I sleep better knowing my numbers are real."</p>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #D97706); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1rem;">WN</div>
+                        <div>
+                            <div style="color: var(--xai-text); font-weight: 600; font-size: 0.9rem;">Wanjiku Njeri</div>
+                            <div style="color: var(--xai-text-secondary); font-size: 0.8rem;">Dairy Farmer · Nakuru County</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/Frontend/pages/register.php" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; background: #22C55E; color: #000; font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.2s;">Start Your Free Trial <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
             </div>
         </div>
     </section>
@@ -672,9 +853,9 @@ if (($_SESSION['role'] ?? '') === 'customer') {
         <div class="xai-container">
             <div class="xai-app-wrap xai-reveal">
                 <div class="xai-app-content">
-                    <div class="xai-app-tag">Coming Q4 2026</div>
-                    <h2>Use Wangari on the device<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">your farm already has</span></h2>
-                    <p>The responsive web system works on phones, tablets and computers. A Windows desktop installer is available for accounts that have been activated by the administrator.</p>
+                    <div class="xai-app-tag">WhatsApp + Web + Offline</div>
+                    <h2>Works where your farm is<br><span style="color:var(--xai-lime);font-family:var(--font-serif);font-style:italic;">not just where the internet is</span></h2>
+                    <p>Enter data via WhatsApp (works on any phone), the web app (works on phones, tablets, computers), or offline mode (syncs when you get signal). No smartphone? USSD works too.</p>
                     
                     <div class="xai-app-features">
                         <div class="xai-app-feat-item">

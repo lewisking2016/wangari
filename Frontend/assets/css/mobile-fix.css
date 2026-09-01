@@ -245,3 +245,40 @@
 .w2-tab.active {
   border-bottom: 2px solid #166534 !important;
 }
+
+/* ═══════ PRICING SECTION MOBILE ═══════ */
+@media (max-width: 768px) {
+  #pricing > div > div:last-child > div:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+  #pricing > div > div:last-child > div:first-of-type > div:nth-child(2) {
+    transform: none !important;
+  }
+  #proof > div > div:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+  .why-wangari-grid {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #pricing > div > div:last-child > div:first-of-type {
+    padding: 24px !important;
+  }
+  #pricing > div > div:last-child > div:first-of-type > div > span:first-of-type {
+    font-size: 2rem !important;
+  }
+}
+
+/* ═══════ WHATSAPP BOT SECTION MOBILE ═══════ */
+@media (max-width: 768px) {
+  section:has(.xai-container > div > div:first-child > div[style*="width: 300px"]) > div > div {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+  section:has(.xai-container > div > div:first-child > div[style*="width: 300px"]) > div > div > div:first-child {
+    order: 2;
+  }
+}

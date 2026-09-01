@@ -74,6 +74,8 @@ HTML;
         <p class="w2-nav-section">Overview</p>
         <?= w2NavItem('/Frontend/admin/dashboard.php', 'layout-dashboard', 'Dashboard', w2IsActive('dashboard.php')) ?>
         <?= w2NavItem('/Frontend/admin/ai_assistant.php', 'sparkles', 'Ask Wangari AI', w2IsActive('ai_assistant.php'), 'AI') ?>
+        <?= w2NavItem('/Frontend/admin/agent_dashboard.php', 'users', 'Agent Dashboard', w2IsActive('agent_dashboard.php')) ?>
+        <?= w2NavItem('/Frontend/admin/cooperative_dashboard.php', 'building-2', 'Cooperative', w2IsActive('cooperative_dashboard.php')) ?>
         <?php if (($_SESSION['role'] ?? '') !== 'super_admin'): ?>
         <?= w2NavItem('/Frontend/admin/hub_branches.php', 'git-branch', 'Farm Branches', w2IsActive('hub_branches.php')) ?>
         <?php endif; ?>

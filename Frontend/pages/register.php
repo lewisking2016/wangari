@@ -146,7 +146,8 @@ wangariStartSession();
                     $pdo->prepare("INSERT INTO farm_members (farm_id, user_id, role, status, joined_at) VALUES (?, ?, 'farm_owner', 'active', NOW())")
                         ->execute([$farmId, $userId]);
 
-                    header('Location: ' . wangariAuthRedirectPath($mappedRole) . '?welcome=1');
+                    // Redirect to onboarding wizard (Goal Picker)
+                    header('Location: /Frontend/pages/onboarding.php?welcome=1');
                     exit;
                 } else {
                     // Worker: join farm via code (they go to the farm system, not admin)
