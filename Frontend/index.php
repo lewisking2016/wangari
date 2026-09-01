@@ -124,7 +124,7 @@ if (($_SESSION['role'] ?? '') === 'customer') {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 Built for real farm teams
             </div>
-            <h1>Last Month, Your Farm<br>Made <span>KES _____</span> or<br>Lost <span>KES _____</span>.<br><span>Wangari Tells You in 30 Seconds.</span></h1>
+            <h1>Last Month, Your Farm<br>Made <span class="xai-blank">KES _______</span> or<br>Lost <span class="xai-blank">KES _______</span>.<br><span>Wangari Tells You in 30 Seconds.</span></h1>
             <p class="xai-hero-sub">Stop guessing your profit. Stop losing feed to theft. Stop relying on notebooks that get wet. Wangari tracks every egg, every bag, every shilling. So you know exactly where your money goes.</p>
             <div class="xai-hero-actions">
                 <?php if ($is_logged_in): ?>

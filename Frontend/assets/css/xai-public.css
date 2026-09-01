@@ -609,6 +609,14 @@ a {
     font-style: italic;
 }
 
+.xai-blank {
+    display: inline-block;
+    min-width: 180px;
+    border-bottom: 3px solid var(--xai-lime);
+    letter-spacing: 0.08em;
+    padding-bottom: 2px;
+}
+
 .xai-hero-sub {
     font-size: 1.25rem;
     color: var(--xai-text-secondary);
