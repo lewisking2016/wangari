@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { DollarSign, CheckCircle, Clock, Plus, X } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Plus, X, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,11 @@ export default function SalesPage() {
       fetch("/api/sales").then(r => r.json()),
       fetch("/api/customers").then(r => r.json()),
     ]).then(([s, c]) => { setSales(s); setCustomers(c); setLoading(false); }).catch(() => setLoading(false));
+  };
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this sale?")) return;
+    await fetch("/api/sales/" + id, { method: "DELETE" });
+    load();
   };
   React.useEffect(() => { load(); }, []);
 
@@ -145,7 +150,10 @@ export default function SalesPage() {
                         <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(s.totalAmount).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-right text-[#64748B] tabular-nums">KES {Number(s.amountPaid).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-center">
-                          <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-[#64748B] border-gray-200"}>{s.paymentStatus}</Badge>
+                          <div className="flex items-center justify-center gap-2">
+                            <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-[#64748B] border-gray-200"}>{s.paymentStatus}</Badge>
+                            <button onClick={() => handleDelete(s.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
                         </td>
                       </motion.tr>
                     ))}

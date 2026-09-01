@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Plus, X } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Plus, X, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,11 @@ export default function FinancesPage() {
 
   const load = () => {
     fetch("/api/transactions").then(r => r.json()).then(d => { setTxs(d); setLoading(false); }).catch(() => setLoading(false));
+  };
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this transaction?")) return;
+    await fetch("/api/transactions/" + id, { method: "DELETE" });
+    load();
   };
   React.useEffect(() => { load(); }, []);
 
@@ -136,7 +141,7 @@ export default function FinancesPage() {
                       <td className="px-5 py-3.5"><div className="flex items-center gap-2"><div className={"flex h-7 w-7 items-center justify-center rounded-lg " + (isIncome ? "bg-[#F0FDF4] text-[#166534]" : "bg-gray-100 text-[#64748B]")}>{isIncome ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}</div><span className="text-[#64748B]">{t.description || "-"}</span></div></td>
                       <td className="px-5 py-3.5"><Badge variant="outline" className="capitalize text-xs">{t.category || "-"}</Badge></td>
                       <td className={"px-5 py-3.5 text-right font-bold tabular-nums " + (isIncome ? "text-[#166534]" : "text-[#64748B]")}>{isIncome ? "+" : "-"}KES {Number(t.amount).toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-center text-[#94A3B8] uppercase text-xs font-semibold">{t.paymentMethod || "-"}</td>
+                      <td className="px-5 py-3.5 text-center"><div className="flex items-center justify-center gap-2"><span className="text-[#94A3B8] uppercase text-xs font-semibold">{t.paymentMethod || "-"}</span><button onClick={() => handleDelete(t.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button></div></td>
                     </motion.tr>
                   );
                 })}</tbody>

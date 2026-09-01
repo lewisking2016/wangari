@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Package, AlertTriangle, TrendingUp, CircleDollarSign, Plus, X } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, CircleDollarSign, Plus, X, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,11 @@ export default function InventoryPage() {
 
   const load = () => {
     fetch("/api/inventory").then(r => r.json()).then(d => { setItems(d); setLoading(false); }).catch(() => setLoading(false));
+  };
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this item?")) return;
+    await fetch("/api/inventory/" + id, { method: "DELETE" });
+    load();
   };
   React.useEffect(() => { load(); }, []);
 
@@ -124,7 +129,10 @@ export default function InventoryPage() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md"><Package className="h-6 w-6" /></div>
-                      {isLow ? <Badge className="bg-[#14532D]/10 text-[#166534] border-[#14532D]/20">Low Stock</Badge> : <Badge className="bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]">In Stock</Badge>}
+                      <div className="flex items-center gap-2">
+                        {isLow ? <Badge className="bg-[#14532D]/10 text-[#166534] border-[#14532D]/20">Low Stock</Badge> : <Badge className="bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]">In Stock</Badge>}
+                        <button onClick={() => handleDelete(item.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                      </div>
                     </div>
                     <h3 className="mt-4 text-lg font-bold text-[#0F172A]">{item.itemName}</h3>
                     <p className="text-sm text-[#64748B] capitalize">{item.category || "General"}</p>

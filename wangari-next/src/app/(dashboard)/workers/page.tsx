@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Briefcase, DollarSign, TrendingUp, X } from "lucide-react";
+import { Users, Plus, Briefcase, DollarSign, TrendingUp, X, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -23,6 +23,11 @@ export default function WorkersPage() {
 
   const load = () => {
     fetch("/api/workers").then(r => r.json()).then(d => { setWorkers(d); setLoading(false); }).catch(() => setLoading(false));
+  };
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this worker?")) return;
+    await fetch("/api/workers/" + id, { method: "DELETE" });
+    load();
   };
   React.useEffect(() => { load(); }, []);
 
@@ -112,7 +117,7 @@ export default function WorkersPage() {
                       <td className="px-5 py-3.5 text-[#64748B]">{w.role}</td>
                       <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(w.dailyWage || w.wage || 0).toLocaleString()}</td>
                       <td className="px-5 py-3.5 text-[#64748B]">{w.phone || "-"}</td>
-                      <td className="px-5 py-3.5 text-center"><Badge className={w.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-gray-600"}>{w.status || "active"}</Badge></td>
+                      <td className="px-5 py-3.5 text-center"><div className="flex items-center justify-center gap-2"><Badge className={w.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-gray-600"}>{w.status || "active"}</Badge><button onClick={() => handleDelete(w.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button></div></td>
                     </motion.tr>
                   ))}</tbody>
                 </table>
