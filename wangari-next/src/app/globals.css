@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-wangari-green-50: #F0FDF4;
+  --color-wangari-green-100: #DCFCE7;
+  --color-wangari-green-200: #BBF7D0;
+  --color-wangari-green-300: #86EFAC;
+  --color-wangari-green-400: #4ADE80;
+  --color-wangari-green-500: #22C55E;
+  --color-wangari-green-600: #16A34A;
+  --color-wangari-green-700: #15803D;
+  --color-wangari-green-800: #166534;
+  --color-wangari-green-900: #14532D;
+
+  --color-wangari-ink: #0B1220;
+  --color-wangari-cream: #FAFBFC;
+  --color-wangari-card: #FFFFFF;
+  --color-wangari-border: #E5E7EB;
+  --color-wangari-text: #334155;
+  --color-wangari-heading: #0F172A;
+  --color-wangari-muted: #64748B;
+  --color-wangari-subtle: #94A3B8;
+
+  --color-badge-orange-bg: #FED7AA;
+  --color-badge-orange-text: #C2410C;
+  --color-badge-yellow-bg: #FEF9C3;
+  --color-badge-yellow-text: #A16207;
+  --color-badge-blue-bg: #DBEAFE;
+  --color-badge-blue-text: #1D4ED8;
+  --color-badge-red-bg: #FEE2E2;
+  --color-badge-red-text: #B91C1C;
+
+  --font-sans: "Inter", "Inter Tight", system-ui, -apple-system, sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+  color: var(--color-wangari-text);
+  background: var(--color-wangari-cream);
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+:focus-visible {
+  outline: 2px solid var(--color-wangari-green-500);
+  outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.25s ease-out forwards;
+}
