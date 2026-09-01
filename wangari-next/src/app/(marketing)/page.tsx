@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Shield,
   TrendingUp,
-  Egg,
   Heart,
   Leaf,
   Sun,
@@ -22,6 +21,7 @@ import {
   Star,
   Quote,
 } from "lucide-react";
+import { TextRoll } from "@/components/ui/text-roll";
 
 /* ── Animation Variants ── */
 const fadeUp = {
@@ -108,46 +108,24 @@ export default function LandingPage() {
     <div className="min-h-screen">
       {/* ═══════ HERO ═══════ */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0B1220] via-[#14532D] to-[#166534] text-white">
-        {/* Decorative blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-32 -left-32 h-[600px] w-[600px] rounded-full bg-[#22C55E]/15 blur-[150px]"
-          />
-          <motion.div
-            animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-40 -right-40 h-[700px] w-[700px] rounded-full bg-[#D0F24C]/10 blur-[180px]"
-          />
-          {/* Floating particles */}
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              animate={{ y: [0, -30, 0], opacity: [0.1, 0.4, 0.1] }}
-              transition={{ duration: 4 + i * 0.8, repeat: Infinity, delay: i * 0.5 }}
-              className="absolute w-2 h-2 rounded-full bg-[#4ADE80]"
-              style={{ top: `${20 + i * 12}%`, left: `${10 + i * 15}%` }}
-            />
-          ))}
-        </div>
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-28 md:pt-48 md:pb-36 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeDown} className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
               <img src="/images/wangari-mark.svg" alt="" className="h-5 w-5" />
               <span className="text-white/80">Named after Prof. Wangari Maathai</span>
-            </motion.div>
-
-            <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[1.05] tracking-tight max-w-5xl mx-auto">
-              Grow smarter.
-              <br />
-              <span className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">
-                Rooted in Africa.
-              </span>
+            </motion.div>            <motion.h1 variants={fadeUp} className="max-w-5xl mx-auto">
+              <div className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold leading-[1.05] tracking-tight">
+                <TextRoll center>Grow smarter.</TextRoll>
+              </div>
+              <div className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold leading-[1.05] tracking-tight mt-2">
+                <span className="text-white/40">Rooted in </span>
+                <TextRoll center className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">Africa.</TextRoll>
+              </div>
             </motion.h1>
-
-            <motion.p variants={fadeUp} className="mt-8 text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            <motion.p variants={fadeUp} className="mt-10 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
               The all-in-one farm management platform built for African farmers.
               Track flocks, manage inventory, monitor finances, and make smarter
               decisions — all from your phone.
@@ -163,7 +141,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-white/25 px-8 py-4 text-base font-semibold text-white hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-8 py-4 text-base font-semibold text-white hover:bg-white/20 transition-all duration-300"
               >
                 Sign In
               </Link>
@@ -184,7 +162,7 @@ export default function LandingPage() {
                 whileHover={{ scale: 1.05, y: -4 }}
                 className="text-center p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors"
               >
-                <s.icon className="h-6 w-6 text-[#4ADE80] mx-auto mb-3" />
+                <s.icon className="h-6 w-6 text-white mx-auto mb-3" />
                 <p className="text-2xl md:text-3xl font-extrabold text-white">{s.value}</p>
                 <p className="text-xs text-white/50 font-medium mt-1.5">{s.label}</p>
               </motion.div>
