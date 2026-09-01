@@ -52,7 +52,6 @@ export interface MegaMenuNavbarProps
 }
 
 type DesktopMenu = "features" | "resources" | null;
-type MobileSection = Exclude<DesktopMenu, null>;
 
 const WANGARI_FEATURES: MegaMenuItem[] = [
   {
@@ -271,65 +270,6 @@ function DesktopDropdown({
   );
 }
 
-function MobileAccordion({
-  title,
-  value,
-  openSection,
-  onToggle,
-  children,
-}: {
-  title: string;
-  value: MobileSection;
-  openSection: MobileSection | null;
-  onToggle: (value: MobileSection) => void;
-  children: React.ReactNode;
-}) {
-  const isOpen = openSection === value;
-  const contentId = `mobile-${value}-content`;
-
-  return (
-    <div className="border-b border-[#E5E7EB]">
-      <button
-        type="button"
-        aria-expanded={isOpen}
-        aria-controls={contentId}
-        onClick={() => onToggle(value)}
-        className="flex w-full items-center justify-between py-4 text-sm font-medium text-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]"
-      >
-        {title}
-        <ChevronDown className={cn("size-4 text-[#64748B] transition-transform duration-200", isOpen && "rotate-180")} />
-      </button>
-      <div
-        id={contentId}
-        className={cn(
-          "grid transition-[grid-template-rows,opacity] duration-300 ease-out",
-          isOpen ? "grid-rows-[1fr] pb-4 opacity-100" : "grid-rows-[0fr] opacity-0",
-        )}
-      >
-        <div className="overflow-hidden">
-          <div className="ml-2 flex flex-col gap-1 border-l-2 border-[#F0FDF4] pl-3">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileMenuItem({ item, onNavigate }: { item: MegaMenuItem; onNavigate: () => void }) {
-  const Icon = item.icon;
-  return (
-    <Link
-      href={item.href}
-      onClick={onNavigate}
-      className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm text-[#64748B] transition-colors hover:bg-[#F0FDF4] hover:text-[#166534]"
-    >
-      {Icon ? <Icon className="size-4 text-[#166534]" /> : null}
-      <span>{item.title}</span>
-    </Link>
-  );
-}
-
 export function MegaMenuNavbar({
   brandName = "Wangari",
   brandHref = "/",
@@ -379,6 +319,7 @@ export function MegaMenuNavbar({
   };
 
   return (
+    <>
     <header
       {...props}
       ref={navRef}
@@ -487,69 +428,100 @@ export function MegaMenuNavbar({
         </div>
       </div>
 
-      {/* Mobile overlay */}
-      <div
-        aria-hidden={!mobileOpen}
-        onClick={closeMobile}
-        className={cn(
-          "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
-          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      />
-
-      {/* Mobile drawer */}
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-hidden={!mobileOpen}
-        className={cn(
-          "fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-white p-6 shadow-2xl transition-transform duration-300 ease-out lg:hidden",
-          mobileOpen ? "translate-x-0" : "translate-x-full",
-        )}
-      >
-        <div className="mb-8 flex items-center justify-between">
-          <Brand brandName={brandName} brandHref={brandHref} logo={logo} onNavigate={closeMobile} />
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={closeMobile}
-            aria-label="Close navigation menu"
-            className="flex size-10 items-center justify-center rounded-md text-[#64748B] transition-colors hover:bg-[#F0FDF4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534]"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-
-        <nav aria-label="Mobile navigation" className="flex-1 overflow-y-auto">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mt-2 mb-2">Features</p>
-            {features.map((item) => (
-              <MobileMenuItem key={item.title} item={item} onNavigate={closeMobile} />
-            ))}
-
-            <Link href={pricingHref} onClick={closeMobile} className="block rounded-lg px-3 py-3 text-sm font-medium text-[#0F172A] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors">
-              Pricing
-            </Link>
-
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mt-4 mb-2">Resources</p>
-            {resourceGroups.flatMap((group) =>
-              group.links.map((item) => (
-                <MobileMenuItem key={`${group.title}-${item.title}`} item={item} onNavigate={closeMobile} />
-              )),
-            )}
-
-            <Link href="/about" onClick={closeMobile} className="block rounded-lg px-3 py-3 text-sm font-medium text-[#0F172A] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors">
-              About
-            </Link>
-          </div>
-        </nav>
-
-        <div className="mt-auto grid grid-cols-2 gap-3 pt-6">
-          <NavAction href={loginHref} variant="outline" className="w-full" onClick={closeMobile}>Sign In</NavAction>
-          <NavAction href={ctaHref} className="w-full" onClick={closeMobile}>{ctaLabel}</NavAction>
-        </div>
-      </aside>
     </header>
+
+    {/* Mobile overlay + drawer — outside header to avoid backdrop-blur clipping */}
+    {mobileOpen && (
+      <div className="fixed inset-0 z-[60] lg:hidden">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          style={{ animation: "fadeIn 0.2s ease-out forwards" }}
+          onClick={closeMobile}
+        />
+        {/* Drawer panel */}
+        <aside
+          role="dialog"
+          aria-modal="true"
+          className="absolute inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl overflow-y-auto"
+          style={{ animation: "slideInRight 0.3s ease-out forwards" }}
+        >
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-[#E5E7EB] px-6 py-4">
+              <Brand brandName={brandName} brandHref={brandHref} logo={logo} onNavigate={closeMobile} />
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={closeMobile}
+                aria-label="Close navigation menu"
+                className="flex size-10 items-center justify-center rounded-md text-[#64748B] transition-colors hover:bg-[#F0FDF4]"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* Navigation links */}
+            <div className="px-6 py-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#94A3B8] mb-3">Features</p>
+              <div className="space-y-1 mb-6">
+                {features.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.title}
+                      href={item.href}
+                      onClick={closeMobile}
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#334155] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors"
+                    >
+                      {Icon && <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F0FDF4] text-[#166534]"><Icon className="size-4" /></div>}
+                      <span className="font-medium">{item.title}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-[#E5E7EB] pt-4 mb-4">
+                <Link href={pricingHref} onClick={closeMobile} className="flex items-center rounded-xl px-3 py-3 text-sm font-medium text-[#0F172A] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors">
+                  Pricing
+                </Link>
+              </div>
+
+              <p className="text-xs font-bold uppercase tracking-widest text-[#94A3B8] mb-3">Resources</p>
+              <div className="space-y-1 mb-6">
+                {resourceGroups.flatMap((group) =>
+                  group.links.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={`${group.title}-${item.title}`}
+                        href={item.href}
+                        onClick={closeMobile}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#64748B] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors"
+                      >
+                        {Icon && <Icon className="size-4 text-[#166534] shrink-0" />}
+                        <span>{item.title}</span>
+                      </Link>
+                    );
+                  }),
+                )}
+              </div>
+
+              <div className="border-t border-[#E5E7EB] pt-4">
+                <Link href="/about" onClick={closeMobile} className="flex items-center rounded-xl px-3 py-3 text-sm font-medium text-[#0F172A] hover:bg-[#F0FDF4] hover:text-[#166534] transition-colors">
+                  About
+                </Link>
+              </div>
+            </div>
+
+            {/* Bottom buttons */}
+            <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] px-6 py-4 grid grid-cols-2 gap-3">
+              <NavAction href={loginHref} variant="outline" className="w-full justify-center" onClick={closeMobile}>Sign In</NavAction>
+              <NavAction href={ctaHref} className="w-full justify-center" onClick={closeMobile}>{ctaLabel}</NavAction>
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
 
