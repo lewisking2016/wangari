@@ -1,27 +1,43 @@
 <?php
 /**
  * Paystack Configuration
- * API keys and settings for payment integration
+ * API keys loaded from environment variables
  */
 declare(strict_types=1);
 
-// Test Mode Keys (replace with live keys for production)
-define('PAYSTACK_SECRET_KEY', 'sk_test_2652161657c91aa5646abbbc2d4c6ee74eb7361c');
-define('PAYSTACK_PUBLIC_KEY', 'pk_test_8e025947d47366ea56c49264544b249cc70f36cf');
+// Load keys from .env file (never hardcode secrets)
+$envFile = dirname(__DIR__) . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if (strpos($line, '#') === 0 || strpos($line, '=') === false) continue;
+        [$key, $value] = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value, '"\'');
+        if (!getenv($key)) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+
+define('PAYSTACK_SECRET_KEY', getenv('PAYSTACK_SECRET_KEY') ?: '');
+define('PAYSTACK_PUBLIC_KEY', getenv('PAYSTACK_PUBLIC_KEY') ?: '');
 
 // Base URLs
 define('PAYSTACK_API_BASE', 'https://api.paystack.co');
 
 // Plan IDs (create these in Paystack dashboard)
 define('PAYSTACK_PLANS', [
-    'pro_monthly' => '',  // Will be created automatically
+    'pro_monthly' => '',
     'pro_annual' => '',
     'plus_monthly' => '',
     'plus_annual' => '',
 ]);
 
 // Webhook secret (set this in Paystack dashboard)
-define('PAYSTACK_WEBHOOK_SECRET', '');
+define('PAYSTACK_WEBHOOK_SECRET', getenv('PAYSTACK_WEBHOOK_SECRET') ?: '');
 
 // Currency
 define('PAYSTACK_CURRENCY', 'KES');
