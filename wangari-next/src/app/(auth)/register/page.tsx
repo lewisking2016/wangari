@@ -57,7 +57,7 @@ export default function RegisterPage() {
       if (result?.error) {
         router.push("/login");
       } else {
-        router.push("/dashboard");
+        router.push("/onboarding");
         router.refresh();
       }
     } catch {

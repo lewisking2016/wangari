@@ -126,18 +126,16 @@ export default function LandingPage() {
               <img src="/images/wangari-real-logo.png" alt="" className="h-5 w-5 rounded-full object-cover" />
               <span className="text-white/80">Named after Prof. Wangari Maathai</span>
             </motion.div>            <motion.h1 variants={fadeUp} className="max-w-5xl mx-auto">
-              <div className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold leading-[1.05] tracking-tight">
-                <TextRoll center>Grow smarter.</TextRoll>
+              <div className="text-4xl md:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.1] tracking-tight">
+                <TextRoll center>Your Feed Manager Stole KES 180,000.</TextRoll>
               </div>
-              <div className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold leading-[1.05] tracking-tight mt-2">
-                <span className="text-white/40">Rooted in </span>
-                <TextRoll center className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">Africa.</TextRoll>
+              <div className="text-4xl md:text-6xl lg:text-[4.5rem] font-extrabold leading-[1.1] tracking-tight mt-2">
+                <TextRoll center className="bg-gradient-to-r from-[#4ADE80] via-[#22C55E] to-[#86EFAC] bg-clip-text text-transparent">Wangari Stops That.</TextRoll>
               </div>
             </motion.h1>
             <motion.p variants={fadeUp} className="mt-10 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-              The all-in-one farm management platform built for African farmers.
-              Track flocks, manage inventory, monitor finances, and make smarter
-              decisions — all from your phone.
+              Know your real profit in 30 seconds. Track every egg, every bag of feed,
+              every shilling — from your phone or via WhatsApp. Start free for 30 days.
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -145,7 +143,7 @@ export default function LandingPage() {
                 href="/register"
                 className="group inline-flex items-center gap-3 rounded-full bg-white text-[#166534] px-8 py-4 text-base font-bold hover:bg-[#F0FDF4] transition-all duration-300 shadow-2xl shadow-black/20 hover:shadow-3xl hover:-translate-y-1"
               >
-                Start Free — No Card Needed
+                Start Free — 30 Days, No Card
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1.5" />
               </Link>
               <Link
