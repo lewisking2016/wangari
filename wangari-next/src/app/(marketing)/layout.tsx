@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import { Footer } from "@/components/layout/footer";
 
 export default function MarketingLayout({
   children,
@@ -20,6 +21,7 @@ export default function MarketingLayout({
         </div>
       </header>
       <main className="pt-16">{children}</main>
+      <Footer />
     </div>
   );
 }
