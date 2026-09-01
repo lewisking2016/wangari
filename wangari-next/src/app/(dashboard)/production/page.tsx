@@ -1,70 +1,57 @@
 "use client";
-
 import * as React from "react";
-import { ClipboardList, Plus, Egg, TrendingUp, TrendingDown } from "lucide-react";
+import { ClipboardList, Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { formatNumber } from "@/lib/utils";
-
-const mockProduction = [
-  { id: 1, date: "2026-08-30", flock: "Layer Flock A", eggs: 420, mortality: 1, feed: "25 kg" },
-  { id: 2, date: "2026-08-29", flock: "Layer Flock A", eggs: 435, mortality: 0, feed: "24 kg" },
-  { id: 3, date: "2026-08-28", flock: "Layer Flock A", eggs: 410, mortality: 2, feed: "26 kg" },
-  { id: 4, date: "2026-08-30", flock: "Layer Flock B", eggs: 380, mortality: 0, feed: "22 kg" },
-  { id: 5, date: "2026-08-29", flock: "Layer Flock B", eggs: 395, mortality: 1, feed: "23 kg" },
-];
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function ProductionPage() {
+  const [records, setRecords] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch("/api/production").then(r => r.json()).then(d => { setRecords(d); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+
+  const totalEggs = records.reduce((s, r) => s + r.eggsCollected, 0);
+  const totalMortality = records.reduce((s, r) => s + r.mortality, 0);
+  const totalFeed = records.reduce((s, r) => s + Number(r.feedUsed), 0);
+  const avgEggs = records.length ? Math.round(totalEggs / records.length) : 0;
+
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <PageHeader
-        title="Production"
-        description="Log and track daily egg collection, mortality, and feed usage."
-        action={
-          <Button>
-            <Plus className="h-4 w-4" /> Log Production
-          </Button>
-        }
-      />
+      <PageHeader title="Production" description="Daily egg collection and mortality tracking" />
 
-      <div className="grid grid-cols-3 gap-4">
-        <KpiCard title="Eggs Today" value={formatNumber(800)} icon={<Egg className="h-5 w-5" />} change="+3% vs yesterday" changeType="positive" />
-        <KpiCard title="Mortality" value={formatNumber(1)} icon={<TrendingDown className="h-5 w-5" />} change="Low" changeType="positive" />
-        <KpiCard title="Feed Used" value="47 kg" icon={<TrendingUp className="h-5 w-5" />} change="Normal" changeType="neutral" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard title="Total Eggs" value={totalEggs.toLocaleString()} icon={<ClipboardList className="h-5 w-5" />} change="All time" changeType="positive" />
+        <KpiCard title="Avg Daily" value={avgEggs.toLocaleString()} icon={<ClipboardList className="h-5 w-5" />} change="Per day" changeType="positive" />
+        <KpiCard title="Total Feed" value={totalFeed.toFixed(0) + " kg"} icon={<ClipboardList className="h-5 w-5" />} change="All time" changeType="positive" />
+        <KpiCard title="Mortality" value={String(totalMortality)} icon={<ClipboardList className="h-5 w-5" />} change="All time" changeType="negative" />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Production Logs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Flock</TableHead>
-                <TableHead>Eggs</TableHead>
-                <TableHead>Mortality</TableHead>
-                <TableHead>Feed</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockProduction.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.date}</TableCell>
-                  <TableCell>{row.flock}</TableCell>
-                  <TableCell className="font-bold text-wangari-green-700">{row.eggs}</TableCell>
-                  <TableCell className={row.mortality > 0 ? "text-red-600 font-bold" : ""}>{row.mortality}</TableCell>
-                  <TableCell>{row.feed}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {records.length === 0 ? <EmptyState title="No records" description="Start logging daily production." /> : (
+        <Card><CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-[#E5E7EB] bg-[#FAFBFC]">
+          <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Date</th>
+          <th className="px-4 py-3 text-left font-semibold text-[#64748B]">Flock</th>
+          <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Eggs</th>
+          <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Mortality</th>
+          <th className="px-4 py-3 text-right font-semibold text-[#64748B]">Feed (kg)</th>
+        </tr></thead><tbody>
+          {records.map(r => (
+            <tr key={r.id} className="border-b border-[#E5E7EB] hover:bg-gray-50">
+              <td className="px-4 py-3 text-[#0F172A]">{new Date(r.date).toLocaleDateString()}</td>
+              <td className="px-4 py-3 text-[#64748B]">{r.flock?.name || "-"}</td>
+              <td className="px-4 py-3 text-right font-semibold text-[#166534]">{r.eggsCollected.toLocaleString()}</td>
+              <td className="px-4 py-3 text-right font-semibold text-red-600">{r.mortality}</td>
+              <td className="px-4 py-3 text-right text-[#0F172A]">{Number(r.feedUsed).toFixed(1)}</td>
+            </tr>
+          ))}
+        </tbody></table></div></CardContent></Card>
+      )}
     </div>
   );
 }

@@ -1,62 +1,59 @@
 "use client";
-
 import * as React from "react";
-import { Package, Plus, AlertTriangle } from "lucide-react";
+import { Package, AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-const mockInventory = [
-  { id: 1, item: "Kienyeji Mash", category: "Feed", qty: 120, unit: "bags", reorder: 50 },
-  { id: 2, item: "Layers Mash", category: "Feed", qty: 85, unit: "bags", reorder: 40 },
-  { id: 3, item: "IBD Vaccine", category: "Medication", qty: 5, unit: "bottles", reorder: 10 },
-  { id: 4, item: "Egg Trays", category: "Packaging", qty: 200, unit: "pieces", reorder: 50 },
-  { id: 5, item: "Dewormer", category: "Medication", qty: 3, unit: "bottles", reorder: 5 },
-];
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function InventoryPage() {
+  const [items, setItems] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch("/api/inventory").then(r => r.json()).then(d => { setItems(d); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
+
+  const lowStock = items.filter(i => Number(i.quantity) <= i.reorderLevel);
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <PageHeader
-        title="Inventory"
-        description="Manage feed, medication, equipment, and packaging stock."
-        action={<Button><Plus className="h-4 w-4" /> Add Item</Button>}
-      />
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Stock Items</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockInventory.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.item}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.qty} {item.unit}</TableCell>
-                  <TableCell>
-                    {item.qty <= item.reorder ? (
-                      <Badge variant="danger"><AlertTriangle className="h-3 w-3 mr-1" /> Low Stock</Badge>
-                    ) : (
-                      <Badge variant="success">In Stock</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <PageHeader title="Inventory" description="Track feed, medication, and supplies" />
+
+      {lowStock.length > 0 && (
+        <Card className="border-red-200 bg-red-50"><CardContent className="flex items-center gap-3 p-4">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <p className="text-sm font-medium text-red-800">{lowStock.length} items below reorder level</p>
+        </CardContent></Card>
+      )}
+
+      {items.length === 0 ? <EmptyState title="No inventory" description="Add items to track your stock." /> : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map(item => {
+            const isLow = Number(item.quantity) <= item.reorderLevel;
+            return (
+              <Card key={item.id} className="hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0FDF4] text-[#166534]"><Package className="h-6 w-6" /></div>
+                    {isLow ? <Badge className="bg-red-100 text-red-700">Low Stock</Badge> : <Badge className="bg-[#F0FDF4] text-[#166534]">In Stock</Badge>}
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold text-[#0F172A]">{item.itemName}</h3>
+                  <p className="text-sm text-[#64748B] capitalize">{item.category || "General"}</p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div><p className="text-[#94A3B8]">Quantity</p><p className="font-semibold text-[#0F172A]">{Number(item.quantity).toLocaleString()} {item.unit}</p></div>
+                    <div><p className="text-[#94A3B8]">Unit Cost</p><p className="font-semibold text-[#0F172A]">KES {Number(item.unitCost).toLocaleString()}</p></div>
+                    <div><p className="text-[#94A3B8]">Reorder At</p><p className="font-semibold text-[#0F172A]">{item.reorderLevel} {item.unit}</p></div>
+                    <div><p className="text-[#94A3B8]">Value</p><p className="font-semibold text-[#166534]">KES {(Number(item.quantity) * Number(item.unitCost)).toLocaleString()}</p></div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
