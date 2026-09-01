@@ -12,7 +12,7 @@ export function Logo({ size = "md", showText = true }: LogoProps) {
   return (
     <div className="flex items-center gap-2.5">
       <Image
-        src="/images/wangari-mark.svg"
+        src="/images/wangari-logo.svg"
         alt="Wangari"
         width={px}
         height={px}

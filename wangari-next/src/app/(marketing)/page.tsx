@@ -114,7 +114,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-28 md:pt-48 md:pb-36 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeDown} className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
-              <img src="/images/wangari-mark.svg" alt="" className="h-5 w-5" />
+              <img src="/images/wangari-logo.svg" alt="" className="h-5 w-5" />
               <span className="text-white/80">Named after Prof. Wangari Maathai</span>
             </motion.div>            <motion.h1 variants={fadeUp} className="max-w-5xl mx-auto">
               <div className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold leading-[1.05] tracking-tight">

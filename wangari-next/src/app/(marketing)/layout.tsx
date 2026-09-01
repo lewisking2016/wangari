@@ -12,7 +12,7 @@ export default function MarketingLayout({
     <div className="min-h-screen bg-white">
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E5E7EB]">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-          <Link href="/"><Logo size="md" /></Link>
+          <Link href="/"><Logo size="md" showText={false} /></Link>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#64748B]">
             <Link001 href="/pricing" className="text-[#64748B] hover:text-[#166534] transition-colors">Pricing</Link001>
             <Link001 href="/about" className="text-[#64748B] hover:text-[#166534] transition-colors">About</Link001>

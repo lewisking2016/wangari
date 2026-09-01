@@ -27,7 +27,7 @@ export default function AuthLayout({
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3 text-white">
             <img
-              src="/images/wangari-mark.svg"
+              src="/images/wangari-logo.svg"
               alt="Wangari"
               className="h-10 w-10"
             />

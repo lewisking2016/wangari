@@ -13,7 +13,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <img src="/images/wangari-mark.svg" alt="Wangari" className="h-9 w-9" />
+              <img src="/images/wangari-logo.svg" alt="Wangari" className="h-9 w-9" />
               <span className="text-xl font-extrabold text-[#0F172A]">Wangari</span>
             </div>
             <p className="text-sm text-[#64748B] leading-relaxed max-w-sm">
