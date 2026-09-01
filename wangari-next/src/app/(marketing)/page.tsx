@@ -22,6 +22,7 @@ import {
   Quote,
 } from "lucide-react";
 import { TextRoll } from "@/components/ui/text-roll";
+import { WaveGridBackground } from "@/components/ui/wave-grid-background";
 
 /* ── Animation Variants ── */
 const fadeUp = {
@@ -107,9 +108,17 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* ═══════ HERO ═══════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0B1220] via-[#14532D] to-[#166534] text-white">
-        {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
+      <section className="relative overflow-hidden text-white min-h-[90vh]">
+        <WaveGridBackground
+          colorBase="#0B1220"
+          colorHigh="#22C55E"
+          gridSize={25}
+          waveAmplitude={0.3}
+          waveSpeed={5}
+          className="absolute inset-0 h-full w-full"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1220]/80 via-[#0B1220]/40 to-[#0B1220]/90" />
+        </WaveGridBackground>
 
         <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-28 md:pt-48 md:pb-36 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
