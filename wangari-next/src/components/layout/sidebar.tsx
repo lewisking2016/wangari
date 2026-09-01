@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -14,7 +15,6 @@ import {
   BarChart3,
   Settings,
   Sparkles,
-  Leaf,
   ChevronDown,
   LogOut,
 } from "lucide-react";
@@ -89,18 +89,8 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-[260px] bg-white border-r border-wangari-border flex flex-col">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-wangari-border">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-800">
-          <Leaf className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <p className="text-base font-bold text-wangari-heading tracking-tight">
-            Wangari
-          </p>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-wangari-muted">
-            Farm OS
-          </p>
-        </div>
+      <div className="flex items-center px-5 py-5 border-b border-wangari-border">
+        <Link href="/"><Logo size="lg" /></Link>
       </div>
 
       {/* Navigation */}

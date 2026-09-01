@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Bird, BarChart3, Package, Users, Smartphone, Sparkles, ArrowRight, Leaf } from "lucide-react";
+import { Bird, BarChart3, Package, Users, Smartphone, Sparkles, ArrowRight } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 const features = [
   { icon: Bird, title: "Flock Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time." },
@@ -21,7 +22,7 @@ export default function LandingPage() {
         </div>
         <div className="relative mx-auto max-w-7xl px-6 pt-36 pb-28 md:pt-44 md:pb-36 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
-            <Leaf className="h-4 w-4 text-[#4ADE80]" /> Named after Prof. Wangari Maathai
+            <span className="h-4 w-4"><img src="/images/wangari-mark.svg" alt="" className="h-4 w-4" /></span> Named after Prof. Wangari Maathai
           </div>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[1.05] tracking-tight max-w-5xl mx-auto">
             Grow smarter.<br />
