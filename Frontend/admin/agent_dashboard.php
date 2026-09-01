@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 // Get agent's farmer list
 $farmer_stmt = $pdo->prepare("
     SELECT u.id, u.full_name, u.email, u.phone_number, u.primary_goal,
-           u.last_login, u.created_at,
+           u.created_at,
            f.name as farm_name, f.farm_code,
            (SELECT COUNT(*) FROM daily_production WHERE user_id = u.id AND record_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)) as entries_this_week,
            (SELECT COUNT(*) FROM daily_production WHERE user_id = u.id AND record_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)) as entries_this_month
