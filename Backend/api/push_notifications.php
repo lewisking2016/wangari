@@ -97,10 +97,11 @@ echo json_encode([
 function checkVaccinationReminders(PDO $pdo, string $today, string $in_2_days): array {
     $stmt = $pdo->prepare("
         SELECT v.id, v.vaccine_name, v.scheduled_date, v.flock_id,
-               f.name as flock_name, f.user_id,
+               f.flock_name, fm.owner_id as user_id,
                DATEDIFF(v.scheduled_date, ?) as days_until
         FROM vaccinations v
         JOIN flocks f ON v.flock_id = f.id
+        JOIN farms fm ON f.farm_id = fm.id
         WHERE v.status = 'scheduled'
         AND v.scheduled_date BETWEEN ? AND ?
         ORDER BY v.scheduled_date ASC

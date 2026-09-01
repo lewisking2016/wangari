@@ -114,7 +114,7 @@ switch ($action) {
 function getUpcomingReminders(PDO $pdo, int $user_id): array {
     $stmt = $pdo->prepare("
         SELECT v.id, v.vaccine_name, v.scheduled_date, v.status,
-               f.flock_name, f.bird_type,
+               f.flock_name, f.breed as bird_type,
                DATEDIFF(v.scheduled_date, CURDATE()) as days_until
         FROM vaccinations v
         JOIN flocks f ON v.flock_id = f.id
@@ -131,7 +131,7 @@ function getUpcomingReminders(PDO $pdo, int $user_id): array {
 function getAllUpcomingReminders(PDO $pdo): array {
     $stmt = $pdo->prepare("
         SELECT v.id, v.vaccine_name, v.scheduled_date, v.status,
-               f.flock_name, f.bird_type, fm.owner_id as user_id,
+               f.flock_name, f.breed as bird_type, fm.owner_id as user_id,
                u.full_name, u.email, u.phone_number,
                DATEDIFF(v.scheduled_date, CURDATE()) as days_until
         FROM vaccinations v
