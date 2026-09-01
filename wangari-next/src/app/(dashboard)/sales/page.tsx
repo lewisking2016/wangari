@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { DollarSign, CheckCircle, Clock, Plus, X, Trash2 } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Plus, X, Trash2, Search } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useToast } from "@/components/shared/toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -19,6 +20,8 @@ export default function SalesPage() {
   const [customers, setCustomers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const { showToast, ToastComponent } = useToast();
   const [form, setForm] = React.useState({ customerId: "", totalAmount: "", amountPaid: "", paymentStatus: "paid", items: "" });
 
   const load = () => {
@@ -52,6 +55,7 @@ export default function SalesPage() {
     });
     setForm({ customerId: "", totalAmount: "", amountPaid: "", paymentStatus: "paid", items: "" });
     setShowForm(false);
+    showToast("Sale recorded!");
     load();
   };
 
@@ -127,6 +131,11 @@ export default function SalesPage() {
         ))}
       </motion.div>
 
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+        <input placeholder="Search by customer name..." value={search} onChange={e => setSearch(e.target.value)} className="w-full h-11 rounded-xl border border-[#E5E7EB] pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all" />
+      </motion.div>
+
       {sales.length === 0 ? <EmptyState title="No sales" description="Record your first sale." /> : (
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
@@ -143,7 +152,7 @@ export default function SalesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sales.slice(0, 30).map((s, i) => (
+                    {sales.filter(s => !search || s.customer?.name?.toLowerCase().includes(search.toLowerCase())).slice(0, 30).map((s, i) => (
                       <motion.tr key={s.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3.5 text-[#0F172A] font-medium">{new Date(s.saleDate).toLocaleDateString()}</td>
                         <td className="px-5 py-3.5 text-[#64748B]">{s.customer?.name || "Walk-in"}</td>
@@ -164,6 +173,7 @@ export default function SalesPage() {
           </Card>
         </motion.div>
       )}
+      {ToastComponent}
     </div>
   );
 }

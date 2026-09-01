@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useToast } from "@/components/shared/toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -18,6 +19,7 @@ export default function InventoryPage() {
   const [items, setItems] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const { showToast, ToastComponent } = useToast();
   const [form, setForm] = React.useState({ itemName: "", category: "feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "" });
 
   const load = () => {
@@ -41,6 +43,7 @@ export default function InventoryPage() {
     });
     setForm({ itemName: "", category: "feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "" });
     setShowForm(false);
+    showToast("Item added!");
     load();
   };
 
@@ -149,6 +152,7 @@ export default function InventoryPage() {
           })}
         </motion.div>
       )}
+      {ToastComponent}
     </div>
   );
 }

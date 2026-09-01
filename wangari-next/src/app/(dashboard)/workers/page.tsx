@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useToast } from "@/components/shared/toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -19,6 +20,7 @@ export default function WorkersPage() {
   const [workers, setWorkers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const { showToast, ToastComponent } = useToast();
   const [form, setForm] = React.useState({ name: "", role: "", phone: "", dailyWage: "" });
 
   const load = () => {
@@ -41,6 +43,7 @@ export default function WorkersPage() {
     });
     setForm({ name: "", role: "", phone: "", dailyWage: "" });
     setShowForm(false);
+    showToast("Worker added!");
     load();
   };
 
@@ -126,6 +129,7 @@ export default function WorkersPage() {
           </Card>
         </motion.div>
       )}
+      {ToastComponent}
     </div>
   );
 }

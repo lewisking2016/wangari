@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/shared/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -17,6 +18,7 @@ export default function FinancesPage() {
   const [txs, setTxs] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const { showToast, ToastComponent } = useToast();
   const [form, setForm] = React.useState({ type: "expense", description: "", amount: "", category: "feed", paymentMethod: "cash" });
 
   const load = () => {
@@ -41,6 +43,7 @@ export default function FinancesPage() {
     });
     setForm({ type: "expense", description: "", amount: "", category: "feed", paymentMethod: "cash" });
     setShowForm(false);
+    showToast("Transaction saved!");
     load();
   };
 
@@ -150,6 +153,7 @@ export default function FinancesPage() {
           </CardContent>
         </Card>
       </motion.div>
+      {ToastComponent}
     </div>
   );
 }

@@ -1,13 +1,14 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Egg, Wheat, AlertTriangle, TrendingUp, Plus, X } from "lucide-react";
+import { Egg, Wheat, AlertTriangle, TrendingUp, Plus, X, Search } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
+import { useToast } from "@/components/shared/toast";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -18,6 +19,8 @@ export default function ProductionPage() {
   const [flocks, setFlocks] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const { showToast, ToastComponent } = useToast();
   const [form, setForm] = React.useState({ flockId: "", eggsCollected: "", mortality: "", feedUsed: "", notes: "" });
 
   const load = () => {
@@ -47,6 +50,7 @@ export default function ProductionPage() {
     });
     setForm({ flockId: "", eggsCollected: "", mortality: "", feedUsed: "", notes: "" });
     setShowForm(false);
+    showToast("Production record saved!");
     load();
   };
 
@@ -124,6 +128,11 @@ export default function ProductionPage() {
         ))}
       </motion.div>
 
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+        <input placeholder="Search by flock name..." value={search} onChange={e => setSearch(e.target.value)} className="w-full h-11 rounded-xl border border-[#E5E7EB] pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all" />
+      </motion.div>
+
       {records.length === 0 ? <EmptyState title="No records" description="Start logging daily production." /> : (
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
@@ -140,7 +149,7 @@ export default function ProductionPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {records.slice(0, 30).map((r, i) => (
+                    {records.filter(r => !search || r.flock?.name?.toLowerCase().includes(search.toLowerCase())).slice(0, 30).map((r, i) => (
                       <motion.tr key={r.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
                         <td className="px-5 py-3.5 text-[#0F172A] font-medium">{new Date(r.date).toLocaleDateString()}</td>
                         <td className="px-5 py-3.5 text-[#64748B]">{r.flock?.name || "-"}</td>
@@ -156,6 +165,7 @@ export default function ProductionPage() {
           </Card>
         </motion.div>
       )}
+      {ToastComponent}
     </div>
   );
 }
