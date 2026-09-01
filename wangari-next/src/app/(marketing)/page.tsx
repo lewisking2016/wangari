@@ -56,12 +56,12 @@ const slideInRight = {
 
 /* ── Data ── */
 const features = [
-  { icon: Bird, title: "Flock Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time." },
-  { icon: BarChart3, title: "Smart Analytics", desc: "See your costs, revenue, and margins at a glance. Know exactly which flock is most profitable." },
-  { icon: Package, title: "Inventory Control", desc: "Never run out of feed or medication. Get low-stock alerts and track every bag in and out." },
-  { icon: Users, title: "Team Management", desc: "Manage workers, attendance, and wages. Assign tasks and track who did what." },
-  { icon: Smartphone, title: "Mobile First", desc: "Works on any phone, even with slow internet. Log production from the field in 3 taps." },
-  { icon: Sparkles, title: "AI Assistant", desc: "Ask your farm anything and get instant answers from your data." },
+  { icon: Bird, title: "Flock Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time.", href: "/features/flocks" },
+  { icon: BarChart3, title: "Smart Analytics", desc: "See your costs, revenue, and margins at a glance. Know exactly which flock is most profitable.", href: "/features/analytics" },
+  { icon: Package, title: "Inventory Control", desc: "Never run out of feed or medication. Get low-stock alerts and track every bag in and out.", href: "/features/inventory" },
+  { icon: Users, title: "Team Management", desc: "Manage workers, attendance, and wages. Assign tasks and track who did what.", href: "/features/team" },
+  { icon: Smartphone, title: "Mobile First", desc: "Works on any phone, even with slow internet. Log production from the field in 3 taps.", href: "/register" },
+  { icon: Sparkles, title: "AI Assistant", desc: "Ask your farm anything and get instant answers from your data.", href: "/features/ai" },
 ];
 
 const steps = [
@@ -206,17 +206,20 @@ export default function LandingPage() {
                 key={f.title}
                 variants={fadeUp}
                 whileHover={{ y: -8, scale: 1.02 }}
-                className="group relative rounded-2xl border border-[#E5E7EB] bg-white p-8 hover:shadow-2xl hover:shadow-[#166534]/5 transition-all duration-500 hover:-translate-y-2 hover:border-[#BBF7D0] overflow-hidden"
               >
-                {/* Hover gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F0FDF4]/0 to-[#F0FDF4]/0 group-hover:from-[#F0FDF4]/50 group-hover:to-white/0 transition-all duration-500" />
-                <div className="relative">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#166534] text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <f.icon className="h-7 w-7" />
+                <Link href={f.href} className="group relative block rounded-2xl border border-[#E5E7EB] bg-white p-8 hover:shadow-2xl hover:shadow-[#166534]/5 transition-all duration-500 hover:-translate-y-2 hover:border-[#BBF7D0] overflow-hidden h-full">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#F0FDF4]/0 to-[#F0FDF4]/0 group-hover:from-[#F0FDF4]/50 group-hover:to-white/0 transition-all duration-500" />
+                  <div className="relative">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#166534] text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <f.icon className="h-7 w-7" />
+                    </div>
+                    <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{f.title}</h3>
+                    <p className="mt-3 text-sm text-[#64748B] leading-relaxed">{f.desc}</p>
+                    <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-[#166534] opacity-0 group-hover:opacity-100 transition-opacity">
+                      Learn more <ArrowRight className="h-4 w-4" />
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{f.title}</h3>
-                  <p className="mt-3 text-sm text-[#64748B] leading-relaxed">{f.desc}</p>
-                </div>
+                </Link>
               </motion.div>
             ))}
           </motion.div>

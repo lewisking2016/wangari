@@ -16,7 +16,7 @@ export default function MarketingLayout({
           </div>
         }
       />
-      <main className="pt-16">{children}</main>
+      <main>{children}</main>
       <Footer />
     </div>
   );
