@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
-import { Footer } from "@/components/layout/footer";
+
 
 export default function DashboardLayout({
   children,
@@ -35,7 +35,7 @@ export default function DashboardLayout({
       <div className="lg:pl-[260px] min-h-screen flex flex-col">
         <Topbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 p-6">{children}</main>
-        <Footer variant="dashboard" />
+
       </div>
     </div>
   );

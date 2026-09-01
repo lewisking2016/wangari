@@ -27,9 +27,9 @@ export default function WorkersPage() {
   const totalWages = workers.reduce((s, w) => s + Number(w.dailyWage || w.wage || 0), 0);
 
   const kpis = [
-    { title: "Total Workers", value: String(workers.length), icon: <Users className="h-5 w-5" />, color: "from-[#166534] to-[#14532D]" },
-    { title: "Daily Wages", value: "KES " + totalWages.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, color: "from-[#22C55E] to-[#16A34A]" },
-    { title: "Monthly Cost", value: "KES " + (totalWages * 30).toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, color: "from-[#15803D] to-[#166534]" },
+    { title: "Total Workers", value: String(workers.length), icon: <Users className="h-5 w-5" /> },
+    { title: "Daily Wages", value: "KES " + totalWages.toLocaleString(), icon: <DollarSign className="h-5 w-5" /> },
+    { title: "Monthly Cost", value: "KES " + (totalWages * 30).toLocaleString(), icon: <TrendingUp className="h-5 w-5" /> },
   ];
 
   return (
@@ -45,10 +45,9 @@ export default function WorkersPage() {
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-3 gap-4">
         {kpis.map((kpi) => (
           <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4 }}>
-            <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${kpi.color}`} />
+            <Card className="border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
               <CardContent className="pt-6 pb-4 px-5">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-md mb-3`}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
                   {kpi.icon}
                 </div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>

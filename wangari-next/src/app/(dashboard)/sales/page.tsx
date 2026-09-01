@@ -26,9 +26,9 @@ export default function SalesPage() {
   const pending = totalRevenue - totalPaid;
 
   const kpis = [
-    { title: "Total Revenue", value: "KES " + totalRevenue.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, change: sales.length + " sales", color: "from-[#166534] to-[#14532D]" },
-    { title: "Paid", value: "KES " + totalPaid.toLocaleString(), icon: <CheckCircle className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus === "paid").length + " orders", color: "from-[#22C55E] to-[#16A34A]" },
-    { title: "Pending", value: "KES " + pending.toLocaleString(), icon: <Clock className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus !== "paid").length + " orders", color: "from-[#15803D] to-[#166534]" },
+    { title: "Total Revenue", value: "KES " + totalRevenue.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, change: sales.length + " sales" },
+    { title: "Paid", value: "KES " + totalPaid.toLocaleString(), icon: <CheckCircle className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus === "paid").length + " orders" },
+    { title: "Pending", value: "KES " + pending.toLocaleString(), icon: <Clock className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus !== "paid").length + " orders" },
   ];
 
   return (
@@ -40,10 +40,9 @@ export default function SalesPage() {
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-3 gap-4">
         {kpis.map((kpi) => (
           <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4 }}>
-            <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${kpi.color}`} />
+            <Card className="border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
               <CardContent className="pt-6 pb-4 px-5">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-md mb-3`}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
                   {kpi.icon}
                 </div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>
@@ -78,7 +77,7 @@ export default function SalesPage() {
                         <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(s.totalAmount).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-right text-[#64748B] tabular-nums">KES {Number(s.amountPaid).toLocaleString()}</td>
                         <td className="px-5 py-3.5 text-center">
-                          <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-[#14532D]/10 text-[#14532D] border-[#14532D]/20"}>
+                          <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-[#64748B] border-gray-200"}>
                             {s.paymentStatus}
                           </Badge>
                         </td>

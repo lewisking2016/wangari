@@ -26,10 +26,10 @@ export default function ProductionPage() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
   const kpis = [
-    { title: "Total Eggs", value: totalEggs.toLocaleString(), icon: <Egg className="h-5 w-5" />, change: "All time", color: "from-[#166534] to-[#14532D]" },
-    { title: "Avg Daily", value: avgEggs.toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, change: "Per day", color: "from-[#22C55E] to-[#16A34A]" },
-    { title: "Total Feed", value: totalFeed.toFixed(0) + " kg", icon: <Wheat className="h-5 w-5" />, change: "All time", color: "from-[#15803D] to-[#166534]" },
-    { title: "Mortality", value: String(totalMortality), icon: <AlertTriangle className="h-5 w-5" />, change: "All time", color: "from-[#14532D] to-[#0B1220]" },
+    { title: "Total Eggs", value: totalEggs.toLocaleString(), icon: <Egg className="h-5 w-5" />, change: "All time" },
+    { title: "Avg Daily", value: avgEggs.toLocaleString(), icon: <TrendingUp className="h-5 w-5" />, change: "Per day" },
+    { title: "Total Feed", value: totalFeed.toFixed(0) + " kg", icon: <Wheat className="h-5 w-5" />, change: "All time" },
+    { title: "Mortality", value: String(totalMortality), icon: <AlertTriangle className="h-5 w-5" />, change: "All time" },
   ];
 
   return (
@@ -41,10 +41,9 @@ export default function ProductionPage() {
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
           <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
-            <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:border-[#BBF7D0] transition-all duration-300">
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${kpi.color}`} />
+            <Card className="border border-[#E5E7EB] hover:shadow-lg hover:border-[#BBF7D0] transition-all duration-300">
               <CardContent className="pt-6 pb-4 px-5">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.color} text-white shadow-md mb-3`}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
                   {kpi.icon}
                 </div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>

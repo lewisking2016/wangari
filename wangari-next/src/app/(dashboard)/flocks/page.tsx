@@ -80,9 +80,8 @@ export default function FlocksPage() {
         <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(f => (
             <motion.div key={f.id} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
-              <Card className="border border-[#E5E7EB] hover:shadow-xl hover:border-[#BBF7D0] transition-all duration-300 relative overflow-hidden">
+              <Card className="border border-[#E5E7EB] hover:shadow-xl hover:border-[#BBF7D0] transition-all duration-300">
                 {/* Accent stripe */}
-                <div className={`absolute top-0 left-0 right-0 h-1 ${f.type === "layers" ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A]" : "bg-gradient-to-r from-[#166534] to-[#14532D]"}`} />
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0FDF4] text-[#166534]">

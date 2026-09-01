@@ -24,15 +24,6 @@ export default function InventoryPage() {
   const lowStock = items.filter(i => Number(i.quantity) <= i.reorderLevel);
   const totalValue = items.reduce((s, i) => s + Number(i.quantity) * Number(i.unitCost), 0);
 
-  // Uniform green palette for all categories
-  const categoryColors: Record<string, string> = {
-    feed: "from-[#166534] to-[#14532D]",
-    vaccine: "from-[#15803D] to-[#166534]",
-    packaging: "from-[#22C55E] to-[#16A34A]",
-    medication: "from-[#14532D] to-[#0B1220]",
-    general: "from-[#15803D] to-[#14532D]",
-  };
-
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
@@ -41,7 +32,7 @@ export default function InventoryPage() {
 
       {lowStock.length > 0 && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="border-[#166534]/20 bg-gradient-to-r from-[#F0FDF4] to-white hover:shadow-md transition-shadow">
+          <Card className="border-[#166534]/20 bg-[#F0FDF4] hover:shadow-md transition-shadow">
             <CardContent className="flex items-center gap-3 p-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534]/10 text-[#166534]">
                 <AlertTriangle className="h-5 w-5" />
@@ -57,10 +48,9 @@ export default function InventoryPage() {
 
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <motion.div variants={scaleIn}>
-          <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#166534] to-[#22C55E]" />
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardContent className="pt-6 pb-4 px-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#166534] to-[#22C55E] text-white shadow-md mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
                 <Package className="h-5 w-5" />
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">Total Items</p>
@@ -69,10 +59,9 @@ export default function InventoryPage() {
           </Card>
         </motion.div>
         <motion.div variants={scaleIn}>
-          <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#15803D] to-[#166534]" />
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardContent className="pt-6 pb-4 px-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#15803D] to-[#166534] text-white shadow-md mb-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
                 <CircleDollarSign className="h-5 w-5" />
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">Total Value</p>
@@ -81,10 +70,9 @@ export default function InventoryPage() {
           </Card>
         </motion.div>
         <motion.div variants={scaleIn}>
-          <Card className="relative overflow-hidden border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <div className={`absolute top-0 left-0 right-0 h-1 ${lowStock.length > 0 ? "bg-gradient-to-r from-[#14532D] to-[#0B1220]" : "bg-gradient-to-r from-[#22C55E] to-[#16A34A]"}`} />
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardContent className="pt-6 pb-4 px-5">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${lowStock.length > 0 ? "from-[#14532D] to-[#0B1220]" : "from-[#22C55E] to-[#16A34A]"} text-white shadow-md mb-3`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
                 <TrendingUp className="h-5 w-5" />
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">Low Stock</p>
@@ -98,14 +86,12 @@ export default function InventoryPage() {
         <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map(item => {
             const isLow = Number(item.quantity) <= item.reorderLevel;
-            const gradient = categoryColors[item.category?.toLowerCase()] || categoryColors.general;
             return (
               <motion.div key={item.id} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
-                <Card className={`border hover:shadow-xl transition-all duration-300 relative overflow-hidden ${isLow ? "border-[#14532D]/30" : "border-[#E5E7EB] hover:border-[#BBF7D0]"}`}>
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
+                <Card className={`border hover:shadow-xl transition-all duration-300 ${isLow ? "border-[#14532D]/30" : "border-[#E5E7EB] hover:border-[#BBF7D0]"}`}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-md`}>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md">
                         <Package className="h-6 w-6" />
                       </div>
                       {isLow ? <Badge className="bg-[#14532D]/10 text-[#166534] border-[#14532D]/20">Low Stock</Badge> : <Badge className="bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]">In Stock</Badge>}
