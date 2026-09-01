@@ -20,6 +20,15 @@ const pageTitles: Record<string, string> = {
   "/reports": "Reports",
   "/settings": "Settings",
   "/ai": "AI Assistant",
+  "/vaccinations": "Vaccinations",
+  "/attendance": "Attendance",
+  "/feed-calculator": "Feed Calculator",
+  "/customers": "Customers",
+  "/export": "Export Data",
+  "/weather": "Weather",
+  "/audit": "Activity Log",
+  "/whatsapp": "WhatsApp",
+  "/invoices": "Invoices",
 };
 
 export function Topbar({ onMenuToggle }: TopbarProps) {

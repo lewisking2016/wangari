@@ -22,6 +22,10 @@ import {
   Calculator,
   UserCheck,
   Download,
+  CloudSun,
+  History,
+  MessageSquare,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,6 +57,7 @@ const navGroups: NavGroup[] = [
       { label: "Production", href: "/production", icon: <ClipboardList className="h-5 w-5" /> },
       { label: "Vaccinations", href: "/vaccinations", icon: <Syringe className="h-5 w-5" /> },
       { label: "Feed Calculator", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
+      { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
     ],
   },
   {
@@ -60,6 +65,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Finances", href: "/finances", icon: <DollarSign className="h-5 w-5" /> },
       { label: "Sales", href: "/sales", icon: <ShoppingCart className="h-5 w-5" /> },
+      { label: "Invoices", href: "/invoices", icon: <FileText className="h-5 w-5" /> },
       { label: "Customers", href: "/customers", icon: <UserCheck className="h-5 w-5" /> },
     ],
   },
@@ -72,9 +78,16 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    title: "Communications",
+    items: [
+      { label: "WhatsApp", href: "/whatsapp", icon: <MessageSquare className="h-5 w-5" /> },
+    ],
+  },
+  {
     title: "System",
     items: [
       { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
+      { label: "Activity Log", href: "/audit", icon: <History className="h-5 w-5" /> },
       { label: "Export Data", href: "/export", icon: <Download className="h-5 w-5" /> },
       { label: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
     ],
