@@ -14,14 +14,18 @@ import {
   DollarSign,
   BarChart3,
   RefreshCw,
-  Activity,
+  Wheat,
+  Target,
+  AlertTriangle,
+  Heart,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import api from "@/lib/api-client";
 
-// Existing harmonious components
+// Components
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ProductionChart, RevenueChart, FlockChart } from "@/components/dashboard/Charts";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
@@ -35,6 +39,32 @@ const stagger = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.06 } },
 };
+
+// ─── FCR Rating ──────────────────────────────────────────
+function getFCRRating(fcr: number): { label: string; color: string; bg: string } {
+  if (fcr === 0) return { label: "No data", color: "text-wangari-muted", bg: "bg-gray-50" };
+  if (fcr <= 1.8) return { label: "Excellent", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (fcr <= 2.2) return { label: "Good", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (fcr <= 2.5) return { label: "Fair", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
+  return { label: "Poor", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
+}
+
+// ─── HDP Rating ──────────────────────────────────────────
+function getHDPRating(hdp: number): { label: string; color: string; bg: string } {
+  if (hdp === 0) return { label: "No data", color: "text-wangari-muted", bg: "bg-gray-50" };
+  if (hdp >= 85) return { label: "Excellent", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (hdp >= 75) return { label: "Good", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (hdp >= 60) return { label: "Fair", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
+  return { label: "Low", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
+}
+
+// ─── Mortality Rating ────────────────────────────────────
+function getMortalityRating(rate: number): { label: string; color: string; bg: string } {
+  if (rate <= 1) return { label: "Normal", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (rate <= 3) return { label: "Acceptable", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (rate <= 5) return { label: "Watch", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
+  return { label: "Critical", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
+}
 
 export default function DashboardPage() {
   const [data, setData] = React.useState<any>(null);
@@ -78,13 +108,19 @@ export default function DashboardPage() {
     );
 
   const txs = data?.recentTransactions || [];
-  const prodData = data?.recentProduction || [];
+  const recentProd = data?.recentProduction || [];
   const mortalityAlerts = data?.mortalityAlerts || [];
   const stockAlerts = data?.stockAlerts || [];
   const vaccinationAlerts = data?.vaccinationAlerts || [];
+  const feedItems = data?.feedItems || [];
+
+  // Ratings
+  const fcrRating = getFCRRating(data?.fcr || 0);
+  const hdpRating = getHDPRating(data?.henDayProduction || 0);
+  const mortalityRating = getMortalityRating(data?.mortalityRate || 0);
 
   // Chart data
-  const productionChartData = prodData.slice(-7).map((r: any) => ({
+  const productionChartData = recentProd.map((r: any) => ({
     date: new Date(r.date).toLocaleDateString("en-KE", { weekday: "short" }),
     eggs: r.eggsCollected || 0,
     mortality: r.mortality || 0,
@@ -132,7 +168,10 @@ export default function DashboardPage() {
         </Button>
       </motion.div>
 
-      {/* KPI Cards — using existing harmonious component */}
+      {/* ═══════════════════════════════════════════════════════
+          ROW 1: What the farmer needs FIRST
+          Eggs today, birds alive, feed stock, money
+          ═══════════════════════════════════════════════════════ */}
       <motion.div
         initial="hidden"
         animate="visible"
@@ -141,20 +180,37 @@ export default function DashboardPage() {
       >
         <motion.div variants={fadeUp}>
           <KpiCard
-            title="Total Birds"
-            value={(data?.totalBirds || 0).toLocaleString()}
-            icon={<Bird className="h-5 w-5" />}
-            change={`${data?.totalFlocks || 0} active flocks`}
+            title="Eggs Today"
+            value={(data?.eggsToday || 0).toLocaleString()}
+            icon={<Egg className="h-5 w-5" />}
+            change={`${data?.henDayProduction || 0}% hen-day`}
             changeType="positive"
           />
         </motion.div>
         <motion.div variants={fadeUp}>
           <KpiCard
-            title="Eggs Today"
-            value={(data?.eggsToday || 0).toLocaleString()}
-            icon={<Egg className="h-5 w-5" />}
-            change={data?.mortalityToday > 0 ? `${data.mortalityToday} mortality` : "On track"}
-            changeType={data?.mortalityToday > 0 ? "negative" : "positive"}
+            title="Total Birds"
+            value={(data?.totalBirds || 0).toLocaleString()}
+            icon={<Bird className="h-5 w-5" />}
+            change={`${data?.totalFlocks || 0} flocks`}
+            changeType="positive"
+          />
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <KpiCard
+            title="Feed Stock"
+            value={data?.feedStock ? `${data.feedStock}` : "—"}
+            icon={<Wheat className="h-5 w-5" />}
+            change={
+              stockAlerts.some((a: any) => a.itemName.toLowerCase().includes("feed"))
+                ? "Low — reorder"
+                : "Sufficient"
+            }
+            changeType={
+              stockAlerts.some((a: any) => a.itemName.toLowerCase().includes("feed"))
+                ? "negative"
+                : "positive"
+            }
           />
         </motion.div>
         <motion.div variants={fadeUp}>
@@ -166,18 +222,116 @@ export default function DashboardPage() {
             changeType="positive"
           />
         </motion.div>
+      </motion.div>
+
+      {/* ═══════════════════════════════════════════════════════
+          ROW 2: Performance Metrics
+          FCR, Mortality Rate, Cost per Egg, Feed per Bird
+          ═══════════════════════════════════════════════════════ */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={stagger}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        {/* FCR */}
         <motion.div variants={fadeUp}>
-          <KpiCard
-            title="Expenses"
-            value={`KES ${(data?.monthlyExpenses || 0).toLocaleString()}`}
-            icon={<TrendingDown className="h-5 w-5" />}
-            change="This month"
-            changeType="negative"
-          />
+          <Card className="border border-wangari-border bg-white p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                  Feed Conversion
+                </p>
+                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
+                  {data?.fcr || "—"}
+                </p>
+                <Badge variant="default" className={`mt-2 ${fcrRating.bg} ${fcrRating.color}`}>
+                  {fcrRating.label}
+                </Badge>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
+                <Target className="h-5 w-5" />
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-wangari-subtle">
+              Feed (kg) per egg produced
+            </p>
+          </Card>
+        </motion.div>
+
+        {/* Mortality Rate */}
+        <motion.div variants={fadeUp}>
+          <Card className="border border-wangari-border bg-white p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                  Mortality Rate
+                </p>
+                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
+                  {data?.mortalityRate || 0}%
+                </p>
+                <Badge variant="default" className={`mt-2 ${mortalityRating.bg} ${mortalityRating.color}`}>
+                  {mortalityRating.label}
+                </Badge>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
+                <Heart className="h-5 w-5" />
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-wangari-subtle">
+              Deaths vs starting count
+            </p>
+          </Card>
+        </motion.div>
+
+        {/* Cost Per Egg */}
+        <motion.div variants={fadeUp}>
+          <Card className="border border-wangari-border bg-white p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                  Cost Per Egg
+                </p>
+                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
+                  {data?.costPerEgg ? `KES ${data.costPerEgg}` : "—"}
+                </p>
+                <p className="mt-2 text-[11px] text-wangari-subtle">
+                  Monthly cost ÷ eggs
+                </p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
+                <DollarSign className="h-5 w-5" />
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Feed Per Bird */}
+        <motion.div variants={fadeUp}>
+          <Card className="border border-wangari-border bg-white p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                  Feed / Bird
+                </p>
+                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
+                  {data?.feedPerBird ? `${data.feedPerBird}g` : "—"}
+                </p>
+                <p className="mt-2 text-[11px] text-wangari-subtle">
+                  Grams per bird today
+                </p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
+                <Wheat className="h-5 w-5" />
+              </div>
+            </div>
+          </Card>
         </motion.div>
       </motion.div>
 
-      {/* Weather + Alerts — side by side */}
+      {/* ═══════════════════════════════════════════════════════
+          ROW 3: Weather + Alerts
+          ═══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeatherWidget
           data={data?.weather || null}
@@ -190,7 +344,9 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Charts — Production + Flock Distribution */}
+      {/* ═══════════════════════════════════════════════════════
+          ROW 4: Charts
+          ═══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {productionChartData.length > 0 && (
           <ProductionChart data={productionChartData} />
@@ -200,16 +356,79 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Revenue Chart — full width */}
       <RevenueChart data={revenueChartData} />
 
-      {/* Transactions + Quick Actions */}
+      {/* ═══════════════════════════════════════════════════════
+          ROW 5: Feed Stock Detail + Transactions
+          ═══════════════════════════════════════════════════════ */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={stagger}
         className="grid lg:grid-cols-3 gap-6"
       >
+        {/* Feed Stock Detail */}
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-bold text-wangari-heading">
+                    Feed Stock
+                  </CardTitle>
+                  <p className="text-xs text-wangari-muted">Current inventory</p>
+                </div>
+                <Link
+                  href="/inventory"
+                  className="text-xs font-semibold text-wangari-green-700 hover:underline"
+                >
+                  Manage
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {feedItems.length === 0 ? (
+                <p className="text-sm text-wangari-muted py-6 text-center">
+                  No feed items tracked yet
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {feedItems.map((item: any, i: number) => (
+                    <div key={i} className="rounded-xl border border-wangari-border p-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-wangari-heading">
+                          {item.name}
+                        </p>
+                        {item.reorderLevel > 0 && item.quantity <= item.reorderLevel && (
+                          <Badge variant="danger">Low</Badge>
+                        )}
+                      </div>
+                      <div className="mt-1 flex items-center justify-between text-xs text-wangari-muted">
+                        <span>
+                          {item.quantity} {item.unit}
+                        </span>
+                        {item.daysLeft !== null && (
+                          <span>~{item.daysLeft} days left</span>
+                        )}
+                      </div>
+                      {item.reorderLevel > 0 && (
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-wangari-border">
+                          <div
+                            className="h-full rounded-full bg-wangari-green-500"
+                            style={{
+                              width: `${Math.min((item.quantity / item.reorderLevel) * 100, 100)}%`,
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Recent Transactions */}
         <motion.div variants={fadeUp} className="lg:col-span-2">
           <Card>
@@ -280,38 +499,45 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </motion.div>
+      </motion.div>
 
-        {/* Quick Actions */}
-        <motion.div variants={fadeUp}>
-          <Card>
-            <CardHeader className="pb-2">
-              <div>
-                <CardTitle className="text-base font-bold text-wangari-heading">
-                  Quick Actions
-                </CardTitle>
-                <p className="text-xs text-wangari-muted">Common tasks</p>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2.5">
+      {/* ═══════════════════════════════════════════════════════
+          ROW 6: Quick Actions
+          ═══════════════════════════════════════════════════════ */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+      >
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold text-wangari-heading">
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { href: "/production", icon: Plus, label: "Log Production" },
-                { href: "/sales", icon: ShoppingCart, label: "Record Sale" },
-                { href: "/finances", icon: DollarSign, label: "Add Expense" },
-                { href: "/inventory", icon: BarChart3, label: "Check Inventory" },
+                { href: "/production", icon: Plus, label: "Log Production", desc: "Eggs & mortality" },
+                { href: "/inventory", icon: Wheat, label: "Feed Stock", desc: "Track feed usage" },
+                { href: "/sales", icon: ShoppingCart, label: "Record Sale", desc: "Eggs or birds" },
+                { href: "/finances", icon: DollarSign, label: "Expenses", desc: "Add costs" },
               ].map((action) => (
                 <Link key={action.href} href={action.href}>
-                  <Button
-                    className="w-full justify-start gap-3 bg-white border border-wangari-border text-wangari-text hover:bg-wangari-green-50 hover:border-wangari-green-300 hover:text-wangari-green-800 transition-all"
-                    variant="outline"
-                  >
-                    <action.icon className="h-4 w-4" />
-                    <span className="font-medium text-sm">{action.label}</span>
-                  </Button>
+                  <div className="flex flex-col items-center gap-2 rounded-xl border border-wangari-border p-4 text-center transition-all hover:border-wangari-green-300 hover:bg-wangari-green-50 cursor-pointer">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-700">
+                      <action.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-wangari-heading">{action.label}</p>
+                      <p className="text-[11px] text-wangari-muted">{action.desc}</p>
+                    </div>
+                  </div>
                 </Link>
               ))}
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   );
