@@ -7,14 +7,14 @@ router.use(authMiddleware);
 
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
 
-// GET /api/weather
+// GET /api/weather — current weather + 5-day forecast
 router.get("/", async (req: Request, res: Response) => {
   try {
     const farmId = req.user!.farmId!;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Check cache first
+    // Check cache
     const cached = await prisma.weatherCache.findFirst({
       where: { farmId, date: today },
     });
@@ -29,14 +29,13 @@ router.get("/", async (req: Request, res: Response) => {
       select: { location: true, county: true },
     });
 
-    // Default to Nairobi if no location
     const location = farm?.location || farm?.county || "Nairobi";
-    let lat = -1.2921; // Nairobi default
+    let lat = -1.2921;
     let lon = 36.8219;
 
-    // Try to get coordinates from location name
     if (OPENWEATHER_API_KEY) {
       try {
+        // Get coordinates
         const geoRes = await fetch(
           `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)},KE&limit=1&appid=${OPENWEATHER_API_KEY}`
         );
@@ -46,25 +45,85 @@ router.get("/", async (req: Request, res: Response) => {
           lon = geoData[0].lon;
         }
       } catch {
-        // Use default coordinates
+        // Use defaults
       }
 
-      // Fetch current weather
       try {
+        // Fetch current weather + 5-day forecast in one call
         const weatherRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}`
+          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&cnt=40&appid=${OPENWEATHER_API_KEY}`
         );
-        const weatherData: any = await weatherRes.json();
+        const forecastData: any = await weatherRes.json();
 
-        if (weatherData && weatherData.main) {
+        if (forecastData && forecastData.list && forecastData.list.length > 0) {
+          // Current weather (first item)
+          const current = forecastData.list[0];
+          const todayForecast = forecastData.list.filter((item: any) => {
+            const d = new Date(item.dt * 1000);
+            return d.toDateString() === today.toDateString();
+          });
+
+          // Calculate daily min/max temp and total rain
+          const dailyMin = Math.round(Math.min(...todayForecast.map((i: any) => i.main.temp_min)));
+          const dailyMax = Math.round(Math.max(...todayForecast.map((i: any) => i.main.temp_max)));
+          const totalRain = todayForecast.reduce((sum: number, i: any) => sum + (i.rain?.["3h"] || 0), 0);
+          const avgHumidity = Math.round(todayForecast.reduce((sum: number, i: any) => sum + i.main.humidity, 0) / todayForecast.length);
+
+          // 5-day forecast (group by day)
+          const dailyForecast = [];
+          const seen = new Set<string>();
+          for (const item of forecastData.list) {
+            const d = new Date(item.dt * 1000);
+            const dayKey = d.toDateString();
+            if (!seen.has(dayKey) && dailyForecast.length < 5) {
+              seen.add(dayKey);
+              dailyForecast.push({
+                date: d.toISOString(),
+                day: d.toLocaleDateString("en-KE", { weekday: "short" }),
+                tempMin: Math.round(item.main.temp_min),
+                tempMax: Math.round(item.main.temp_max),
+                condition: item.weather[0]?.main || "Clear",
+                description: item.weather[0]?.description || "",
+                icon: getWeatherIcon(item.weather[0]?.main || "Clear"),
+                rain: item.rain?.["3h"] || 0,
+              });
+            }
+          }
+
+          // Sunrise/sunset
+          const sunrise = forecastData.city?.sunrise
+            ? new Date(forecastData.city.sunrise * 1000).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })
+            : null;
+          const sunset = forecastData.city?.sunset
+            ? new Date(forecastData.city.sunset * 1000).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })
+            : null;
+
           const weather = {
-            temperature: Math.round(weatherData.main.temp),
-            humidity: weatherData.main.humidity,
-            windSpeed: Math.round(weatherData.wind?.speed * 3.6 || 0), // m/s to km/h
-            condition: weatherData.weather[0]?.main || "Clear",
-            description: weatherData.weather[0]?.description || "",
-            icon: getWeatherIcon(weatherData.weather[0]?.main || "Clear"),
-            location: weatherData.name || location,
+            // Current
+            temperature: Math.round(current.main.temp),
+            feelsLike: Math.round(current.main.feels_like),
+            humidity: current.main.humidity,
+            windSpeed: Math.round(current.wind?.speed * 3.6 || 0),
+            condition: current.weather[0]?.main || "Clear",
+            description: current.weather[0]?.description || "",
+            icon: getWeatherIcon(current.weather[0]?.main || "Clear"),
+            location: forecastData.city?.name || location,
+
+            // Today summary
+            today: {
+              tempMin: dailyMin,
+              tempMax: dailyMax,
+              rainMm: Math.round(totalRain * 10) / 10,
+              avgHumidity,
+              willRain: totalRain > 0,
+            },
+
+            // Sunrise/sunset (important for hen lighting)
+            sunrise,
+            sunset,
+
+            // 5-day forecast
+            forecast: dailyForecast,
           };
 
           // Cache it
@@ -74,39 +133,50 @@ router.get("/", async (req: Request, res: Response) => {
               farmId,
               location,
               date: today,
-              tempMax: weather.temperature,
-              tempMin: weather.temperature - 5,
-              rainfallMm: 0,
-              weatherCode: weatherData.weather[0]?.main,
+              tempMax: dailyMax,
+              tempMin: dailyMin,
+              rainfallMm: totalRain,
+              weatherCode: current.weather[0]?.main,
               forecastJson: weather,
             },
             update: {
-              tempMax: weather.temperature,
-              tempMin: weather.temperature - 5,
-              weatherCode: weatherData.weather[0]?.main,
+              tempMax: dailyMax,
+              tempMin: dailyMin,
+              rainfallMm: totalRain,
+              weatherCode: current.weather[0]?.main,
               forecastJson: weather,
             },
           });
 
           return res.json(weather);
         }
-      } catch {
-        // Fall through to mock
+      } catch (err) {
+        console.error("Weather API error:", err);
       }
     }
 
-    // Fallback: mock weather data
+    // Fallback: mock weather
     const weather = {
       temperature: 25 + Math.round(Math.random() * 5),
+      feelsLike: 26 + Math.round(Math.random() * 5),
       humidity: 60 + Math.round(Math.random() * 20),
       windSpeed: 5 + Math.round(Math.random() * 15),
       condition: "Partly Cloudy",
       description: "partly cloudy",
       icon: "cloud" as const,
       location,
+      today: {
+        tempMin: 20,
+        tempMax: 28,
+        rainMm: 0,
+        avgHumidity: 65,
+        willRain: false,
+      },
+      sunrise: "06:30",
+      sunset: "18:45",
+      forecast: [],
     };
 
-    // Cache mock data
     await prisma.weatherCache.upsert({
       where: { location_date: { location, date: today } },
       create: {
@@ -119,9 +189,7 @@ router.get("/", async (req: Request, res: Response) => {
         weatherCode: "Clouds",
         forecastJson: weather,
       },
-      update: {
-        forecastJson: weather,
-      },
+      update: { forecastJson: weather },
     });
 
     res.json(weather);
