@@ -6,17 +6,14 @@ import {
   Bird,
   Egg,
   TrendingUp,
-  TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
   Plus,
   ShoppingCart,
   DollarSign,
-  BarChart3,
   RefreshCw,
   Wheat,
   Target,
-  AlertTriangle,
   Heart,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -47,15 +44,6 @@ function getFCRRating(fcr: number): { label: string; color: string; bg: string }
   if (fcr <= 2.2) return { label: "Good", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
   if (fcr <= 2.5) return { label: "Fair", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
   return { label: "Poor", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
-}
-
-// ─── HDP Rating ──────────────────────────────────────────
-function getHDPRating(hdp: number): { label: string; color: string; bg: string } {
-  if (hdp === 0) return { label: "No data", color: "text-wangari-muted", bg: "bg-gray-50" };
-  if (hdp >= 85) return { label: "Excellent", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
-  if (hdp >= 75) return { label: "Good", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
-  if (hdp >= 60) return { label: "Fair", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
-  return { label: "Low", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
 }
 
 // ─── Mortality Rating ────────────────────────────────────
@@ -121,7 +109,6 @@ export default function DashboardPage() {
 
   // Ratings
   const fcrRating = getFCRRating(data?.fcr || 0);
-  const hdpRating = getHDPRating(data?.henDayProduction || 0);
   const mortalityRating = getMortalityRating(data?.mortalityRate || 0);
 
   // Chart data
