@@ -19,6 +19,7 @@ import {
   Users,
   BarChart3,
 } from "lucide-react";
+import api from "@/lib/api-client";
 
 interface WhatsAppTemplate {
   id: string;
@@ -53,8 +54,7 @@ export default function WhatsAppPage() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/whatsapp");
-        const data = await res.json();
+        const data = await api.get<any>('/api/whatsapp');
         setTemplates(data.templates || []);
         setStats(data.stats || { sent: 0, delivered: 0, failed: 0 });
         setConnected(data.connected || false);
@@ -77,11 +77,7 @@ export default function WhatsAppPage() {
     if (!testPhone) return;
     setSending(true);
     try {
-      await fetch("/api/whatsapp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: testPhone, templateId: "test", message: "Test message from Wangari" }),
-      });
+      await api.post("/api/whatsapp", { phoneNumber: testPhone, templateId: "test", message: "Test message from Wangari" });
       alert("Message queued! (WhatsApp Business API pending)");
       setTestPhone("");
     } catch {

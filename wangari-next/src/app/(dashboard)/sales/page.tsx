@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -26,13 +27,13 @@ export default function SalesPage() {
 
   const load = () => {
     Promise.all([
-      fetch("/api/sales").then(r => r.json()),
-      fetch("/api/customers").then(r => r.json()),
+      api.get("/api/sales"),
+      api.get("/api/customers"),
     ]).then(([s, c]) => { setSales(s); setCustomers(c); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this sale?")) return;
-    await fetch("/api/sales/" + id, { method: "DELETE" });
+    await api.delete("/api/sales/" + id);
     load();
   };
   React.useEffect(() => { load(); }, []);
@@ -42,16 +43,12 @@ export default function SalesPage() {
   const pending = totalRevenue - totalPaid;
 
   const handleSubmit = async () => {
-    await fetch("/api/sales", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customerId: Number(form.customerId) || null,
-        totalAmount: Number(form.totalAmount),
-        amountPaid: Number(form.amountPaid || form.totalAmount),
-        paymentStatus: form.paymentStatus,
-        items: [{ name: "Eggs", quantity: 1, price: Number(form.totalAmount) }],
-      }),
+    await api.post("/api/sales", {
+      customerId: Number(form.customerId) || null,
+      totalAmount: Number(form.totalAmount),
+      amountPaid: Number(form.amountPaid || form.totalAmount),
+      paymentStatus: form.paymentStatus,
+      items: [{ name: "Eggs", quantity: 1, price: Number(form.totalAmount) }],
     });
     setForm({ customerId: "", totalAmount: "", amountPaid: "", paymentStatus: "paid", items: "" });
     setShowForm(false);

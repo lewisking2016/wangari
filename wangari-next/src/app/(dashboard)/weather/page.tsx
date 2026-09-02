@@ -16,6 +16,7 @@ import {
   MapPin,
   Calendar,
 } from "lucide-react";
+import api from "@/lib/api-client";
 
 interface WeatherData {
   current: {
@@ -59,10 +60,8 @@ export default function WeatherPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/weather");
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setWeather(data);
+      const data = await api.get("/api/weather");
+      setWeather(data as WeatherData);
     } catch {
       setError("Unable to load weather data. Please try again.");
     } finally {

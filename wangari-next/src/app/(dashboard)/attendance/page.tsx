@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/components/shared/toast";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -22,8 +23,8 @@ export default function AttendancePage() {
 
   const load = () => {
     Promise.all([
-      fetch("/api/attendance").then(r => r.json()),
-      fetch("/api/workers").then(r => r.json()),
+      api.get("/api/attendance"),
+      api.get("/api/workers"),
     ]).then(([a, w]) => { setRecords(a); setWorkers(w); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
@@ -34,28 +35,20 @@ export default function AttendancePage() {
   const absent = workers.length - present;
 
   const handleClockIn = async (workerId: string) => {
-    await fetch("/api/attendance", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workerId, action: "checkin", time: new Date().toTimeString().slice(0, 5) }),
-    });
+    await api.post("/api/attendance", { workerId, action: "checkin", time: new Date().toTimeString().slice(0, 5) });
     showToast("Worker clocked in!");
     load();
   };
 
   const handleClockOut = async (workerId: string) => {
-    await fetch("/api/attendance", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workerId, action: "checkout", time: new Date().toTimeString().slice(0, 5) }),
-    });
+    await api.post("/api/attendance", { workerId, action: "checkout", time: new Date().toTimeString().slice(0, 5) });
     showToast("Worker clocked out!");
     load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this record?")) return;
-    await fetch("/api/attendance/" + id, { method: "DELETE" });
+    await api.delete("/api/attendance/" + id);
     load();
   };
 

@@ -15,6 +15,7 @@ import {
   Filter,
   Search,
 } from "lucide-react";
+import api from "@/lib/api-client";
 
 interface AuditEntry {
   id: number;
@@ -66,8 +67,7 @@ export default function AuditPage() {
   React.useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch("/api/audit");
-        const data = await res.json();
+        const data = await api.get<any[]>('/api/audit');
         setLogs(data);
       } catch {
         // Use empty array

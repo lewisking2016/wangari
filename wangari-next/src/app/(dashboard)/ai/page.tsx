@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Send, Sparkles, Bot, User, Loader2 } from "lucide-react";
+import api from "@/lib/api-client";
 
 interface Message {
   role: "user" | "assistant";
@@ -119,12 +120,12 @@ export default function AIAssistantPage() {
 
   React.useEffect(() => {
     Promise.all([
-      fetch("/api/flocks").then(r => r.json()),
-      fetch("/api/production").then(r => r.json()),
-      fetch("/api/transactions").then(r => r.json()),
-      fetch("/api/inventory").then(r => r.json()),
-      fetch("/api/workers").then(r => r.json()),
-      fetch("/api/sales").then(r => r.json()),
+      api.get("/api/flocks"),
+      api.get("/api/production"),
+      api.get("/api/transactions"),
+      api.get("/api/inventory"),
+      api.get("/api/workers"),
+      api.get("/api/sales"),
     ]).then(([flocks, production, transactions, inventory, workers, sales]) => {
       setFarmData({ flocks, production, transactions, inventory, workers, sales });
     }).catch(() => {});

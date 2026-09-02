@@ -1,15 +1,15 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { getUser, logout, isLoggedIn } from "@/lib/auth-client";
 
 export function useAuth() {
-  const { data: session, status } = useSession();
+  const user = getUser();
 
   return {
-    user: session?.user,
-    role: (session?.user as Record<string, unknown>)?.role as string | undefined,
-    isAuthenticated: status === "authenticated",
-    isLoading: status === "loading",
-    signOut: () => signOut({ callbackUrl: "/login" }),
+    user,
+    role: user?.role,
+    isAuthenticated: isLoggedIn(),
+    isLoading: false,
+    signOut: logout,
   };
 }

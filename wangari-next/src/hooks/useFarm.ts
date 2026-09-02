@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Farm } from "@/types";
+import api from "@/lib/api-client";
 
 export function useFarm() {
   const [farm, setFarm] = useState<Farm | null>(null);
@@ -10,13 +11,10 @@ export function useFarm() {
 
   const fetchFarms = useCallback(async () => {
     try {
-      const res = await fetch("/api/farms");
-      if (res.ok) {
-        const data = await res.json();
-        setFarms(data);
-        if (data.length > 0 && !farm) {
-          setFarm(data[0]);
-        }
+      const data = await api.get<Farm[]>('/api/farms');
+      setFarms(data);
+      if (data.length > 0 && !farm) {
+        setFarm(data[0]);
       }
     } catch {
       console.error("Failed to fetch farms");

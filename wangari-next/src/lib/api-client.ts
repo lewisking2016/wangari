@@ -1,0 +1,71 @@
+/**
+ * Centralized API client.
+ * All fetch calls should go through this to ensure JWT auth headers are sent.
+ */
+
+import { getToken, logout } from "./auth-client";
+
+const API_BASE = ""; // Same origin — rewrites proxy to VPS backend
+
+interface RequestOptions extends RequestInit {
+  json?: unknown;
+}
+
+async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { json, ...fetchOptions } = options;
+
+  const headers: Record<string, string> = {
+    ...(fetchOptions.headers as Record<string, string>),
+  };
+
+  // Add JWT token
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  // Add JSON body
+  if (json !== undefined) {
+    headers["Content-Type"] = "application/json";
+    fetchOptions.body = JSON.stringify(json);
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...fetchOptions,
+    headers,
+  });
+
+  // Handle auth errors
+  if (res.status === 401) {
+    logout();
+    throw new Error("Session expired. Please login again.");
+  }
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || `Request failed: ${res.status}`);
+  }
+
+  return data as T;
+}
+
+// ─── Typed API helpers ────────────────────────────────────
+
+export const api = {
+  get: <T = unknown>(path: string) => request<T>(path),
+
+  post: <T = unknown>(path: string, body: unknown) =>
+    request<T>(path, { method: "POST", json: body }),
+
+  put: <T = unknown>(path: string, body: unknown) =>
+    request<T>(path, { method: "PUT", json: body }),
+
+  patch: <T = unknown>(path: string, body: unknown) =>
+    request<T>(path, { method: "PATCH", json: body }),
+
+  delete: <T = unknown>(path: string) =>
+    request<T>(path, { method: "DELETE" }),
+};
+
+export default api;

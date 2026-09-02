@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -21,14 +22,14 @@ export default function FlocksPage() {
   const [form, setForm] = React.useState({ name: "", breed: "", type: "layers", initialCount: "" });
 
   const loadFlocks = () => {
-    fetch("/api/flocks").then(r => r.json()).then(d => { setFlocks(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/flocks").then(d => { setFlocks(d); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { loadFlocks(); }, []);
 
   const filtered = flocks.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
 
   const handleCreate = async () => {
-    await fetch("/api/flocks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, initialCount: Number(form.initialCount) }) });
+    await api.post("/api/flocks", { ...form, initialCount: Number(form.initialCount) });
     setForm({ name: "", breed: "", type: "layers", initialCount: "" });
     setShowForm(false);
     loadFlocks();
@@ -36,7 +37,7 @@ export default function FlocksPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this flock?")) return;
-    await fetch("/api/flocks/" + id, { method: "DELETE" });
+    await api.delete("/api/flocks/" + id);
     loadFlocks();
   };
 

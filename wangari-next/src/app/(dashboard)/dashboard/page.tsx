@@ -20,6 +20,7 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import api from "@/lib/api-client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -39,8 +40,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => r.json())
+    api.get("/api/dashboard")
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);

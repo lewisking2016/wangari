@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -24,11 +25,11 @@ export default function WorkersPage() {
   const [form, setForm] = React.useState({ name: "", role: "", phone: "", dailyWage: "" });
 
   const load = () => {
-    fetch("/api/workers").then(r => r.json()).then(d => { setWorkers(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/workers").then(d => { setWorkers(d); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this worker?")) return;
-    await fetch("/api/workers/" + id, { method: "DELETE" });
+    await api.delete("/api/workers/" + id);
     load();
   };
   React.useEffect(() => { load(); }, []);
@@ -36,11 +37,7 @@ export default function WorkersPage() {
   const totalWages = workers.reduce((s, w) => s + Number(w.dailyWage || w.wage || 0), 0);
 
   const handleSubmit = async () => {
-    await fetch("/api/workers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, dailyWage: Number(form.dailyWage), status: "active" }),
-    });
+    await api.post("/api/workers", { ...form, dailyWage: Number(form.dailyWage), status: "active" });
     setForm({ name: "", role: "", phone: "", dailyWage: "" });
     setShowForm(false);
     showToast("Worker added!");

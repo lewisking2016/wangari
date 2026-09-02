@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/shared/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -22,11 +23,11 @@ export default function FinancesPage() {
   const [form, setForm] = React.useState({ type: "expense", description: "", amount: "", category: "feed", paymentMethod: "cash" });
 
   const load = () => {
-    fetch("/api/transactions").then(r => r.json()).then(d => { setTxs(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/transactions").then(d => { setTxs(d); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this transaction?")) return;
-    await fetch("/api/transactions/" + id, { method: "DELETE" });
+    await api.delete("/api/transactions/" + id);
     load();
   };
   React.useEffect(() => { load(); }, []);
@@ -36,11 +37,7 @@ export default function FinancesPage() {
   const profit = income - expenses;
 
   const handleSubmit = async () => {
-    await fetch("/api/transactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, amount: Number(form.amount), date: new Date().toISOString() }),
-    });
+    await api.post("/api/transactions", { ...form, amount: Number(form.amount), date: new Date().toISOString() });
     setForm({ type: "expense", description: "", amount: "", category: "feed", paymentMethod: "cash" });
     setShowForm(false);
     showToast("Transaction saved!");

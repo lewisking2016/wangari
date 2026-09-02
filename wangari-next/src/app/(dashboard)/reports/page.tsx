@@ -9,6 +9,7 @@ import {
   BarChart, Bar, LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
@@ -27,13 +28,13 @@ export default function ReportsPage() {
 
   React.useEffect(() => {
     Promise.all([
-      fetch("/api/production").then(r => r.json()),
-      fetch("/api/transactions").then(r => r.json()),
-      fetch("/api/flocks").then(r => r.json()),
+      api.get("/api/production"),
+      api.get("/api/transactions"),
+      api.get("/api/flocks"),
     ]).then(([p, t, f]) => {
-      setProduction(p);
-      setTransactions(t);
-      setFlocks(f);
+      setProduction(p as any[]);
+      setTransactions(t as any[]);
+      setFlocks(f as any[]);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);

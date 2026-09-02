@@ -16,6 +16,7 @@ import {
   Send,
   X,
 } from "lucide-react";
+import api from "@/lib/api-client";
 
 interface Invoice {
   id: number;
@@ -62,8 +63,7 @@ export default function InvoicesPage() {
   React.useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const res = await fetch("/api/invoices");
-        const data = await res.json();
+        const data = await api.get<any[]>('/api/invoices');
         setInvoices(data);
       } catch {
         // Use empty

@@ -20,6 +20,7 @@ import {
   Phone,
   Building2,
 } from "lucide-react";
+import api from "@/lib/api-client";
 
 const hubs = [
   { id: "poultry", icon: Bird, name: "My Poultry", desc: "Track flocks, eggs, mortality, and feed", color: "from-emerald-500 to-green-600" },
@@ -67,17 +68,13 @@ export default function OnboardingPage() {
     setSaving(true);
     // Save onboarding data
     try {
-      await fetch("/api/user-preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          activeHubs: [selectedHub],
-          farmName,
-          farmLocation,
-          farmPhone,
-          farmType: selectedHub,
-          onboardedAt: new Date().toISOString(),
-        }),
+      await api.post("/api/user-preferences", {
+        activeHubs: [selectedHub],
+        farmName,
+        farmLocation,
+        farmPhone,
+        farmType: selectedHub,
+        onboardedAt: new Date().toISOString(),
       });
     } catch {
       // Continue anyway

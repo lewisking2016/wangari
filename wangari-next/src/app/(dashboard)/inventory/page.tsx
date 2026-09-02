@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -23,11 +24,11 @@ export default function InventoryPage() {
   const [form, setForm] = React.useState({ itemName: "", category: "feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "" });
 
   const load = () => {
-    fetch("/api/inventory").then(r => r.json()).then(d => { setItems(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/inventory").then(d => { setItems(d); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this item?")) return;
-    await fetch("/api/inventory/" + id, { method: "DELETE" });
+    await api.delete("/api/inventory/" + id);
     load();
   };
   React.useEffect(() => { load(); }, []);
@@ -36,11 +37,7 @@ export default function InventoryPage() {
   const totalValue = items.reduce((s, i) => s + Number(i.quantity) * Number(i.unitCost), 0);
 
   const handleSubmit = async () => {
-    await fetch("/api/inventory", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, quantity: Number(form.quantity), unitCost: Number(form.unitCost), reorderLevel: Number(form.reorderLevel || 10) }),
-    });
+    await api.post("/api/inventory", { ...form, quantity: Number(form.quantity), unitCost: Number(form.unitCost), reorderLevel: Number(form.reorderLevel || 10) });
     setForm({ itemName: "", category: "feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "" });
     setShowForm(false);
     showToast("Item added!");

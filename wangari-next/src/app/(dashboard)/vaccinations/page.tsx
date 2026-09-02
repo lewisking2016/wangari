@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/shared/toast";
 import { EmptyState } from "@/components/shared/empty-state";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -26,18 +27,14 @@ export default function VaccinationsPage() {
 
   const load = () => {
     Promise.all([
-      fetch("/api/vaccinations").then(r => r.json()),
-      fetch("/api/flocks").then(r => r.json()),
+      api.get("/api/vaccinations"),
+      api.get("/api/flocks"),
     ]).then(([v, f]) => { setRecords(v); setFlocks(f); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 
   const handleSubmit = async () => {
-    await fetch("/api/vaccinations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, status: "pending" }),
-    });
+    await api.post("/api/vaccinations", { ...form, status: "pending" });
     setForm({ flockId: "", vaccineName: "", scheduledDate: "", notes: "" });
     setShowForm(false);
     showToast("Vaccination scheduled!");
@@ -45,18 +42,14 @@ export default function VaccinationsPage() {
   };
 
   const handleComplete = async (id: number) => {
-    await fetch("/api/vaccinations/" + id, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "completed", completedDate: new Date().toISOString() }),
-    });
+    await api.patch("/api/vaccinations/" + id, { status: "completed", completedDate: new Date().toISOString() });
     showToast("Vaccination marked complete!");
     load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this vaccination record?")) return;
-    await fetch("/api/vaccinations/" + id, { method: "DELETE" });
+    await api.delete("/api/vaccinations/" + id);
     load();
   };
 

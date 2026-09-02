@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/components/shared/toast";
 import { EmptyState } from "@/components/shared/empty-state";
+import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -26,18 +27,14 @@ export default function CustomersPage() {
 
   const load = () => {
     Promise.all([
-      fetch("/api/customers").then(r => r.json()),
-      fetch("/api/sales").then(r => r.json()),
+      api.get("/api/customers"),
+      api.get("/api/sales"),
     ]).then(([c, s]) => { setCustomers(c); setSales(s); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 
   const handleSubmit = async () => {
-    await fetch("/api/customers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    await api.post("/api/customers", form);
     setForm({ name: "", phone: "", email: "", address: "" });
     setShowForm(false);
     showToast("Customer added!");
@@ -46,7 +43,7 @@ export default function CustomersPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this customer?")) return;
-    await fetch("/api/customers/" + id, { method: "DELETE" });
+    await api.delete("/api/customers/" + id);
     load();
   };
 
