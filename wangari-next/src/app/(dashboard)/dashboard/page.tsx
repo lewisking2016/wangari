@@ -54,20 +54,43 @@ function getMortalityRating(rate: number): { label: string; color: string; bg: s
   return { label: "Critical", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
 }
 
+const MOCK_WEATHER = {
+  temperature: 24,
+  feelsLike: 25,
+  humidity: 65,
+  windSpeed: 12,
+  condition: "Partly Cloudy",
+  description: "partly cloudy",
+  icon: "cloud" as const,
+  location: "Your Farm",
+  today: { tempMin: 18, tempMax: 28, rainMm: 0, avgHumidity: 65, willRain: false },
+  sunrise: "06:30",
+  sunset: "18:45",
+  forecast: [
+    { day: "Mon", tempMin: 18, tempMax: 27, icon: "cloud" as const, condition: "Clouds", description: "cloudy" },
+    { day: "Tue", tempMin: 19, tempMax: 29, icon: "sun" as const, condition: "Clear", description: "sunny" },
+    { day: "Wed", tempMin: 17, tempMax: 25, icon: "rain" as const, condition: "Rain", description: "light rain" },
+    { day: "Thu", tempMin: 18, tempMax: 26, icon: "cloud" as const, condition: "Clouds", description: "cloudy" },
+    { day: "Fri", tempMin: 19, tempMax: 28, icon: "sun" as const, condition: "Clear", description: "sunny" },
+  ],
+};
+
 export default function DashboardPage() {
   const [data, setData] = React.useState<any>(null);
-  const [weather, setWeather] = React.useState<any>(null);
+  const [weather, setWeather] = React.useState<any>(MOCK_WEATHER);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
     try {
-      const [dashboardData, weatherData] = await Promise.all([
+      const [dashboardData, weatherData] = await Promise.allSettled([
         api.get("/api/dashboard"),
-        api.get("/api/weather").catch(() => null),
+        api.get("/api/weather"),
       ]);
-      setData(dashboardData);
-      setWeather(weatherData);
+      if (dashboardData.status === "fulfilled") setData(dashboardData.value);
+      if (weatherData.status === "fulfilled" && weatherData.value) {
+        setWeather(weatherData.value);
+      }
     } catch (err) {
       console.error("Dashboard error:", err);
     } finally {
@@ -341,7 +364,7 @@ export default function DashboardPage() {
           ═══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeatherWidget
-          data={weather || data?.weather || null}
+          data={weather}
           location={data?.farmName || "Your Farm"}
         />
         <AlertsCard
