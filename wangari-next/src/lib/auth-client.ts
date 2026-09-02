@@ -60,8 +60,10 @@ export function isLoggedIn(): boolean {
 
 // ─── Auth Actions ─────────────────────────────────────────
 
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const res = await fetch("/api/auth/login", {
+  const res = await fetch(`${BACKEND}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -81,7 +83,7 @@ export async function register(
   password: string,
   phone?: string
 ): Promise<AuthResponse> {
-  const res = await fetch("/api/auth/register", {
+  const res = await fetch(`${BACKEND}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password, phone }),
