@@ -14,28 +14,59 @@ router.get("/", async (req: Request, res: Response) => {
     const weekAgo = new Date(today.getTime() - 7 * 86400000);
     const nextWeek = new Date(today.getTime() + 7 * 86400000);
 
+    // Get farm info
+    const farm = await prisma.farm.findUnique({
+      where: { id: farmId },
+      select: { name: true },
+    });
+
     const [
+      activeFlockCount,
       flocks,
-      allFlocks,
       todayProd,
       monthIncome,
       monthExpense,
       recentTx,
       recentProd,
-      lowStock,
+      inventory,
       upcomingVax,
       recentMortality,
     ] = await Promise.all([
       prisma.flock.count({ where: { farmId, status: "active" } }),
-      prisma.flock.findMany({ where: { farmId, status: "active" }, select: { currentCount: true, mortality: true, name: true } }),
+      prisma.flock.findMany({
+        where: { farmId, status: "active" },
+        select: { id: true, name: true, currentCount: true, mortality: true, totalCount: true },
+      }),
       prisma.dailyProduction.findMany({ where: { farmId, date: today } }),
-      prisma.transaction.aggregate({ where: { farmId, type: "income", date: { gte: monthStart } }, _sum: { amount: true } }),
-      prisma.transaction.aggregate({ where: { farmId, type: "expense", date: { gte: monthStart } }, _sum: { amount: true } }),
-      prisma.transaction.findMany({ where: { farmId }, orderBy: { createdAt: "desc" }, take: 5 }),
-      prisma.dailyProduction.findMany({ where: { farmId }, orderBy: { date: "desc" }, take: 14, select: { date: true, eggsCollected: true, mortality: true } }),
-      prisma.inventory.findMany({ where: { farmId, quantity: { lte: prisma.inventory.fields?.reorderLevel ?? 10 } } }).catch(() => []),
+      prisma.transaction.aggregate({
+        where: { farmId, type: "income", date: { gte: monthStart } },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.aggregate({
+        where: { farmId, type: "expense", date: { gte: monthStart } },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.findMany({
+        where: { farmId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prisma.dailyProduction.findMany({
+        where: { farmId },
+        orderBy: { date: "desc" },
+        take: 14,
+        select: { date: true, eggsCollected: true, mortality: true },
+      }),
+      prisma.inventory.findMany({
+        where: { farmId },
+        select: { id: true, name: true, quantity: true, unit: true, reorderLevel: true },
+      }).catch(() => []),
       prisma.vaccination.findMany({
-        where: { flockId: { in: (await prisma.flock.findMany({ where: { farmId }, select: { id: true } })).map(f => f.id) }, status: "pending", scheduledDate: { gte: today, lte: nextWeek } },
+        where: {
+          flockId: { in: flocks.map((f) => f.id) },
+          status: "pending",
+          scheduledDate: { gte: today, lte: nextWeek },
+        },
         orderBy: { scheduledDate: "asc" },
         take: 5,
         include: { flock: { select: { name: true } } },
@@ -47,21 +78,48 @@ router.get("/", async (req: Request, res: Response) => {
       }).catch(() => []),
     ]);
 
-    const totalBirds = allFlocks.reduce((s, f) => s + f.currentCount, 0);
+    const totalBirds = flocks.reduce((s, f) => s + f.currentCount, 0);
     const eggsToday = todayProd.reduce((s, p) => s + p.eggsCollected, 0);
     const mortalityToday = todayProd.reduce((s, p) => s + p.mortality, 0);
 
-    // Mortality alerts — check for spikes in last 3 days
-    const recentMortTotal = recentMortality.slice(-3).reduce((s, r) => s + r.mortality, 0);
-    const avgMort = recentMortality.length > 0
-      ? recentMortality.reduce((s, r) => s + r.mortality, 0) / recentMortality.length
-      : 0;
-    const mortalityAlerts = recentMortTotal > avgMort * 2 && recentMortTotal > 3
-      ? [{ message: `High mortality: ${recentMortTotal} deaths in last 3 days`, severity: "high" as const }]
-      : [];
+    // ─── Mortality Alerts ──────────────────────────────────
+    const mortalityAlerts = flocks
+      .filter((f) => f.totalCount > 0 && (f.mortality / f.totalCount) * 100 > 3)
+      .map((f) => ({
+        flockName: f.name,
+        mortalityRate: Number(((f.mortality / f.totalCount) * 100).toFixed(1)),
+        totalMortality: f.mortality,
+      }));
+
+    // ─── Low Stock Alerts ──────────────────────────────────
+    const stockAlerts = inventory
+      .filter((item) => item.reorderLevel > 0 && item.quantity <= item.reorderLevel)
+      .map((item) => ({
+        itemName: item.name,
+        currentStock: item.quantity,
+        unit: item.unit,
+        reorderLevel: item.reorderLevel,
+      }));
+
+    // ─── Vaccination Alerts ────────────────────────────────
+    const vaccinationAlerts = upcomingVax.map((v: any) => ({
+      flockName: v.flock?.name || "Unknown",
+      vaccineName: v.vaccineName || v.type || "Vaccination",
+      dueDate: v.scheduledDate?.toISOString() || new Date().toISOString(),
+    }));
+
+    // ─── Weather (placeholder — integrate with API later) ──
+    const weather = {
+      temperature: 24,
+      humidity: 65,
+      windSpeed: 12,
+      condition: "Partly Cloudy",
+      icon: "cloud" as const,
+    };
 
     res.json({
-      totalFlocks: flocks,
+      farmName: farm?.name || "Your Farm",
+      totalFlocks: activeFlockCount,
       totalBirds,
       eggsToday,
       mortalityToday,
@@ -69,13 +127,19 @@ router.get("/", async (req: Request, res: Response) => {
       monthlyExpenses: Number(monthExpense._sum.amount || 0),
       recentTransactions: recentTx,
       recentProduction: recentProd.reverse(),
-      lowStock,
-      upcomingVaccinations: upcomingVax,
+      flocks: flocks.map((f) => ({
+        id: f.id,
+        name: f.name,
+        totalBirds: f.currentCount,
+      })),
       mortalityAlerts,
+      stockAlerts,
+      vaccinationAlerts,
+      weather,
     });
   } catch (error) {
     console.error("Dashboard error:", error);
-    res.status(500).json({ error: "Failed" });
+    res.status(500).json({ error: "Failed to load dashboard" });
   }
 });
 
