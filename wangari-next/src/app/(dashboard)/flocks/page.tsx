@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 const scaleIn = { hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
 
@@ -88,7 +88,7 @@ export default function FlocksPage() {
                       <Bird className="h-6 w-6" />
                     </div>
                     <div className="flex gap-2">
-                      <Badge variant={f.status === "active" ? "default" : "secondary"} className={f.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : ""}>{f.status}</Badge>
+                      <Badge variant={f.status === "active" ? "default" : "outline"} className={f.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : ""}>{f.status}</Badge>
                       <button onClick={() => handleDelete(f.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   </div>

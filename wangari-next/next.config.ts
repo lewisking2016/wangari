@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  // Vercel deployment
+  poweredByHeader: false,
+  reactStrictMode: true,
 };
 
 export default nextConfig;

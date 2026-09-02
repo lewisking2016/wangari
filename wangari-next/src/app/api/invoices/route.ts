@@ -50,7 +50,6 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      id: sale.id,
       invoiceNumber: `INV-${String(sale.id).padStart(4, "0")}`,
       ...sale,
     }, { status: 201 });

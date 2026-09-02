@@ -21,7 +21,7 @@ interface AuditEntry {
   action: string;
   entityType: string | null;
   entityId: number | null;
-  details: unknown;
+  details: any;
   userName: string;
   createdAt: string;
 }

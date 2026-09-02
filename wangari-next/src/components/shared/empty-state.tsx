@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   title: string;
   description: string;
   action?: React.ReactNode;
@@ -22,9 +22,11 @@ export function EmptyState({
         className
       )}
     >
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-wangari-green-50 text-wangari-green-600 mb-4">
-        {icon}
-      </div>
+      {icon && (
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-wangari-green-50 text-wangari-green-600 mb-4">
+          {icon}
+        </div>
+      )}
       <h3 className="text-lg font-bold text-wangari-heading">{title}</h3>
       <p className="mt-1 max-w-sm text-sm text-wangari-muted">{description}</p>
       {action && <div className="mt-6">{action}</div>}

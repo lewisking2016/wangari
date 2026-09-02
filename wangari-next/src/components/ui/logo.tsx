@@ -12,11 +12,11 @@ export function Logo({ size = "md", showText = true }: LogoProps) {
   return (
     <div className="flex items-center gap-2.5">
       <Image
-        src="/images/wangari-logo.svg"
+        src="/images/wangari-real-logo.png"
         alt="Wangari"
         width={px}
         height={px}
-        className="shrink-0"
+        className="shrink-0 rounded-full"
         priority
       />
       {showText && (
@@ -32,7 +32,7 @@ export function Logo({ size = "md", showText = true }: LogoProps) {
 export function LogoFull({ className = "" }: { className?: string }) {
   return (
     <Image
-      src="/images/wangari-logo.svg"
+      src="/images/wangari-real-logo.png"
       alt="Wangari"
       width={200}
       height={200}
