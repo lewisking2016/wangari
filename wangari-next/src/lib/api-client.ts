@@ -5,7 +5,7 @@
 
 import { getToken, logout } from "./auth-client";
 
-const API_BASE = ""; // Same origin — rewrites proxy to VPS backend
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 interface RequestOptions extends RequestInit {
   json?: unknown;
