@@ -11,7 +11,7 @@ interface RequestOptions extends RequestInit {
   json?: unknown;
 }
 
-async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
   const { json, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
@@ -53,18 +53,18 @@ async function request<T = unknown>(path: string, options: RequestOptions = {}):
 // ─── Typed API helpers ────────────────────────────────────
 
 export const api = {
-  get: <T = unknown>(path: string) => request<T>(path),
+  get: <T = any>(path: string) => request<T>(path),
 
-  post: <T = unknown>(path: string, body: unknown) =>
+  post: <T = any>(path: string, body: unknown) =>
     request<T>(path, { method: "POST", json: body }),
 
-  put: <T = unknown>(path: string, body: unknown) =>
+  put: <T = any>(path: string, body: unknown) =>
     request<T>(path, { method: "PUT", json: body }),
 
-  patch: <T = unknown>(path: string, body: unknown) =>
+  patch: <T = any>(path: string, body: unknown) =>
     request<T>(path, { method: "PATCH", json: body }),
 
-  delete: <T = unknown>(path: string) =>
+  delete: <T = any>(path: string) =>
     request<T>(path, { method: "DELETE" }),
 };
 

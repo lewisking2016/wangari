@@ -120,12 +120,12 @@ export default function AIAssistantPage() {
 
   React.useEffect(() => {
     Promise.all([
-      api.get("/api/flocks"),
-      api.get("/api/production"),
-      api.get("/api/transactions"),
-      api.get("/api/inventory"),
-      api.get("/api/workers"),
-      api.get("/api/sales"),
+      api.get<any[]>('/api/flocks'),
+      api.get<any[]>('/api/production'),
+      api.get<any[]>('/api/transactions'),
+      api.get<any[]>('/api/inventory'),
+      api.get<any[]>('/api/workers'),
+      api.get<any[]>('/api/sales'),
     ]).then(([flocks, production, transactions, inventory, workers, sales]) => {
       setFarmData({ flocks, production, transactions, inventory, workers, sales });
     }).catch(() => {});
