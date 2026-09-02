@@ -226,3 +226,100 @@ export function FlockChart({ data }: FlockChartProps) {
     </motion.div>
   );
 }
+
+// ─── HDP Trend Chart ────────────────────────────────────
+interface HDPTrendChartProps {
+  data: { date: string; hdp: number }[];
+}
+
+export function HDPTrendChart({ data }: HDPTrendChartProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.5 }}
+    >
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-bold text-wangari-heading">
+                Hen-Day Production
+              </CardTitle>
+              <p className="text-xs text-wangari-muted">
+                % of hens laying each day
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-wangari-heading">
+                {data.length > 0 ? data[data.length - 1].hdp : 0}%
+              </p>
+              <p className="text-[11px] text-wangari-muted">Today</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[180px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="hdpFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16A34A" stopOpacity={0.12} />
+                    <stop offset="95%" stopColor="#16A34A" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(val) => new Date(val).toLocaleDateString("en-KE", { weekday: "short" })}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 100]}
+                  tickFormatter={(val) => `${val}%`}
+                />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="rounded-xl border border-wangari-border bg-white px-4 py-3 shadow-lg">
+                        <p className="text-xs font-semibold text-wangari-muted">
+                          {new Date(label).toLocaleDateString("en-KE", { weekday: "long", month: "short", day: "numeric" })}
+                        </p>
+                        <p className="text-lg font-bold text-wangari-heading">
+                          {payload[0].value}%
+                        </p>
+                        <p className="text-[11px] text-wangari-muted">Hen-Day Production</p>
+                      </div>
+                    );
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hdp"
+                  stroke="#16A34A"
+                  strokeWidth={2}
+                  fill="url(#hdpFill)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-2 flex items-center justify-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <div className="h-0.5 w-4 bg-wangari-green-500" />
+              <span className="text-[11px] text-wangari-muted">HDP %</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-wangari-muted">Target: 85%+</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

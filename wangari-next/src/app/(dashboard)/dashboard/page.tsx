@@ -27,7 +27,7 @@ import api from "@/lib/api-client";
 
 // Components
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { ProductionChart, RevenueChart, FlockChart } from "@/components/dashboard/Charts";
+import { ProductionChart, RevenueChart, FlockChart, HDPTrendChart } from "@/components/dashboard/Charts";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { AlertsCard } from "@/components/dashboard/Alerts";
 
@@ -68,13 +68,18 @@ function getMortalityRating(rate: number): { label: string; color: string; bg: s
 
 export default function DashboardPage() {
   const [data, setData] = React.useState<any>(null);
+  const [weather, setWeather] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
     try {
-      const d = await api.get("/api/dashboard");
-      setData(d);
+      const [dashboardData, weatherData] = await Promise.all([
+        api.get("/api/dashboard"),
+        api.get("/api/weather").catch(() => null),
+      ]);
+      setData(dashboardData);
+      setWeather(weatherData);
     } catch (err) {
       console.error("Dashboard error:", err);
     } finally {
@@ -126,14 +131,29 @@ export default function DashboardPage() {
     mortality: r.mortality || 0,
   }));
 
-  const revenueChartData = [
-    { month: "Jan", income: data?.monthlyRevenue || 0, expenses: data?.monthlyExpenses || 0 },
-    { month: "Feb", income: 0, expenses: 0 },
-    { month: "Mar", income: 0, expenses: 0 },
-    { month: "Apr", income: 0, expenses: 0 },
-    { month: "May", income: 0, expenses: 0 },
-    { month: "Jun", income: 0, expenses: 0 },
-  ];
+  // Revenue chart - show last 6 months
+  const revenueChartData = data?.recentProduction?.length > 0
+    ? (() => {
+        const months = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          months.push({
+            month: d.toLocaleDateString("en-KE", { month: "short" }),
+            income: i === 0 ? (data?.monthlyRevenue || 0) : 0,
+            expenses: i === 0 ? (data?.monthlyExpenses || 0) : 0,
+          });
+        }
+        return months;
+      })()
+    : [
+        { month: "Jan", income: 0, expenses: 0 },
+        { month: "Feb", income: 0, expenses: 0 },
+        { month: "Mar", income: 0, expenses: 0 },
+        { month: "Apr", income: 0, expenses: 0 },
+        { month: "May", income: 0, expenses: 0 },
+        { month: "Jun", income: 0, expenses: 0 },
+      ];
 
   const flockChartData = data?.flocks?.map((f: any) => ({
     name: f.name,
@@ -334,7 +354,7 @@ export default function DashboardPage() {
           ═══════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeatherWidget
-          data={data?.weather || null}
+          data={weather || data?.weather || null}
           location={data?.farmName || "Your Farm"}
         />
         <AlertsCard
@@ -351,12 +371,17 @@ export default function DashboardPage() {
         {productionChartData.length > 0 && (
           <ProductionChart data={productionChartData} />
         )}
+        {data?.hdps && data.hdps.length > 0 && (
+          <HDPTrendChart data={data.hdps} />
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RevenueChart data={revenueChartData} />
         {flockChartData.length > 0 && (
           <FlockChart data={flockChartData} />
         )}
       </div>
-
-      <RevenueChart data={revenueChartData} />
 
       {/* ═══════════════════════════════════════════════════════
           ROW 5: Feed Stock Detail + Transactions
