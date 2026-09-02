@@ -285,11 +285,11 @@ export function HDPTrendChart({ data }: HDPTrendChartProps) {
                 />
                 <Tooltip
                   content={({ active, payload, label }) => {
-                    if (!active || !payload?.length) return null;
+                    if (!active || !payload?.length || !label) return null;
                     return (
                       <div className="rounded-xl border border-wangari-border bg-white px-4 py-3 shadow-lg">
                         <p className="text-xs font-semibold text-wangari-muted">
-                          {new Date(label).toLocaleDateString("en-KE", { weekday: "long", month: "short", day: "numeric" })}
+                          {new Date(String(label)).toLocaleDateString("en-KE", { weekday: "long", month: "short", day: "numeric" })}
                         </p>
                         <p className="text-lg font-bold text-wangari-heading">
                           {payload[0].value}%
