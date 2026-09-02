@@ -21,10 +21,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xl">
-      <p className="text-sm font-medium text-gray-500">{label}</p>
+    <div className="rounded-xl border border-wangari-border bg-white px-4 py-3 shadow-lg">
+      <p className="text-xs font-semibold text-wangari-muted">{label}</p>
       {payload.map((entry: any, i: number) => (
-        <p key={i} className="text-lg font-bold" style={{ color: entry.color }}>
+        <p key={i} className="text-sm font-bold text-wangari-heading">
           {entry.value.toLocaleString()}
         </p>
       ))}
@@ -40,52 +40,52 @@ interface ProductionChartProps {
 export function ProductionChart({ data }: ProductionChartProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
+      transition={{ duration: 0.4, delay: 0.2 }}
     >
-      <Card className="border-0 shadow-lg">
+      <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-semibold">Production Trend</CardTitle>
-              <p className="text-sm text-gray-500">Daily egg production & mortality</p>
+              <CardTitle className="text-base font-bold text-wangari-heading">
+                Production Trend
+              </CardTitle>
+              <p className="text-xs text-wangari-muted">
+                Daily egg collection & mortality
+              </p>
             </div>
             <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                <span className="text-xs text-gray-500">Eggs</span>
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-wangari-green-500" />
+                <span className="text-[11px] text-wangari-muted">Eggs</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-red-400" />
-                <span className="text-xs text-gray-500">Mortality</span>
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-wangari-subtle" />
+                <span className="text-[11px] text-wangari-muted">Mortality</span>
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
+          <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="eggsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="mortalityGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f87171" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
+                  <linearGradient id="eggsFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16A34A" stopOpacity={0.12} />
+                    <stop offset="95%" stopColor="#16A34A" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 12, fill: "#9ca3af" }}
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: "#9ca3af" }}
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
                   tickLine={false}
                   axisLine={false}
                 />
@@ -93,16 +93,17 @@ export function ProductionChart({ data }: ProductionChartProps) {
                 <Area
                   type="monotone"
                   dataKey="eggs"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  fill="url(#eggsGradient)"
+                  stroke="#16A34A"
+                  strokeWidth={2}
+                  fill="url(#eggsFill)"
                 />
                 <Area
                   type="monotone"
                   dataKey="mortality"
-                  stroke="#f87171"
-                  strokeWidth={2}
-                  fill="url(#mortalityGradient)"
+                  stroke="#CBD5E1"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                  fill="transparent"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -121,36 +122,38 @@ interface RevenueChartProps {
 export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
+      transition={{ duration: 0.4, delay: 0.3 }}
     >
-      <Card className="border-0 shadow-lg">
+      <Card>
         <CardHeader className="pb-2">
           <div>
-            <CardTitle className="text-lg font-semibold">Revenue Overview</CardTitle>
-            <p className="text-sm text-gray-500">Monthly income vs expenses</p>
+            <CardTitle className="text-base font-bold text-wangari-heading">
+              Revenue Overview
+            </CardTitle>
+            <p className="text-xs text-wangari-muted">Monthly income vs expenses</p>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
+          <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                 <XAxis
                   dataKey="month"
-                  tick={{ fontSize: 12, fill: "#9ca3af" }}
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: "#9ca3af" }}
+                  tick={{ fontSize: 11, fill: "#94A3B8" }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="income" fill="#10b981" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="expenses" fill="#f87171" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="income" fill="#16A34A" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="expenses" fill="#E5E7EB" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -165,51 +168,56 @@ interface FlockChartProps {
   data: { name: string; value: number }[];
 }
 
-const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
+const FLOCK_COLORS = ["#166534", "#16A34A", "#4ADE80", "#86EFAC", "#BBF7D0"];
 
 export function FlockChart({ data }: FlockChartProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.5 }}
+      transition={{ duration: 0.4, delay: 0.4 }}
     >
-      <Card className="border-0 shadow-lg">
+      <Card>
         <CardHeader className="pb-2">
           <div>
-            <CardTitle className="text-lg font-semibold">Flock Distribution</CardTitle>
-            <p className="text-sm text-gray-500">Birds by flock</p>
+            <CardTitle className="text-base font-bold text-wangari-heading">
+              Flock Distribution
+            </CardTitle>
+            <p className="text-xs text-wangari-muted">Birds by flock</p>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
+          <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={data}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={4}
+                  innerRadius={55}
+                  outerRadius={85}
+                  paddingAngle={3}
                   dataKey="value"
                 >
                   {data.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={FLOCK_COLORS[index % FLOCK_COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-4">
+          <div className="mt-2 flex flex-wrap justify-center gap-3">
             {data.map((entry, i) => (
-              <div key={entry.name} className="flex items-center gap-2">
+              <div key={entry.name} className="flex items-center gap-1.5">
                 <div
-                  className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: FLOCK_COLORS[i % FLOCK_COLORS.length] }}
                 />
-                <span className="text-xs text-gray-600">{entry.name}</span>
+                <span className="text-[11px] text-wangari-muted">{entry.name}</span>
               </div>
             ))}
           </div>

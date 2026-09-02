@@ -5,36 +5,35 @@ import { motion } from "framer-motion";
 import {
   Bird,
   Egg,
-  DollarSign,
-  TrendingDown,
   TrendingUp,
+  TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
   Plus,
   ShoppingCart,
-  Activity,
-  Clock,
+  DollarSign,
   BarChart3,
   RefreshCw,
+  Activity,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import api from "@/lib/api-client";
 
-// Premium components
-import { KPICard } from "@/components/dashboard/KPICard";
+// Existing harmonious components
+import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ProductionChart, RevenueChart, FlockChart } from "@/components/dashboard/Charts";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { AlertsCard } from "@/components/dashboard/Alerts";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
 };
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
+  visible: { transition: { staggerChildren: 0.06 } },
 };
 
 export default function DashboardPage() {
@@ -47,7 +46,7 @@ export default function DashboardPage() {
       const d = await api.get("/api/dashboard");
       setData(d);
     } catch (err) {
-      console.error("Dashboard fetch error:", err);
+      console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -71,10 +70,10 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <div className="relative">
-          <div className="h-16 w-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
-          <Bird className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 text-emerald-600" />
+          <div className="h-12 w-12 rounded-full border-[3px] border-wangari-green-200 border-t-wangari-green-600 animate-spin" />
+          <Bird className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-wangari-green-600" />
         </div>
-        <p className="text-sm text-gray-500">Loading your farm data...</p>
+        <p className="text-sm text-wangari-muted">Loading your farm...</p>
       </div>
     );
 
@@ -84,7 +83,7 @@ export default function DashboardPage() {
   const stockAlerts = data?.stockAlerts || [];
   const vaccinationAlerts = data?.vaccinationAlerts || [];
 
-  // Prepare chart data
+  // Chart data
   const productionChartData = prodData.slice(-7).map((r: any) => ({
     date: new Date(r.date).toLocaleDateString("en-KE", { weekday: "short" }),
     eggs: r.eggsCollected || 0,
@@ -115,65 +114,70 @@ export default function DashboardPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-wangari-heading tracking-tight">
             {greeting} 👋
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-sm text-wangari-muted mt-0.5">
             Here&apos;s what&apos;s happening on your farm today.
           </p>
         </div>
         <Button
           onClick={handleRefresh}
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="gap-2"
+          className="gap-1.5 text-wangari-muted"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </motion.div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
-          title="Total Birds"
-          value={(data?.totalBirds || 0).toLocaleString()}
-          icon={Bird}
-          gradient="bg-gradient-to-br from-emerald-500 to-emerald-600"
-          change={data?.totalFlocks > 0 ? 5 : 0}
-          changeLabel={`${data?.totalFlocks || 0} active flocks`}
-          delay={0}
-        />
-        <KPICard
-          title="Eggs Today"
-          value={(data?.eggsToday || 0).toLocaleString()}
-          icon={Egg}
-          gradient="bg-gradient-to-br from-amber-500 to-orange-500"
-          change={data?.mortalityToday > 0 ? -data.mortalityToday : 0}
-          changeLabel="mortality today"
-          delay={0.1}
-        />
-        <KPICard
-          title="Monthly Revenue"
-          value={`KES ${(data?.monthlyRevenue || 0).toLocaleString()}`}
-          icon={TrendingUp}
-          gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
-          change={12}
-          changeLabel="vs last month"
-          delay={0.2}
-        />
-        <KPICard
-          title="Monthly Expenses"
-          value={`KES ${(data?.monthlyExpenses || 0).toLocaleString()}`}
-          icon={TrendingDown}
-          gradient="bg-gradient-to-br from-rose-500 to-pink-600"
-          change={-8}
-          changeLabel="vs last month"
-          delay={0.3}
-        />
-      </div>
+      {/* KPI Cards — using existing harmonious component */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={stagger}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        <motion.div variants={fadeUp}>
+          <KpiCard
+            title="Total Birds"
+            value={(data?.totalBirds || 0).toLocaleString()}
+            icon={<Bird className="h-5 w-5" />}
+            change={`${data?.totalFlocks || 0} active flocks`}
+            changeType="positive"
+          />
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <KpiCard
+            title="Eggs Today"
+            value={(data?.eggsToday || 0).toLocaleString()}
+            icon={<Egg className="h-5 w-5" />}
+            change={data?.mortalityToday > 0 ? `${data.mortalityToday} mortality` : "On track"}
+            changeType={data?.mortalityToday > 0 ? "negative" : "positive"}
+          />
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <KpiCard
+            title="Revenue"
+            value={`KES ${(data?.monthlyRevenue || 0).toLocaleString()}`}
+            icon={<TrendingUp className="h-5 w-5" />}
+            change="This month"
+            changeType="positive"
+          />
+        </motion.div>
+        <motion.div variants={fadeUp}>
+          <KpiCard
+            title="Expenses"
+            value={`KES ${(data?.monthlyExpenses || 0).toLocaleString()}`}
+            icon={<TrendingDown className="h-5 w-5" />}
+            change="This month"
+            changeType="negative"
+          />
+        </motion.div>
+      </motion.div>
 
-      {/* Weather + Alerts Row */}
+      {/* Weather + Alerts — side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeatherWidget
           data={data?.weather || null}
@@ -186,7 +190,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Charts Row */}
+      {/* Charts — Production + Flock Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {productionChartData.length > 0 && (
           <ProductionChart data={productionChartData} />
@@ -196,7 +200,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Revenue Chart */}
+      {/* Revenue Chart — full width */}
       <RevenueChart data={revenueChartData} />
 
       {/* Transactions + Quick Actions */}
@@ -206,56 +210,66 @@ export default function DashboardPage() {
         variants={stagger}
         className="grid lg:grid-cols-3 gap-6"
       >
+        {/* Recent Transactions */}
         <motion.div variants={fadeUp} className="lg:col-span-2">
-          <Card className="border-0 shadow-lg">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-lg font-semibold">Recent Transactions</CardTitle>
-                <p className="text-sm text-gray-500">Latest financial activity</p>
+                <CardTitle className="text-base font-bold text-wangari-heading">
+                  Recent Transactions
+                </CardTitle>
+                <p className="text-xs text-wangari-muted">Latest financial activity</p>
               </div>
-              <Link href="/finances" className="text-sm text-emerald-600 font-semibold hover:underline">
-                View All
+              <Link
+                href="/finances"
+                className="text-xs font-semibold text-wangari-green-700 hover:underline"
+              >
+                View all
               </Link>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {txs.length === 0 && (
-                  <p className="text-sm text-gray-500 py-8 text-center">No transactions yet.</p>
+                  <p className="text-sm text-wangari-muted py-8 text-center">
+                    No transactions yet.
+                  </p>
                 )}
                 {txs.map((tx: any, i: number) => (
                   <motion.div
                     key={tx.id}
-                    initial={{ opacity: 0, x: -12 }}
+                    initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors"
+                    transition={{ delay: i * 0.04 }}
+                    className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-wangari-green-50/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                           tx.type === "income"
-                            ? "bg-emerald-100 text-emerald-600"
-                            : "bg-gray-100 text-gray-500"
+                            ? "bg-wangari-green-50 text-wangari-green-700"
+                            : "bg-gray-50 text-wangari-muted"
                         }`}
                       >
                         {tx.type === "income" ? (
-                          <ArrowUpRight className="h-5 w-5" />
+                          <ArrowUpRight className="h-4 w-4" />
                         ) : (
-                          <ArrowDownRight className="h-5 w-5" />
+                          <ArrowDownRight className="h-4 w-4" />
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-sm font-medium text-wangari-heading">
                           {tx.description || tx.category}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-[11px] text-wangari-subtle">
                           {new Date(tx.date).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     <p
-                      className={`text-sm font-bold tabular-nums ${
-                        tx.type === "income" ? "text-emerald-600" : "text-gray-500"
+                      className={`text-sm font-semibold tabular-nums ${
+                        tx.type === "income"
+                          ? "text-wangari-green-700"
+                          : "text-wangari-muted"
                       }`}
                     >
                       {tx.type === "income" ? "+" : "-"}KES {Number(tx.amount).toLocaleString()}
@@ -267,30 +281,31 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
+        {/* Quick Actions */}
         <motion.div variants={fadeUp}>
-          <Card className="border-0 shadow-lg">
+          <Card>
             <CardHeader className="pb-2">
               <div>
-                <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-                <p className="text-sm text-gray-500">Common tasks</p>
+                <CardTitle className="text-base font-bold text-wangari-heading">
+                  Quick Actions
+                </CardTitle>
+                <p className="text-xs text-wangari-muted">Common tasks</p>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2.5">
               {[
-                { href: "/production", icon: Plus, label: "Log Production", color: "bg-emerald-100 text-emerald-600" },
-                { href: "/sales", icon: ShoppingCart, label: "Record Sale", color: "bg-blue-100 text-blue-600" },
-                { href: "/finances", icon: DollarSign, label: "Add Expense", color: "bg-amber-100 text-amber-600" },
-                { href: "/inventory", icon: BarChart3, label: "Check Inventory", color: "bg-purple-100 text-purple-600" },
+                { href: "/production", icon: Plus, label: "Log Production" },
+                { href: "/sales", icon: ShoppingCart, label: "Record Sale" },
+                { href: "/finances", icon: DollarSign, label: "Add Expense" },
+                { href: "/inventory", icon: BarChart3, label: "Check Inventory" },
               ].map((action) => (
                 <Link key={action.href} href={action.href}>
                   <Button
-                    className="w-full justify-start gap-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                    className="w-full justify-start gap-3 bg-white border border-wangari-border text-wangari-text hover:bg-wangari-green-50 hover:border-wangari-green-300 hover:text-wangari-green-800 transition-all"
                     variant="outline"
                   >
-                    <div className={`rounded-lg p-2 ${action.color}`}>
-                      <action.icon className="h-4 w-4" />
-                    </div>
-                    <span className="font-medium">{action.label}</span>
+                    <action.icon className="h-4 w-4" />
+                    <span className="font-medium text-sm">{action.label}</span>
                   </Button>
                 </Link>
               ))}
