@@ -21,8 +21,22 @@ router.get("/", async (req: Request, res: Response) => {
       select: { name: true },
     });
 
+    // Fetch flocks first (needed for vaccination query)
+    const flocks = await prisma.flock.findMany({
+      where: { farmId, status: "active" },
+      select: {
+        id: true,
+        name: true,
+        currentCount: true,
+        initialCount: true,
+        mortality: true,
+        type: true,
+      },
+    });
+
+    const flockIds = flocks.map((f) => f.id);
+
     const [
-      flocks,
       todayProd,
       weekProd,
       monthIncome,
@@ -32,19 +46,6 @@ router.get("/", async (req: Request, res: Response) => {
       allInventory,
       upcomingVax,
     ] = await Promise.all([
-      // Active flocks
-      prisma.flock.findMany({
-        where: { farmId, status: "active" },
-        select: {
-          id: true,
-          name: true,
-          currentCount: true,
-          initialCount: true,
-          mortality: true,
-          type: true,
-        },
-      }),
-
       // Today's production per flock
       prisma.dailyProduction.findMany({
         where: { farmId, date: today },
@@ -110,7 +111,7 @@ router.get("/", async (req: Request, res: Response) => {
       // Upcoming vaccinations
       prisma.vaccination.findMany({
         where: {
-          flockId: { in: flocks.map((f) => f.id) },
+          flockId: { in: flockIds },
           status: "pending",
           scheduledDate: { gte: today, lte: nextWeek },
         },
