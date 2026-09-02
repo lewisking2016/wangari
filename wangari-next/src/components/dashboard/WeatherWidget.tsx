@@ -183,20 +183,34 @@ function AnimatedWeatherIcon({ icon, condition }: { icon: string; condition: str
   );
 }
 
+// ─── Mock data fallback ────────────────────────────────────
+const MOCK_DATA: WeatherData = {
+  temperature: 24,
+  feelsLike: 25,
+  humidity: 65,
+  windSpeed: 12,
+  condition: "Partly Cloudy",
+  description: "partly cloudy",
+  icon: "cloud",
+  location: "Your Farm",
+  today: { tempMin: 18, tempMax: 28, rainMm: 0, avgHumidity: 65, willRain: false },
+  sunrise: "06:30",
+  sunset: "18:45",
+  forecast: [
+    { day: "Mon", tempMin: 18, tempMax: 27, icon: "cloud" },
+    { day: "Tue", tempMin: 19, tempMax: 29, icon: "sun" },
+    { day: "Wed", tempMin: 17, tempMax: 25, icon: "rain" },
+    { day: "Thu", tempMin: 18, tempMax: 26, icon: "cloud" },
+    { day: "Fri", tempMin: 19, tempMax: 28, icon: "sun" },
+  ],
+};
+
 // ─── Main Widget ──────────────────────────────────────────
 export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidgetProps) {
-  if (!data) {
-    return (
-      <Card className="overflow-hidden">
-        <CardContent className="flex items-center justify-center py-10">
-          <p className="text-sm text-wangari-muted">Weather data unavailable</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const weatherData = data || MOCK_DATA;
 
   const hour = new Date().getHours();
-  const gradient = getWeatherGradient(data.condition, hour);
+  const gradient = getWeatherGradient(weatherData.condition, hour);
 
   return (
     <motion.div
@@ -207,7 +221,7 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
       <Card className="overflow-hidden border-0 shadow-xl">
         <div className={`relative bg-gradient-to-br ${gradient} p-6 text-white`}>
           {/* Animated background */}
-          <AnimatedBackground icon={data.icon} condition={data.condition} />
+          <AnimatedBackground icon={weatherData.icon} condition={weatherData.condition} />
 
           {/* Content */}
           <div className="relative z-10">
@@ -215,7 +229,7 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
             <div className="flex items-center gap-1.5 mb-4">
               <MapPin className="h-3.5 w-3.5 text-white/80" />
               <span className="text-sm font-medium text-white/90">
-                {data.location || location}
+                {weatherData.location || location}
               </span>
             </div>
 
@@ -228,14 +242,14 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  {data.temperature}°
+                  {weatherData.temperature}°
                 </motion.p>
                 <p className="text-lg text-white/80 capitalize mt-1">
-                  {data.description || data.condition}
+                  {weatherData.description || weatherData.condition}
                 </p>
-                {data.today && (
+                {weatherData.today && (
                   <p className="text-sm text-white/60 mt-1">
-                    H: {data.today.tempMax}° L: {data.today.tempMin}°
+                    H: {weatherData.today.tempMax}° L: {weatherData.today.tempMin}°
                   </p>
                 )}
               </div>
@@ -244,7 +258,7 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <AnimatedWeatherIcon icon={data.icon} condition={data.condition} />
+                <AnimatedWeatherIcon icon={weatherData.icon} condition={weatherData.condition} />
               </motion.div>
             </div>
 
@@ -257,19 +271,19 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
             >
               <div className="text-center">
                 <Droplets className="h-4 w-4 text-white/70 mx-auto mb-1" />
-                <p className="text-lg font-semibold">{data.humidity}%</p>
+                <p className="text-lg font-semibold">{weatherData.humidity}%</p>
                 <p className="text-[10px] text-white/60">Humidity</p>
               </div>
               <div className="text-center border-x border-white/20">
                 <Wind className="h-4 w-4 text-white/70 mx-auto mb-1" />
-                <p className="text-lg font-semibold">{data.windSpeed}</p>
+                <p className="text-lg font-semibold">{weatherData.windSpeed}</p>
                 <p className="text-[10px] text-white/60">km/h Wind</p>
               </div>
               <div className="text-center">
-                {data.today?.willRain ? (
+                {weatherData.today?.willRain ? (
                   <>
                     <CloudRain className="h-4 w-4 text-white/70 mx-auto mb-1" />
-                    <p className="text-lg font-semibold">{data.today.rainMm}mm</p>
+                    <p className="text-lg font-semibold">{weatherData.today.rainMm}mm</p>
                     <p className="text-[10px] text-white/60">Rain</p>
                   </>
                 ) : (
@@ -283,27 +297,27 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
             </motion.div>
 
             {/* Sunrise / Sunset */}
-            {(data.sunrise || data.sunset) && (
+            {(weatherData.sunrise || weatherData.sunset) && (
               <motion.div
                 className="mt-4 flex items-center justify-between"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                {data.sunrise && (
+                {weatherData.sunrise && (
                   <div className="flex items-center gap-2">
                     <Sunrise className="h-4 w-4 text-amber-300" />
                     <div>
-                      <p className="text-xs font-medium">{data.sunrise}</p>
+                      <p className="text-xs font-medium">{weatherData.sunrise}</p>
                       <p className="text-[10px] text-white/50">Sunrise</p>
                     </div>
                   </div>
                 )}
-                {data.sunset && (
+                {weatherData.sunset && (
                   <div className="flex items-center gap-2">
                     <Sunset className="h-4 w-4 text-orange-300" />
                     <div>
-                      <p className="text-xs font-medium">{data.sunset}</p>
+                      <p className="text-xs font-medium">{weatherData.sunset}</p>
                       <p className="text-[10px] text-white/50">Sunset</p>
                     </div>
                   </div>
@@ -313,7 +327,7 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
             )}
 
             {/* 5-day forecast */}
-            {data.forecast && data.forecast.length > 0 && (
+            {weatherData.forecast && weatherData.forecast.length > 0 && (
               <motion.div
                 className="mt-4 rounded-2xl bg-white/10 backdrop-blur-sm p-3"
                 initial={{ opacity: 0, y: 10 }}
@@ -322,7 +336,7 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
               >
                 <p className="text-[10px] font-semibold text-white/50 mb-2 px-1">5-DAY FORECAST</p>
                 <div className="flex justify-between px-1">
-                  {data.forecast.slice(0, 5).map((day, i) => (
+                  {weatherData.forecast.slice(0, 5).map((day, i) => (
                     <motion.div
                       key={i}
                       className="flex flex-col items-center gap-1"
