@@ -40,5 +40,10 @@ error_log
 
 # Sensitive
 *secret*
-*password*
+*.password.*
+*password.txt
+*password.json
+*password.yml
+*password.yaml
+*password.env
 credentials.json

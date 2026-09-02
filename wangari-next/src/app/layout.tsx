@@ -43,6 +43,13 @@ export const metadata: Metadata = {    title: {
     description:
       "Know your real farm profit. Track poultry, crops, inventory via WhatsApp. Free for 30 days.",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/wangari-real-logo.png", type: "image/png" },
+    ],
+    apple: "/images/wangari-real-logo.png",
+  },
   robots: {
     index: true,
     follow: true,

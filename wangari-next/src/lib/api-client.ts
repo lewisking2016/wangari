@@ -5,7 +5,7 @@
 
 import { getToken, logout } from "./auth-client";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const API_BASE = "";
 
 interface RequestOptions extends RequestInit {
   json?: unknown;
@@ -39,6 +39,15 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
   if (res.status === 401 && path.startsWith("/api/auth")) {
     logout();
     throw new Error("Session expired. Please login again.");
+  }
+
+  // Check content type to catch HTML responses (usually means wrong URL)
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("text/html")) {
+    throw new Error(
+      `[Wangari] API returned HTML instead of JSON. ` +
+      `URL: ${path}, Status: ${res.status}`
+    );
   }
 
   const data = await res.json();

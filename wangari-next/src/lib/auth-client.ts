@@ -59,11 +59,10 @@ export function isLoggedIn(): boolean {
 }
 
 // ─── Auth Actions ─────────────────────────────────────────
-
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+// All auth calls go through Next.js API routes (same origin, no env var needed)
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const res = await fetch(`${BACKEND}/api/auth/login`, {
+  const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -83,7 +82,7 @@ export async function register(
   password: string,
   phone?: string
 ): Promise<AuthResponse> {
-  const res = await fetch(`${BACKEND}/api/auth/register`, {
+  const res = await fetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password, phone }),
@@ -94,6 +93,30 @@ export async function register(
 
   setToken(data.token);
   setUser(data.user);
+  return data;
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const res = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to send reset email");
+  return data;
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  const res = await fetch("/api/auth/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to reset password");
   return data;
 }
 
