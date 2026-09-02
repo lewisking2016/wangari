@@ -12,7 +12,7 @@ node_modules/
 out/
 build/
 dist/
-dist-electron/
+
 
 # IDE
 .vscode/
@@ -30,12 +30,6 @@ desktop.ini
 *.log
 error_log
 
-# PHP
-/vendor/
-Backend/vendor/
-*.cache
-composer.lock
-
 # Database backups
 *.sql.backup
 *.sql.gz
@@ -43,12 +37,6 @@ composer.lock
 # Temp files
 *.tmp
 *.temp
-
-# Session files
-Backend/storage/sessions/sess_*
-
-# Database local config
-Backend/config/database.local.php
 
 # Sensitive
 *secret*
