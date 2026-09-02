@@ -232,12 +232,12 @@ export default function DashboardPage() {
             value={data?.feedStock ? `${data.feedStock}` : "—"}
             icon={<Wheat className="h-5 w-5" />}
             change={
-              stockAlerts.some((a: any) => a.itemName.toLowerCase().includes("feed"))
+              stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
                 ? "Low — reorder"
                 : "Sufficient"
             }
             changeType={
-              stockAlerts.some((a: any) => a.itemName.toLowerCase().includes("feed"))
+              stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
                 ? "negative"
                 : "positive"
             }
