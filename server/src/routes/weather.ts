@@ -40,7 +40,7 @@ router.get("/", async (req: Request, res: Response) => {
         const geoRes = await fetch(
           `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)},KE&limit=1&appid=${OPENWEATHER_API_KEY}`
         );
-        const geoData = await geoRes.json();
+        const geoData: any[] = await geoRes.json();
         if (geoData && geoData.length > 0) {
           lat = geoData[0].lat;
           lon = geoData[0].lon;
@@ -54,7 +54,7 @@ router.get("/", async (req: Request, res: Response) => {
         const weatherRes = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}`
         );
-        const weatherData = await weatherRes.json();
+        const weatherData: any = await weatherRes.json();
 
         if (weatherData && weatherData.main) {
           const weather = {
