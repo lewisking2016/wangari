@@ -1,20 +1,18 @@
-# PHP
-*.log
-*.cache
-composer.lock
+# Dependencies
+node_modules/
 
-# Ignore PHP vendor (composer packages) but NOT Frontend/assets/vendor
-/vendor/
-Backend/vendor/
-
-# Database
-*.sql.backup
-*.sql.gz
-
-# Environment
+# Environment files
 .env
 .env.local
 .env.production
+.env.production.local
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+dist-electron/
 
 # IDE
 .vscode/
@@ -28,68 +26,31 @@ Backend/vendor/
 Thumbs.db
 desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-temp/
-tmp/
-
-# Ngrok
-ngrok/
-ngrok.exe
-*.zip
-
-# Uploads (if any)
-uploads/*
-!uploads/.gitkeep
-
-# Session files
-sessions/*
-!sessions/.gitkeep
-Backend/storage/sessions/sess_*
-
-# Build files
-node_modules/
-dist/
-dist-electron/
-build/
-
 # Logs
-logs/
 *.log
 error_log
 
-# Database config (keep template only)
-# Backend/config/database.php
+# PHP
+/vendor/
+Backend/vendor/
+*.cache
+composer.lock
+
+# Database backups
+*.sql.backup
+*.sql.gz
+
+# Temp files
+*.tmp
+*.temp
+
+# Session files
+Backend/storage/sessions/sess_*
+
+# Database local config
 Backend/config/database.local.php
 
-# Sensitive files
+# Sensitive
 *secret*
 *password*
 credentials.json
-
-# Documentation and notes (local only)
-QUICK_START.txt
-CPANEL_*.txt
-CPANEL_*.php
-check_cpanel_directory.txt
-UPDATED_HTACCESS.txt
-cf.err.txt
-cf.out.txt
-cloudflared.exe
-cloudflared2.exe
-
-# Keep DEPLOYMENT_CHECKLIST.md but ignore other temp markdown
-Analyze*.md
-
-# Ignore server-modified files to prevent pull conflicts
-busiaadmin.php
-.htaccess
-import_data.php
-update_admin_password.php
-complete_data_import.php
-test_assets.php
-status.php
-Backend/config/openrouter.local.php
-Frontend/images/wvideo.mp4
-Backend/config/paystack.php
