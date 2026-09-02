@@ -35,8 +35,8 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
     headers,
   });
 
-  // Handle auth errors
-  if (res.status === 401) {
+  // Handle auth errors — only logout on /api/auth routes, not dashboard data
+  if (res.status === 401 && path.startsWith("/api/auth")) {
     logout();
     throw new Error("Session expired. Please login again.");
   }
