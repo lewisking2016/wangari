@@ -11,6 +11,9 @@ import {
   Calendar,
   RefreshCw,
   Beef,
+  Egg,
+  Droplets,
+  Flower,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,10 +21,15 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import api from "@/lib/api-client";
 import { CreateFlockForm } from "@/components/flocks/CreateFlockForm";
-import { speciesTemplates, getSpeciesCategories } from "@/lib/species-templates";
+import { speciesTemplates, getSpeciesCategories, getSpeciesIcon } from "@/lib/species-templates";
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
+
+function SpeciesIcon({ speciesId }: { speciesId: string }) {
+  const Icon = getSpeciesIcon(speciesId);
+  return <Icon className="h-5 w-5" />;
+}
 
 function getMortalityRating(rate: number): { label: string; color: string; bg: string } {
   if (rate <= 1) return { label: "Normal", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
@@ -170,7 +178,7 @@ export default function FlocksPage() {
                 filterSpecies === cat.id ? "bg-wangari-green-800 text-white shadow-md" : "bg-gray-100 text-wangari-heading hover:bg-gray-200"
               }`}
             >
-              {cat.emoji} {cat.label} ({count})
+              {cat.label} ({count})
             </button>
           );
         })}
@@ -209,7 +217,7 @@ export default function FlocksPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-700">
-                          <span className="text-xl">{species?.emoji || "🐔"}</span>
+                          <span className="text-xl"><SpeciesIcon speciesId={f.type} /></span>
                         </div>
                         <div>
                           <h3 className="text-base font-bold text-wangari-heading">{f.name}</h3>

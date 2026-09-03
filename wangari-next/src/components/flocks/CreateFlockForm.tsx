@@ -9,6 +9,7 @@ import {
   Calendar,
   Syringe,
 } from "lucide-react";
+import { getSpeciesIcon } from "@/lib/species-templates";
 import { cn } from "@/lib/utils";
 import {
   getSpeciesByCategory,
@@ -22,6 +23,11 @@ interface CreateFlockFormProps {
 }
 
 type Step = "species" | "details" | "review";
+
+function SpeciesIcon({ speciesId }: { speciesId: string }) {
+  const Icon = getSpeciesIcon(speciesId);
+  return <Icon className="h-5 w-5" />;
+}
 
 export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
   const [step, setStep] = React.useState<Step>("species");
@@ -103,7 +109,7 @@ export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
           <div>
             <h2 className="text-lg font-bold text-wangari-heading">
               {step === "species" && "Choose Species"}
-              {step === "details" && `Add ${selectedSpecies?.emoji} ${selectedSpecies?.name}`}
+              {step === "details" && `Add ${selectedSpecies?.name}`}
               {step === "review" && "Review & Create"}
             </h2>
             <p className="text-xs text-wangari-muted mt-0.5">
@@ -169,7 +175,6 @@ export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
                           : "bg-gray-100 text-wangari-heading hover:bg-gray-200"
                       )}
                     >
-                      <span>{cat.emoji}</span>
                       {cat.label}
                     </button>
                   ))}
@@ -189,7 +194,7 @@ export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
                       )}
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">{species.emoji}</span>
+                        <span className="text-xl"><SpeciesIcon speciesId={species.id} /></span>
                         <span className="text-sm font-bold text-wangari-heading">{species.name}</span>
                       </div>
                       <p className="text-[11px] text-wangari-muted">
@@ -218,7 +223,7 @@ export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
                 {/* Species Info Card */}
                 <div className="rounded-xl bg-wangari-green-50 border border-wangari-green-200 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{selectedSpecies.emoji}</span>
+                    <span className="text-xl"><SpeciesIcon speciesId={selectedSpecies.id} /></span>
                     <span className="text-sm font-bold text-wangari-green-800">{selectedSpecies.name}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[11px] text-wangari-green-700">
@@ -234,7 +239,7 @@ export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
                   <div className="col-span-2">
                     <label className="text-xs font-semibold text-wangari-heading block mb-1.5">Flock Name *</label>
                     <input
-                      placeholder={`e.g., ${selectedSpecies.emoji} Layer Block A`}
+                      placeholder="e.g., Layer Block A"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       className="w-full rounded-xl border border-wangari-border px-4 py-2.5 text-sm focus:ring-2 focus:ring-wangari-green-500/20 focus:border-wangari-green-500 transition-all"
@@ -376,7 +381,7 @@ export function CreateFlockForm({ onSubmit, onCancel }: CreateFlockFormProps) {
                   <div className="flex items-center justify-between px-4 py-3">
                     <span className="text-xs font-semibold text-wangari-muted uppercase">Species</span>
                     <span className="text-sm font-medium text-wangari-heading">
-                      {selectedSpecies.emoji} {selectedSpecies.name}
+                      {selectedSpecies.name}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3">

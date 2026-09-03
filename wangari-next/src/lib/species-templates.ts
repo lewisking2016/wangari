@@ -302,6 +302,27 @@ export const speciesTemplates: Record<string, SpeciesTemplate> = {
   },
 };
 
+// ─── Icon Mapping ────────────────────────────────────────
+import { Bird, Beef, Egg, Droplets, Flower } from "lucide-react";
+
+const speciesIconMap: Record<string, any> = {
+  layers: Egg,
+  broilers: Bird,
+  kienyeji: Bird,
+  cattle_dairy: Beef,
+  cattle_beef: Beef,
+  goats: Beef,
+  sheep: Beef,
+  pigs: Beef,
+  rabbits: Egg,
+  fish: Droplets,
+  bees: Flower,
+};
+
+export function getSpeciesIcon(speciesId: string): any {
+  return speciesIconMap[speciesId] || Bird;
+}
+
 // ─── Helper Functions ─────────────────────────────────────
 
 export function getSpeciesByCategory(category: string): SpeciesTemplate[] {
