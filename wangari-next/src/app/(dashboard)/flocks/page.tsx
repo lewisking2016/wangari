@@ -22,7 +22,7 @@ export default function FlocksPage() {
   const [form, setForm] = React.useState({ name: "", breed: "", type: "layers", initialCount: "" });
 
   const loadFlocks = () => {
-    api.get("/api/flocks").then(d => { setFlocks(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/flocks").then(d => { setFlocks(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { loadFlocks(); }, []);
 

@@ -23,7 +23,7 @@ export default function FinancesPage() {
   const [form, setForm] = React.useState({ type: "expense", description: "", amount: "", category: "feed", paymentMethod: "cash" });
 
   const load = () => {
-    api.get("/api/transactions").then(d => { setTxs(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/transactions").then(d => { setTxs(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this transaction?")) return;

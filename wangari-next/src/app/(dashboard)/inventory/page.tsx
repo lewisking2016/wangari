@@ -24,7 +24,7 @@ export default function InventoryPage() {
   const [form, setForm] = React.useState({ itemName: "", category: "feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "" });
 
   const load = () => {
-    api.get("/api/inventory").then(d => { setItems(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/inventory").then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this item?")) return;

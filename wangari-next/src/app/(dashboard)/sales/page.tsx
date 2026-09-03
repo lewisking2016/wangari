@@ -29,7 +29,7 @@ export default function SalesPage() {
     Promise.all([
       api.get("/api/sales"),
       api.get("/api/customers"),
-    ]).then(([s, c]) => { setSales(s); setCustomers(c); setLoading(false); }).catch(() => setLoading(false));
+    ]).then(([s, c]) => { setSales(Array.isArray(s) ? s : []); setCustomers(Array.isArray(c) ? c : []); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this sale?")) return;

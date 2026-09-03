@@ -28,7 +28,7 @@ export default function ProductionPage() {
     Promise.all([
       api.get("/api/production"),
       api.get("/api/flocks"),
-    ]).then(([p, f]) => { setRecords(p); setFlocks(f); setLoading(false); }).catch(() => setLoading(false));
+    ]).then(([p, f]) => { setRecords(Array.isArray(p) ? p : []); setFlocks(Array.isArray(f) ? f : []); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 

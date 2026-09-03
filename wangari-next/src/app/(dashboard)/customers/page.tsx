@@ -29,7 +29,7 @@ export default function CustomersPage() {
     Promise.all([
       api.get("/api/customers"),
       api.get("/api/sales"),
-    ]).then(([c, s]) => { setCustomers(c); setSales(s); setLoading(false); }).catch(() => setLoading(false));
+    ]).then(([c, s]) => { setCustomers(Array.isArray(c) ? c : []); setSales(Array.isArray(s) ? s : []); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 

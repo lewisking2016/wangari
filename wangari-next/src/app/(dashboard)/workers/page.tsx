@@ -25,7 +25,7 @@ export default function WorkersPage() {
   const [form, setForm] = React.useState({ name: "", role: "", phone: "", dailyWage: "" });
 
   const load = () => {
-    api.get("/api/workers").then(d => { setWorkers(d); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/workers").then(d => { setWorkers(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this worker?")) return;

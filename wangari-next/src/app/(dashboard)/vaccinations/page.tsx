@@ -29,7 +29,7 @@ export default function VaccinationsPage() {
     Promise.all([
       api.get("/api/vaccinations"),
       api.get("/api/flocks"),
-    ]).then(([v, f]) => { setRecords(v); setFlocks(f); setLoading(false); }).catch(() => setLoading(false));
+    ]).then(([v, f]) => { setRecords(Array.isArray(v) ? v : []); setFlocks(Array.isArray(f) ? f : []); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 

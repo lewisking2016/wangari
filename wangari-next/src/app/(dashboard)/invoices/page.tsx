@@ -64,7 +64,7 @@ export default function InvoicesPage() {
     const fetchInvoices = async () => {
       try {
         const data = await api.get<any[]>('/api/invoices');
-        setInvoices(data);
+        setInvoices(Array.isArray(data) ? data : []);
       } catch {
         // Use empty
       } finally {

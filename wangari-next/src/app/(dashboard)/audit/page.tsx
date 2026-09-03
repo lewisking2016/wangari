@@ -68,7 +68,7 @@ export default function AuditPage() {
     const fetchLogs = async () => {
       try {
         const data = await api.get<any[]>('/api/audit');
-        setLogs(data);
+        setLogs(Array.isArray(data) ? data : []);
       } catch {
         // Use empty array
       } finally {

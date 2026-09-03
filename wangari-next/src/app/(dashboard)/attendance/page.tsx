@@ -25,7 +25,7 @@ export default function AttendancePage() {
     Promise.all([
       api.get("/api/attendance"),
       api.get("/api/workers"),
-    ]).then(([a, w]) => { setRecords(a); setWorkers(w); setLoading(false); }).catch(() => setLoading(false));
+    ]).then(([a, w]) => { setRecords(Array.isArray(a) ? a : []); setWorkers(Array.isArray(w) ? w : []); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 

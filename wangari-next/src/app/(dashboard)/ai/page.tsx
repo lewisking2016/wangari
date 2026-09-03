@@ -57,6 +57,7 @@ export default function AIAssistantPage() {
   const [showTaskPanel, setShowTaskPanel] = React.useState(true);
   const [providerStatus, setProviderStatus] = React.useState<any>(null);
   const [providers, setProviders] = React.useState<any[]>([]);
+  const [mounted, setMounted] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const [sessionId] = React.useState(() => `session_${Date.now()}`);
@@ -73,14 +74,22 @@ export default function AIAssistantPage() {
   }, [input]);
 
   React.useEffect(() => {
+    setMounted(true);
     fetch("/api/ai/health")
       .then((r) => r.json())
       .then(setProviderStatus)
       .catch(() => {});
     fetch("/api/ai/providers")
       .then((r) => r.json())
-      .then(setProviders)
-      .catch(() => {});
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProviders(data);
+        } else if (data && typeof data === "object") {
+          // Handle case where API returns object instead of array
+          setProviders([]);
+        }
+      })
+      .catch(() => setProviders([]));
   }, []);
 
   const handleSend = async (text?: string) => {
@@ -216,7 +225,7 @@ export default function AIAssistantPage() {
         </div>
 
         {/* Provider Warning */}
-        {providerStatus && providerStatus.status !== "configured" && messages.length === 0 && (
+        {mounted && providerStatus && providerStatus.status !== "configured" && messages.length === 0 && (
           <div className="mx-6 mt-4 max-w-3xl">
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
@@ -226,7 +235,7 @@ export default function AIAssistantPage() {
                   Free providers (no credit card needed):
                 </p>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {providers.filter((p: any) => !p.creditCard).map((p: any) => (
+                  {(Array.isArray(providers) ? providers : []).filter((p: any) => !p.creditCard).map((p: any) => (
                     <a key={p.id} href={p.setupUrl} target="_blank" rel="noopener noreferrer"
                       className="flex flex-col rounded-lg bg-white border border-amber-200 px-3 py-2 hover:border-amber-400 transition-colors">
                       <span className="text-xs font-semibold text-amber-800">{p.name}</span>
