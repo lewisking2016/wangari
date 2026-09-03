@@ -4,11 +4,6 @@ import { prisma } from "../db.js";
 const router = Router();
 
 // ─── Provider Configuration ───────────────────────────────
-// Set these in your .env file:
-//   AI_PROVIDER=openai|gemini|anthropic|ollama
-//   AI_API_KEY=your-api-key
-//   AI_MODEL=gpt-4o-mini|gemini-2.0-flash|claude-3-haiku-20240307|qwen2.5:1.5b
-
 const AI_PROVIDER = process.env.AI_PROVIDER || "openai";
 const AI_API_KEY = process.env.AI_API_KEY || "";
 const AI_MODEL = process.env.AI_MODEL || getDefaultModel(AI_PROVIDER);
@@ -24,267 +19,171 @@ function getDefaultModel(provider: string): string {
   }
 }
 
-// ─── Farm Tools Definition ────────────────────────────────
-const farmTools = [
-  {
-    type: "function",
-    function: {
-      name: "get_flock_summary",
-      description: "Get a summary of all flocks including bird count, breed, status, and mortality",
-      parameters: { type: "object", properties: {}, required: [] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_production_data",
-      description: "Get recent egg production data including eggs collected, mortality, and feed usage",
-      parameters: {
-        type: "object",
-        properties: {
-          days: { type: "number", description: "Number of days of data to retrieve (default 7)" },
-        },
-        required: [],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_financial_summary",
-      description: "Get financial summary including income, expenses, and profit",
-      parameters: {
-        type: "object",
-        properties: {
-          period: { type: "string", description: "Time period: week, month, or year", enum: ["week", "month", "year"] },
-        },
-        required: [],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_inventory_status",
-      description: "Get current inventory status including stock levels and low-stock alerts",
-      parameters: { type: "object", properties: {}, required: [] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_worker_info",
-      description: "Get information about farm workers including roles and wages",
-      parameters: { type: "object", properties: {}, required: [] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_sales_data",
-      description: "Get recent sales data including amounts, customers, and payment status",
-      parameters: {
-        type: "object",
-        properties: {
-          days: { type: "number", description: "Number of days of data to retrieve (default 30)" },
-        },
-        required: [],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "add_flock",
-      description: "Add a new flock to the farm",
-      parameters: {
-        type: "object",
-        properties: {
-          name: { type: "string", description: "Name of the flock" },
-          breed: { type: "string", description: "Breed of birds" },
-          initialCount: { type: "number", description: "Number of birds" },
-          type: { type: "string", description: "Type: layer, broiler, or breeder" },
-        },
-        required: ["name", "initialCount"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "record_production",
-      description: "Record daily egg production data",
-      parameters: {
-        type: "object",
-        properties: {
-          flockId: { type: "number", description: "ID of the flock" },
-          eggsCollected: { type: "number", description: "Number of eggs collected" },
-          mortality: { type: "number", description: "Number of bird deaths" },
-          feedUsed: { type: "number", description: "Feed used in kg" },
-        },
-        required: ["flockId", "eggsCollected"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "add_expense",
-      description: "Record a farm expense",
-      parameters: {
-        type: "object",
-        properties: {
-          amount: { type: "number", description: "Amount in KES" },
-          category: { type: "string", description: "Category: feed, labor, medication, equipment, transport, other" },
-          description: { type: "string", description: "Description of the expense" },
-        },
-        required: ["amount", "category", "description"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_weather",
-      description: "Get current weather and forecast for the farm location",
-      parameters: { type: "object", properties: {}, required: [] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_vaccination_schedule",
-      description: "Get vaccination schedule and upcoming vaccinations for flocks",
-      parameters: {
-        type: "object",
-        properties: {
-          flockId: { type: "number", description: "ID of the flock (optional)" },
-        },
-        required: [],
-      },
-    },
-  },
+// ─── Complete MCP Tool Definitions ────────────────────────
+const mcpTools = [
+  // Flocks
+  { type: "function", function: { name: "list_flocks", description: "List all flocks with bird count, breed, status, and mortality", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "create_flock", description: "Add a new flock to the farm", parameters: { type: "object", properties: { name: { type: "string", description: "Flock name" }, breed: { type: "string", description: "Bird breed" }, initialCount: { type: "number", description: "Number of birds" }, type: { type: "string", description: "layer, broiler, or breeder", enum: ["layer", "broiler", "breeder"] } }, required: ["name", "initialCount"] } } },
+  { type: "function", function: { name: "delete_flock", description: "Remove a flock from the farm", parameters: { type: "object", properties: { id: { type: "number", description: "Flock ID" } }, required: ["id"] } } },
+
+  // Production
+  { type: "function", function: { name: "list_production", description: "Get recent egg production data", parameters: { type: "object", properties: { days: { type: "number", description: "Days to retrieve (default 7)" } }, required: [] } } },
+  { type: "function", function: { name: "record_production", description: "Record daily egg production for a flock", parameters: { type: "object", properties: { flockId: { type: "number", description: "Flock ID" }, eggsCollected: { type: "number", description: "Eggs collected" }, mortality: { type: "number", description: "Bird deaths" }, feedUsed: { type: "number", description: "Feed in kg" } }, required: ["flockId", "eggsCollected"] } } },
+
+  // Transactions
+  { type: "function", function: { name: "list_transactions", description: "Get financial transactions", parameters: { type: "object", properties: { period: { type: "string", description: "week, month, or year", enum: ["week", "month", "year"] } }, required: [] } } },
+  { type: "function", function: { name: "create_transaction", description: "Record a financial transaction (income or expense)", parameters: { type: "object", properties: { type: { type: "string", description: "income or expense", enum: ["income", "expense"] }, amount: { type: "number", description: "Amount in KES" }, category: { type: "string", description: "Category (feed, labor, medication, eggsales, birdsales, etc.)" }, description: { type: "string", description: "Description" } }, required: ["type", "amount", "category", "description"] } } },
+  { type: "function", function: { name: "delete_transaction", description: "Delete a transaction", parameters: { type: "object", properties: { id: { type: "number", description: "Transaction ID" } }, required: ["id"] } } },
+
+  // Sales
+  { type: "function", function: { name: "list_sales", description: "Get sales records", parameters: { type: "object", properties: { days: { type: "number", description: "Days to retrieve (default 30)" } }, required: [] } } },
+  { type: "function", function: { name: "create_sale", description: "Record a new sale", parameters: { type: "object", properties: { totalAmount: { type: "number", description: "Total amount in KES" }, paymentStatus: { type: "string", description: "paid, pending, or partial", enum: ["paid", "pending", "partial"] }, amountPaid: { type: "number", description: "Amount paid in KES" }, notes: { type: "string", description: "Notes" } }, required: ["totalAmount"] } } },
+  { type: "function", function: { name: "delete_sale", description: "Delete a sale", parameters: { type: "object", properties: { id: { type: "number", description: "Sale ID" } }, required: ["id"] } } },
+
+  // Inventory
+  { type: "function", function: { name: "list_inventory", description: "Get inventory items with stock levels", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "create_inventory_item", description: "Add item to inventory", parameters: { type: "object", properties: { itemName: { type: "string", description: "Item name" }, category: { type: "string", description: "Category (feed, medication, equipment)" }, quantity: { type: "number", description: "Quantity" }, unit: { type: "string", description: "Unit (kg, bags, pieces)" }, unitCost: { type: "number", description: "Cost per unit in KES" }, reorderLevel: { type: "number", description: "Minimum stock level" } }, required: ["itemName", "category", "quantity", "unit"] } } },
+  { type: "function", function: { name: "delete_inventory_item", description: "Remove item from inventory", parameters: { type: "object", properties: { id: { type: "number", description: "Item ID" } }, required: ["id"] } } },
+
+  // Workers
+  { type: "function", function: { name: "list_workers", description: "Get all farm workers", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "create_worker", description: "Add a new worker", parameters: { type: "object", properties: { name: { type: "string", description: "Worker name" }, role: { type: "string", description: "Job role" }, dailyWage: { type: "number", description: "Daily wage in KES" }, phone: { type: "string", description: "Phone number" } }, required: ["name", "role", "dailyWage"] } } },
+  { type: "function", function: { name: "delete_worker", description: "Remove a worker", parameters: { type: "object", properties: { id: { type: "number", description: "Worker ID" } }, required: ["id"] } } },
+
+  // Customers
+  { type: "function", function: { name: "list_customers", description: "Get all customers", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "create_customer", description: "Add a new customer", parameters: { type: "object", properties: { name: { type: "string", description: "Customer name" }, phone: { type: "string", description: "Phone" }, email: { type: "string", description: "Email" }, address: { type: "string", description: "Address" } }, required: ["name"] } } },
+  { type: "function", function: { name: "delete_customer", description: "Remove a customer", parameters: { type: "object", properties: { id: { type: "number", description: "Customer ID" } }, required: ["id"] } } },
+
+  // Vaccinations
+  { type: "function", function: { name: "list_vaccinations", description: "Get vaccination records", parameters: { type: "object", properties: { flockId: { type: "number", description: "Filter by flock" } }, required: [] } } },
+  { type: "function", function: { name: "create_vaccination", description: "Record a vaccination", parameters: { type: "object", properties: { flockId: { type: "number", description: "Flock ID" }, vaccineName: { type: "string", description: "Vaccine name" }, dosage: { type: "string", description: "Dosage" }, administeredBy: { type: "string", description: "Who administered" }, notes: { type: "string", description: "Notes" } }, required: ["flockId", "vaccineName"] } } },
+
+  // Attendance
+  { type: "function", function: { name: "list_attendance", description: "Get attendance records", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "record_attendance", description: "Record worker attendance", parameters: { type: "object", properties: { workerId: { type: "number", description: "Worker ID" }, status: { type: "string", description: "Status", enum: ["present", "absent", "late", "half_day"] }, notes: { type: "string", description: "Notes" } }, required: ["workerId", "status"] } } },
+
+  // Weather
+  { type: "function", function: { name: "get_weather", description: "Get current weather forecast", parameters: { type: "object", properties: {}, required: [] } } },
+
+  // Dashboard
+  { type: "function", function: { name: "get_dashboard", description: "Get dashboard summary with KPIs", parameters: { type: "object", properties: {}, required: [] } } },
 ];
 
 const SYSTEM_PROMPT = `You are Wangari AI, an intelligent farm management assistant for poultry farms in Kenya.
 
-You have access to the farmer's live data and can perform operations on their farm.
-Always be helpful, concise, and provide actionable advice.
+You have FULL ACCESS to the farmer's farm management system. You can read, create, update, and delete any data.
 
-When reporting data:
+CAPABILITIES:
+- View and manage flocks (add/remove birds)
+- Track egg production daily
+- Manage finances (income/expenses)
+- Track sales and customers
+- Manage inventory and stock
+- Manage workers and attendance
+- Track vaccination schedules
+- Check weather conditions
+- Generate reports
+
+RULES:
 - Use KES (Kenyan Shillings) for all monetary values
 - Be specific with numbers and dates
-- Highlight any alerts or issues that need attention
-- Provide context and recommendations when appropriate
+- When creating/modifying data, always confirm with the user first
+- When deleting data, warn about consequences
+- Provide actionable advice based on the data
+- If data is missing, suggest what to record
+- Always be helpful, concise, and professional
 
-When performing operations:
-- Confirm the action before executing
-- Show the result after execution
-- Suggest follow-up actions if relevant
+FARM KNOWLEDGE:
+- Layer chickens lay 250-300 eggs/year
+- FCR of 1.8-2.2 is good for layers
+- Mortality under 1%/week is acceptable
+- Common vaccines: Marek's, NDV, IB, Gumboro
+- Feed is the biggest expense (60-70% of costs)
 
-Farm knowledge:
-- Layer chickens typically lay 250-300 eggs per year
-- Feed conversion ratio (FCR) of 1.8-2.2 is good for layers
-- Mortality rate under 1% per week is acceptable
-- Vaccination is critical for disease prevention
-- Common vaccines: Marek's, Newcastle (NDV), Infectious Bronchitis (IB), Gumboro (IBD)
-`;
+When the user asks you to do something, DO IT. Use the tools to read data, create records, and manage the farm.
+If a user asks to add something, use the create tools. If they ask to see data, use the list tools.`;
 
 // ─── Tool Executor ────────────────────────────────────────
 async function executeTool(toolName: string, args: Record<string, any>, farmId: number): Promise<any> {
   switch (toolName) {
-    case "get_flock_summary":
+    case "list_flocks":
       return prisma.flock.findMany({ where: { farmId } });
+    case "create_flock":
+      return prisma.flock.create({ data: { name: args.name, breed: args.breed, currentCount: args.initialCount, initialCount: args.initialCount, type: args.type || "layer", farmId, status: "active" } });
+    case "delete_flock":
+      return prisma.flock.delete({ where: { id: args.id } });
 
-    case "get_production_data": {
+    case "list_production": {
       const days = (args.days as number) || 7;
-      const since = new Date();
-      since.setDate(since.getDate() - days);
-      return prisma.dailyProduction.findMany({
-        where: { farmId, date: { gte: since } },
-        orderBy: { date: "desc" },
-      });
+      const since = new Date(); since.setDate(since.getDate() - days);
+      return prisma.dailyProduction.findMany({ where: { farmId, date: { gte: since } }, orderBy: { date: "desc" } });
     }
+    case "record_production":
+      return prisma.dailyProduction.create({ data: { flockId: args.flockId, eggsCollected: args.eggsCollected, mortality: args.mortality || 0, feedUsed: args.feedUsed, farmId } });
 
-    case "get_financial_summary": {
-      const now = new Date();
-      let since = new Date();
+    case "list_transactions": {
+      const now = new Date(); let since = new Date();
       const period = (args.period as string) || "month";
       if (period === "week") since.setDate(now.getDate() - 7);
       else if (period === "month") since.setMonth(now.getMonth() - 1);
       else since.setFullYear(now.getFullYear() - 1);
-
-      return prisma.transaction.findMany({
-        where: { farmId, date: { gte: since } },
-        orderBy: { date: "desc" },
-      });
+      return prisma.transaction.findMany({ where: { farmId, date: { gte: since } }, orderBy: { date: "desc" } });
     }
+    case "create_transaction":
+      return prisma.transaction.create({ data: { type: args.type, amount: args.amount, category: args.category, description: args.description, farmId } });
+    case "delete_transaction":
+      return prisma.transaction.delete({ where: { id: args.id } });
 
-    case "get_inventory_status":
-      return prisma.inventory.findMany({ where: { farmId } });
-
-    case "get_worker_info":
-      return prisma.worker.findMany({ where: { farmId } });
-
-    case "get_sales_data": {
+    case "list_sales": {
       const days = (args.days as number) || 30;
-      const since = new Date();
-      since.setDate(since.getDate() - days);
-      return prisma.sale.findMany({
-        where: { farmId, date: { gte: since } },
-        orderBy: { date: "desc" },
-      });
+      const since = new Date(); since.setDate(since.getDate() - days);
+      return prisma.sale.findMany({ where: { farmId, date: { gte: since } }, orderBy: { date: "desc" } });
     }
+    case "create_sale":
+      return prisma.sale.create({ data: { totalAmount: args.totalAmount, paymentStatus: args.paymentStatus || "pending", amountPaid: args.amountPaid || 0, notes: args.notes, farmId } });
+    case "delete_sale":
+      return prisma.sale.delete({ where: { id: args.id } });
 
-    case "add_flock": {
-      const flock = await prisma.flock.create({
-        data: {
-          name: args.name,
-          breed: args.breed,
-          currentCount: args.initialCount,
-          initialCount: args.initialCount,
-          type: args.type || "layer",
-          farmId,
-          status: "active",
-        },
-      });
-      return { success: true, flock };
-    }
+    case "list_inventory":
+      return prisma.inventory.findMany({ where: { farmId } });
+    case "create_inventory_item":
+      return prisma.inventory.create({ data: { itemName: args.itemName, category: args.category, quantity: args.quantity, unit: args.unit, unitCost: args.unitCost, reorderLevel: args.reorderLevel, farmId } });
+    case "delete_inventory_item":
+      return prisma.inventory.delete({ where: { id: args.id } });
 
-    case "record_production": {
-      const record = await prisma.dailyProduction.create({
-        data: {
-          flockId: args.flockId,
-          eggsCollected: args.eggsCollected,
-          mortality: args.mortality || 0,
-          feedUsed: args.feedUsed,
-          farmId,
-        },
-      });
-      return { success: true, record };
-    }
+    case "list_workers":
+      return prisma.worker.findMany({ where: { farmId } });
+    case "create_worker":
+      return prisma.worker.create({ data: { name: args.name, role: args.role, dailyWage: args.dailyWage, phone: args.phone, farmId } });
+    case "delete_worker":
+      return prisma.worker.delete({ where: { id: args.id } });
 
-    case "add_expense": {
-      const tx = await prisma.transaction.create({
-        data: {
-          type: "expense",
-          amount: args.amount,
-          category: args.category,
-          description: args.description,
-          farmId,
-        },
-      });
-      return { success: true, transaction: tx };
-    }
+    case "list_customers":
+      return prisma.customer.findMany({ where: { farmId } });
+    case "create_customer":
+      return prisma.customer.create({ data: { name: args.name, phone: args.phone, email: args.email, address: args.address, farmId } });
+    case "delete_customer":
+      return prisma.customer.delete({ where: { id: args.id } });
 
-    case "get_weather":
-      return { note: "Weather data available at /api/weather endpoint" };
-
-    case "get_vaccination_schedule": {
+    case "list_vaccinations": {
       const where: any = { farmId };
       if (args.flockId) where.flockId = args.flockId;
       return prisma.vaccination.findMany({ where, orderBy: { date: "desc" } });
     }
+    case "create_vaccination":
+      return prisma.vaccination.create({ data: { flockId: args.flockId, vaccineName: args.vaccineName, dosage: args.dosage, administeredBy: args.administeredBy, notes: args.notes, farmId } });
+
+    case "list_attendance":
+      return prisma.attendance.findMany({ where: { farmId }, orderBy: { date: "desc" } });
+    case "record_attendance":
+      return prisma.attendance.create({ data: { workerId: args.workerId, status: args.status, notes: args.notes, farmId } });
+
+    case "get_weather":
+      return { note: "Weather available via /api/weather" };
+
+    case "get_dashboard":
+      return prisma.flock.findMany({ where: { farmId } });
 
     default:
       return { error: `Unknown tool: ${toolName}` };
@@ -292,288 +191,102 @@ async function executeTool(toolName: string, args: Record<string, any>, farmId: 
 }
 
 // ─── AI Provider Adapters ─────────────────────────────────
-
-async function callAI(
-  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
-  tools: typeof farmTools
-): Promise<{ content: string; tool_calls: any[] }> {
+async function callAI(messages: any[], tools: any[]): Promise<{ content: string; tool_calls: any[] }> {
   switch (AI_PROVIDER) {
-    case "openai":
-      return callOpenAI(messages, tools);
-    case "gemini":
-      return callGemini(messages, tools);
-    case "anthropic":
-      return callAnthropic(messages, tools);
-    case "ollama":
-      return callOllama(messages, tools);
-    default:
-      return callOpenAI(messages, tools);
+    case "openai": return callOpenAI(messages, tools);
+    case "gemini": return callGemini(messages, tools);
+    case "anthropic": return callAnthropic(messages, tools);
+    case "ollama": return callOllama(messages, tools);
+    default: return callOpenAI(messages, tools);
   }
 }
 
-// ─── OpenAI / OpenAI-compatible ───────────────────────────
-async function callOpenAI(
-  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
-  tools: typeof farmTools
-): Promise<{ content: string; tool_calls: any[] }> {
+async function callOpenAI(messages: any[], tools: any[]): Promise<{ content: string; tool_calls: any[] }> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${AI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages,
-      tools: tools.map((t) => ({ type: "function", function: t.function })),
-      temperature: 0.7,
-      max_tokens: 2048,
-    }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
+    body: JSON.stringify({ model: AI_MODEL, messages, tools, temperature: 0.7, max_tokens: 4096 }),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("OpenAI error:", err);
-    throw new Error(`OpenAI API error: ${res.status}`);
-  }
-
+  if (!res.ok) { const err = await res.text(); console.error("OpenAI:", err); throw new Error(`OpenAI: ${res.status}`); }
   const data = await res.json();
-  const choice = data.choices?.[0];
-  return {
-    content: choice?.message?.content || "",
-    tool_calls: choice?.message?.tool_calls || [],
-  };
+  return { content: data.choices?.[0]?.message?.content || "", tool_calls: data.choices?.[0]?.message?.tool_calls || [] };
 }
 
-// ─── Google Gemini ────────────────────────────────────────
-async function callGemini(
-  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
-  tools: typeof farmTools
-): Promise<{ content: string; tool_calls: any[] }> {
-  // Convert messages to Gemini format
-  const contents = messages
-    .filter((m) => m.role !== "system")
-    .map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
-
-  const systemInstruction = messages.find((m) => m.role === "system")?.content;
-
-  const geminiTools = [
-    {
-      function_declarations: tools.map((t) => ({
-        name: t.function.name,
-        description: t.function.description,
-        parameters: t.function.parameters,
-      })),
-    },
-  ];
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${AI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
-        tools: geminiTools,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-        },
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("Gemini error:", err);
-    throw new Error(`Gemini API error: ${res.status}`);
-  }
-
+async function callGemini(messages: any[], tools: any[]): Promise<{ content: string; tool_calls: any[] }> {
+  const systemMsg = messages.find((m: any) => m.role === "system");
+  const contents = messages.filter((m: any) => m.role !== "system").map((m: any) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+  const geminiTools = [{ function_declarations: tools.map((t: any) => ({ name: t.function.name, description: t.function.description, parameters: t.function.parameters })) }];
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${AI_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contents, systemInstruction: systemMsg ? { parts: [{ text: systemMsg.content }] } : undefined, tools: geminiTools, generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } }),
+  });
+  if (!res.ok) { const err = await res.text(); console.error("Gemini:", err); throw new Error(`Gemini: ${res.status}`); }
   const data = await res.json();
   const candidate = data.candidates?.[0];
   const content = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
-
-  // Extract tool calls from Gemini response
-  const toolCalls = candidate?.content?.parts
-    ?.filter((p: any) => p.functionCall)
-    ?.map((p: any, i: number) => ({
-      id: `call_${Date.now()}_${i}`,
-      type: "function",
-      function: {
-        name: p.functionCall.name,
-        arguments: JSON.stringify(p.functionCall.args),
-      },
-    })) || [];
-
+  const toolCalls = candidate?.content?.parts?.filter((p: any) => p.functionCall)?.map((p: any, i: number) => ({ id: `call_${Date.now()}_${i}`, type: "function", function: { name: p.functionCall.name, arguments: JSON.stringify(p.functionCall.args) } })) || [];
   return { content, tool_calls: toolCalls };
 }
 
-// ─── Anthropic Claude ─────────────────────────────────────
-async function callAnthropic(
-  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
-  tools: typeof farmTools
-): Promise<{ content: string; tool_calls: any[] }> {
-  const systemMessage = messages.find((m) => m.role === "system");
-  const chatMessages = messages
-    .filter((m) => m.role !== "system")
-    .map((m) => ({ role: m.role, content: m.content }));
-
+async function callAnthropic(messages: any[], tools: any[]): Promise<{ content: string; tool_calls: any[] }> {
+  const sys = messages.find((m: any) => m.role === "system");
+  const chatMsgs = messages.filter((m: any) => m.role !== "system").map((m: any) => ({ role: m.role, content: m.content }));
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": AI_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      max_tokens: 2048,
-      system: systemMessage?.content,
-      messages: chatMessages,
-      tools: tools.map((t) => ({
-        name: t.function.name,
-        description: t.function.description,
-        input_schema: t.function.parameters,
-      })),
-    }),
+    headers: { "Content-Type": "application/json", "x-api-key": AI_API_KEY, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model: AI_MODEL, max_tokens: 4096, system: sys?.content, messages: chatMsgs, tools: tools.map((t: any) => ({ name: t.function.name, description: t.function.description, input_schema: t.function.parameters })) }),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("Anthropic error:", err);
-    throw new Error(`Anthropic API error: ${res.status}`);
-  }
-
+  if (!res.ok) { const err = await res.text(); console.error("Anthropic:", err); throw new Error(`Anthropic: ${res.status}`); }
   const data = await res.json();
-  const contentBlock = data.content?.find((b: any) => b.type === "text");
-  const content = contentBlock?.text || "";
-
-  const toolCalls = data.content
-    ?.filter((b: any) => b.type === "tool_use")
-    ?.map((b: any, i: number) => ({
-      id: b.id || `call_${Date.now()}_${i}`,
-      type: "function",
-      function: {
-        name: b.name,
-        arguments: JSON.stringify(b.input),
-      },
-    })) || [];
-
+  const content = data.content?.find((b: any) => b.type === "text")?.text || "";
+  const toolCalls = data.content?.filter((b: any) => b.type === "tool_use")?.map((b: any, i: number) => ({ id: b.id || `call_${Date.now()}_${i}`, type: "function", function: { name: b.name, arguments: JSON.stringify(b.input) } })) || [];
   return { content, tool_calls: toolCalls };
 }
 
-// ─── Ollama (local) ──────────────────────────────────────
-async function callOllama(
-  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
-  tools: typeof farmTools
-): Promise<{ content: string; tool_calls: any[] }> {
+async function callOllama(messages: any[], tools: any[]): Promise<{ content: string; tool_calls: any[] }> {
   const res = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages,
-      tools,
-      stream: false,
-      options: { temperature: 0.7, top_p: 0.9, num_ctx: 4096 },
-    }),
+    body: JSON.stringify({ model: AI_MODEL, messages, tools, stream: false, options: { temperature: 0.7, num_ctx: 8192 } }),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("Ollama error:", err);
-    throw new Error(`Ollama API error: ${res.status}`);
-  }
-
+  if (!res.ok) { const err = await res.text(); console.error("Ollama:", err); throw new Error(`Ollama: ${res.status}`); }
   const data = await res.json();
-  return {
-    content: data.message?.content || "",
-    tool_calls: data.message?.tool_calls || [],
-  };
+  return { content: data.message?.content || "", tool_calls: data.message?.tool_calls || [] };
 }
 
 // ─── Chat Endpoint ────────────────────────────────────────
 router.post("/chat", async (req: Request, res: Response) => {
   try {
     const { messages, farmId } = req.body;
+    if (!messages || !Array.isArray(messages)) return res.status(400).json({ error: "Messages array required" });
+    if (!AI_API_KEY && AI_PROVIDER !== "ollama") return res.status(500).json({ error: `Set AI_API_KEY for ${AI_PROVIDER}` });
 
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "Messages array is required" });
-    }
+    const fullMessages = [{ role: "system", content: SYSTEM_PROMPT }, ...messages];
+    const response = await callAI(fullMessages, mcpTools);
 
-    if (!AI_API_KEY && AI_PROVIDER !== "ollama") {
-      return res.status(500).json({
-        error: `AI provider "${AI_PROVIDER}" requires an API key. Set AI_API_KEY in your .env file.`,
-      });
-    }
-
-    // Build messages with system prompt
-    const fullMessages = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...messages,
-    ];
-
-    // Call AI
-    const response = await callAI(fullMessages, farmTools);
-
-    // Execute tool calls if any
-    const toolResults = [];
+    const toolResults: any[] = [];
     if (response.tool_calls.length > 0 && farmId) {
       for (const tc of response.tool_calls) {
-        const args = typeof tc.function.arguments === "string"
-          ? JSON.parse(tc.function.arguments)
-          : tc.function.arguments;
+        const args = typeof tc.function.arguments === "string" ? JSON.parse(tc.function.arguments) : tc.function.arguments;
         const result = await executeTool(tc.function.name, args, farmId);
-        toolResults.push({
-          tool_call_id: tc.id,
-          name: tc.function.name,
-          content: JSON.stringify(result),
-        });
+        toolResults.push({ tool_call_id: tc.id, name: tc.function.name, content: JSON.stringify(result) });
       }
 
-      // Send tool results back for a final response
-      const followUpMessages = [
-        ...fullMessages,
-        { role: "assistant", content: response.content, tool_calls: response.tool_calls },
-        ...toolResults.map((tr) => ({
-          role: "tool" as const,
-          content: `Tool ${tr.name} result: ${tr.content}`,
-        })),
-      ];
-
-      const followUpResponse = await callAI(followUpMessages, farmTools);
-
-      return res.json({
-        message: { role: "assistant", content: followUpResponse.content || response.content },
-        tool_calls: response.tool_calls,
-        tool_results: toolResults,
-      });
+      const followUp = [...fullMessages, { role: "assistant", content: response.content, tool_calls: response.tool_calls }, ...toolResults.map((tr: any) => ({ role: "tool", content: `Tool ${tr.name}: ${tr.content}` }))];
+      const final = await callAI(followUp, mcpTools);
+      return res.json({ message: { role: "assistant", content: final.content || response.content }, tool_calls: response.tool_calls, tool_results: toolResults });
     }
 
-    return res.json({
-      message: { role: "assistant", content: response.content },
-      tool_calls: response.tool_calls.length > 0 ? response.tool_calls : undefined,
-      tool_results: toolResults.length > 0 ? toolResults : undefined,
-    });
+    return res.json({ message: { role: "assistant", content: response.content }, tool_calls: response.tool_calls.length > 0 ? response.tool_calls : undefined, tool_results: toolResults.length > 0 ? toolResults : undefined });
   } catch (error) {
     console.error("AI chat error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    res.status(500).json({ error: msg });
+    res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error" });
   }
 });
 
-// ─── Health Check ─────────────────────────────────────────
 router.get("/health", (_req: Request, res: Response) => {
-  res.json({
-    status: AI_API_KEY || AI_PROVIDER === "ollama" ? "configured" : "needs_api_key",
-    provider: AI_PROVIDER,
-    model: AI_MODEL,
-    hasApiKey: !!AI_API_KEY,
-  });
+  res.json({ status: AI_API_KEY || AI_PROVIDER === "ollama" ? "configured" : "needs_api_key", provider: AI_PROVIDER, model: AI_MODEL, hasApiKey: !!AI_API_KEY });
 });
 
 export default router;

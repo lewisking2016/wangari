@@ -18,11 +18,13 @@ import {
   CloudSun,
   Zap,
   AlertCircle,
-  Settings,
+  PanelRightOpen,
+  PanelRightClose,
+  Activity,
 } from "lucide-react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ai/ChatMessage";
+import { TaskPanel, TaskItem } from "@/components/ai/TaskPanel";
 
 interface Message {
   role: "user" | "assistant";
@@ -51,30 +53,30 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [tasks, setTasks] = React.useState<TaskItem[]>([]);
+  const [showTaskPanel, setShowTaskPanel] = React.useState(true);
   const [providerStatus, setProviderStatus] = React.useState<any>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const [sessionId] = React.useState(() => `session_${Date.now()}`);
 
-  // Check AI provider status
-  React.useEffect(() => {
-    fetch("/api/ai/health")
-      .then((r) => r.json())
-      .then(setProviderStatus)
-      .catch(() => {});
-  }, []);
-
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Auto-resize textarea
   React.useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto";
       inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
     }
   }, [input]);
+
+  React.useEffect(() => {
+    fetch("/api/ai/health")
+      .then((r) => r.json())
+      .then(setProviderStatus)
+      .catch(() => {});
+  }, []);
 
   const handleSend = async (text?: string) => {
     const msg = text || input.trim();
@@ -98,9 +100,25 @@ export default function AIAssistantPage() {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to get response");
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to get response");
+      // Add tool calls as tasks
+      if (data.tool_calls && data.tool_calls.length > 0) {
+        const newTasks: TaskItem[] = data.tool_calls.map((tc: any, i: number) => {
+          const args = typeof tc.function.arguments === "string"
+            ? JSON.parse(tc.function.arguments)
+            : tc.function.arguments || {};
+          return {
+            id: tc.id || `task_${Date.now()}_${i}`,
+            toolName: tc.function.name,
+            args,
+            status: "completed" as const,
+            result: data.tool_results?.[i]?.content,
+            timestamp: Date.now(),
+          };
+        });
+        setTasks((prev) => [...newTasks, ...prev]);
+        setShowTaskPanel(true);
       }
 
       const assistantMsg: Message = {
@@ -115,7 +133,7 @@ export default function AIAssistantPage() {
     } catch (error) {
       const errorMsg: Message = {
         role: "assistant",
-        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : "Unknown error"}. Please make sure the AI service is running.`,
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : "Unknown error"}.`,
         id: `error_${Date.now()}`,
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -138,182 +156,219 @@ export default function AIAssistantPage() {
       body: JSON.stringify({ sessionId }),
     });
     setMessages([]);
+    setTasks([]);
   };
 
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-b from-wangari-green-50/30 to-white">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-wangari-border bg-white/80 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-sm">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-wangari-heading">Wangari AI</h1>
-            <p className="text-xs text-wangari-muted">
-            {providerStatus?.status === "configured"
-              ? `${providerStatus.provider.charAt(0).toUpperCase() + providerStatus.provider.slice(1)} • ${providerStatus.model}`
-              : "Configure AI provider in server .env"}
-          </p>
-          </div>
-        </div>
-        {messages.length > 0 && (
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-wangari-muted hover:text-wangari-heading hover:bg-wangari-green-50 transition-colors"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            New Chat
-          </button>
-        )}
-      </div>
-
-      {/* Messages or Welcome */}
-      {isEmpty ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="max-w-2xl w-full text-center mb-8">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-lg mx-auto mb-4">
-              <Sparkles className="h-8 w-8" />
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-gradient-to-b from-wangari-green-50/30 to-white min-w-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-3 border-b border-wangari-border bg-white/80 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-sm">
+              <Sparkles className="h-5 w-5" />
             </div>
-            <h2 className="text-2xl font-bold text-wangari-heading mb-2">
-              Hi there! I&apos;m your farm AI assistant.
-            </h2>
-            <p className="text-sm text-wangari-muted max-w-md mx-auto">
-              I can analyze your farm data, track production, manage finances, and help you make better decisions.
-              Ask me anything or try a quick action below.
-            </p>
-          </div>
-
-          {/* Quick Actions Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-3xl w-full">
-            {QUICK_ACTIONS.map((action) => (
-              <button
-                key={action.label}
-                onClick={() => handleSend(action.prompt)}
-                className="flex items-center gap-3 rounded-xl border border-wangari-border bg-white p-3 text-left hover:border-wangari-green-300 hover:bg-wangari-green-50 transition-all duration-200 group cursor-pointer"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wangari-green-50 text-wangari-green-700 group-hover:bg-wangari-green-100 transition-colors">
-                  <action.icon className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium text-wangari-heading truncate">{action.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="max-w-3xl mx-auto space-y-6">
-            {messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                role={msg.role}
-                content={msg.content}
-                toolCalls={msg.toolCalls}
-                toolResults={msg.toolResults}
-              />
-            ))}
-            {loading && (
-              <div className="flex gap-3 justify-start">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-sm">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div className="rounded-2xl rounded-bl-md bg-white border border-wangari-border px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 text-wangari-green-600 animate-spin" />
-                    <span className="text-sm text-wangari-muted">Thinking...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-      )}
-
-      {/* Provider Warning */}
-      {providerStatus && providerStatus.status !== "configured" && messages.length === 0 && (
-        <div className="mx-6 mb-4 max-w-3xl">
-          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-800">AI provider not configured</p>
-              <p className="text-xs text-amber-700 mt-1">
-                Add an API key to your server .env file to enable AI. Supported providers:
+            <div>
+              <h1 className="text-lg font-bold text-wangari-heading">Wangari AI Workspace</h1>
+              <p className="text-xs text-wangari-muted">
+                {providerStatus?.status === "configured"
+                  ? `${providerStatus.provider.charAt(0).toUpperCase() + providerStatus.provider.slice(1)} • ${providerStatus.model} • 28 farm tools`
+                  : "Configure AI provider in server .env"}
               </p>
-              <div className="flex flex-wrap gap-2 mt-2">
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-wangari-muted hover:text-wangari-heading hover:bg-wangari-green-50 transition-colors"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                New Chat
+              </button>
+            )}
+            <button
+              onClick={() => setShowTaskPanel(!showTaskPanel)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                showTaskPanel
+                  ? "bg-wangari-green-50 text-wangari-green-800"
+                  : "text-wangari-muted hover:text-wangari-heading hover:bg-wangari-green-50"
+              )}
+            >
+              {showTaskPanel ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
+              Actions
+              {tasks.length > 0 && (
+                <span className="ml-1 h-4 w-4 rounded-full bg-wangari-green-600 text-white text-[10px] font-bold flex items-center justify-center">
+                  {tasks.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Provider Warning */}
+        {providerStatus && providerStatus.status !== "configured" && messages.length === 0 && (
+          <div className="mx-6 mt-4 max-w-3xl">
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-800">AI provider not configured</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Add to your server .env file:
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[
+                    { key: "gemini", label: "Google Gemini", cost: "Free tier" },
+                    { key: "openai", label: "OpenAI GPT-4o-mini", cost: "~$0.15/1M" },
+                    { key: "anthropic", label: "Claude Haiku", cost: "~$0.25/1M" },
+                  ].map((p) => (
+                    <span key={p.key} className="inline-flex items-center gap-1 rounded-lg bg-white border border-amber-200 px-2.5 py-1 text-xs text-amber-800">
+                      {p.label}
+                      <span className="text-amber-500">• {p.cost}</span>
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-amber-600 mt-2 font-mono bg-white rounded-lg px-2 py-1 border border-amber-200">
+                  AI_PROVIDER=gemini && AI_API_KEY=your-key && AI_MODEL=gemini-2.0-flash
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Messages or Welcome */}
+        {isEmpty ? (
+          <div className="flex-1 flex flex-col items-center justify-center px-6">
+            <div className="max-w-2xl w-full text-center mb-8">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-lg mx-auto mb-4">
+                <Sparkles className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-bold text-wangari-heading mb-2">
+                Your AI Farm Workspace
+              </h2>
+              <p className="text-sm text-wangari-muted max-w-md mx-auto">
+                I have full access to your farm management system. I can view, create, and manage
+                flocks, production, finances, inventory, workers, and more.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-3xl w-full">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  onClick={() => handleSend(action.prompt)}
+                  className="flex items-center gap-3 rounded-xl border border-wangari-border bg-white p-3 text-left hover:border-wangari-green-300 hover:bg-wangari-green-50 transition-all duration-200 group cursor-pointer"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wangari-green-50 text-wangari-green-700 group-hover:bg-wangari-green-100 transition-colors">
+                    <action.icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium text-wangari-heading truncate">{action.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Capabilities */}
+            <div className="mt-8 max-w-2xl w-full">
+              <p className="text-xs font-bold uppercase tracking-widest text-wangari-muted text-center mb-3">
+                What I can do
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  { key: "openai", label: "OpenAI (GPT-4o-mini)", cost: "~$0.15/1M tokens" },
-                  { key: "gemini", label: "Google Gemini", cost: "Free tier available" },
-                  { key: "anthropic", label: "Anthropic Claude", cost: "~$0.25/1M tokens" },
-                ].map((p) => (
-                  <span key={p.key} className="inline-flex items-center gap-1 rounded-lg bg-white border border-amber-200 px-2.5 py-1 text-xs text-amber-800">
-                    {p.label}
-                    <span className="text-amber-500">• {p.cost}</span>
+                  "🐔 Manage Flocks", "🥚 Track Production", "💰 Handle Finances",
+                  "🛒 Process Sales", "📦 Manage Inventory", "👷 Manage Workers",
+                  "💉 Track Vaccinations", "📋 Record Attendance", "🌤️ Check Weather",
+                ].map((cap) => (
+                  <span key={cap} className="rounded-full border border-wangari-border bg-white px-3 py-1 text-xs text-wangari-heading">
+                    {cap}
                   </span>
                 ))}
               </div>
-              <p className="text-xs text-amber-600 mt-2 font-mono bg-white rounded-lg px-2 py-1 border border-amber-200">
-                AI_PROVIDER=gemini && AI_API_KEY=your-key && AI_MODEL=gemini-2.0-flash
-              </p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Input Area */}
-      <div className={cn(
-        "border-t border-wangari-border bg-white/80 backdrop-blur-xl",
-        isEmpty ? "px-6 py-4" : "px-6 py-3"
-      )}>
-        <div className="max-w-3xl mx-auto">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex items-end gap-3"
-          >
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask about your farm..."
-                disabled={loading}
-                rows={1}
-                className={cn(
-                  "w-full resize-none rounded-2xl border border-wangari-border bg-white px-4 py-3 pr-12 text-sm text-wangari-heading",
-                  "placeholder:text-wangari-subtle focus:outline-none focus:border-wangari-green-500 focus:ring-2 focus:ring-wangari-green-500/20",
-                  "transition-all disabled:opacity-50",
-                  isEmpty ? "text-base" : ""
-                )}
-              />
+        ) : (
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              {messages.map((msg) => (
+                <ChatMessage
+                  key={msg.id}
+                  role={msg.role}
+                  content={msg.content}
+                  toolCalls={msg.toolCalls}
+                  toolResults={msg.toolResults}
+                />
+              ))}
+              {loading && (
+                <div className="flex gap-3 justify-start">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-sm">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div className="rounded-2xl rounded-bl-md bg-white border border-wangari-border px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 text-wangari-green-600 animate-spin" />
+                      <span className="text-sm text-wangari-muted">Thinking & executing...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
-            <button
-              type="submit"
-              disabled={loading || !input.trim()}
-              className={cn(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-200",
-                input.trim() && !loading
-                  ? "bg-wangari-green-800 text-white shadow-md hover:bg-wangari-green-900 hover:shadow-lg cursor-pointer"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              )}
+          </div>
+        )}
+
+        {/* Input Area */}
+        <div className="border-t border-wangari-border bg-white/80 backdrop-blur-xl px-6 py-3">
+          <div className="max-w-3xl mx-auto">
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+              className="flex items-end gap-3"
             >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </button>
-          </form>
-          <p className="text-[11px] text-wangari-subtle text-center mt-2">
-            AI responses are generated from your farm data. Always verify important decisions.
-          </p>
+              <div className="flex-1 relative">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask me to do anything on your farm..."
+                  disabled={loading}
+                  rows={1}
+                  className={cn(
+                    "w-full resize-none rounded-2xl border border-wangari-border bg-white px-4 py-3 pr-12 text-sm text-wangari-heading",
+                    "placeholder:text-wangari-subtle focus:outline-none focus:border-wangari-green-500 focus:ring-2 focus:ring-wangari-green-500/20",
+                    "transition-all disabled:opacity-50",
+                    isEmpty ? "text-base" : ""
+                  )}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className={cn(
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-200",
+                  input.trim() && !loading
+                    ? "bg-wangari-green-800 text-white shadow-md hover:bg-wangari-green-900 hover:shadow-lg cursor-pointer"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                )}
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </button>
+            </form>
+            <p className="text-[11px] text-wangari-subtle text-center mt-2">
+              AI has access to 28 farm tools • Actions are logged in the task panel
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* Task Panel (Right Side) */}
+      {showTaskPanel && (
+        <div className="w-[320px] border-l border-wangari-border bg-white flex flex-col">
+          <TaskPanel tasks={tasks} onClear={() => setTasks([])} />
+        </div>
+      )}
     </div>
   );
 }
