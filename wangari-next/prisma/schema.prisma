@@ -84,8 +84,34 @@ model Flock {
   hatchDate    DateTime? @map("hatch_date")
   status       String    @default("active")
   type         String?   @default("layers")
+
+  // ─── Extended fields (multi-species livestock) ───
+  category         String?   @default("poultry")
+  purpose          String?   // production, breeding, dual_purpose
+  gender           String?   // male, female, mixed
+  genderRatio      String?   @map("gender_ratio")
+  location         String?   // pen, barn, pond, coop designation
+  source           String?   // supplier name
+  supplierContact  String?   @map("supplier_contact")
+  costPerAnimal    Decimal?  @map("cost_per_animal") @db.Decimal(10, 2)
+  totalInvestment  Decimal?  @map("total_investment") @db.Decimal(12, 2)
+  targetMarket     String?   @map("target_market")
+  feedType         String?   @map("feed_type")
+  feedSupplier     String?   @map("feed_supplier")
+  feedCostPerMonth Decimal?  @map("feed_cost_per_month") @db.Decimal(10, 2)
+  vetName          String?   @map("vet_name")
+  vetPhone         String?   @map("vet_phone")
+  healthOnArrival  String?   @map("health_on_arrival")
+  insurancePolicy  String?   @map("insurance_policy")
+  photoUrl         String?   @map("photo_url")
+  expectedYield    String?   @map("expected_yield")
+  expectedRevenue  Decimal?  @map("expected_revenue") @db.Decimal(12, 2)
+  expectedWeight   String?   @map("expected_weight")
+  notes            String?
+
   createdBy    Int?      @map("created_by")
   createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   farm         Farm              @relation(fields: [farmId], references: [id])
   creator      User?             @relation(fields: [createdBy], references: [id])
