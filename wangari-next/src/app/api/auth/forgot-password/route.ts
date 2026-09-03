@@ -1,44 +1,23 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
-import { prisma } from "@/lib/db";
+import { proxyToBackend } from "@/lib/api-proxy";
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
-    // Always return success to prevent email enumeration
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return NextResponse.json({
-        message: "If an account with that email exists, a reset link has been sent.",
-      });
-    }
-
-    // Generate a secure random token
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { resetToken, resetTokenExpiry },
+    const res = await proxyToBackend("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify(body),
     });
 
-    // In production, send an email here with the reset link.
-    // For now, log the token so it can be used during development.
-    const resetUrl = `${process.env.NEXTAUTH_URL || "https://wangari.imeantech.com"}/reset-password?token=${resetToken}`;
-    console.log(`[DEV] Password reset link for ${email}: ${resetUrl}`);
+    const data = await res.json();
 
-    return NextResponse.json({
-      message: "If an account with that email exists, a reset link has been sent.",
-    });
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
-    console.error("Forgot password error:", error);
+    console.error("Forgot password proxy error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to process password reset request" },
+      { error: "Failed to process password reset request", details: message },
       { status: 500 }
     );
   }

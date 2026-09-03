@@ -1,55 +1,23 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/db";
+import { proxyToBackend } from "@/lib/api-proxy";
 
 export async function POST(req: Request) {
   try {
-    const { token, password } = await req.json();
+    const body = await req.json();
 
-    if (!token || !password) {
-      return NextResponse.json(
-        { error: "Token and password are required" },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findFirst({
-      where: {
-        resetToken: token,
-        resetTokenExpiry: { gt: new Date() },
-      },
+    const res = await proxyToBackend("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify(body),
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid or expired reset token" },
-        { status: 400 }
-      );
-    }
+    const data = await res.json();
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiry: null,
-      },
-    });
-
-    return NextResponse.json({ message: "Password has been reset successfully" });
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
-    console.error("Reset password error:", error);
+    console.error("Reset password proxy error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to reset password" },
+      { error: "Failed to reset password", details: message },
       { status: 500 }
     );
   }
