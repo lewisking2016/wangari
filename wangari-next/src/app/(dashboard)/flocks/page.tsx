@@ -146,6 +146,7 @@ export default function FlocksPage() {
   const [compareMode, setCompareMode] = React.useState(false);
   const [selectedForCompare, setSelectedForCompare] = React.useState<Set<number>>(new Set());
   const [showComparison, setShowComparison] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<"card" | "list">("card");
 
   const loadFlocks = () => {
     api.get("/api/flocks").then(d => {
@@ -176,12 +177,15 @@ export default function FlocksPage() {
     loadFlocks();
   };
 
+  const [editingFlock, setEditingFlock] = React.useState<any>(null);
+
   const handleEdit = async (data: any) => {
-    await api.patch(`/api/flocks/${selectedFlock.id}`, data);
+    if (!editingFlock) return;
+    await api.patch(`/api/flocks/${editingFlock.id}`, data);
     setShowEditForm(false);
+    setEditingFlock(null);
     loadFlocks();
-    // Re-select the updated flock
-    setSelectedFlock((prev: any) => ({ ...prev, ...data }));
+    setSelectedFlock((prev: any) => prev ? { ...prev, ...data } : prev);
   };
 
   const handleRecordProduction = async (data: any) => {
@@ -312,7 +316,7 @@ export default function FlocksPage() {
             <Button onClick={() => setShowExport(true)} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
               <Download className="h-4 w-4" />Export
             </Button>
-            <Button onClick={() => setShowEditForm(true)} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
+            <Button onClick={() => { setEditingFlock(flock); setShowEditForm(true); }} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
               <Edit3 className="h-4 w-4" />Edit
             </Button>
             <button onClick={() => handleDelete(flock.id)} className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
@@ -651,10 +655,7 @@ export default function FlocksPage() {
           </motion.div>
         )}
 
-        {/* Edit Form Modal */}
-        {showEditForm && (
-          <EditFlockForm flock={flock} onSubmit={handleEdit} onCancel={() => setShowEditForm(false)} />
-        )}
+        {/* Edit Form rendered at component level */}
 
         {/* Production Recording Modal */}
         {showProductionForm && (
@@ -723,19 +724,30 @@ export default function FlocksPage() {
         ))}
       </motion.div>
 
-      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap items-center gap-2">
-        <button onClick={() => setFilterSpecies("all")} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${filterSpecies === "all" ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
-          All ({flocks.length})
-        </button>
-        {categories.map((cat) => {
-          const count = flocks.filter((f: any) => f.category === cat.id).length;
-          if (count === 0) return null;
-          return (
-            <button key={cat.id} onClick={() => setFilterSpecies(cat.id)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${filterSpecies === cat.id ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
-              {cat.label} ({count})
-            </button>
-          );
-        })}
+      {/* Filters + View Toggle */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => setFilterSpecies("all")} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${filterSpecies === "all" ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+            All ({flocks.length})
+          </button>
+          {categories.map((cat) => {
+            const count = flocks.filter((f: any) => f.category === cat.id).length;
+            if (count === 0) return null;
+            return (
+              <button key={cat.id} onClick={() => setFilterSpecies(cat.id)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${filterSpecies === cat.id ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+                {cat.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <button onClick={() => setViewMode("card")} className={cn("px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer", viewMode === "card" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700")}>
+            <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          </button>
+          <button onClick={() => setViewMode("list")} className={cn("px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer", viewMode === "list" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700")}>
+            <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="2" width="14" height="3" rx="1"/><rect x="1" y="7" width="14" height="3" rx="1"/><rect x="1" y="12" width="14" height="3" rx="1"/></svg>
+          </button>
+        </div>
       </motion.div>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
@@ -745,7 +757,8 @@ export default function FlocksPage() {
 
       {filtered.length === 0 ? (
         <EmptyState title="No livestock yet" description="Add your first flock to start tracking your livestock." />
-      ) : (
+      ) : viewMode === "card" ? (
+        /* ─── CARD VIEW ─────────────────────────── */
         <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((f: any) => {
             const species = speciesTemplates[f.type];
@@ -755,29 +768,33 @@ export default function FlocksPage() {
             const prodCount = (f.production || []).length;
 
             return (
-              <motion.div key={f.id} variants={fadeUp} whileHover={{ y: -4 }}>                <Card
+              <motion.div key={f.id} variants={fadeUp} whileHover={{ y: -4 }}>
+                <Card
                   className={cn(
-                    "border hover:shadow-xl transition-all duration-300 cursor-pointer",
+                    "border hover:shadow-xl transition-all duration-300",
                     compareMode && selectedForCompare.has(f.id)
                       ? "border-emerald-400 bg-emerald-50/50 ring-2 ring-emerald-200"
                       : "border-gray-100 hover:border-emerald-200"
                   )}
-                  onClick={() => {
-                    if (compareMode) {
-                      setSelectedForCompare((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(f.id)) next.delete(f.id);
-                        else next.add(f.id);
-                        return next;
-                      });
-                    } else {
-                      setSelectedFlock(f);
-                    }
-                  }}
                 >
                   <CardContent className="p-5">
+                    {/* Header */}
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
+                      <div
+                        className="flex items-center gap-3 cursor-pointer"
+                        onClick={() => {
+                          if (compareMode) {
+                            setSelectedForCompare((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(f.id)) next.delete(f.id);
+                              else next.add(f.id);
+                              return next;
+                            });
+                          } else {
+                            setSelectedFlock(f);
+                          }
+                        }}
+                      >
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
                           <SpeciesIcon speciesId={f.type} />
                         </div>
@@ -786,14 +803,10 @@ export default function FlocksPage() {
                           <p className="text-xs text-gray-400">{f.breed || species?.name || f.type}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Badge variant={f.status === "active" ? "default" : "outline"} className={f.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}>{f.status}</Badge>
-                        <button onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors cursor-pointer">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                      <Badge variant={f.status === "active" ? "default" : "outline"} className={f.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}>{f.status}</Badge>
                     </div>
 
+                    {/* Stats */}
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       <div className="rounded-lg bg-gray-50 p-2.5 text-center">
                         <p className="text-lg font-bold text-gray-900">{(f.currentCount || 0).toLocaleString()}</p>
@@ -809,6 +822,7 @@ export default function FlocksPage() {
                       </div>
                     </div>
 
+                    {/* Mortality Bar */}
                     <div className="mt-3">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[10px] font-semibold uppercase text-gray-400">Mortality</span>
@@ -821,6 +835,7 @@ export default function FlocksPage() {
                       </div>
                     </div>
 
+                    {/* Info Row */}
                     <div className="mt-3 flex items-center justify-between text-[11px] text-gray-400">
                       <div className="flex items-center gap-3">
                         {f.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{f.location}</span>}
@@ -832,6 +847,7 @@ export default function FlocksPage() {
                       </div>
                     </div>
 
+                    {/* Cost & Purpose */}
                     {(f.costPerAnimal || f.purpose) && (
                       <div className="mt-2 flex items-center gap-3 text-[10px] text-gray-400">
                         {f.costPerAnimal && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" />KES {Number(f.costPerAnimal).toLocaleString()}/head</span>}
@@ -839,8 +855,26 @@ export default function FlocksPage() {
                       </div>
                     )}
 
-                    <div className="mt-3 flex items-center justify-end text-[10px] text-emerald-600 font-medium">
-                      <Eye className="h-3 w-3 mr-1" />View Details
+                    {/* Action Buttons */}
+                    <div className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-3">
+                      <button
+                        onClick={() => setSelectedFlock(f)}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-colors cursor-pointer"
+                      >
+                        <Eye className="h-3.5 w-3.5" />Details
+                      </button>
+                      <button
+                        onClick={() => { setEditingFlock(f); setShowEditForm(true); }}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-50 text-gray-600 text-xs font-semibold hover:bg-gray-100 transition-colors cursor-pointer"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(f.id)}
+                        className="flex items-center justify-center p-2 rounded-lg bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </CardContent>
                 </Card>
@@ -848,9 +882,138 @@ export default function FlocksPage() {
             );
           })}
         </motion.div>
+      ) : (
+        /* ─── LIST VIEW ─────────────────────────── */
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-2">
+          {/* List Header */}
+          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            <div className="col-span-4">Name</div>
+            <div className="col-span-1 text-center">Count</div>
+            <div className="col-span-1 text-center">Deaths</div>
+            <div className="col-span-1 text-center">Age</div>
+            <div className="col-span-1 text-center">Mortality</div>
+            <div className="col-span-1 text-center">Status</div>
+            <div className="col-span-1 text-center">Production</div>
+            <div className="col-span-2 text-right">Actions</div>
+          </div>
+
+          {filtered.map((f: any) => {
+            const species = speciesTemplates[f.type];
+            const mortality = f.initialCount > 0 ? ((f.mortality / f.initialCount) * 100).toFixed(1) : "0";
+            const mortalityRating = getMortalityRating(Number(mortality));
+            const pendingVax = (f.vaccinations || []).filter((v: any) => v.status === "pending").length;
+            const prodCount = (f.production || []).length;
+
+            return (
+              <motion.div key={f.id} variants={fadeUp}>
+                <div
+                  className={cn(
+                    "grid grid-cols-12 gap-4 items-center px-4 py-3 rounded-xl border transition-all",
+                    compareMode && selectedForCompare.has(f.id)
+                      ? "border-emerald-400 bg-emerald-50/50 ring-2 ring-emerald-200"
+                      : "border-gray-100 bg-white hover:shadow-md hover:border-emerald-200"
+                  )}
+                >
+                  {/* Name */}
+                  <div
+                    className="col-span-4 flex items-center gap-3 cursor-pointer"
+                    onClick={() => {
+                      if (compareMode) {
+                        setSelectedForCompare((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(f.id)) next.delete(f.id);
+                          else next.add(f.id);
+                          return next;
+                        });
+                      } else {
+                        setSelectedFlock(f);
+                      }
+                    }}
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 flex-shrink-0">
+                      <SpeciesIcon speciesId={f.type} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{f.name}</p>
+                      <p className="text-[11px] text-gray-400 truncate">{f.breed || species?.name}{f.location ? ` • ${f.location}` : ""}</p>
+                    </div>
+                  </div>
+
+                  {/* Count */}
+                  <div className="col-span-1 text-center">
+                    <p className="text-sm font-bold text-gray-900">{(f.currentCount || 0).toLocaleString()}</p>
+                    <p className="text-[9px] text-gray-400">of {f.initialCount}</p>
+                  </div>
+
+                  {/* Deaths */}
+                  <div className="col-span-1 text-center">
+                    <p className="text-sm font-bold text-red-600">{f.mortality || 0}</p>
+                  </div>
+
+                  {/* Age */}
+                  <div className="col-span-1 text-center">
+                    <p className="text-sm font-medium text-gray-700">{getAge(f.hatchDate)}</p>
+                  </div>
+
+                  {/* Mortality */}
+                  <div className="col-span-1 text-center">
+                    <Badge variant="default" className={`text-[10px] ${mortalityRating.bg} ${mortalityRating.color}`}>
+                      {mortality}%
+                    </Badge>
+                  </div>
+
+                  {/* Status */}
+                  <div className="col-span-1 text-center">
+                    <Badge variant={f.status === "active" ? "default" : "outline"} className={`text-[10px] ${f.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}`}>
+                      {f.status}
+                    </Badge>
+                  </div>
+
+                  {/* Production */}
+                  <div className="col-span-1 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {prodCount > 0 && <span className="text-[10px] text-emerald-600"><ClipboardList className="h-3 w-3 inline" /> {prodCount}</span>}
+                      {pendingVax > 0 && <span className="text-[10px] text-amber-600"><Syringe className="h-3 w-3 inline" /> {pendingVax}</span>}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="col-span-2 flex items-center justify-end gap-1.5">
+                    <button
+                      onClick={() => setSelectedFlock(f)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-semibold hover:bg-emerald-100 transition-colors cursor-pointer"
+                    >
+                      <Eye className="h-3 w-3" />View
+                    </button>
+                    <button
+                      onClick={() => { setEditingFlock(f); setShowEditForm(true); }}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-[11px] font-semibold hover:bg-gray-100 transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="h-3 w-3" />Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(f.id)}
+                      className="p-1.5 rounded-lg bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       )}
 
       {showForm && <CreateFlockForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
+
+      {showEditForm && editingFlock && (
+        <EditFlockForm flock={editingFlock} onSubmit={handleEdit} onCancel={() => { setShowEditForm(false); setEditingFlock(null); }} />
+      )}
+
+      {showProductionForm && selectedFlock && (
+        <RecordProductionForm flock={selectedFlock} onSubmit={handleRecordProduction} onCancel={() => setShowProductionForm(false)} />
+      )}
 
       {showComparison && (
         <FlockComparison
