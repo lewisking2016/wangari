@@ -3,8 +3,26 @@ import { prisma } from "../db.js";
 
 const router = Router();
 
+// ─── Provider Configuration ───────────────────────────────
+// Set these in your .env file:
+//   AI_PROVIDER=openai|gemini|anthropic|ollama
+//   AI_API_KEY=your-api-key
+//   AI_MODEL=gpt-4o-mini|gemini-2.0-flash|claude-3-haiku-20240307|qwen2.5:1.5b
+
+const AI_PROVIDER = process.env.AI_PROVIDER || "openai";
+const AI_API_KEY = process.env.AI_API_KEY || "";
+const AI_MODEL = process.env.AI_MODEL || getDefaultModel(AI_PROVIDER);
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
-const MODEL = process.env.OLLAMA_MODEL || "qwen2.5:1.5b";
+
+function getDefaultModel(provider: string): string {
+  switch (provider) {
+    case "openai": return "gpt-4o-mini";
+    case "gemini": return "gemini-2.0-flash";
+    case "anthropic": return "claude-3-haiku-20240307";
+    case "ollama": return "qwen2.5:1.5b";
+    default: return "gpt-4o-mini";
+  }
+}
 
 // ─── Farm Tools Definition ────────────────────────────────
 const farmTools = [
@@ -273,6 +291,211 @@ async function executeTool(toolName: string, args: Record<string, any>, farmId: 
   }
 }
 
+// ─── AI Provider Adapters ─────────────────────────────────
+
+async function callAI(
+  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
+  tools: typeof farmTools
+): Promise<{ content: string; tool_calls: any[] }> {
+  switch (AI_PROVIDER) {
+    case "openai":
+      return callOpenAI(messages, tools);
+    case "gemini":
+      return callGemini(messages, tools);
+    case "anthropic":
+      return callAnthropic(messages, tools);
+    case "ollama":
+      return callOllama(messages, tools);
+    default:
+      return callOpenAI(messages, tools);
+  }
+}
+
+// ─── OpenAI / OpenAI-compatible ───────────────────────────
+async function callOpenAI(
+  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
+  tools: typeof farmTools
+): Promise<{ content: string; tool_calls: any[] }> {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${AI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages,
+      tools: tools.map((t) => ({ type: "function", function: t.function })),
+      temperature: 0.7,
+      max_tokens: 2048,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("OpenAI error:", err);
+    throw new Error(`OpenAI API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const choice = data.choices?.[0];
+  return {
+    content: choice?.message?.content || "",
+    tool_calls: choice?.message?.tool_calls || [],
+  };
+}
+
+// ─── Google Gemini ────────────────────────────────────────
+async function callGemini(
+  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
+  tools: typeof farmTools
+): Promise<{ content: string; tool_calls: any[] }> {
+  // Convert messages to Gemini format
+  const contents = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+  const systemInstruction = messages.find((m) => m.role === "system")?.content;
+
+  const geminiTools = [
+    {
+      function_declarations: tools.map((t) => ({
+        name: t.function.name,
+        description: t.function.description,
+        parameters: t.function.parameters,
+      })),
+    },
+  ];
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${AI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents,
+        systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
+        tools: geminiTools,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Gemini error:", err);
+    throw new Error(`Gemini API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const candidate = data.candidates?.[0];
+  const content = candidate?.content?.parts?.find((p: any) => p.text)?.text || "";
+
+  // Extract tool calls from Gemini response
+  const toolCalls = candidate?.content?.parts
+    ?.filter((p: any) => p.functionCall)
+    ?.map((p: any, i: number) => ({
+      id: `call_${Date.now()}_${i}`,
+      type: "function",
+      function: {
+        name: p.functionCall.name,
+        arguments: JSON.stringify(p.functionCall.args),
+      },
+    })) || [];
+
+  return { content, tool_calls: toolCalls };
+}
+
+// ─── Anthropic Claude ─────────────────────────────────────
+async function callAnthropic(
+  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
+  tools: typeof farmTools
+): Promise<{ content: string; tool_calls: any[] }> {
+  const systemMessage = messages.find((m) => m.role === "system");
+  const chatMessages = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({ role: m.role, content: m.content }));
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": AI_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      max_tokens: 2048,
+      system: systemMessage?.content,
+      messages: chatMessages,
+      tools: tools.map((t) => ({
+        name: t.function.name,
+        description: t.function.description,
+        input_schema: t.function.parameters,
+      })),
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Anthropic error:", err);
+    throw new Error(`Anthropic API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const contentBlock = data.content?.find((b: any) => b.type === "text");
+  const content = contentBlock?.text || "";
+
+  const toolCalls = data.content
+    ?.filter((b: any) => b.type === "tool_use")
+    ?.map((b: any, i: number) => ({
+      id: b.id || `call_${Date.now()}_${i}`,
+      type: "function",
+      function: {
+        name: b.name,
+        arguments: JSON.stringify(b.input),
+      },
+    })) || [];
+
+  return { content, tool_calls: toolCalls };
+}
+
+// ─── Ollama (local) ──────────────────────────────────────
+async function callOllama(
+  messages: Array<{ role: string; content: string; tool_calls?: any[] }>,
+  tools: typeof farmTools
+): Promise<{ content: string; tool_calls: any[] }> {
+  const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages,
+      tools,
+      stream: false,
+      options: { temperature: 0.7, top_p: 0.9, num_ctx: 4096 },
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Ollama error:", err);
+    throw new Error(`Ollama API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return {
+    content: data.message?.content || "",
+    tool_calls: data.message?.tool_calls || [],
+  };
+}
+
 // ─── Chat Endpoint ────────────────────────────────────────
 router.post("/chat", async (req: Request, res: Response) => {
   try {
@@ -282,87 +505,58 @@ router.post("/chat", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Messages array is required" });
     }
 
-    // Build Ollama messages
-    const ollamaMessages = [
+    if (!AI_API_KEY && AI_PROVIDER !== "ollama") {
+      return res.status(500).json({
+        error: `AI provider "${AI_PROVIDER}" requires an API key. Set AI_API_KEY in your .env file.`,
+      });
+    }
+
+    // Build messages with system prompt
+    const fullMessages = [
       { role: "system", content: SYSTEM_PROMPT },
       ...messages,
     ];
 
-    // Call Ollama
-    const ollamaRes = await fetch(`${OLLAMA_URL}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: ollamaMessages,
-        tools: farmTools,
-        stream: false,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
-          num_ctx: 4096,
-        },
-      }),
-    });
-
-    if (!ollamaRes.ok) {
-      const err = await ollamaRes.text();
-      console.error("Ollama error:", err);
-      return res.status(502).json({ error: `AI service error: ${ollamaRes.status}` });
-    }
-
-    const data = await ollamaRes.json();
-    const content = data.message?.content || "";
-    const toolCalls = data.message?.tool_calls || [];
+    // Call AI
+    const response = await callAI(fullMessages, farmTools);
 
     // Execute tool calls if any
     const toolResults = [];
-    if (toolCalls.length > 0 && farmId) {
-      for (const tc of toolCalls) {
-        const result = await executeTool(tc.function.name, tc.function.arguments, farmId);
+    if (response.tool_calls.length > 0 && farmId) {
+      for (const tc of response.tool_calls) {
+        const args = typeof tc.function.arguments === "string"
+          ? JSON.parse(tc.function.arguments)
+          : tc.function.arguments;
+        const result = await executeTool(tc.function.name, args, farmId);
         toolResults.push({
-          tool_call_id: `call_${Date.now()}`,
+          tool_call_id: tc.id,
           name: tc.function.name,
           content: JSON.stringify(result),
         });
       }
 
-      // Send tool results back to Ollama for a final response
+      // Send tool results back for a final response
       const followUpMessages = [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...messages,
-        { role: "assistant", content, tool_calls: toolCalls },
-        ...toolResults.map((tr: any) => ({
+        ...fullMessages,
+        { role: "assistant", content: response.content, tool_calls: response.tool_calls },
+        ...toolResults.map((tr) => ({
           role: "tool" as const,
           content: `Tool ${tr.name} result: ${tr.content}`,
         })),
       ];
 
-      const followUpRes = await fetch(`${OLLAMA_URL}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: followUpMessages,
-          tools: farmTools,
-          stream: false,
-          options: { temperature: 0.7, top_p: 0.9, num_ctx: 4096 },
-        }),
-      });
+      const followUpResponse = await callAI(followUpMessages, farmTools);
 
-      if (followUpRes.ok) {
-        const followUpData = await followUpRes.json();
-        return res.json({
-          message: { role: "assistant", content: followUpData.message?.content || content },
-          tool_calls: toolCalls,
-          tool_results: toolResults,
-        });
-      }
+      return res.json({
+        message: { role: "assistant", content: followUpResponse.content || response.content },
+        tool_calls: response.tool_calls,
+        tool_results: toolResults,
+      });
     }
 
     return res.json({
-      message: { role: "assistant", content },
-      tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+      message: { role: "assistant", content: response.content },
+      tool_calls: response.tool_calls.length > 0 ? response.tool_calls : undefined,
       tool_results: toolResults.length > 0 ? toolResults : undefined,
     });
   } catch (error) {
@@ -373,23 +567,13 @@ router.post("/chat", async (req: Request, res: Response) => {
 });
 
 // ─── Health Check ─────────────────────────────────────────
-router.get("/health", async (_req: Request, res: Response) => {
-  try {
-    const ollamaRes = await fetch(`${OLLAMA_URL}/api/tags`);
-    if (ollamaRes.ok) {
-      const data = await ollamaRes.json();
-      res.json({
-        status: "ok",
-        ollama: "connected",
-        model: MODEL,
-        models: data.models?.map((m: any) => m.name) || [],
-      });
-    } else {
-      res.json({ status: "degraded", ollama: "unreachable" });
-    }
-  } catch {
-    res.json({ status: "degraded", ollama: "not running" });
-  }
+router.get("/health", (_req: Request, res: Response) => {
+  res.json({
+    status: AI_API_KEY || AI_PROVIDER === "ollama" ? "configured" : "needs_api_key",
+    provider: AI_PROVIDER,
+    model: AI_MODEL,
+    hasApiKey: !!AI_API_KEY,
+  });
 });
 
 export default router;

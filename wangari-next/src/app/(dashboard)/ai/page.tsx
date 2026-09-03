@@ -17,7 +17,10 @@ import {
   Syringe,
   CloudSun,
   Zap,
+  AlertCircle,
+  Settings,
 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ai/ChatMessage";
 
@@ -48,9 +51,18 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [providerStatus, setProviderStatus] = React.useState<any>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const [sessionId] = React.useState(() => `session_${Date.now()}`);
+
+  // Check AI provider status
+  React.useEffect(() => {
+    fetch("/api/ai/health")
+      .then((r) => r.json())
+      .then(setProviderStatus)
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -140,7 +152,11 @@ export default function AIAssistantPage() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-wangari-heading">Wangari AI</h1>
-            <p className="text-xs text-wangari-muted">Powered by local AI • Your data stays on your server</p>
+            <p className="text-xs text-wangari-muted">
+            {providerStatus?.status === "configured"
+              ? `${providerStatus.provider.charAt(0).toUpperCase() + providerStatus.provider.slice(1)} • ${providerStatus.model}`
+              : "Configure AI provider in server .env"}
+          </p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -212,6 +228,36 @@ export default function AIAssistantPage() {
               </div>
             )}
             <div ref={messagesEndRef} />
+          </div>
+        </div>
+      )}
+
+      {/* Provider Warning */}
+      {providerStatus && providerStatus.status !== "configured" && messages.length === 0 && (
+        <div className="mx-6 mb-4 max-w-3xl">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-800">AI provider not configured</p>
+              <p className="text-xs text-amber-700 mt-1">
+                Add an API key to your server .env file to enable AI. Supported providers:
+              </p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { key: "openai", label: "OpenAI (GPT-4o-mini)", cost: "~$0.15/1M tokens" },
+                  { key: "gemini", label: "Google Gemini", cost: "Free tier available" },
+                  { key: "anthropic", label: "Anthropic Claude", cost: "~$0.25/1M tokens" },
+                ].map((p) => (
+                  <span key={p.key} className="inline-flex items-center gap-1 rounded-lg bg-white border border-amber-200 px-2.5 py-1 text-xs text-amber-800">
+                    {p.label}
+                    <span className="text-amber-500">• {p.cost}</span>
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-amber-600 mt-2 font-mono bg-white rounded-lg px-2 py-1 border border-amber-200">
+                AI_PROVIDER=gemini && AI_API_KEY=your-key && AI_MODEL=gemini-2.0-flash
+              </p>
+            </div>
           </div>
         </div>
       )}
