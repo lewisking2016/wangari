@@ -17,6 +17,7 @@ import vaccinationsRoutes from "./routes/vaccinations.js";
 import attendanceRoutes from "./routes/attendance.js";
 import weatherRoutes from "./routes/weather.js";
 import aiRoutes from "./routes/ai.js";
+import flocksUploadRoutes from "./routes/flocks-upload.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,6 +45,7 @@ app.use("/api/", limiter);
 
 // ─── Body Parsing ─────────────────────────────────────────
 app.use(express.json({ limit: "10mb" }));
+app.use("/uploads", express.static("uploads"));
 
 // ─── Health Check ─────────────────────────────────────────
 app.get("/health", (_req, res) => {
@@ -64,6 +66,7 @@ app.use("/api/vaccinations", vaccinationsRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/flocks", flocksUploadRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

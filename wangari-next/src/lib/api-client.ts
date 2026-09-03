@@ -75,6 +75,22 @@ export const api = {
 
   delete: <T = any>(path: string) =>
     request<T>(path, { method: "DELETE" }),
+
+  upload: async <T = any>(path: string, formData: FormData): Promise<T> => {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Upload failed: ${res.status}`);
+    return data as T;
+  },
 };
 
 export default api;

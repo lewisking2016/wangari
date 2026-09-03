@@ -27,6 +27,8 @@ import {
   Wheat,
   Scale,
   Egg,
+  BarChart3,
+  Download,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +39,9 @@ import { cn } from "@/lib/utils";
 import { CreateFlockForm } from "@/components/flocks/CreateFlockForm";
 import { EditFlockForm } from "@/components/flocks/EditFlockForm";
 import { RecordProductionForm } from "@/components/flocks/RecordProductionForm";
+import { FlockPhoto } from "@/components/flocks/FlockPhoto";
+import { FlockComparison } from "@/components/flocks/FlockComparison";
+import { ExportReport } from "@/components/flocks/ExportReport";
 import { speciesTemplates, getSpeciesCategories, getSpeciesIconId } from "@/lib/species-templates";
 
 const iconMap: Record<string, any> = { bird: Bird, beef: Beef, droplets: Droplets, flower: Flower };
@@ -137,6 +142,10 @@ export default function FlocksPage() {
   const [filterSpecies, setFilterSpecies] = React.useState<string>("all");
   const [search, setSearch] = React.useState("");
   const [selectedFlock, setSelectedFlock] = React.useState<any>(null);
+  const [showExport, setShowExport] = React.useState(false);
+  const [compareMode, setCompareMode] = React.useState(false);
+  const [selectedForCompare, setSelectedForCompare] = React.useState<Set<number>>(new Set());
+  const [showComparison, setShowComparison] = React.useState(false);
 
   const loadFlocks = () => {
     api.get("/api/flocks").then(d => {
@@ -272,12 +281,18 @@ export default function FlocksPage() {
           </button>
         </motion.div>
 
-        {/* Header with actions */}
+        {/* Header with photo + actions */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-              <SpeciesIcon speciesId={flock.type} />
-            </div>
+            <FlockPhoto
+              flockId={flock.id}
+              photoUrl={flock.photoUrl || null}
+              onPhotoUpdate={(url) => {
+                loadFlocks();
+                setSelectedFlock((prev: any) => prev ? { ...prev, photoUrl: url } : prev);
+              }}
+              size="lg"
+            />
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{flock.name}</h1>
               <p className="text-sm text-gray-400 mt-0.5">
@@ -293,6 +308,9 @@ export default function FlocksPage() {
             }>{flock.status}</Badge>
             <Button onClick={() => setShowProductionForm(true)} variant="ghost" size="sm" className="gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer">
               <ClipboardList className="h-4 w-4" />Record
+            </Button>
+            <Button onClick={() => setShowExport(true)} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
+              <Download className="h-4 w-4" />Export
             </Button>
             <Button onClick={() => setShowEditForm(true)} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
               <Edit3 className="h-4 w-4" />Edit
@@ -642,6 +660,11 @@ export default function FlocksPage() {
         {showProductionForm && (
           <RecordProductionForm flock={flock} onSubmit={handleRecordProduction} onCancel={() => setShowProductionForm(false)} />
         )}
+
+        {/* Export Modal */}
+        {showExport && (
+          <ExportReport flock={flock} onClose={() => setShowExport(false)} />
+        )}
       </div>
     );
   }
@@ -656,6 +679,22 @@ export default function FlocksPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={loadFlocks} variant="ghost" size="sm" className="gap-1.5 text-gray-400"><RefreshCw className="h-4 w-4" /></Button>
+          <Button
+            onClick={() => {
+              if (compareMode && selectedForCompare.size >= 2) {
+                setShowComparison(true);
+              } else {
+                setCompareMode(!compareMode);
+                setSelectedForCompare(new Set());
+              }
+            }}
+            variant="ghost"
+            size="sm"
+            className={cn("gap-1.5 cursor-pointer", compareMode ? "text-emerald-600 bg-emerald-50" : "text-gray-400")}
+          >
+            <BarChart3 className="h-4 w-4" />
+            {compareMode ? `Compare (${selectedForCompare.size})` : "Compare"}
+          </Button>
           <Button onClick={() => setShowForm(true)} className="bg-emerald-700 hover:bg-emerald-800 cursor-pointer">
             <Plus className="h-4 w-4 mr-2" />Add Livestock
           </Button>
@@ -716,8 +755,26 @@ export default function FlocksPage() {
             const prodCount = (f.production || []).length;
 
             return (
-              <motion.div key={f.id} variants={fadeUp} whileHover={{ y: -4 }}>
-                <Card className="border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer" onClick={() => setSelectedFlock(f)}>
+              <motion.div key={f.id} variants={fadeUp} whileHover={{ y: -4 }}>                <Card
+                  className={cn(
+                    "border hover:shadow-xl transition-all duration-300 cursor-pointer",
+                    compareMode && selectedForCompare.has(f.id)
+                      ? "border-emerald-400 bg-emerald-50/50 ring-2 ring-emerald-200"
+                      : "border-gray-100 hover:border-emerald-200"
+                  )}
+                  onClick={() => {
+                    if (compareMode) {
+                      setSelectedForCompare((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(f.id)) next.delete(f.id);
+                        else next.add(f.id);
+                        return next;
+                      });
+                    } else {
+                      setSelectedFlock(f);
+                    }
+                  }}
+                >
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -794,6 +851,13 @@ export default function FlocksPage() {
       )}
 
       {showForm && <CreateFlockForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
+
+      {showComparison && (
+        <FlockComparison
+          flockIds={Array.from(selectedForCompare)}
+          onClose={() => setShowComparison(false)}
+        />
+      )}
     </div>
   );
 }
