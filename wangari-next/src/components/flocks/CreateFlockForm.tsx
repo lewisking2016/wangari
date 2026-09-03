@@ -8,15 +8,11 @@ import {
   Check,
   Calendar,
   Syringe,
-  Wheat,
-  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  speciesTemplates,
   getSpeciesByCategory,
   getSpeciesCategories,
-  getSpeciesTemplate,
   type SpeciesTemplate,
 } from "@/lib/species-templates";
 

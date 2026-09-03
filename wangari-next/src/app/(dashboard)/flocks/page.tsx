@@ -7,41 +7,21 @@ import {
   Trash2,
   Search,
   Heart,
-  TrendingUp,
-  TrendingDown,
-  Eye,
   Syringe,
   Calendar,
   RefreshCw,
-  AlertTriangle,
   Beef,
-  Egg,
-  Droplets,
-  Flower,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import api from "@/lib/api-client";
 import { CreateFlockForm } from "@/components/flocks/CreateFlockForm";
-import { speciesTemplates, getSpeciesCategories, type SpeciesTemplate } from "@/lib/species-templates";
+import { speciesTemplates, getSpeciesCategories } from "@/lib/species-templates";
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
-
-function getSpeciesIcon(speciesId: string) {
-  const icons: Record<string, any> = {
-    layers: Egg, broilers: Bird, kienyeji: Bird,
-    cattle_dairy: Beef, cattle_beef: Beef, goats: Egg, sheep: Egg,
-    pigs: Beef, rabbits: Egg, fish: Droplets, bees: Flower,
-  };
-  return icons[speciesId] || Bird;
-}
-
-function getSpeciesEmoji(speciesId: string): string {
-  return speciesTemplates[speciesId]?.emoji || "🐔";
-}
 
 function getMortalityRating(rate: number): { label: string; color: string; bg: string } {
   if (rate <= 1) return { label: "Normal", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
