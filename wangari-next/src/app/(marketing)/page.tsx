@@ -56,7 +56,7 @@ const slideInRight = {
 
 /* ── Data ── */
 const features = [
-  { icon: Bird, title: "Flock Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time.", href: "/features/flocks" },
+  { icon: Bird, title: "Poultry Management", desc: "Track every bird from hatch date to harvest. Monitor health, feeding, and production in real time.", href: "/features/flocks" },
   { icon: BarChart3, title: "Smart Analytics", desc: "See your costs, revenue, and margins at a glance. Know exactly which flock is most profitable.", href: "/features/analytics" },
   { icon: Package, title: "Inventory Control", desc: "Never run out of feed or medication. Get low-stock alerts and track every bag in and out.", href: "/features/inventory" },
   { icon: Users, title: "Team Management", desc: "Manage workers, attendance, and wages. Assign tasks and track who did what.", href: "/features/team" },

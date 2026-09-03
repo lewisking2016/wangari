@@ -53,7 +53,7 @@ const navGroups: NavGroup[] = [
   {
     title: "Farm Operations",
     items: [
-      { label: "Flocks", href: "/flocks", icon: <Bird className="h-5 w-5" /> },
+      { label: "Poultry", href: "/flocks", icon: <Bird className="h-5 w-5" /> },
       { label: "Production", href: "/production", icon: <ClipboardList className="h-5 w-5" /> },
       { label: "Vaccinations", href: "/vaccinations", icon: <Syringe className="h-5 w-5" /> },
       { label: "Feed Calculator", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
