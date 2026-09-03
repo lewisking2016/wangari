@@ -18,6 +18,15 @@ import {
   ChevronRight,
   Droplets,
   Flower,
+  Edit3,
+  ClipboardList,
+  TrendingUp,
+  AlertTriangle,
+  Check,
+  X,
+  Wheat,
+  Scale,
+  Egg,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,14 +35,11 @@ import { EmptyState } from "@/components/shared/empty-state";
 import api from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { CreateFlockForm } from "@/components/flocks/CreateFlockForm";
+import { EditFlockForm } from "@/components/flocks/EditFlockForm";
+import { RecordProductionForm } from "@/components/flocks/RecordProductionForm";
 import { speciesTemplates, getSpeciesCategories, getSpeciesIconId } from "@/lib/species-templates";
 
-const iconMap: Record<string, any> = {
-  bird: Bird,
-  beef: Beef,
-  droplets: Droplets,
-  flower: Flower,
-};
+const iconMap: Record<string, any> = { bird: Bird, beef: Beef, droplets: Droplets, flower: Flower };
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -67,10 +73,67 @@ function getPurposeLabel(purpose: string | null): string {
   return purpose;
 }
 
+// Quick mortality record inline
+function QuickMortality({ flock, onRecord }: { flock: any; onRecord: (deaths: number, reason: string) => Promise<void> }) {
+  const [deaths, setDeaths] = React.useState("");
+  const [reason, setReason] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [show, setShow] = React.useState(false);
+
+  const handleRecord = async () => {
+    const n = Number(deaths);
+    if (!n || n <= 0) return;
+    setLoading(true);
+    try {
+      await onRecord(n, reason);
+      setDeaths("");
+      setReason("");
+      setShow(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!show) {
+    return (
+      <Button onClick={() => setShow(true)} variant="ghost" size="sm" className="gap-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer">
+        <AlertTriangle className="h-4 w-4" />Record Death
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 p-2 rounded-xl border border-red-100 bg-red-50">
+      <input
+        type="number"
+        placeholder="#"
+        value={deaths}
+        onChange={(e) => setDeaths(e.target.value)}
+        className="w-16 rounded-lg border border-red-200 px-2 py-1.5 text-xs focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+        autoFocus
+      />
+      <input
+        placeholder="Reason (optional)"
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        className="flex-1 rounded-lg border border-red-200 px-2 py-1.5 text-xs focus:ring-2 focus:ring-red-500/20 focus:border-red-400"
+      />
+      <button onClick={handleRecord} disabled={loading || !deaths} className="p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 cursor-pointer">
+        <Check className="h-3.5 w-3.5" />
+      </button>
+      <button onClick={() => setShow(false)} className="p-1.5 rounded-lg hover:bg-red-100 text-red-400 cursor-pointer">
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export default function FlocksPage() {
   const [flocks, setFlocks] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [showEditForm, setShowEditForm] = React.useState(false);
+  const [showProductionForm, setShowProductionForm] = React.useState(false);
   const [filterSpecies, setFilterSpecies] = React.useState<string>("all");
   const [search, setSearch] = React.useState("");
   const [selectedFlock, setSelectedFlock] = React.useState<any>(null);
@@ -89,7 +152,6 @@ export default function FlocksPage() {
     return matchesSearch && matchesSpecies;
   });
 
-  // KPI calculations
   const totalAnimals = flocks.reduce((s: number, f: any) => s + (f.currentCount || 0), 0);
   const totalInitial = flocks.reduce((s: number, f: any) => s + (f.initialCount || 0), 0);
   const totalMortality = flocks.reduce((s: number, f: any) => s + (f.mortality || 0), 0);
@@ -97,13 +159,67 @@ export default function FlocksPage() {
   const activeFlocks = flocks.filter((f: any) => f.status === "active").length;
   const uniqueCategories = [...new Set(flocks.map((f: any) => f.category))].length;
   const totalInvestment = flocks.reduce((s: number, f: any) => s + (Number(f.totalInvestment) || 0), 0);
-
   const categories = getSpeciesCategories();
 
   const handleCreate = async (data: any) => {
     await api.post("/api/flocks", data);
     setShowForm(false);
     loadFlocks();
+  };
+
+  const handleEdit = async (data: any) => {
+    await api.patch(`/api/flocks/${selectedFlock.id}`, data);
+    setShowEditForm(false);
+    loadFlocks();
+    // Re-select the updated flock
+    setSelectedFlock((prev: any) => ({ ...prev, ...data }));
+  };
+
+  const handleRecordProduction = async (data: any) => {
+    await api.post("/api/production", data);
+    setShowProductionForm(false);
+    loadFlocks();
+  };
+
+  const handleRecordMortality = async (deaths: number, reason: string) => {
+    // Update flock mortality and currentCount
+    const newMortality = (selectedFlock.mortality || 0) + deaths;
+    const newCount = (selectedFlock.currentCount || 0) - deaths;
+    await api.patch(`/api/flocks/${selectedFlock.id}`, {
+      mortality: newMortality,
+      currentCount: Math.max(0, newCount),
+    });
+    // Also record in daily production
+    await api.post("/api/production", {
+      flockId: selectedFlock.id,
+      date: new Date().toISOString().split("T")[0],
+      mortality: deaths,
+      notes: reason || null,
+    });
+    loadFlocks();
+    setSelectedFlock((prev: any) => ({
+      ...prev,
+      mortality: newMortality,
+      currentCount: Math.max(0, newCount),
+    }));
+  };
+
+  const handleCompleteVaccination = async (vaxId: number) => {
+    await api.patch(`/api/vaccinations/${vaxId}`, {
+      status: "completed",
+      completedDate: new Date().toISOString(),
+    });
+    loadFlocks();
+    // Update selected flock vaccination status
+    setSelectedFlock((prev: any) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        vaccinations: (prev.vaccinations || []).map((v: any) =>
+          v.id === vaxId ? { ...v, status: "completed", completedDate: new Date().toISOString() } : v
+        ),
+      };
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -125,7 +241,7 @@ export default function FlocksPage() {
     );
   }
 
-  // Detail View
+  // ─── DETAIL VIEW ──────────────────────────────────────
   if (selectedFlock) {
     const flock = flocks.find((f: any) => f.id === selectedFlock.id) || selectedFlock;
     const species = speciesTemplates[flock.type];
@@ -133,21 +249,30 @@ export default function FlocksPage() {
     const vaccinations = flock.vaccinations || [];
     const pendingVax = vaccinations.filter((v: any) => v.status === "pending");
     const completedVax = vaccinations.filter((v: any) => v.status === "completed");
+    const production = flock.production || [];
+
+    // Calculate production stats from last 7 days
+    const last7 = production.slice(0, 7);
+    const avgProduction = last7.length > 0
+      ? last7.reduce((s: number, p: any) => s + (p.eggsCollected || p.milkCollected || 0), 0) / last7.length
+      : 0;
+
+    // Financial summary
+    const totalFeedCost = (Number(flock.feedCostPerMonth) || 0);
+    const daysSinceStart = flock.hatchDate
+      ? Math.floor((Date.now() - new Date(flock.hatchDate).getTime()) / 86400000)
+      : 0;
+    const totalFeedSpent = totalFeedCost * Math.ceil(daysSinceStart / 30);
 
     return (
       <div className="space-y-6">
-        {/* Back Button */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-          <button
-            onClick={() => setSelectedFlock(null)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
-          >
-            <ChevronRight className="h-4 w-4 rotate-180" />
-            Back to Livestock
+          <button onClick={() => setSelectedFlock(null)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
+            <ChevronRight className="h-4 w-4 rotate-180" />Back to Livestock
           </button>
         </motion.div>
 
-        {/* Header */}
+        {/* Header with actions */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
@@ -165,13 +290,14 @@ export default function FlocksPage() {
           <div className="flex items-center gap-2">
             <Badge variant={flock.status === "active" ? "default" : "outline"} className={
               flock.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""
-            }>
-              {flock.status}
-            </Badge>
-            <button
-              onClick={() => handleDelete(flock.id)}
-              className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-            >
+            }>{flock.status}</Badge>
+            <Button onClick={() => setShowProductionForm(true)} variant="ghost" size="sm" className="gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer">
+              <ClipboardList className="h-4 w-4" />Record
+            </Button>
+            <Button onClick={() => setShowEditForm(true)} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
+              <Edit3 className="h-4 w-4" />Edit
+            </Button>
+            <button onClick={() => handleDelete(flock.id)} className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -193,18 +319,20 @@ export default function FlocksPage() {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{stat.label}</p>
                     <p className={`mt-1.5 text-2xl font-bold ${stat.color || "text-gray-900"}`}>{stat.value}</p>
                   </div>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                    {stat.icon}
-                  </div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">{stat.icon}</div>
                 </div>
               </Card>
             </motion.div>
           ))}
         </motion.div>
 
+        {/* Quick Mortality Recording */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <QuickMortality flock={flock} onRecord={handleRecordMortality} />
+        </motion.div>
+
         {/* Detail Sections */}
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Basic Info */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
               <CardContent className="p-5">
@@ -228,7 +356,6 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
 
-          {/* Location & Housing */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
               <CardContent className="p-5">
@@ -252,7 +379,6 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
 
-          {/* Supply & Cost */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
               <CardContent className="p-5">
@@ -277,7 +403,6 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
 
-          {/* Feed Plan */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
               <CardContent className="p-5">
@@ -300,7 +425,6 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
 
-          {/* Vet & Health */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
               <CardContent className="p-5">
@@ -325,7 +449,6 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
 
-          {/* Production Targets */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
               <CardContent className="p-5">
@@ -349,6 +472,99 @@ export default function FlocksPage() {
           </motion.div>
         </div>
 
+        {/* Financial Summary */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-gray-100 bg-white">
+            <CardContent className="p-5">
+              <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-4 flex items-center gap-1.5">
+                <DollarSign className="h-3.5 w-3.5" /> Financial Summary
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 rounded-xl bg-gray-50">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Purchase Cost</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">
+                    {flock.totalInvestment ? `KES ${Number(flock.totalInvestment).toLocaleString()}` : "—"}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-50">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Feed Spent</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">
+                    {totalFeedSpent > 0 ? `KES ${totalFeedSpent.toLocaleString()}` : "—"}
+                  </p>
+                  <p className="text-[10px] text-gray-400">{Math.ceil(daysSinceStart / 30)} months</p>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-50">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Avg Daily Production</p>
+                  <p className="text-lg font-bold text-emerald-700 mt-1">
+                    {avgProduction > 0 ? avgProduction.toFixed(0) : "—"}
+                  </p>
+                  <p className="text-[10px] text-gray-400">last 7 days avg</p>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-50">
+                  <p className="text-[10px] font-bold uppercase text-gray-400">Days Active</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{daysSinceStart}</p>
+                  <p className="text-[10px] text-gray-400">since {flock.hatchDate ? new Date(flock.hatchDate).toLocaleDateString() : "start"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Production History */}
+        {production.length > 0 && (
+          <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+            <Card className="border border-gray-100 bg-white">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider flex items-center gap-1.5">
+                    <TrendingUp className="h-3.5 w-3.5" /> Production History
+                  </h3>
+                  <Button onClick={() => setShowProductionForm(true)} variant="ghost" size="sm" className="gap-1.5 text-emerald-600 hover:text-emerald-700 cursor-pointer">
+                    <Plus className="h-3.5 w-3.5" />Record
+                  </Button>
+                </div>
+                {/* Simple bar chart for last 14 days */}
+                <div className="flex items-end gap-1 h-24 mb-2">
+                  {production.slice(0, 14).reverse().map((p: any, i: number) => {
+                    const val = p.eggsCollected || p.milkCollected || 0;
+                    const max = Math.max(...production.slice(0, 14).map((x: any) => x.eggsCollected || x.milkCollected || 0), 1);
+                    const height = (val / max) * 100;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div
+                          className={cn("w-full rounded-t-md transition-all", val > 0 ? "bg-emerald-400" : "bg-gray-100")}
+                          style={{ height: `${Math.max(height, 4)}%` }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-1 text-[9px] text-gray-300">
+                  {production.slice(0, 14).reverse().map((p: any, i: number) => (
+                    <div key={i} className="flex-1 text-center truncate">
+                      {new Date(p.date).getDate()}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Production table */}
+                <div className="mt-4 space-y-1.5">
+                  {production.slice(0, 10).map((p: any) => (
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 text-xs">
+                      <span className="text-gray-400 w-20">{new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                      {p.eggsCollected > 0 && <span className="font-medium text-gray-700">{p.eggsCollected} eggs</span>}
+                      {p.milkCollected > 0 && <span className="font-medium text-gray-700">{p.milkCollected}L</span>}
+                      {p.mortality > 0 && <span className="font-medium text-red-600">{p.mortality} deaths</span>}
+                      {p.feedUsed > 0 && <span className="text-gray-400">{p.feedUsed}kg feed</span>}
+                      {p.notes && <span className="text-gray-400 truncate flex-1">{p.notes}</span>}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Vaccination Schedule */}
         {vaccinations.length > 0 && (
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
@@ -365,10 +581,7 @@ export default function FlocksPage() {
                 </div>
                 <div className="space-y-2">
                   {vaccinations.map((vax: any) => (
-                    <div
-                      key={vax.id}
-                      className="flex items-center gap-4 p-3 rounded-xl border border-gray-50 bg-gray-50/50"
-                    >
+                    <div key={vax.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-50 bg-gray-50/50">
                       <div className={cn(
                         "flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0",
                         vax.status === "completed" ? "bg-emerald-100 text-emerald-600" : "bg-amber-50 text-amber-600"
@@ -389,15 +602,18 @@ export default function FlocksPage() {
                           </div>
                         )}
                       </div>
-                      <Badge
-                        variant={vax.status === "completed" ? "default" : "outline"}
-                        className={cn(
-                          "text-[10px] flex-shrink-0",
-                          vax.status === "completed" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-                        )}
-                      >
-                        {vax.status}
-                      </Badge>
+                      {vax.status === "pending" ? (
+                        <button
+                          onClick={() => handleCompleteVaccination(vax.id)}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors cursor-pointer flex-shrink-0"
+                        >
+                          Mark Done
+                        </button>
+                      ) : (
+                        <Badge variant="default" className="text-[10px] bg-emerald-50 text-emerald-700 flex-shrink-0">
+                          Completed
+                        </Badge>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -406,7 +622,6 @@ export default function FlocksPage() {
           </motion.div>
         )}
 
-        {/* Notes */}
         {flock.notes && (
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
             <Card className="border border-gray-100 bg-white">
@@ -417,32 +632,36 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
         )}
+
+        {/* Edit Form Modal */}
+        {showEditForm && (
+          <EditFlockForm flock={flock} onSubmit={handleEdit} onCancel={() => setShowEditForm(false)} />
+        )}
+
+        {/* Production Recording Modal */}
+        {showProductionForm && (
+          <RecordProductionForm flock={flock} onSubmit={handleRecordProduction} onCancel={() => setShowProductionForm(false)} />
+        )}
       </div>
     );
   }
 
-  // List View
+  // ─── LIST VIEW ──────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Header */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Livestock</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
-            Manage all your farm animals — poultry, cattle, goats, fish & more
-          </p>
+          <p className="text-sm text-gray-400 mt-0.5">Manage all your farm animals — poultry, cattle, goats, fish & more</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={loadFlocks} variant="ghost" size="sm" className="gap-1.5 text-gray-400">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <Button onClick={loadFlocks} variant="ghost" size="sm" className="gap-1.5 text-gray-400"><RefreshCw className="h-4 w-4" /></Button>
           <Button onClick={() => setShowForm(true)} className="bg-emerald-700 hover:bg-emerald-800 cursor-pointer">
             <Plus className="h-4 w-4 mr-2" />Add Livestock
           </Button>
         </div>
       </motion.div>
 
-      {/* KPI Cards */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Animals", value: totalAnimals.toLocaleString(), icon: <PawPrint className="h-5 w-5" />, change: `${activeFlocks} active groups`, positive: true },
@@ -456,63 +675,37 @@ export default function FlocksPage() {
                 <div className="flex-1">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{kpi.label}</p>
                   <p className="mt-2 text-3xl font-bold text-gray-900">{kpi.value}</p>
-                  <Badge variant="default" className={`mt-2 ${kpi.positive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                    {kpi.change}
-                  </Badge>
+                  <Badge variant="default" className={`mt-2 ${kpi.positive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{kpi.change}</Badge>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">
-                  {kpi.icon}
-                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">{kpi.icon}</div>
               </div>
             </Card>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* Category Filter Tabs */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => setFilterSpecies("all")}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
-            filterSpecies === "all" ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
+        <button onClick={() => setFilterSpecies("all")} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${filterSpecies === "all" ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
           All ({flocks.length})
         </button>
         {categories.map((cat) => {
           const count = flocks.filter((f: any) => f.category === cat.id).length;
           if (count === 0) return null;
           return (
-            <button
-              key={cat.id}
-              onClick={() => setFilterSpecies(cat.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
-                filterSpecies === cat.id ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
+            <button key={cat.id} onClick={() => setFilterSpecies(cat.id)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${filterSpecies === cat.id ? "bg-emerald-700 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
               {cat.label} ({count})
             </button>
           );
         })}
       </motion.div>
 
-      {/* Search */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input
-          placeholder="Search by name, breed, or species..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-12 rounded-xl border border-gray-200 pl-10 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-        />
+        <input placeholder="Search by name, breed, or species..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full h-12 rounded-xl border border-gray-200 pl-10 pr-4 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
       </motion.div>
 
-      {/* Flock Grid */}
       {filtered.length === 0 ? (
-        <EmptyState
-          title="No livestock yet"
-          description="Add your first flock to start tracking your livestock."
-        />
+        <EmptyState title="No livestock yet" description="Add your first flock to start tracking your livestock." />
       ) : (
         <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((f: any) => {
@@ -520,15 +713,12 @@ export default function FlocksPage() {
             const mortality = f.initialCount > 0 ? ((f.mortality / f.initialCount) * 100).toFixed(1) : "0";
             const mortalityRating = getMortalityRating(Number(mortality));
             const pendingVax = (f.vaccinations || []).filter((v: any) => v.status === "pending").length;
+            const prodCount = (f.production || []).length;
 
             return (
               <motion.div key={f.id} variants={fadeUp} whileHover={{ y: -4 }}>
-                <Card
-                  className="border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer"
-                  onClick={() => setSelectedFlock(f)}
-                >
+                <Card className="border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 cursor-pointer" onClick={() => setSelectedFlock(f)}>
                   <CardContent className="p-5">
-                    {/* Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
@@ -540,21 +730,13 @@ export default function FlocksPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Badge variant={f.status === "active" ? "default" : "outline"} className={
-                          f.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""
-                        }>
-                          {f.status}
-                        </Badge>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
-                        >
+                        <Badge variant={f.status === "active" ? "default" : "outline"} className={f.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}>{f.status}</Badge>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(f.id); }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors cursor-pointer">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    {/* Stats Grid */}
                     <div className="mt-4 grid grid-cols-3 gap-3">
                       <div className="rounded-lg bg-gray-50 p-2.5 text-center">
                         <p className="text-lg font-bold text-gray-900">{(f.currentCount || 0).toLocaleString()}</p>
@@ -570,7 +752,6 @@ export default function FlocksPage() {
                       </div>
                     </div>
 
-                    {/* Mortality Bar */}
                     <div className="mt-3">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[10px] font-semibold uppercase text-gray-400">Mortality</span>
@@ -579,54 +760,30 @@ export default function FlocksPage() {
                         </Badge>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            Number(mortality) <= 3 ? "bg-emerald-500" : Number(mortality) <= 5 ? "bg-amber-500" : "bg-red-500"
-                          }`}
-                          style={{ width: `${Math.min(Number(mortality) * 10, 100)}%` }}
-                        />
+                        <div className={`h-full rounded-full transition-all ${Number(mortality) <= 3 ? "bg-emerald-500" : Number(mortality) <= 5 ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${Math.min(Number(mortality) * 10, 100)}%` }} />
                       </div>
                     </div>
 
-                    {/* Quick Info */}
                     <div className="mt-3 flex items-center justify-between text-[11px] text-gray-400">
                       <div className="flex items-center gap-3">
-                        {f.location && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />{f.location}
-                          </span>
-                        )}
-                        {f.hatchDate && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />{new Date(f.hatchDate).toLocaleDateString()}
-                          </span>
-                        )}
+                        {f.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{f.location}</span>}
+                        {f.hatchDate && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{new Date(f.hatchDate).toLocaleDateString()}</span>}
                       </div>
-                      {pendingVax > 0 && (
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <Syringe className="h-3 w-3" />{pendingVax} due
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {prodCount > 0 && <span className="flex items-center gap-1 text-emerald-600"><ClipboardList className="h-3 w-3" />{prodCount}</span>}
+                        {pendingVax > 0 && <span className="flex items-center gap-1 text-amber-600"><Syringe className="h-3 w-3" />{pendingVax}</span>}
+                      </div>
                     </div>
 
-                    {/* Cost & Purpose */}
                     {(f.costPerAnimal || f.purpose) && (
                       <div className="mt-2 flex items-center gap-3 text-[10px] text-gray-400">
-                        {f.costPerAnimal && (
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />KES {Number(f.costPerAnimal).toLocaleString()}/head
-                          </span>
-                        )}
-                        {f.purpose && (
-                          <span className="px-1.5 py-0.5 rounded bg-gray-50">{getPurposeLabel(f.purpose)}</span>
-                        )}
+                        {f.costPerAnimal && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" />KES {Number(f.costPerAnimal).toLocaleString()}/head</span>}
+                        {f.purpose && <span className="px-1.5 py-0.5 rounded bg-gray-50">{getPurposeLabel(f.purpose)}</span>}
                       </div>
                     )}
 
-                    {/* View Detail Hint */}
                     <div className="mt-3 flex items-center justify-end text-[10px] text-emerald-600 font-medium">
-                      <Eye className="h-3 w-3 mr-1" />
-                      View Details
+                      <Eye className="h-3 w-3 mr-1" />View Details
                     </div>
                   </CardContent>
                 </Card>
@@ -636,13 +793,7 @@ export default function FlocksPage() {
         </motion.div>
       )}
 
-      {/* Create Flock Form Modal */}
-      {showForm && (
-        <CreateFlockForm
-          onSubmit={handleCreate}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
+      {showForm && <CreateFlockForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
     </div>
   );
 }
