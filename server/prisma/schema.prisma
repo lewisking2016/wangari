@@ -27,6 +27,7 @@ model User {
   sales        Sale[]
   workers      Worker[]
   auditLogs    AuditLog[]
+  crops        Crop[]
 
   @@map("users")
 }
