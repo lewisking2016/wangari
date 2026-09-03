@@ -16,6 +16,7 @@ import productionRoutes from "./routes/production.js";
 import vaccinationsRoutes from "./routes/vaccinations.js";
 import attendanceRoutes from "./routes/attendance.js";
 import weatherRoutes from "./routes/weather.js";
+import aiRoutes from "./routes/ai.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -62,6 +63,7 @@ app.use("/api/production", productionRoutes);
 app.use("/api/vaccinations", vaccinationsRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/weather", weatherRoutes);
+app.use("/api/ai", aiRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
