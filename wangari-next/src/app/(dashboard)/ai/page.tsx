@@ -56,6 +56,7 @@ export default function AIAssistantPage() {
   const [tasks, setTasks] = React.useState<TaskItem[]>([]);
   const [showTaskPanel, setShowTaskPanel] = React.useState(true);
   const [providerStatus, setProviderStatus] = React.useState<any>(null);
+  const [providers, setProviders] = React.useState<any[]>([]);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const [sessionId] = React.useState(() => `session_${Date.now()}`);
@@ -75,6 +76,10 @@ export default function AIAssistantPage() {
     fetch("/api/ai/health")
       .then((r) => r.json())
       .then(setProviderStatus)
+      .catch(() => {});
+    fetch("/api/ai/providers")
+      .then((r) => r.json())
+      .then(setProviders)
       .catch(() => {});
   }, []);
 
@@ -175,8 +180,8 @@ export default function AIAssistantPage() {
               <h1 className="text-lg font-bold text-wangari-heading">Wangari AI Workspace</h1>
               <p className="text-xs text-wangari-muted">
                 {providerStatus?.status === "configured"
-                  ? `${providerStatus.provider.charAt(0).toUpperCase() + providerStatus.provider.slice(1)} • ${providerStatus.model} • 28 farm tools`
-                  : "Configure AI provider in server .env"}
+                  ? `${providerStatus.providerName || providerStatus.provider} • ${providerStatus.model} • 28 farm tools`
+                  : "Choose a free AI provider below"}
               </p>
             </div>
           </div>
@@ -217,23 +222,21 @@ export default function AIAssistantPage() {
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-amber-800">AI provider not configured</p>
-                <p className="text-xs text-amber-700 mt-1">
-                  Add to your server .env file:
+                        <p className="text-xs text-amber-700 mt-1">
+                  Free providers (no credit card needed):
                 </p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {[
-                    { key: "gemini", label: "Google Gemini", cost: "Free tier" },
-                    { key: "openai", label: "OpenAI GPT-4o-mini", cost: "~$0.15/1M" },
-                    { key: "anthropic", label: "Claude Haiku", cost: "~$0.25/1M" },
-                  ].map((p) => (
-                    <span key={p.key} className="inline-flex items-center gap-1 rounded-lg bg-white border border-amber-200 px-2.5 py-1 text-xs text-amber-800">
-                      {p.label}
-                      <span className="text-amber-500">• {p.cost}</span>
-                    </span>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {providers.filter((p: any) => !p.creditCard).map((p: any) => (
+                    <a key={p.id} href={p.setupUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex flex-col rounded-lg bg-white border border-amber-200 px-3 py-2 hover:border-amber-400 transition-colors">
+                      <span className="text-xs font-semibold text-amber-800">{p.name}</span>
+                      <span className="text-[10px] text-amber-600 mt-0.5">{p.rateLimit}</span>
+                      <span className="text-[10px] text-amber-500 mt-0.5">{p.freeModels?.slice(0, 2).join(", ")}{p.freeModels?.length > 2 ? ` +${p.freeModels.length - 2} more` : ""}</span>
+                    </a>
                   ))}
                 </div>
                 <p className="text-xs text-amber-600 mt-2 font-mono bg-white rounded-lg px-2 py-1 border border-amber-200">
-                  AI_PROVIDER=gemini && AI_API_KEY=your-key && AI_MODEL=gemini-2.0-flash
+                  AI_PROVIDER=gemini AI_API_KEY=your-key AI_MODEL=gemini-2.0-flash
                 </p>
               </div>
             </div>
