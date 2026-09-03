@@ -11,7 +11,7 @@ interface TopbarProps {
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/flocks": "Poultry",
+  "/flocks": "Livestock",
   "/production": "Production",
   "/finances": "Finances",
   "/sales": "Sales",

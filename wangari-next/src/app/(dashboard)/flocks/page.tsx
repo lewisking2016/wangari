@@ -124,9 +124,9 @@ export default function FlocksPage() {
       {/* Header */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-wangari-heading tracking-tight">Poultry</h1>
+          <h1 className="text-2xl font-bold text-wangari-heading tracking-tight">Livestock</h1>
           <p className="text-sm text-wangari-muted mt-0.5">
-            Manage your poultry flocks — layers, broilers, kienyeji & more
+            Manage all your farm animals — poultry, cattle, goats, fish & more
           </p>
         </div>
         <div className="flex items-center gap-2">
