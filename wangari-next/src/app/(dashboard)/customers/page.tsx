@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, X, Phone, Mail, MapPin, Trash2, DollarSign, ShoppingCart } from "lucide-react";
+import { Users, Plus, X, Phone, Mail, MapPin, Trash2, DollarSign, ShoppingCart, Search, ChevronRight, ArrowUpRight } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,117 +15,230 @@ import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
-const scaleIn = { hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
 
 export default function CustomersPage() {
   const [customers, setCustomers] = React.useState<any[]>([]);
   const [sales, setSales] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [step, setStep] = React.useState(1);
+  const [search, setSearch] = React.useState("");
+  const [detailCustomer, setDetailCustomer] = React.useState<any>(null);
+  const [showPayModal, setShowPayModal] = React.useState<number | null>(null);
+  const [payAmount, setPayAmount] = React.useState("");
   const [form, setForm] = React.useState({ name: "", phone: "", email: "", address: "" });
   const { showToast, ToastComponent } = useToast();
 
   const load = () => {
-    Promise.all([
-      api.get("/api/customers"),
-      api.get("/api/sales"),
-    ]).then(([c, s]) => { setCustomers(Array.isArray(c) ? c : []); setSales(Array.isArray(s) ? s : []); setLoading(false); }).catch(() => setLoading(false));
+    Promise.all([api.get("/api/customers"), api.get("/api/sales")])
+      .then(([c, s]) => { setCustomers(Array.isArray(c) ? c : []); setSales(Array.isArray(s) ? s : []); setLoading(false); })
+      .catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 
   const handleSubmit = async () => {
     await api.post("/api/customers", form);
     setForm({ name: "", phone: "", email: "", address: "" });
-    setShowForm(false);
-    showToast("Customer added!");
-    load();
+    setStep(1); setShowForm(false); showToast("Customer added!"); load();
+  };
+
+  const handleRecordPayment = async (customerId: number) => {
+    if (!payAmount) return;
+    const cust = customerStats.find(c => c.id === customerId);
+    if (!cust) return;
+    const newCredit = Math.max(0, cust.totalOwed - Number(payAmount));
+    await api.patch(`/api/customers/${customerId}`, { totalCredit: newCredit });
+    setShowPayModal(null); setPayAmount("");
+    showToast("Payment recorded!"); load();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this customer?")) return;
-    await api.delete("/api/customers/" + id);
-    load();
+    await api.delete("/api/customers/" + id); load();
   };
 
-  // Calculate stats per customer
   const customerStats = customers.map(c => {
-    const customerSales = sales.filter(s => s.customerId === c.id);
-    const totalSpent = customerSales.reduce((s, sale) => s + Number(sale.totalAmount), 0);
-    const totalOwed = customerSales.reduce((s, sale) => s + (Number(sale.totalAmount) - Number(sale.amountPaid)), 0);
-    return { ...c, totalSpent, totalOwed, salesCount: customerSales.length };
+    const custSales = sales.filter(s => s.customerId === c.id);
+    const totalSpent = custSales.reduce((s, sale) => s + Number(sale.totalAmount), 0);
+    const totalOwed = custSales.reduce((s, sale) => s + (Number(sale.totalAmount) - Number(sale.amountPaid)), 0);
+    return { ...c, totalSpent, totalOwed, salesCount: custSales.length, recentSales: custSales.slice(0, 5) };
   });
+
+  const filtered = customerStats.filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search));
 
   const totalRevenue = customerStats.reduce((s, c) => s + c.totalSpent, 0);
   const totalOwed = customerStats.reduce((s, c) => s + c.totalOwed, 0);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
+  // Customer detail view
+  if (detailCustomer) {
+    const cust = customerStats.find(c => c.id === detailCustomer.id) || detailCustomer;
+    return (
+      <div className="space-y-6">
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <button onClick={() => setDetailCustomer(null)} className="text-xs font-bold text-[#166534] mb-3 cursor-pointer">&larr; Back to customers</button>
+          <div className="flex items-center gap-4">
+            <Avatar name={cust.name} size="lg" />
+            <div>
+              <h1 className="text-xl font-extrabold text-[#0F172A]">{cust.name}</h1>
+              {cust.phone && <p className="text-sm text-[#64748B] flex items-center gap-1"><Phone className="h-3 w-3" />{cust.phone}</p>}
+              {cust.email && <p className="text-sm text-[#64748B] flex items-center gap-1"><Mail className="h-3 w-3" />{cust.email}</p>}
+              {cust.address && <p className="text-sm text-[#64748B] flex items-center gap-1"><MapPin className="h-3 w-3" />{cust.address}</p>}
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="border border-[#E5E7EB]"><CardContent className="pt-4 pb-3 px-4"><p className="text-[10px] text-[#64748B] uppercase">Orders</p><p className="text-xl font-extrabold text-[#0F172A]">{cust.salesCount}</p></CardContent></Card>
+          <Card className="border border-[#E5E7EB]"><CardContent className="pt-4 pb-3 px-4"><p className="text-[10px] text-[#64748B] uppercase">Total spent</p><p className="text-xl font-extrabold text-[#166534]">KES {cust.totalSpent.toLocaleString()}</p></CardContent></Card>
+          <Card className="border border-amber-200 bg-amber-50"><CardContent className="pt-4 pb-3 px-4"><p className="text-[10px] text-amber-600 uppercase">Owed</p><p className="text-xl font-extrabold text-amber-600">KES {cust.totalOwed.toLocaleString()}</p></CardContent></Card>
+        </div>
+
+        {cust.totalOwed > 0 && (
+          <Button onClick={() => { setShowPayModal(cust.id); setPayAmount(String(cust.totalOwed)); }} className="w-full bg-amber-500 hover:bg-amber-600 text-white cursor-pointer">Record Payment</Button>
+        )}
+
+        <div>
+          <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider mb-3">Recent Sales</p>
+          {cust.recentSales.length === 0 ? <p className="text-xs text-[#94A3B8] text-center py-4">No sales yet</p> : (
+            <div className="space-y-2">
+              {cust.recentSales.map((s: any) => (
+                <Card key={s.id} className="border border-[#E5E7EB]">
+                  <CardContent className="p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-[#0F172A]">{new Date(s.saleDate).toLocaleDateString()}</p>
+                      <p className="text-[10px] text-[#94A3B8]">{Array.isArray(s.items) ? s.items.map((it: any) => it.name).join(", ") || "General" : "General"}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-extrabold text-[#0F172A]">KES {Number(s.totalAmount).toLocaleString()}</p>
+                      <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0] text-[9px]" : "bg-amber-50 text-amber-700 border-amber-200 text-[9px]"}>{s.paymentStatus}</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Pay modal */}
+        {showPayModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+              <Card className="w-80 border border-[#E5E7EB]">
+                <CardContent className="p-6 space-y-4">
+                  <h3 className="text-sm font-bold text-[#0F172A]">Record Payment</h3>
+                  <Input type="number" placeholder="Amount" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="h-12 rounded-xl text-lg font-bold text-center" />
+                  <div className="flex gap-2">
+                    <Button onClick={() => setShowPayModal(null)} variant="outline" className="flex-1 cursor-pointer">Cancel</Button>
+                    <Button onClick={() => handleRecordPayment(showPayModal)} className="flex-1 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        )}
+        {ToastComponent}
+      </div>
+    );
+  }
+
+  // List view
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <PageHeader title="Customers" description="Manage customer profiles and purchase history"
-          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Customer</Button>}
-        />
+          action={<Button onClick={() => { setShowForm(!showForm); setStep(1); }} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Customer</Button>} />
       </motion.div>
 
+      {/* Form — step by step */}
       {showForm && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
+          <Card className="border border-[#E5E7EB]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-[#0F172A]">Add New Customer</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold text-[#0F172A]">Add Customer</h3>
+                  <div className="flex gap-1">{[1, 2].map(s => <div key={s} className={`h-1.5 w-8 rounded-full ${step >= s ? "bg-[#166534]" : "bg-gray-200"}`} />)}</div>
+                </div>
                 <button onClick={() => setShowForm(false)} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Name</Label><Input placeholder="e.g. Grace Wanjiku" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="h-10 rounded-xl" /></div>
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Phone</Label><Input placeholder="+254 7XX XXX XXX" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="h-10 rounded-xl" /></div>
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Email</Label><Input placeholder="customer@email.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="h-10 rounded-xl" /></div>
-                <div className="flex items-end"><Button onClick={handleSubmit} className="w-full bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button></div>
-              </div>
+
+              {step === 1 && (
+                <div className="space-y-3">
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Customer name</Label><Input placeholder="e.g. Grace Wanjiku" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="h-12 rounded-xl text-base" autoFocus /></div>
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Phone number</Label><Input placeholder="+254 7XX XXX XXX" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="h-11 rounded-xl" /></div>
+                  <Button onClick={() => form.name && setStep(2)} disabled={!form.name} className="w-full h-11 cursor-pointer">Next</Button>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-3">
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Email (optional)</Label><Input placeholder="customer@email.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="h-11 rounded-xl" /></div>
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Address (optional)</Label><Input placeholder="e.g. Nairobi, Kenya" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="h-11 rounded-xl" /></div>
+                  <div className="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-3 space-y-1">
+                    <p className="text-xs text-[#64748B]">Name: <span className="font-bold text-[#0F172A]">{form.name}</span></p>
+                    {form.phone && <p className="text-xs text-[#64748B]">Phone: <span className="font-bold text-[#0F172A]">{form.phone}</span></p>}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={() => setStep(1)} variant="outline" className="flex-1 cursor-pointer">Back</Button>
+                    <Button onClick={handleSubmit} disabled={!form.name} className="flex-1 h-11 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-3 gap-4">
+      {/* KPIs */}
+      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-3 gap-3">
         {[
-          { title: "Total Customers", value: String(customers.length), icon: <Users className="h-5 w-5" /> },
-          { title: "Total Revenue", value: "KES " + totalRevenue.toLocaleString(), icon: <DollarSign className="h-5 w-5" /> },
-          { title: "Outstanding Credit", value: "KES " + totalOwed.toLocaleString(), icon: <ShoppingCart className="h-5 w-5" /> },
+          { title: "Customers", value: String(customers.length), icon: <Users className="h-5 w-5" />, color: "bg-[#166534]" },
+          { title: "Revenue", value: `KES ${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-emerald-500" },
+          { title: "Outstanding", value: `KES ${totalOwed.toLocaleString()}`, icon: <ShoppingCart className="h-5 w-5" />, color: totalOwed > 0 ? "bg-amber-500" : "bg-[#166534]" },
         ].map(kpi => (
-          <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4 }}>
-            <Card className="border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
-              <CardContent className="pt-6 pb-4 px-5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">{kpi.icon}</div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>
-                <p className="text-2xl font-extrabold text-[#0F172A]">{kpi.value}</p>
+          <motion.div key={kpi.title} variants={fadeUp}>
+            <Card className="border border-[#E5E7EB]">
+              <CardContent className="pt-4 pb-3 px-4">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${kpi.color} text-white mb-2`}>{kpi.icon}</div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{kpi.title}</p>
+                <p className="text-xl font-extrabold text-[#0F172A]">{kpi.value}</p>
               </CardContent>
             </Card>
           </motion.div>
         ))}
       </motion.div>
 
-      {customers.length === 0 ? <EmptyState title="No customers" description="Add your first customer." /> : (
-        <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {customerStats.map(c => (
-            <motion.div key={c.id} variants={scaleIn} whileHover={{ y: -4 }}>
-              <Card className="border border-[#E5E7EB] hover:shadow-xl hover:border-[#BBF7D0] transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+        <input placeholder="Search by name or phone..." value={search} onChange={e => setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-[#E5E7EB] pl-9 pr-3 text-sm" />
+      </div>
+
+      {/* Customer cards */}
+      {filtered.length === 0 ? <EmptyState title="No customers" description="Add your first customer." /> : (
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-2">
+          {filtered.map(c => (
+            <motion.div key={c.id} variants={fadeUp}>
+              <Card className="border border-[#E5E7EB]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between" onClick={() => setDetailCustomer(c)} role="button">
                     <div className="flex items-center gap-3">
                       <Avatar name={c.name} size="md" />
                       <div>
-                        <h3 className="font-bold text-[#0F172A]">{c.name}</h3>
-                        {c.phone && <p className="text-xs text-[#64748B] flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</p>}
-                        {c.email && <p className="text-xs text-[#64748B] flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</p>}
+                        <h3 className="text-sm font-bold text-[#0F172A]">{c.name}</h3>
+                        <p className="text-[10px] text-[#94A3B8]">{c.salesCount} orders</p>
+                        {c.phone && <p className="text-[10px] text-[#94A3B8]">{c.phone}</p>}
                       </div>
                     </div>
-                    <button onClick={() => handleDelete(c.id)} className="text-[#94A3B8] hover:text-red-500 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                    <div className="rounded-lg bg-[#FAFBFC] p-2"><p className="text-[10px] text-[#94A3B8] uppercase">Orders</p><p className="font-bold text-[#0F172A]">{c.salesCount}</p></div>
-                    <div className="rounded-lg bg-[#FAFBFC] p-2"><p className="text-[10px] text-[#94A3B8] uppercase">Spent</p><p className="font-bold text-[#166534] text-xs">KES {c.totalSpent.toLocaleString()}</p></div>
-                    <div className="rounded-lg bg-[#FAFBFC] p-2"><p className="text-[10px] text-[#94A3B8] uppercase">Owed</p><p className="font-bold text-amber-600 text-xs">KES {c.totalOwed.toLocaleString()}</p></div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm font-extrabold text-[#0F172A]">KES {c.totalSpent.toLocaleString()}</p>
+                        {c.totalOwed > 0 && <p className="text-[10px] font-bold text-amber-600">KES {c.totalOwed.toLocaleString()} owed</p>}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[#94A3B8]" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

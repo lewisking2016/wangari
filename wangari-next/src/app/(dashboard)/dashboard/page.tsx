@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import {
   Bird,
   Egg,
+  Milk,
+  Beef,
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
@@ -15,6 +17,7 @@ import {
   Wheat,
   Target,
   Heart,
+  Leaf,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -198,9 +201,33 @@ export default function DashboardPage() {
         </Button>
       </motion.div>
 
+      {/* Onboarding banner for new users */}
+      {!data?.totalFlocks && !data?.totalBirds && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="border border-[#BBF7D0] bg-[#F0FDF4]">
+            <CardContent className="p-5">
+              <h3 className="text-sm font-bold text-[#0F172A] mb-2">Welcome to Wangari!</h3>
+              <p className="text-xs text-[#64748B] mb-4">Get started in 3 simple steps:</p>
+              <div className="space-y-2">
+                {[
+                  { step: "1", text: "Add your livestock or crops", href: "/flocks", color: "bg-[#166534]" },
+                  { step: "2", text: "Record today's production", href: "/production", color: "bg-emerald-500" },
+                  { step: "3", text: "Track your expenses", href: "/finances", color: "bg-amber-500" },
+                ].map(s => (
+                  <Link key={s.step} href={s.href} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white transition-colors">
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-full ${s.color} text-white text-xs font-bold`}>{s.step}</div>
+                    <p className="text-xs font-semibold text-[#0F172A]">{s.text}</p>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* ═══════════════════════════════════════════════════════
           ROW 1: What the farmer needs FIRST
-          Eggs today, birds alive, feed stock, money
+          Production output, total animals, feed stock, money
           ═══════════════════════════════════════════════════════ */}
       <motion.div
         initial="hidden"
@@ -210,19 +237,19 @@ export default function DashboardPage() {
       >
         <motion.div variants={fadeUp}>
           <KpiCard
-            title="Eggs Today"
-            value={(data?.eggsToday || 0).toLocaleString()}
-            icon={<Egg className="h-5 w-5" />}
-            change={`${data?.henDayProduction || 0}% hen-day`}
+            title="Production Today"
+            value={data?.eggsToday ? `${data.eggsToday} eggs` : data?.milkToday ? `${data.milkToday}L` : (data?.eggsToday || 0).toLocaleString()}
+            icon={data?.milkToday ? <Milk className="h-5 w-5" /> : <Egg className="h-5 w-5" />}
+            change={`${data?.henDayProduction || data?.productionRate || 0}% yield`}
             changeType="positive"
           />
         </motion.div>
         <motion.div variants={fadeUp}>
           <KpiCard
-            title="Total Birds"
-            value={(data?.totalBirds || 0).toLocaleString()}
+            title="Total Animals"
+            value={(data?.totalBirds || data?.totalAnimals || 0).toLocaleString()}
             icon={<Bird className="h-5 w-5" />}
-            change={`${data?.totalFlocks || 0} flocks`}
+            change={`${data?.totalFlocks || 0} groups`}
             changeType="positive"
           />
         </motion.div>
@@ -283,8 +310,7 @@ export default function DashboardPage() {
                 <Target className="h-5 w-5" />
               </div>
             </div>
-            <p className="mt-2 text-[11px] text-wangari-subtle">
-              Feed (kg) per egg produced
+            <p className="mt-2 text-[11px] text-wangari-subtle">                  Feed (kg) per unit produced
             </p>
           </Card>
         </motion.div>
@@ -320,13 +346,13 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
-                  Cost Per Egg
+                  Cost Per Unit
                 </p>
                 <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
                   {data?.costPerEgg ? `KES ${data.costPerEgg}` : "—"}
                 </p>
                 <p className="mt-2 text-[11px] text-wangari-subtle">
-                  Monthly cost ÷ eggs
+                  Monthly cost ÷ output
                 </p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
@@ -342,13 +368,13 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
-                  Feed / Bird
+                  Feed / Head
                 </p>
                 <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
                   {data?.feedPerBird ? `${data.feedPerBird}g` : "—"}
                 </p>
                 <p className="mt-2 text-[11px] text-wangari-subtle">
-                  Grams per bird today
+                  Grams per animal today
                 </p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
@@ -553,9 +579,9 @@ export default function DashboardPage() {
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { href: "/production", icon: Plus, label: "Log Production", desc: "Eggs & mortality" },
-                { href: "/inventory", icon: Wheat, label: "Feed Stock", desc: "Track feed usage" },
-                { href: "/sales", icon: ShoppingCart, label: "Record Sale", desc: "Eggs or birds" },
+                { href: "/production", icon: Plus, label: "Log Output", desc: "Eggs, milk, meat" },
+                { href: "/flocks", icon: Bird, label: "Livestock", desc: "Add or manage" },
+                { href: "/crops", icon: Leaf, label: "Crops", desc: "Register fields" },
                 { href: "/finances", icon: DollarSign, label: "Expenses", desc: "Add costs" },
               ].map((action) => (
                 <Link key={action.href} href={action.href}>

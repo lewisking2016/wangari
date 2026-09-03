@@ -1,15 +1,16 @@
 "use client";
-
 import * as React from "react";
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, Calendar, Download } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Calendar, Download, Bird, Leaf } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import api from "@/lib/api-client";
+import { speciesTemplates } from "@/lib/species-templates";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } };
@@ -27,26 +28,31 @@ export default function ReportsPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    Promise.all([
-      api.get("/api/production"),
-      api.get("/api/transactions"),
-      api.get("/api/flocks"),
-    ]).then(([p, t, f]) => {
-      setProduction(p as any[]);
-      setTransactions(t as any[]);
-      setFlocks(f as any[]);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    Promise.all([api.get("/api/production"), api.get("/api/transactions"), api.get("/api/flocks")])
+      .then(([p, t, f]) => { setProduction(p as any[]); setTransactions(t as any[]); setFlocks(f as any[]); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
+
+  const handleExportCSV = () => {
+    const rows = [["Date", "Output", "Mortality", "Feed (kg)"]];
+    prodChart.forEach(d => rows.push([d.date, String(d.output), String(d.mortality), String(d.feed)]));
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "production_report.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
-  // Production chart data — last 14 days
-  const prodByDate: Record<string, { eggs: number; mortality: number; feed: number }> = {};
+  // Production by date — aggregate across all species
+  const prodByDate: Record<string, { output: number; mortality: number; feed: number }> = {};
   production.forEach((r) => {
     const d = new Date(r.date).toLocaleDateString("en-KE", { month: "short", day: "numeric" });
-    if (!prodByDate[d]) prodByDate[d] = { eggs: 0, mortality: 0, feed: 0 };
-    prodByDate[d].eggs += r.eggsCollected;
+    if (!prodByDate[d]) prodByDate[d] = { output: 0, mortality: 0, feed: 0 };
+    // Aggregate: eggs + milk + weight gain
+    prodByDate[d].output += (r.eggsCollected || 0) + Number(r.milkCollected || 0) + Number(r.weightGain || 0);
     prodByDate[d].mortality += r.mortality;
     prodByDate[d].feed += Number(r.feedUsed);
   });
@@ -62,7 +68,7 @@ export default function ReportsPage() {
   });
   const financeChart = Object.entries(txByMonth).map(([month, v]) => ({ month, ...v }));
 
-  // Expense breakdown by category
+  // Expense breakdown
   const catMap: Record<string, number> = {};
   transactions.filter((t: any) => t.type === "expense").forEach((t: any) => {
     const cat = t.category || "Other";
@@ -71,21 +77,39 @@ export default function ReportsPage() {
   const expensePie = Object.entries(catMap).map(([name, value]) => ({ name, value }));
 
   // Summary stats
-  const totalEggs = production.reduce((s, r) => s + r.eggsCollected, 0);
+  const totalOutput = production.reduce((s, r) => s + (r.eggsCollected || 0) + Number(r.milkCollected || 0) + Number(r.weightGain || 0), 0);
   const totalMortality = production.reduce((s, r) => s + r.mortality, 0);
   const income = transactions.filter((t: any) => t.type === "income").reduce((s: number, t: any) => s + Number(t.amount), 0);
   const expenses = transactions.filter((t: any) => t.type === "expense").reduce((s: number, t: any) => s + Number(t.amount), 0);
-  const totalBirds = flocks.reduce((s, f) => s + (f.currentCount || 0), 0);
-  const mortalityRate = totalBirds > 0 ? ((totalMortality / (totalBirds + totalMortality)) * 100).toFixed(1) : "0";
+  const totalAnimals = flocks.reduce((s, f) => s + (f.currentCount || 0), 0);
+  const mortalityRate = totalAnimals > 0 ? ((totalMortality / (totalAnimals + totalMortality)) * 100).toFixed(1) : "0";
+
+  // Species breakdown
+  const speciesMap: Record<string, { count: number; name: string }> = {};
+  flocks.forEach((f: any) => {
+    const sp = speciesTemplates[f.type];
+    const cat = sp?.category || "other";
+    if (!speciesMap[cat]) speciesMap[cat] = { count: 0, name: cat.charAt(0).toUpperCase() + cat.slice(1) };
+    speciesMap[cat].count += f.currentCount || 0;
+  });
+  const speciesPie = Object.values(speciesMap).map(s => ({ name: s.name, value: s.count }));
+
+  // Production by species
+  const prodBySpecies: Record<string, number> = {};
+  production.forEach((r) => {
+    const sp = r.flock?.type ? speciesTemplates[r.flock.type] : null;
+    const cat = sp?.category || "other";
+    prodBySpecies[cat] = (prodBySpecies[cat] || 0) + (r.eggsCollected || 0) + Number(r.milkCollected || 0) + Number(r.weightGain || 0);
+  });
 
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-[#0F172A] tracking-tight">Reports</h1>
-          <p className="text-sm text-[#64748B] mt-1">Analytics and insights across your farm operations.</p>
+          <p className="text-sm text-[#64748B] mt-1">Analytics across all your farm operations.</p>
         </div>
-        <Button variant="outline" className="border-[#E5E7EB] hover:bg-[#F0FDF4] hover:border-[#BBF7D0] cursor-pointer">
+        <Button onClick={handleExportCSV} variant="outline" className="border-[#E5E7EB] hover:bg-[#F0FDF4] hover:border-[#BBF7D0] cursor-pointer">
           <Download className="h-4 w-4 mr-2" /> Export CSV
         </Button>
       </motion.div>
@@ -93,7 +117,7 @@ export default function ReportsPage() {
       {/* Summary Cards */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "Total Eggs", value: totalEggs.toLocaleString(), icon: <TrendingUp className="h-5 w-5" /> },
+          { title: "Total Output", value: totalOutput.toLocaleString(), icon: <TrendingUp className="h-5 w-5" /> },
           { title: "Mortality Rate", value: mortalityRate + "%", icon: <TrendingDown className="h-5 w-5" /> },
           { title: "Total Revenue", value: "KES " + income.toLocaleString(), icon: <TrendingUp className="h-5 w-5" /> },
           { title: "Total Expenses", value: "KES " + expenses.toLocaleString(), icon: <TrendingDown className="h-5 w-5" /> },
@@ -101,9 +125,7 @@ export default function ReportsPage() {
           <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4, scale: 1.02 }}>
             <Card className="border border-[#E5E7EB] hover:shadow-lg hover:border-[#BBF7D0] transition-all duration-300">
               <CardContent className="pt-6 pb-4 px-5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">
-                  {kpi.icon}
-                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">{kpi.icon}</div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>
                 <p className="text-2xl font-extrabold text-[#0F172A] tracking-tight">{kpi.value}</p>
               </CardContent>
@@ -114,15 +136,14 @@ export default function ReportsPage() {
 
       {/* Charts Row 1 */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Egg Production Trend */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-[#166534]" />
-                <CardTitle className="text-base font-bold">Egg Production Trend</CardTitle>
+                <CardTitle className="text-base font-bold">Production Trend</CardTitle>
               </div>
-              <p className="text-xs text-[#94A3B8]">Last 14 days</p>
+              <p className="text-xs text-[#94A3B8]">Last 14 days — all species combined</p>
             </CardHeader>
             <CardContent className="pt-2">
               <ResponsiveContainer width="100%" height={250}>
@@ -131,14 +152,13 @@ export default function ReportsPage() {
                   <XAxis dataKey="date" tick={{ fontSize: 11, fill: MUTED }} />
                   <YAxis tick={{ fontSize: 11, fill: MUTED }} />
                   <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
-                  <Area type="monotone" dataKey="eggs" stroke={GREEN} fill={GREEN} fillOpacity={0.1} strokeWidth={2} name="Eggs" />
+                  <Area type="monotone" dataKey="output" stroke={GREEN} fill={GREEN} fillOpacity={0.1} strokeWidth={2} name="Output" />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Revenue vs Expenses */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
@@ -166,7 +186,6 @@ export default function ReportsPage() {
 
       {/* Charts Row 2 */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Mortality Trend */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
@@ -174,7 +193,7 @@ export default function ReportsPage() {
                 <TrendingDown className="h-4 w-4 text-[#166534]" />
                 <CardTitle className="text-base font-bold">Mortality Trend</CardTitle>
               </div>
-              <p className="text-xs text-[#94A3B8]">Daily mortality count</p>
+              <p className="text-xs text-[#94A3B8]">Daily count</p>
             </CardHeader>
             <CardContent className="pt-2">
               <ResponsiveContainer width="100%" height={250}>
@@ -190,7 +209,48 @@ export default function ReportsPage() {
           </Card>
         </motion.div>
 
-        {/* Expense Breakdown */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-[#166534]" />
+                <CardTitle className="text-base font-bold">Livestock by Species</CardTitle>
+              </div>
+              <p className="text-xs text-[#94A3B8]">Animal count breakdown</p>
+            </CardHeader>
+            <CardContent className="pt-2">
+              {speciesPie.length === 0 ? (
+                <div className="flex items-center justify-center h-[250px] text-sm text-[#94A3B8]">No livestock yet</div>
+              ) : (
+                <div className="flex items-center gap-6">
+                  <ResponsiveContainer width="50%" height={200}>
+                    <PieChart>
+                      <Pie data={speciesPie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} strokeWidth={2} stroke="#fff">
+                        {speciesPie.map((_, i) => (
+                          <Cell key={i} fill={i === 0 ? GREEN : i === 1 ? LIGHT_GREEN : i === 2 ? "#86EFAC" : MUTED} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    {speciesPie.map((e, i) => (
+                      <div key={e.name} className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ background: [GREEN, LIGHT_GREEN, "#86EFAC", MUTED][i] }} />
+                        <span className="text-xs text-[#64748B]">{e.name}</span>
+                        <span className="text-xs font-bold text-[#0F172A]">{e.value.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Expense Breakdown + Feed */}
+      <div className="grid lg:grid-cols-2 gap-6">
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
@@ -202,58 +262,45 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent className="pt-2">
               {expensePie.length === 0 ? (
-                <div className="flex items-center justify-center h-[250px] text-sm text-[#94A3B8]">No expense data yet</div>
+                <div className="flex items-center justify-center h-[200px] text-sm text-[#94A3B8]">No expense data yet</div>
               ) : (
-                <div className="flex items-center gap-6">
-                  <ResponsiveContainer width="50%" height={200}>
-                    <PieChart>
-                      <Pie data={expensePie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} strokeWidth={2} stroke="#fff">
-                        {expensePie.map((_, i) => (
-                          <Cell key={i} fill={i === 0 ? GREEN : i === 1 ? LIGHT_GREEN : i === 2 ? "#86EFAC" : MUTED} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="space-y-3">
-                    {expensePie.map((e, i) => (
-                      <div key={e.name} className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full" style={{ background: [GREEN, LIGHT_GREEN, "#86EFAC", MUTED][i] }} />
-                        <span className="text-xs text-[#64748B]">{e.name}</span>
-                        <span className="text-xs font-bold text-[#0F172A]">KES {e.value.toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
+                <div className="space-y-2">
+                  {expensePie.sort((a, b) => b.value - a.value).slice(0, 6).map((e, i) => (
+                    <div key={e.name} className="flex items-center gap-3">
+                      <div className="h-2.5 rounded-full" style={{ background: [GREEN, LIGHT_GREEN, "#86EFAC", MUTED, "#CBD5E1", "#F1F5F9"][i], width: `${Math.min((e.value / Math.max(...expensePie.map(x => x.value))) * 100, 100)}%` }} />
+                      <span className="text-xs text-[#64748B] flex-shrink-0">{e.name}</span>
+                      <span className="text-xs font-bold text-[#0F172A] ml-auto">KES {e.value.toLocaleString()}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
           </Card>
         </motion.div>
-      </div>
 
-      {/* Feed Consumption Chart */}
-      <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-[#166534]" />
-              <CardTitle className="text-base font-bold">Feed Consumption</CardTitle>
-            </div>
-            <p className="text-xs text-[#94A3B8]">Daily feed usage in kg</p>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={prodChart}>
-                <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: MUTED }} />
-                <YAxis tick={{ fontSize: 11, fill: MUTED }} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
-                <Bar dataKey="feed" fill={GREEN} radius={[4, 4, 0, 0]} name="Feed (kg)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </motion.div>
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-[#166534]" />
+                <CardTitle className="text-base font-bold">Feed Consumption</CardTitle>
+              </div>
+              <p className="text-xs text-[#94A3B8]">Daily usage in kg</p>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={prodChart}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: MUTED }} />
+                  <YAxis tick={{ fontSize: 11, fill: MUTED }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E7EB", fontSize: 12 }} />
+                  <Bar dataKey="feed" fill={GREEN} radius={[4, 4, 0, 0]} name="Feed (kg)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 }

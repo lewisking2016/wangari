@@ -27,9 +27,23 @@ router.post("/", async (req: Request, res: Response) => {
         name: req.body.name,
         phone: req.body.phone || null,
         email: req.body.email || null,
+        address: req.body.address || null,
       },
     });
     res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
+// PATCH /api/customers/:id — update customer
+router.patch("/:id", async (req: Request, res: Response) => {
+  try {
+    const result = await prisma.customer.update({
+      where: { id: Number(req.params.id) },
+      data: { name: req.body.name, phone: req.body.phone, email: req.body.email, address: req.body.address, totalCredit: req.body.totalCredit !== undefined ? Number(req.body.totalCredit) : undefined },
+    });
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }

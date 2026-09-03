@@ -1,10 +1,10 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Briefcase, DollarSign, TrendingUp, X, Trash2 } from "lucide-react";
+import { Users, Plus, DollarSign, TrendingUp, X, Trash2, Phone, Briefcase, UserCheck, UserX } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,115 +15,168 @@ import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
-const scaleIn = { hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
+
+const ROLES = ["Farm Manager", "Herdsman", "Farmhand", "Veterinary", "Driver", "Other"];
 
 export default function WorkersPage() {
   const [workers, setWorkers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [step, setStep] = React.useState(1);
+  const [filter, setFilter] = React.useState<"all" | "active" | "inactive">("all");
   const { showToast, ToastComponent } = useToast();
-  const [form, setForm] = React.useState({ name: "", role: "", phone: "", dailyWage: "" });
+  const [form, setForm] = React.useState({ name: "", role: "Farmhand", phone: "", dailyWage: "" });
 
   const load = () => {
     api.get("/api/workers").then(d => { setWorkers(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this worker?")) return;
-    await api.delete("/api/workers/" + id);
-    load();
-  };
   React.useEffect(() => { load(); }, []);
-
-  const totalWages = workers.reduce((s, w) => s + Number(w.dailyWage || w.wage || 0), 0);
 
   const handleSubmit = async () => {
     await api.post("/api/workers", { ...form, dailyWage: Number(form.dailyWage), status: "active" });
-    setForm({ name: "", role: "", phone: "", dailyWage: "" });
-    setShowForm(false);
-    showToast("Worker added!");
+    setForm({ name: "", role: "Farmhand", phone: "", dailyWage: "" });
+    setStep(1); setShowForm(false); showToast("Worker added!"); load();
+  };
+
+  const handleToggleStatus = async (id: number, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+    await api.patch(`/api/workers/${id}`, { status: newStatus });
+    showToast(newStatus === "active" ? "Worker activated" : "Worker deactivated");
     load();
   };
 
-  const kpis = [
-    { title: "Total Workers", value: String(workers.length), icon: <Users className="h-5 w-5" /> },
-    { title: "Daily Wages", value: "KES " + totalWages.toLocaleString(), icon: <DollarSign className="h-5 w-5" /> },
-    { title: "Monthly Cost", value: "KES " + (totalWages * 30).toLocaleString(), icon: <TrendingUp className="h-5 w-5" /> },
-  ];
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this worker?")) return;
+    await api.delete("/api/workers/" + id); load();
+  };
+
+  const filtered = workers.filter(w => {
+    if (filter === "active" && w.status !== "active") return false;
+    if (filter === "inactive" && w.status === "active") return false;
+    return true;
+  });
+
+  const activeWorkers = workers.filter(w => w.status === "active");
+  const totalDailyWages = activeWorkers.reduce((s, w) => s + Number(w.dailyWage || 0), 0);
+  const monthlyCost = totalDailyWages * 30;
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <PageHeader title="Workers" description="Manage farm workers, attendance, and wages."
-          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" /> Add Worker</Button>}
-        />
+        <PageHeader title="Workers" description="Manage farm workers and wages"
+          action={<Button onClick={() => { setShowForm(!showForm); setStep(1); }} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Worker</Button>} />
       </motion.div>
 
+      {/* Form — step by step */}
       {showForm && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
+          <Card className="border border-[#E5E7EB]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-[#0F172A]">Add New Worker</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-bold text-[#0F172A]">Add Worker</h3>
+                  <div className="flex gap-1">{[1, 2].map(s => <div key={s} className={`h-1.5 w-8 rounded-full ${step >= s ? "bg-[#166534]" : "bg-gray-200"}`} />)}</div>
+                </div>
                 <button onClick={() => setShowForm(false)} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Full Name</Label><Input placeholder="e.g. Peter Ochieng" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="h-10 rounded-xl" /></div>
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Role</Label><Input placeholder="e.g. Farm Manager" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className="h-10 rounded-xl" /></div>
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Phone</Label><Input placeholder="+254 7XX XXX XXX" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="h-10 rounded-xl" /></div>
-                <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Daily Wage (KES)</Label><Input type="number" placeholder="0" value={form.dailyWage} onChange={e => setForm({ ...form, dailyWage: e.target.value })} className="h-10 rounded-xl" /></div>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <Button onClick={handleSubmit} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
-                <Button variant="outline" onClick={() => setShowForm(false)} className="cursor-pointer">Cancel</Button>
-              </div>
+
+              {step === 1 && (
+                <div className="space-y-3">
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Full name</Label><Input placeholder="e.g. Peter Ochieng" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="h-12 rounded-xl text-base" autoFocus /></div>
+                  <Label className="text-xs font-semibold text-[#64748B]">Role</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {ROLES.map(r => (
+                      <button key={r} onClick={() => setForm({ ...form, role: r })}
+                        className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${form.role === r ? "bg-[#166534] text-white" : "bg-[#F1F5F9] text-[#64748B]"}`}>{r}</button>
+                    ))}
+                  </div>
+                  <Button onClick={() => form.name && setStep(2)} disabled={!form.name} className="w-full h-11 cursor-pointer">Next</Button>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-3">
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Phone (optional)</Label><Input placeholder="+254 7XX XXX XXX" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="h-11 rounded-xl" /></div>
+                  <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Daily wage (KES)</Label><Input type="number" placeholder="0" value={form.dailyWage} onChange={e => setForm({ ...form, dailyWage: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" /></div>
+                  {form.dailyWage && (
+                    <div className="rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] p-3 text-center">
+                      <p className="text-xs text-[#64748B]">Monthly estimate</p>
+                      <p className="text-lg font-extrabold text-[#166534]">KES {(Number(form.dailyWage) * 30).toLocaleString()}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button onClick={() => setStep(1)} variant="outline" className="flex-1 cursor-pointer">Back</Button>
+                    <Button onClick={handleSubmit} disabled={!form.name} className="flex-1 h-11 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-3 gap-4">
-        {kpis.map((kpi) => (
-          <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4 }}>
-            <Card className="border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
-              <CardContent className="pt-6 pb-4 px-5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">{kpi.icon}</div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>
-                <p className="text-2xl font-extrabold text-[#0F172A] tracking-tight">{kpi.value}</p>
+      {/* KPIs */}
+      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {[
+          { title: "Active Workers", value: String(activeWorkers.length), icon: <Users className="h-5 w-5" />, color: "bg-[#166534]" },
+          { title: "Daily Wages", value: `KES ${totalDailyWages.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-emerald-500" },
+          { title: "Monthly Estimate", value: `KES ${monthlyCost.toLocaleString()}`, icon: <TrendingUp className="h-5 w-5" />, color: "bg-amber-500" },
+        ].map(kpi => (
+          <motion.div key={kpi.title} variants={fadeUp}>
+            <Card className="border border-[#E5E7EB]">
+              <CardContent className="pt-4 pb-3 px-4">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${kpi.color} text-white mb-2`}>{kpi.icon}</div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{kpi.title}</p>
+                <p className="text-xl font-extrabold text-[#0F172A]">{kpi.value}</p>
               </CardContent>
             </Card>
           </motion.div>
         ))}
       </motion.div>
 
-      {workers.length === 0 ? <EmptyState title="No workers" description="Add your first worker to get started." /> : (
-        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-2"><div className="flex items-center gap-2"><Briefcase className="h-4 w-4 text-[#166534]" /><CardTitle className="text-base font-bold">Team Members</CardTitle></div></CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="border-b border-[#E5E7EB] bg-[#FAFBFC]">
-                    <th className="px-5 py-3.5 text-left font-bold text-[#64748B] text-xs uppercase tracking-wider">Name</th>
-                    <th className="px-5 py-3.5 text-left font-bold text-[#64748B] text-xs uppercase tracking-wider">Role</th>
-                    <th className="px-5 py-3.5 text-right font-bold text-[#64748B] text-xs uppercase tracking-wider">Daily Wage</th>
-                    <th className="px-5 py-3.5 text-left font-bold text-[#64748B] text-xs uppercase tracking-wider">Phone</th>
-                    <th className="px-5 py-3.5 text-center font-bold text-[#64748B] text-xs uppercase tracking-wider">Status</th>
-                  </tr></thead>
-                  <tbody>{workers.map((w, i) => (
-                    <motion.tr key={w.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
-                      <td className="px-5 py-3.5"><div className="flex items-center gap-3"><Avatar name={w.name} size="sm" /><span className="font-semibold text-[#0F172A]">{w.name}</span></div></td>
-                      <td className="px-5 py-3.5 text-[#64748B]">{w.role}</td>
-                      <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(w.dailyWage || w.wage || 0).toLocaleString()}</td>
-                      <td className="px-5 py-3.5 text-[#64748B]">{w.phone || "-"}</td>
-                      <td className="px-5 py-3.5 text-center"><div className="flex items-center justify-center gap-2"><Badge className={w.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-gray-600"}>{w.status || "active"}</Badge><button onClick={() => handleDelete(w.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button></div></td>
-                    </motion.tr>
-                  ))}</tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Filter */}
+      <div className="flex gap-2">
+        {(["all", "active", "inactive"] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer capitalize ${filter === f ? "bg-[#166534] text-white" : "bg-[#F1F5F9] text-[#64748B]"}`}>{f}</button>
+        ))}
+      </div>
+
+      {/* Worker cards */}
+      {filtered.length === 0 ? <EmptyState title="No workers" description="Add your first worker." /> : (
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-2">
+          {filtered.map(w => (
+            <motion.div key={w.id} variants={fadeUp}>
+              <Card className="border border-[#E5E7EB]">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={w.name} size="md" />
+                      <div>
+                        <h3 className="text-sm font-bold text-[#0F172A]">{w.name}</h3>
+                        <p className="text-[10px] text-[#94A3B8]">{w.role || "No role"}</p>
+                        {w.phone && <p className="text-[10px] text-[#94A3B8] flex items-center gap-1 mt-0.5"><Phone className="h-2.5 w-2.5" />{w.phone}</p>}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-extrabold text-[#0F172A]">KES {Number(w.dailyWage || 0).toLocaleString()}</p>
+                      <p className="text-[9px] text-[#94A3B8]">per day</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Badge className={w.status === "active" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-[#64748B] border-gray-200"}>{w.status || "active"}</Badge>
+                    <button onClick={() => handleToggleStatus(w.id, w.status || "active")}
+                      className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold border cursor-pointer ${w.status === "active" ? "bg-red-50 text-red-600 border-red-200" : "bg-emerald-50 text-emerald-600 border-emerald-200"}`}>
+                      {w.status === "active" ? <><UserX className="h-3 w-3" />Deactivate</> : <><UserCheck className="h-3 w-3" />Activate</>}
+                    </button>
+                    <button onClick={() => handleDelete(w.id)} className="ml-auto text-[#94A3B8] hover:text-red-500 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </motion.div>
       )}
       {ToastComponent}

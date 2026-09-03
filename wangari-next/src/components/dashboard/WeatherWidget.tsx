@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cloud, Sun, Droplets, Wind, MapPin, Sunrise, Sunset, CloudRain, CloudLightning } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,7 +115,7 @@ function AnimatedBackground({ icon, condition }: { icon: string; condition: stri
               key={i}
               className="absolute h-0.5 w-0.5 bg-white/40 rounded-full"
               initial={{
-                x: Math.random() * 400,
+                x: ((i * 47 + 13) % 20) * 20,
                 y: -10,
                 opacity: 0,
               }}
@@ -123,9 +124,9 @@ function AnimatedBackground({ icon, condition }: { icon: string; condition: stri
                 opacity: [0, 0.6, 0],
               }}
               transition={{
-                duration: 1 + Math.random() * 0.5,
+                duration: 1 + ((i * 31 + 7) % 10) / 20,
                 repeat: Infinity,
-                delay: Math.random() * 2,
+                delay: ((i * 23 + 11) % 20) / 10,
                 ease: "linear",
               }}
             />
@@ -208,8 +209,15 @@ const MOCK_DATA: WeatherData = {
 // ─── Main Widget ──────────────────────────────────────────
 export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidgetProps) {
   const weatherData = data || MOCK_DATA;
+  const [mounted, setMounted] = React.useState(false);
+  const [uvIndex, setUvIndex] = React.useState(5);
 
-  const hour = new Date().getHours();
+  React.useEffect(() => {
+    setMounted(true);
+    setUvIndex(Math.floor(Math.random() * 5) + 3);
+  }, []);
+
+  const hour = mounted ? new Date().getHours() : 12;
   const gradient = getWeatherGradient(weatherData.condition, hour);
 
   return (
@@ -289,7 +297,7 @@ export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidge
                 ) : (
                   <>
                     <Sun className="h-4 w-4 text-white/70 mx-auto mb-1" />
-                    <p className="text-lg font-semibold">UV {Math.floor(Math.random() * 5) + 3}</p>
+                    <p className="text-lg font-semibold">UV {uvIndex}</p>
                     <p className="text-[10px] text-white/60">UV Index</p>
                   </>
                 )}

@@ -39,6 +39,20 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/inventory/:id — adjust stock (restock or use)
+router.patch("/:id", async (req: Request, res: Response) => {
+  try {
+    const item = await prisma.inventory.findFirst({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
+    if (!item) return res.status(404).json({ error: "Not found" });
+    const delta = Number(req.body.quantity || 0);
+    const newQty = Math.max(0, Number(item.quantity) + delta);
+    const updated = await prisma.inventory.update({ where: { id: item.id }, data: { quantity: newQty } });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
 // DELETE /api/inventory/:id
 router.delete("/:id", async (req: Request, res: Response) => {
   try {

@@ -46,11 +46,13 @@ const mcpTools = [
   { type: "function", function: { name: "create_vaccination", description: "Record a vaccination", parameters: { type: "object", properties: { flockId: { type: "number", description: "Flock ID" }, vaccineName: { type: "string", description: "Vaccine name" }, dosage: { type: "string", description: "Dosage" }, administeredBy: { type: "string", description: "Administered by" }, notes: { type: "string", description: "Notes" } }, required: ["flockId", "vaccineName"] } } },
   { type: "function", function: { name: "list_attendance", description: "Get attendance records", parameters: { type: "object", properties: {}, required: [] } } },
   { type: "function", function: { name: "record_attendance", description: "Record attendance", parameters: { type: "object", properties: { workerId: { type: "number", description: "Worker ID" }, status: { type: "string", description: "Status", enum: ["present", "absent", "late", "half_day"] }, notes: { type: "string", description: "Notes" } }, required: ["workerId", "status"] } } },
+  { type: "function", function: { name: "list_crops", description: "List all crops with type, area, and growth stage", parameters: { type: "object", properties: {}, required: [] } } },
+  { type: "function", function: { name: "create_crop", description: "Register a new crop field", parameters: { type: "object", properties: { fieldName: { type: "string", description: "Field name" }, cropType: { type: "string", description: "Crop type" }, variety: { type: "string", description: "Variety" }, areaHectares: { type: "number", description: "Area in hectares" } }, required: ["fieldName", "cropType"] } } },
   { type: "function", function: { name: "get_weather", description: "Get weather forecast", parameters: { type: "object", properties: {}, required: [] } } },
   { type: "function", function: { name: "get_dashboard", description: "Get dashboard summary", parameters: { type: "object", properties: {}, required: [] } } },
 ];
 
-const SYSTEM_PROMPT = `You are Wangari AI, an intelligent farm management assistant for poultry farms in Kenya.
+const SYSTEM_PROMPT = `You are Wangari AI, an intelligent farm management assistant for mixed farms (livestock and crops) in Kenya.
 
 You have FULL ACCESS to the farmer's farm management system. You can read, create, update, and delete any data.
 
@@ -110,6 +112,8 @@ async function executeTool(toolName: string, args: Record<string, any>, farmId: 
     case "create_vaccination": return prisma.vaccination.create({ data: { flockId: args.flockId, vaccineName: args.vaccineName, dosage: args.dosage, administeredBy: args.administeredBy, notes: args.notes, farmId } });
     case "list_attendance": return prisma.attendance.findMany({ where: { farmId }, orderBy: { date: "desc" } });
     case "record_attendance": return prisma.attendance.create({ data: { workerId: args.workerId, status: args.status, notes: args.notes, farmId } });
+    case "list_crops": return prisma.crop.findMany({ where: { farmId }, include: { harvests: true } });
+    case "create_crop": return prisma.crop.create({ data: { fieldName: args.fieldName, cropType: args.cropType, variety: args.variety, areaHectares: args.areaHectares ? Number(args.areaHectares) : null, farmId } });
     case "get_weather": return { note: "Weather available via /api/weather" };
     case "get_dashboard": return prisma.flock.findMany({ where: { farmId } });
     default: return { error: `Unknown tool: ${toolName}` };
@@ -139,7 +143,7 @@ async function callOpenAICompatible(messages: any[], tools: any[], config: Retur
     body: JSON.stringify({ model: config.model, messages, tools, temperature: 0.7, max_tokens: 4096 }),
   });
   if (!res.ok) { const err = await res.text(); console.error(`${config.name}:`, err); throw new Error(`${config.name}: ${res.status}`); }
-  const data = await res.json();
+  const data: any = await res.json();
   return { content: data.choices?.[0]?.message?.content || "", tool_calls: data.choices?.[0]?.message?.tool_calls || [] };
 }
 
@@ -154,7 +158,7 @@ async function callGemini(messages: any[], tools: any[], config: ReturnType<type
     body: JSON.stringify({ contents, systemInstruction: sys ? { parts: [{ text: sys.content }] } : undefined, tools: geminiTools, generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } }),
   });
   if (!res.ok) { const err = await res.text(); console.error("Gemini:", err); throw new Error(`Gemini: ${res.status}`); }
-  const data = await res.json();
+  const data: any = await res.json();
   const c = data.candidates?.[0];
   const content = c?.content?.parts?.find((p: any) => p.text)?.text || "";
   const toolCalls = c?.content?.parts?.filter((p: any) => p.functionCall)?.map((p: any, i: number) => ({ id: `call_${Date.now()}_${i}`, type: "function", function: { name: p.functionCall.name, arguments: JSON.stringify(p.functionCall.args) } })) || [];
@@ -171,7 +175,7 @@ async function callAnthropic(messages: any[], tools: any[], config: ReturnType<t
     body: JSON.stringify({ model: config.model, max_tokens: 4096, system: sys?.content, messages: chatMsgs, tools: tools.map((t: any) => ({ name: t.function.name, description: t.function.description, input_schema: t.function.parameters })) }),
   });
   if (!res.ok) { const err = await res.text(); console.error("Anthropic:", err); throw new Error(`Anthropic: ${res.status}`); }
-  const data = await res.json();
+  const data: any = await res.json();
   const content = data.content?.find((b: any) => b.type === "text")?.text || "";
   const toolCalls = data.content?.filter((b: any) => b.type === "tool_use")?.map((b: any, i: number) => ({ id: b.id || `call_${Date.now()}_${i}`, type: "function", function: { name: b.name, arguments: JSON.stringify(b.input) } })) || [];
   return { content, tool_calls: toolCalls };
@@ -188,7 +192,7 @@ async function callCohere(messages: any[], tools: any[], config: ReturnType<type
     body: JSON.stringify({ model: config.model, messages: chatMsgs, preamble: sys?.content, tools: cohereTools }),
   });
   if (!res.ok) { const err = await res.text(); console.error("Cohere:", err); throw new Error(`Cohere: ${res.status}`); }
-  const data = await res.json();
+  const data: any = await res.json();
   const content = data.message?.content?.[0]?.text || "";
   const toolCalls = data.message?.tool_calls?.map((tc: any, i: number) => ({ id: `call_${Date.now()}_${i}`, type: "function", function: { name: tc.name, arguments: JSON.stringify(tc.parameters) } })) || [];
   return { content, tool_calls: toolCalls };
@@ -207,7 +211,7 @@ async function callCloudflare(messages: any[], tools: any[], config: ReturnType<
     body: JSON.stringify({ messages: [{ role: "user", content: input }] }),
   });
   if (!res.ok) { const err = await res.text(); console.error("Cloudflare:", err); throw new Error(`Cloudflare: ${res.status}`); }
-  const data = await res.json();
+  const data: any = await res.json();
   return { content: data.result?.response || "", tool_calls: [] };
 }
 
@@ -219,7 +223,7 @@ async function callOllama(messages: any[], tools: any[], _config: ReturnType<typ
     body: JSON.stringify({ model: AI_MODEL || "qwen2.5:1.5b", messages, tools, stream: false, options: { temperature: 0.7, num_ctx: 8192 } }),
   });
   if (!res.ok) { const err = await res.text(); console.error("Ollama:", err); throw new Error(`Ollama: ${res.status}`); }
-  const data = await res.json();
+  const data: any = await res.json();
   return { content: data.message?.content || "", tool_calls: data.message?.tool_calls || [] };
 }
 

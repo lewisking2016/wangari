@@ -56,6 +56,11 @@ model Farm {
   auditLogs AuditLog[]
   settings     FarmSetting[]
   breeding Breeding[]
+  crops Crop[]
+  cropHarvests     CropHarvest[]
+  cropHealth       CropHealth[]
+  cropApplications CropApplication[]
+  invoices Invoice[]
 
   @@map("farms")
 }
@@ -167,6 +172,90 @@ model Breeding {
   @@map("breeding_records")
 }
 
+model Crop {
+  id            Int       @id @default(autoincrement())
+  farmId        Int       @map("farm_id")
+  name          String    // e.g. "Maize Field A"
+  cropType      String    @map("crop_type") // maize, beans, tomatoes, kale, etc.
+  variety       String?   // e.g. "H614" for maize
+  areaAcres     Decimal?  @map("area_acres") @db.Decimal(10, 2)
+  plantingDate  DateTime? @map("planting_date")
+  expectedHarvest DateTime? @map("expected_harvest")
+  status        String    @default("active") // active, harvested, failed
+  location      String?   // field/plot designation
+  soilType      String?   @map("soil_type")
+  irrigation    String?   // rainfed, drip, sprinkler, flood
+  notes         String?
+  createdBy     Int?      @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  farm      Farm          @relation(fields: [farmId], references: [id])
+  creator   User?         @relation(fields: [createdBy], references: [id])
+  harvests     CropHarvest[]
+  health       CropHealth[]
+  applications CropApplication[]
+
+  @@map("crops")
+}
+
+model CropHarvest {
+  id            Int       @id @default(autoincrement())
+  cropId        Int       @map("crop_id")
+  farmId        Int       @map("farm_id")
+  date          DateTime  @db.Date
+  quantityKg    Decimal   @map("quantity_kg") @db.Decimal(10, 2)
+  quality       String?   // grade A, B, C
+  soldQuantity  Decimal?  @map("sold_quantity") @db.Decimal(10, 2)
+  salePrice     Decimal?  @map("sale_price") @db.Decimal(12, 2)
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  crop Crop @relation(fields: [cropId], references: [id])
+  farm Farm @relation(fields: [farmId], references: [id])
+
+  @@map("crop_harvests")
+}
+
+model CropHealth {
+  id            Int       @id @default(autoincrement())
+  cropId        Int       @map("crop_id")
+  farmId        Int       @map("farm_id")
+  date          DateTime  @db.Date
+  issueType     String    @map("issue_type") // pest, disease, weed, nutrient
+  description   String
+  severity      String    @default("low") // low, medium, high
+  treatment     String?
+  treatedDate   DateTime? @map("treated_date")
+  outcome       String?   // resolved, ongoing, failed
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  crop Crop @relation(fields: [cropId], references: [id])
+  farm Farm @relation(fields: [farmId], references: [id])
+
+  @@map("crop_health")
+}
+
+model CropApplication {
+  id            Int       @id @default(autoincrement())
+  cropId        Int       @map("crop_id")
+  farmId        Int       @map("farm_id")
+  date          DateTime  @db.Date
+  type          String    // fertilizer, pesticide, herbicide, irrigation
+  productName   String    @map("product_name")
+  quantity      Decimal   @db.Decimal(10, 2)
+  unit          String    // kg, litres, bags
+  cost          Decimal?  @db.Decimal(12, 2)
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  crop Crop @relation(fields: [cropId], references: [id])
+  farm Farm @relation(fields: [farmId], references: [id])
+
+  @@map("crop_applications")
+}
+
 model Vaccination {
   id            Int       @id @default(autoincrement())
   flockId       Int       @map("flock_id")
@@ -243,9 +332,10 @@ model Customer {
   totalCredit Decimal  @default(0) @map("total_credit") @db.Decimal(12, 2)
   createdAt   DateTime @default(now()) @map("created_at")
 
-  farm    Farm     @relation(fields: [farmId], references: [id])
+  farm    Farm      @relation(fields: [farmId], references: [id])
   sales   Sale[]
   credits Credit[]
+  invoices Invoice[]
 
   @@map("customers")
 }
@@ -266,6 +356,7 @@ model Sale {
   customer Customer?  @relation(fields: [customerId], references: [id])
   user     User?      @relation(fields: [createdBy], references: [id])
   credits  Credit[]
+  invoices Invoice[]
 
   @@map("sales")
 }
@@ -286,6 +377,27 @@ model Credit {
   farm     Farm     @relation(fields: [farmId], references: [id])
 
   @@map("credits")
+}
+
+model Invoice {
+  id             Int      @id @default(autoincrement())
+  farmId         Int      @map("farm_id")
+  saleId         Int?     @map("sale_id")
+  customerId     Int?     @map("customer_id")
+  invoiceNumber  String   @map("invoice_number")
+  items          Json
+  totalAmount    Decimal  @map("total_amount") @db.Decimal(12, 2)
+  amountPaid     Decimal  @default(0) @map("amount_paid") @db.Decimal(12, 2)
+  paymentStatus  String   @default("pending") @map("payment_status")
+  dueDate        DateTime? @map("due_date")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  farm     Farm      @relation(fields: [farmId], references: [id])
+  sale     Sale?     @relation(fields: [saleId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  @@map("invoices")
 }
 
 model Worker {

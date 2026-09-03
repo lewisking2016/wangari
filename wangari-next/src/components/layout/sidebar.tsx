@@ -26,10 +26,16 @@ import {
   History,
   MessageSquare,
   FileText,
+  Leaf,
+  Heart,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useFarm } from "@/hooks/useFarm";
+import { Tractor } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import api from "@/lib/api-client";
 
 interface NavItem {
   label: string;
@@ -42,11 +48,28 @@ interface NavGroup {
   items: NavItem[];
 }
 
+const MODULE_MAP: Record<string, string> = {
+  "Livestock": "module_livestock",
+  "Crops": "module_crops",
+  "Production": "module_production",
+  "Sales": "module_sales",
+  "Customers": "module_customers",
+  "Inventory": "module_inventory",
+  "Finances": "module_finances",
+  "Workers": "module_workers",
+  "Vaccinations": "module_vaccinations",
+  "Feed Calculator": "module_feed_calculator",
+  "Weather": "module_weather",
+  "Reports": "module_reports",
+  "Farm Health": "module_farm_health",
+};
+
 const navGroups: NavGroup[] = [
   {
     title: "Overview",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+      { label: "Farm Health", href: "/farm-health", icon: <Heart className="h-5 w-5" /> },
       { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
     ],
   },
@@ -54,6 +77,7 @@ const navGroups: NavGroup[] = [
     title: "Farm Operations",
     items: [
       { label: "Livestock", href: "/flocks", icon: <PawPrint className="h-5 w-5" /> },
+      { label: "Crops", href: "/crops", icon: <Leaf className="h-5 w-5" /> },
       { label: "Production", href: "/production", icon: <ClipboardList className="h-5 w-5" /> },
       { label: "Vaccinations", href: "/vaccinations", icon: <Syringe className="h-5 w-5" /> },
       { label: "Feed Calculator", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
@@ -89,6 +113,7 @@ const navGroups: NavGroup[] = [
       { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
       { label: "Activity Log", href: "/audit", icon: <History className="h-5 w-5" /> },
       { label: "Export Data", href: "/export", icon: <Download className="h-5 w-5" /> },
+      { label: "Import Data", href: "/import", icon: <Upload className="h-5 w-5" /> },
       { label: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
     ],
   },
@@ -97,6 +122,15 @@ const navGroups: NavGroup[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user, role, signOut } = useAuth();
+  const { farm, farms, selectFarm } = useFarm();
+  const [showFarmPicker, setShowFarmPicker] = React.useState(false);
+  const [moduleSettings, setModuleSettings] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    api.get("/api/settings").then((d: any) => setModuleSettings(d.settings || {})).catch(() => {});
+  }, []);
+
+  const isModuleEnabled = (key: string) => moduleSettings[key] !== "false";
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     Overview: true,
     "Farm Operations": true,
@@ -114,6 +148,23 @@ export function Sidebar() {
       {/* Brand */}
       <div className="flex items-center px-5 py-5 border-b border-wangari-border">
         <Link href="/"><Logo size="lg" /></Link>
+      </div>
+
+      {/* Farm Switcher */}
+      <div className="px-3 py-3 border-b border-wangari-border">
+        <button onClick={() => setShowFarmPicker(!showFarmPicker)} className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl bg-wangari-green-50 border border-wangari-green-200 hover:bg-wangari-green-100 transition-colors cursor-pointer">
+          <Tractor className="h-4 w-4 text-wangari-green-800" />
+          <span className="flex-1 text-left text-sm font-semibold text-wangari-green-800 truncate">{farm?.name || "Select Farm"}</span>
+          <ChevronDown className={cn("h-3.5 w-3.5 text-wangari-green-800 transition-transform", showFarmPicker && "rotate-180")} />
+        </button>
+        {showFarmPicker && farms.length > 1 && (
+          <div className="mt-1 space-y-0.5">
+            {farms.map(f => (
+              <button key={f.id} onClick={() => { selectFarm(f.id); setShowFarmPicker(false); }}
+                className={cn("w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer", f.id === farm?.id ? "bg-wangari-green-800 text-white" : "text-wangari-text hover:bg-wangari-green-50")}>{f.name}</button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -134,7 +185,10 @@ export function Sidebar() {
             </button>
             {openGroups[group.title] && (
               <div className="space-y-0.5">
-                {group.items.map((item) => {
+                {group.items.filter(item => {
+                  const moduleKey = MODULE_MAP[item.label];
+                  return !moduleKey || isModuleEnabled(moduleKey);
+                }).map((item) => {
                   const isActive =
                     item.href === "/dashboard"
                       ? pathname === "/dashboard"

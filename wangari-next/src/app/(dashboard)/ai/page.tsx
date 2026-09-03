@@ -13,6 +13,7 @@ import {
   Users,
   ShoppingCart,
   Wheat,
+  Leaf,
   DollarSign,
   Syringe,
   CloudSun,
@@ -21,6 +22,7 @@ import {
   PanelRightOpen,
   PanelRightClose,
   Activity,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ai/ChatMessage";
@@ -41,6 +43,7 @@ const QUICK_ACTIONS = [
   { icon: Package, label: "Inventory Status", prompt: "What items are running low in stock?" },
   { icon: Users, label: "Worker Report", prompt: "What are my current labor costs?" },
   { icon: ShoppingCart, label: "Sales Report", prompt: "Show me recent sales and pending payments" },
+  { icon: Leaf, label: "Crop Overview", prompt: "Give me a summary of all my crops" },
   { icon: Wheat, label: "Feed Analysis", prompt: "Analyze my feed costs and usage" },
   { icon: Syringe, label: "Vaccination", prompt: "What vaccinations are due for my flocks?" },
   { icon: CloudSun, label: "Weather", prompt: "What's the weather forecast for my farm?" },
@@ -176,12 +179,15 @@ export default function AIAssistantPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex h-screen">
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-gradient-to-b from-wangari-green-50/30 to-white min-w-0">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-3 border-b border-wangari-border bg-white/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
+            <a href="/dashboard" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0] hover:text-[#0F172A] transition-colors cursor-pointer" title="Back to Dashboard">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            </a>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-wangari-green-700 to-wangari-green-500 text-white shadow-sm">
               <Sparkles className="h-5 w-5" />
             </div>
@@ -189,12 +195,17 @@ export default function AIAssistantPage() {
               <h1 className="text-lg font-bold text-wangari-heading">Wangari AI Workspace</h1>
               <p className="text-xs text-wangari-muted">
                 {providerStatus?.status === "configured"
-                  ? `${providerStatus.providerName || providerStatus.provider} • ${providerStatus.model} • 28 farm tools`
-                  : "Choose a free AI provider below"}
+                  ? `${providerStatus.providerName || providerStatus.provider} • ${providerStatus.model} • 30 farm tools`
+                  : "AI not connected yet"}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {providerStatus?.status !== "configured" && (
+              <a href="/settings" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors">
+                <Settings className="h-3.5 w-3.5" />Connect AI Model
+              </a>
+            )}
             {messages.length > 0 && (
               <button
                 onClick={handleReset}
@@ -290,9 +301,9 @@ export default function AIAssistantPage() {
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  "🐔 Manage Flocks", "🥚 Track Production", "💰 Handle Finances",
-                  "🛒 Process Sales", "📦 Manage Inventory", "👷 Manage Workers",
-                  "💉 Track Vaccinations", "📋 Record Attendance", "🌤️ Check Weather",
+                  "Manage Flocks", "Track Production", "Handle Finances",
+                  "Process Sales", "Manage Inventory", "Manage Workers",
+                  "Track Vaccinations", "Record Attendance", "Manage Crops",
                 ].map((cap) => (
                   <span key={cap} className="rounded-full border border-wangari-border bg-white px-3 py-1 text-xs text-wangari-heading">
                     {cap}

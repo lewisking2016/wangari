@@ -1,9 +1,9 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { DollarSign, CheckCircle, Clock, Plus, X, Trash2, Search } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Plus, X, Trash2, Search, Users, TrendingUp, AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,165 +11,293 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
-const scaleIn = { hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
+const COLORS = ["#166534", "#22C55E", "#86EFAC", "#F59E0B", "#3B82F6", "#94A3B8"];
 
 export default function SalesPage() {
   const [sales, setSales] = React.useState<any[]>([]);
   const [customers, setCustomers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [showPayModal, setShowPayModal] = React.useState<number | null>(null);
+  const [payAmount, setPayAmount] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [filter, setFilter] = React.useState<"all" | "paid" | "pending">("all");
   const { showToast, ToastComponent } = useToast();
-  const [form, setForm] = React.useState({ customerId: "", totalAmount: "", amountPaid: "", paymentStatus: "paid", items: "" });
+  const [form, setForm] = React.useState({ customerId: "", totalAmount: "", productType: "general" });
 
   const load = () => {
-    Promise.all([
-      api.get("/api/sales"),
-      api.get("/api/customers"),
-    ]).then(([s, c]) => { setSales(Array.isArray(s) ? s : []); setCustomers(Array.isArray(c) ? c : []); setLoading(false); }).catch(() => setLoading(false));
-  };
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this sale?")) return;
-    await api.delete("/api/sales/" + id);
-    load();
+    Promise.all([api.get("/api/sales"), api.get("/api/customers")])
+      .then(([s, c]) => { setSales(Array.isArray(s) ? s : []); setCustomers(Array.isArray(c) ? c : []); setLoading(false); })
+      .catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
-
-  const totalRevenue = sales.reduce((s, sale) => s + Number(sale.totalAmount), 0);
-  const totalPaid = sales.filter(s => s.paymentStatus === "paid").reduce((s, sale) => s + Number(sale.amountPaid), 0);
-  const pending = totalRevenue - totalPaid;
 
   const handleSubmit = async () => {
     await api.post("/api/sales", {
       customerId: Number(form.customerId) || null,
       totalAmount: Number(form.totalAmount),
-      amountPaid: Number(form.amountPaid || form.totalAmount),
-      paymentStatus: form.paymentStatus,
-      items: [{ name: "Eggs", quantity: 1, price: Number(form.totalAmount) }],
+      amountPaid: Number(form.totalAmount),
+      paymentStatus: "paid",
+      items: [{ name: form.productType, quantity: 1, price: Number(form.totalAmount) }],
     });
-    setForm({ customerId: "", totalAmount: "", amountPaid: "", paymentStatus: "paid", items: "" });
+    setForm({ customerId: "", totalAmount: "", productType: "general" });
     setShowForm(false);
     showToast("Sale recorded!");
     load();
   };
 
-  const kpis = [
-    { title: "Total Revenue", value: "KES " + totalRevenue.toLocaleString(), icon: <DollarSign className="h-5 w-5" />, change: sales.length + " sales" },
-    { title: "Paid", value: "KES " + totalPaid.toLocaleString(), icon: <CheckCircle className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus === "paid").length + " orders" },
-    { title: "Pending", value: "KES " + pending.toLocaleString(), icon: <Clock className="h-5 w-5" />, change: sales.filter(s => s.paymentStatus !== "paid").length + " orders" },
-  ];
+  const handlePartialPay = async (saleId: number) => {
+    if (!payAmount) return;
+    await api.patch(`/api/sales/${saleId}`, { amountPaid: Number(payAmount) });
+    setShowPayModal(null);
+    setPayAmount("");
+    showToast("Payment recorded!");
+    load();
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this sale?")) return;
+    await api.delete("/api/sales/" + id);
+    load();
+  };
+
+  const totalRevenue = sales.reduce((s, sale) => s + Number(sale.totalAmount), 0);
+  const totalPaid = sales.reduce((s, sale) => s + Number(sale.amountPaid), 0);
+  const pending = totalRevenue - totalPaid;
+
+  const filtered = sales.filter(s => {
+    if (filter === "paid" && s.paymentStatus !== "paid") return false;
+    if (filter === "pending" && s.paymentStatus === "paid") return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return s.customer?.name?.toLowerCase().includes(q) || false;
+    }
+    return true;
+  });
+
+  // Product type breakdown
+  const typeMap: Record<string, number> = {};
+  sales.forEach(s => {
+    const items = Array.isArray(s.items) ? s.items : [];
+    items.forEach((item: any) => {
+      const name = item.name || "Other";
+      typeMap[name] = (typeMap[name] || 0) + Number(item.price || 0);
+    });
+  });
+  const typeData = Object.entries(typeMap).map(([name, value]) => ({ name, value })).filter(v => v.value > 0);
+
+  // Customer balances (who owes)
+  const customerDebt = customers
+    .map((c: any) => {
+      const owed = sales
+        .filter((s: any) => s.customerId === c.id && s.paymentStatus !== "paid")
+        .reduce((sum: number, s: any) => sum + (Number(s.totalAmount) - Number(s.amountPaid)), 0);
+      return { ...c, owed };
+    })
+    .filter((c: any) => c.owed > 0)
+    .sort((a: any, b: any) => b.owed - a.owed);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <PageHeader title="Sales" description="Track customer orders and payments"
-          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Record Sale</Button>}
-        />
+        <PageHeader title="Sales" description="Track product sales and payments"
+          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Record Sale</Button>} />
       </motion.div>
 
+      {/* Form */}
       {showForm && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
+          <Card className="border border-[#E5E7EB]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-[#0F172A]">Record New Sale</h3>
+                <h3 className="text-sm font-bold text-[#0F172A]">Record Sale</h3>
                 <button onClick={() => setShowForm(false)} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#64748B]">Customer</Label>
-                  <select value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full h-10 rounded-xl border border-[#E5E7EB] px-3 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534]">
-                    <option value="">Walk-in</option>
-                    {customers.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#64748B]">Total Amount (KES)</Label>
-                  <Input type="number" placeholder="0" value={form.totalAmount} onChange={e => setForm({ ...form, totalAmount: e.target.value })} className="h-10 rounded-xl" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#64748B]">Amount Paid (KES)</Label>
-                  <Input type="number" placeholder="0" value={form.amountPaid} onChange={e => setForm({ ...form, amountPaid: e.target.value })} className="h-10 rounded-xl" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-[#64748B]">Payment Status</Label>
-                  <select value={form.paymentStatus} onChange={e => setForm({ ...form, paymentStatus: e.target.value })} className="w-full h-10 rounded-xl border border-[#E5E7EB] px-3 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534]">
-                    <option value="paid">Paid</option>
-                    <option value="partial">Partial</option>
-                    <option value="pending">Pending</option>
-                  </select>
-                </div>
-                <div className="flex items-end">
-                  <Button onClick={handleSubmit} className="w-full bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold text-[#64748B]">What did you sell?</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[{ v: "eggs", l: "Eggs" }, { v: "milk", l: "Milk" }, { v: "meat", l: "Meat" }, { v: "crops", l: "Crops" }, { v: "livestock", l: "Livestock" }, { v: "general", l: "Other" }].map(item => (
+                    <button key={item.v} onClick={() => setForm({ ...form, productType: item.v })}
+                      className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${form.productType === item.v ? "bg-[#166534] text-white shadow-md" : "bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]"}`}>{item.l}</button>
+                  ))}
                 </div>
               </div>
+              <div className="space-y-1 mt-4">
+                <Label className="text-xs font-semibold text-[#64748B]">Amount (KES)</Label>
+                <Input type="number" placeholder="0" value={form.totalAmount} onChange={e => setForm({ ...form, totalAmount: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" />
+              </div>
+              <div className="space-y-1 mt-3">
+                <Label className="text-xs font-semibold text-[#64748B]">Buyer (optional)</Label>
+                <select value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full h-10 rounded-xl border border-[#E5E7EB] px-3 text-sm">
+                  <option value="">Walk-in</option>
+                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <Button onClick={handleSubmit} disabled={!form.totalAmount} className="w-full mt-4 bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50 h-12 text-base font-bold">Save Sale</Button>
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-3 gap-4">
-        {kpis.map((kpi) => (
-          <motion.div key={kpi.title} variants={scaleIn} whileHover={{ y: -4 }}>
-            <Card className="border border-[#E5E7EB] hover:shadow-lg transition-all duration-300">
-              <CardContent className="pt-6 pb-4 px-5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">{kpi.icon}</div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>
-                <p className="text-2xl font-extrabold text-[#0F172A] tracking-tight">{kpi.value}</p>
-                <p className="text-xs text-[#94A3B8] mt-1">{kpi.change}</p>
+      {/* KPIs */}
+      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { title: "Total Revenue", value: `KES ${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-[#166534]" },
+          { title: "Paid", value: `KES ${totalPaid.toLocaleString()}`, icon: <CheckCircle className="h-5 w-5" />, color: "bg-emerald-500" },
+          { title: "Pending", value: `KES ${pending.toLocaleString()}`, icon: <Clock className="h-5 w-5" />, color: "bg-amber-500" },
+          { title: "Customers Owing", value: customerDebt.length.toString(), icon: <Users className="h-5 w-5" />, color: "bg-red-500" },
+        ].map(kpi => (
+          <motion.div key={kpi.title} variants={fadeUp}>
+            <Card className="border border-[#E5E7EB]">
+              <CardContent className="pt-4 pb-3 px-4">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${kpi.color} text-white mb-2`}>{kpi.icon}</div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{kpi.title}</p>
+                <p className="text-xl font-extrabold text-[#0F172A]">{kpi.value}</p>
               </CardContent>
             </Card>
           </motion.div>
         ))}
       </motion.div>
 
-      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
-        <input placeholder="Search by customer name..." value={search} onChange={e => setSearch(e.target.value)} className="w-full h-11 rounded-xl border border-[#E5E7EB] pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534] transition-all" />
-      </motion.div>
-
-      {sales.length === 0 ? <EmptyState title="No sales" description="Record your first sale." /> : (
-        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-          <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[#E5E7EB] bg-[#FAFBFC]">
-                      <th className="px-5 py-3.5 text-left font-bold text-[#64748B] text-xs uppercase tracking-wider">Date</th>
-                      <th className="px-5 py-3.5 text-left font-bold text-[#64748B] text-xs uppercase tracking-wider">Customer</th>
-                      <th className="px-5 py-3.5 text-right font-bold text-[#64748B] text-xs uppercase tracking-wider">Amount</th>
-                      <th className="px-5 py-3.5 text-right font-bold text-[#64748B] text-xs uppercase tracking-wider">Paid</th>
-                      <th className="px-5 py-3.5 text-center font-bold text-[#64748B] text-xs uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sales.filter(s => !search || s.customer?.name?.toLowerCase().includes(search.toLowerCase())).slice(0, 30).map((s, i) => (
-                      <motion.tr key={s.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors">
-                        <td className="px-5 py-3.5 text-[#0F172A] font-medium">{new Date(s.saleDate).toLocaleDateString()}</td>
-                        <td className="px-5 py-3.5 text-[#64748B]">{s.customer?.name || "Walk-in"}</td>
-                        <td className="px-5 py-3.5 text-right font-bold text-[#0F172A] tabular-nums">KES {Number(s.totalAmount).toLocaleString()}</td>
-                        <td className="px-5 py-3.5 text-right text-[#64748B] tabular-nums">KES {Number(s.amountPaid).toLocaleString()}</td>
-                        <td className="px-5 py-3.5 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-[#64748B] border-gray-200"}>{s.paymentStatus}</Badge>
-                            <button onClick={() => handleDelete(s.id)} className="text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
-                          </div>
-                        </td>
-                      </motion.tr>
+      {/* Charts + Customer Balances row */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Product breakdown */}
+        {typeData.length > 0 && (
+          <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+            <Card className="border border-[#E5E7EB]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="h-4 w-4 text-[#166534]" />
+                  <p className="text-xs font-bold text-[#0F172A]">Sales by Product</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <ResponsiveContainer width="45%" height={140}>
+                    <PieChart>
+                      <Pie data={typeData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={50} strokeWidth={2} stroke="#fff">
+                        {typeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip formatter={(v: any) => `KES ${Number(v).toLocaleString()}`} contentStyle={{ borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 11 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="space-y-1.5 flex-1">
+                    {typeData.sort((a, b) => b.value - a.value).map((e, i) => (
+                      <div key={e.name} className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                        <span className="text-[10px] text-[#64748B] capitalize flex-1">{e.name}</span>
+                        <span className="text-[10px] font-bold text-[#0F172A]">KES {e.value.toLocaleString()}</span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Customer balances */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-[#E5E7EB]">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+                <p className="text-xs font-bold text-[#0F172A]">Outstanding Balances</p>
               </div>
+              {customerDebt.length === 0 ? (
+                <p className="text-xs text-[#94A3B8] py-4 text-center">No outstanding balances</p>
+              ) : (
+                <div className="space-y-2">
+                  {customerDebt.slice(0, 5).map((c: any) => (
+                    <div key={c.id} className="flex items-center justify-between rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
+                      <div>
+                        <p className="text-xs font-bold text-[#0F172A]">{c.name}</p>
+                        {c.phone && <p className="text-[10px] text-[#94A3B8]">{c.phone}</p>}
+                      </div>
+                      <p className="text-sm font-extrabold text-amber-600">KES {c.owed.toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2">
+        {(["all", "paid", "pending"] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer capitalize ${filter === f ? "bg-[#166534] text-white" : "bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]"}`}>{f}</button>
+        ))}
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+          <input placeholder="Search buyer..." value={search} onChange={e => setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-[#E5E7EB] pl-9 pr-3 text-sm" />
+        </div>
+      </div>
+
+      {/* Sale cards */}
+      {filtered.length === 0 ? <EmptyState title="No sales" description="Record your first sale." /> : (
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-2">
+          {filtered.slice(0, 30).map((s, i) => {
+            const items = Array.isArray(s.items) ? s.items : [];
+            const productNames = items.map((it: any) => it.name).join(", ") || "General";
+            const balance = Number(s.totalAmount) - Number(s.amountPaid);
+            return (
+              <motion.div key={s.id} variants={fadeUp}>
+                <Card className="border border-[#E5E7EB]">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className={s.paymentStatus === "paid" ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-amber-50 text-amber-700 border-amber-200"}>{s.paymentStatus}</Badge>
+                          <span className="text-[10px] text-[#94A3B8]">{new Date(s.saleDate).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-xs text-[#64748B]">{productNames}</p>
+                        <p className="text-[10px] text-[#94A3B8] mt-0.5">{s.customer?.name || "Walk-in"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-extrabold text-[#0F172A]">KES {Number(s.totalAmount).toLocaleString()}</p>
+                        {balance > 0 && <p className="text-[10px] text-amber-600 font-bold">KES {balance.toLocaleString()} owing</p>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      {balance > 0 && (
+                        <button onClick={() => { setShowPayModal(s.id); setPayAmount(String(balance)); }}
+                          className="flex-1 py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 hover:bg-amber-100 cursor-pointer">Record Payment</button>
+                      )}
+                      <button onClick={() => handleDelete(s.id)} className="py-2 px-3 rounded-xl bg-red-50 text-red-500 text-xs font-bold border border-red-200 hover:bg-red-100 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       )}
+
+      {/* Pay modal */}
+      {showPayModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+            <Card className="w-80 border border-[#E5E7EB]">
+              <CardContent className="p-6 space-y-4">
+                <h3 className="text-sm font-bold text-[#0F172A]">Record Payment</h3>
+                <Input type="number" placeholder="Amount" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="h-12 rounded-xl text-lg font-bold text-center" />
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowPayModal(null)} variant="outline" className="flex-1 cursor-pointer">Cancel</Button>
+                  <Button onClick={() => handlePartialPay(showPayModal)} className="flex-1 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      )}
+
       {ToastComponent}
     </div>
   );

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { generateToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -93,6 +94,27 @@ router.post("/login", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// POST /api/auth/switch-farm — switch active farm, re-issue token
+router.post("/switch-farm", async (req: Request, res: Response) => {
+  try {
+    const { farmId } = req.body;
+    if (!farmId) return res.status(400).json({ error: "farmId required" });
+
+    // Verify user is a member of this farm
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "wangari-dev-secret-change-in-production") as { userId: number };
+
+    const member = await prisma.farmMember.findFirst({ where: { userId: decoded.userId, farmId: Number(farmId) } });
+    if (!member) return res.status(403).json({ error: "Not a member of this farm" });
+
+    const newToken = generateToken(decoded.userId, Number(farmId));
+    res.json({ token: newToken, farmId: Number(farmId) });
+  } catch (error) {
+    res.status(500).json({ error: "Failed" });
   }
 });
 

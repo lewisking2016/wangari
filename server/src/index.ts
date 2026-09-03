@@ -17,8 +17,14 @@ import vaccinationsRoutes from "./routes/vaccinations.js";
 import attendanceRoutes from "./routes/attendance.js";
 import weatherRoutes from "./routes/weather.js";
 import aiRoutes from "./routes/ai.js";
-import flocksUploadRoutes from "./routes/flocks-upload.js";
 import breedingRoutes from "./routes/breeding.js";
+import cropsRoutes from "./routes/crops.js";
+import invoicesRoutes from "./routes/invoices.js";
+import farmsRoutes from "./routes/farms.js";
+import auditRoutes from "./routes/audit.js";
+import exportRoutes from "./routes/export.js";
+import importRoutes from "./routes/import.js";
+import settingsRoutes from "./routes/settings.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -67,8 +73,14 @@ app.use("/api/vaccinations", vaccinationsRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/ai", aiRoutes);
-app.use("/api/flocks", flocksUploadRoutes);
 app.use("/api/breeding", breedingRoutes);
+app.use("/api/crops", cropsRoutes);
+app.use("/api/invoices", invoicesRoutes);
+app.use("/api/farms", farmsRoutes);
+app.use("/api/audit", auditRoutes);
+app.use("/api/export", exportRoutes);
+app.use("/api/import", importRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

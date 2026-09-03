@@ -83,7 +83,7 @@ router.get("/", async (req: Request, res: Response) => {
             : current.main.humidity;
 
           // 5-day forecast
-          const dailyForecast = [];
+          const dailyForecast: any[] = [];
           const seen = new Set<string>();
           for (const item of forecastData.list) {
             const d = new Date(item.dt * 1000);

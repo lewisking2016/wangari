@@ -35,7 +35,40 @@ router.post("/", async (req: Request, res: Response) => {
         createdBy: req.user!.userId,
       },
     });
+
+    // Auto-generate invoice for this sale
+    try {
+      const ym = new Date().getFullYear().toString() + String(new Date().getMonth() + 1).padStart(2, "0");
+      const rand = Math.floor(Math.random() * 9000 + 1000);
+      await prisma.invoice.create({
+        data: {
+          farmId: req.user!.farmId!,
+          saleId: result.id,
+          customerId: result.customerId,
+          invoiceNumber: `INV-${ym}-${rand}`,
+          items: result.items,
+          totalAmount: Number(result.totalAmount),
+          amountPaid: Number(result.amountPaid),
+          paymentStatus: result.paymentStatus,
+        },
+      });
+    } catch { /* invoice creation failed, not critical */ }
+
     res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
+// PATCH /api/sales/:id — record partial payment
+router.patch("/:id", async (req: Request, res: Response) => {
+  try {
+    const sale = await prisma.sale.findFirst({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
+    if (!sale) return res.status(404).json({ error: "Not found" });
+    const newPaid = Number(sale.amountPaid) + Number(req.body.amountPaid || 0);
+    const status = newPaid >= Number(sale.totalAmount) ? "paid" : "partial";
+    const updated = await prisma.sale.update({ where: { id: sale.id }, data: { amountPaid: newPaid, paymentStatus: status } });
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }

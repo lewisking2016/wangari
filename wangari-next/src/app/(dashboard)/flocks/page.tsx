@@ -724,7 +724,7 @@ export default function FlocksPage() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Livestock</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Manage all your farm animals — poultry, cattle, goats, fish & more</p>
+          <p className="text-sm text-gray-400 mt-0.5">Manage your livestock groups — poultry, cattle, goats, fish & more</p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={loadFlocks} variant="ghost" size="sm" className="gap-1.5 text-gray-400"><RefreshCw className="h-4 w-4" /></Button>
@@ -804,7 +804,7 @@ export default function FlocksPage() {
       </motion.div>
 
       {filtered.length === 0 ? (
-        <EmptyState title="No livestock yet" description="Add your first flock to start tracking your livestock." />
+        <EmptyState title="No livestock yet" description="Add your first group to start tracking." />
       ) : viewMode === "card" ? (
         /* ─── CARD VIEW ─────────────────────────── */
         <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
