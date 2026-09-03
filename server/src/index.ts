@@ -18,6 +18,7 @@ import attendanceRoutes from "./routes/attendance.js";
 import weatherRoutes from "./routes/weather.js";
 import aiRoutes from "./routes/ai.js";
 import flocksUploadRoutes from "./routes/flocks-upload.js";
+import breedingRoutes from "./routes/breeding.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -67,6 +68,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/flocks", flocksUploadRoutes);
+app.use("/api/breeding", breedingRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

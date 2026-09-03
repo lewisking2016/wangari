@@ -55,6 +55,7 @@ model Farm {
   attendances Attendance[]
   auditLogs AuditLog[]
   settings     FarmSetting[]
+  breeding Breeding[]
 
   @@map("farms")
 }
@@ -117,26 +118,53 @@ model Flock {
   creator      User?             @relation(fields: [createdBy], references: [id])
   production   DailyProduction[]
   vaccinations Vaccination[]
+  breeding     Breeding[]
 
   @@map("flocks")
-}
-
-model DailyProduction {
-  id            Int    @id @default(autoincrement())
-  flockId       Int    @map("flock_id")
-  farmId        Int    @map("farm_id")
-  date          DateTime @db.Date
-  eggsCollected Int    @default(0) @map("eggs_collected")
-  mortality     Int    @default(0)
-  feedUsed      Decimal @default(0) @map("feed_used") @db.Decimal(10, 2)
-  notes         String?
-  createdAt     DateTime @default(now()) @map("created_at")
+}model DailyProduction {
+  id              Int      @id @default(autoincrement())
+  flockId         Int      @map("flock_id")
+  farmId          Int      @map("farm_id")
+  date            DateTime @db.Date
+  eggsCollected   Int      @default(0) @map("eggs_collected")
+  milkCollected   Decimal  @default(0) @map("milk_collected") @db.Decimal(10, 2)
+  mortality       Int      @default(0)
+  feedUsed        Decimal  @default(0) @map("feed_used") @db.Decimal(10, 2)
+  avgWeight       Decimal? @map("avg_weight") @db.Decimal(10, 2)
+  weightGain      Decimal? @map("weight_gain") @db.Decimal(10, 2)
+  waterUsed       Decimal? @map("water_used") @db.Decimal(10, 2)
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
 
   flock Flock @relation(fields: [flockId], references: [id])
   farm  Farm  @relation(fields: [farmId], references: [id])
 
   @@unique([flockId, date])
   @@map("daily_production")
+}
+
+model Breeding {
+  id            Int       @id @default(autoincrement())
+  flockId       Int       @map("flock_id")
+  farmId        Int       @map("farm_id")
+  sireName      String?   @map("sire_name")
+  sireBreed     String?   @map("sire_breed")
+  damName       String?   @map("dam_name")
+  damBreed      String?   @map("dam_breed")
+  matingDate    DateTime  @map("mating_date")
+  expectedBirth DateTime? @map("expected_birth")
+  actualBirth   DateTime? @map("actual_birth")
+  offspringCount Int?     @map("offspring_count")
+  offspringAlive Int?     @map("offspring_alive")
+  method        String?   // natural, ai, ivf
+  status        String    @default("pending") // pending, confirmed, born, failed
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  flock Flock @relation(fields: [flockId], references: [id])
+  farm  Farm  @relation(fields: [farmId], references: [id])
+
+  @@map("breeding_records")
 }
 
 model Vaccination {

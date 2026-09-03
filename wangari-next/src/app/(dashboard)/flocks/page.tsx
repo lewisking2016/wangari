@@ -29,6 +29,7 @@ import {
   Egg,
   BarChart3,
   Download,
+  Bell,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,10 @@ import { RecordProductionForm } from "@/components/flocks/RecordProductionForm";
 import { FlockPhoto } from "@/components/flocks/FlockPhoto";
 import { FlockComparison } from "@/components/flocks/FlockComparison";
 import { ExportReport } from "@/components/flocks/ExportReport";
+import { GrowthChart } from "@/components/flocks/GrowthChart";
+import { VaccinationReminders } from "@/components/flocks/VaccinationReminders";
+import { BatchProduction } from "@/components/flocks/BatchProduction";
+import { BreedingRecords } from "@/components/flocks/BreedingRecords";
 import { speciesTemplates, getSpeciesCategories, getSpeciesIconId } from "@/lib/species-templates";
 
 const iconMap: Record<string, any> = { bird: Bird, beef: Beef, droplets: Droplets, flower: Flower };
@@ -147,6 +152,7 @@ export default function FlocksPage() {
   const [selectedForCompare, setSelectedForCompare] = React.useState<Set<number>>(new Set());
   const [showComparison, setShowComparison] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<"card" | "list">("card");
+  const [showBatchProduction, setShowBatchProduction] = React.useState(false);
 
   const loadFlocks = () => {
     api.get("/api/flocks").then(d => {
@@ -191,6 +197,12 @@ export default function FlocksPage() {
   const handleRecordProduction = async (data: any) => {
     await api.post("/api/production", data);
     setShowProductionForm(false);
+    loadFlocks();
+  };
+
+  const handleBatchProduction = async (records: any[]) => {
+    await Promise.all(records.map((r) => api.post("/api/production", r)));
+    setShowBatchProduction(false);
     loadFlocks();
   };
 
@@ -312,6 +324,9 @@ export default function FlocksPage() {
             }>{flock.status}</Badge>
             <Button onClick={() => setShowProductionForm(true)} variant="ghost" size="sm" className="gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 cursor-pointer">
               <ClipboardList className="h-4 w-4" />Record
+            </Button>
+            <Button onClick={() => setShowBatchProduction(true)} variant="ghost" size="sm" className="gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 cursor-pointer">
+              <ClipboardList className="h-4 w-4" />Batch
             </Button>
             <Button onClick={() => setShowExport(true)} variant="ghost" size="sm" className="gap-1.5 text-gray-500 hover:text-gray-700 cursor-pointer">
               <Download className="h-4 w-4" />Export
@@ -587,6 +602,18 @@ export default function FlocksPage() {
           </motion.div>
         )}
 
+        {/* Growth/Weight Chart */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-gray-100 bg-white">
+            <CardContent className="p-5">
+              <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-4 flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" /> Weight / Growth Tracking
+              </h3>
+              <GrowthChart production={production} expectedWeight={flock.expectedWeight || species?.breedDetails[flock.breed]?.matureWeight} />
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Vaccination Schedule */}
         {vaccinations.length > 0 && (
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
@@ -643,6 +670,27 @@ export default function FlocksPage() {
             </Card>
           </motion.div>
         )}
+
+        {/* Breeding Records */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-gray-100 bg-white">
+            <CardContent className="p-5">
+              <BreedingRecords flockId={flock.id} flockName={flock.name} flockType={flock.type} />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Vaccination Reminders */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-gray-100 bg-white">
+            <CardContent className="p-5">
+              <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-4 flex items-center gap-1.5">
+                <Bell className="h-3.5 w-3.5" /> Upcoming Vaccinations
+              </h3>
+              <VaccinationReminders onSelectFlock={(id) => { const f = flocks.find((fl: any) => fl.id === id); if (f) setSelectedFlock(f); }} />
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {flock.notes && (
           <motion.div initial="hidden" animate="visible" variants={fadeUp}>
@@ -1013,6 +1061,14 @@ export default function FlocksPage() {
 
       {showProductionForm && selectedFlock && (
         <RecordProductionForm flock={selectedFlock} onSubmit={handleRecordProduction} onCancel={() => setShowProductionForm(false)} />
+      )}
+
+      {showBatchProduction && (
+        <BatchProduction
+          flocks={flocks}
+          onSubmit={handleBatchProduction}
+          onCancel={() => setShowBatchProduction(false)}
+        />
       )}
 
       {showComparison && (
