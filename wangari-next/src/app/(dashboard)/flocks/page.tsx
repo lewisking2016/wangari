@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   Bird,
   Plus,
+  PawPrint,
   Trash2,
   Search,
   Heart,
@@ -15,6 +16,8 @@ import {
   DollarSign,
   Eye,
   ChevronRight,
+  Droplets,
+  Flower,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,8 +31,8 @@ import { speciesTemplates, getSpeciesCategories, getSpeciesIconId } from "@/lib/
 const iconMap: Record<string, any> = {
   bird: Bird,
   beef: Beef,
-  droplets: Bird,
-  flower: Bird,
+  droplets: Droplets,
+  flower: Flower,
 };
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
@@ -115,7 +118,7 @@ export default function FlocksPage() {
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <div className="relative">
           <div className="h-12 w-12 rounded-full border-[3px] border-emerald-200 border-t-emerald-600 animate-spin" />
-          <Bird className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-emerald-600" />
+          <PawPrint className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-emerald-600" />
         </div>
         <p className="text-sm text-gray-400">Loading your livestock...</p>
       </div>
@@ -177,7 +180,7 @@ export default function FlocksPage() {
         {/* Quick Stats */}
         <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { label: "Current Count", value: (flock.currentCount || 0).toLocaleString(), icon: <Bird className="h-5 w-5" /> },
+            { label: "Current Count", value: (flock.currentCount || 0).toLocaleString(), icon: <PawPrint className="h-5 w-5" /> },
             { label: "Deaths", value: (flock.mortality || 0).toString(), icon: <Heart className="h-5 w-5" />, color: "text-red-600" },
             { label: "Mortality", value: `${mortality}%`, icon: <Syringe className="h-5 w-5" /> },
             { label: "Age", value: getAge(flock.hatchDate), icon: <Calendar className="h-5 w-5" /> },
@@ -442,7 +445,7 @@ export default function FlocksPage() {
       {/* KPI Cards */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Animals", value: totalAnimals.toLocaleString(), icon: <Bird className="h-5 w-5" />, change: `${activeFlocks} active groups`, positive: true },
+          { label: "Total Animals", value: totalAnimals.toLocaleString(), icon: <PawPrint className="h-5 w-5" />, change: `${activeFlocks} active groups`, positive: true },
           { label: "Species Types", value: uniqueCategories.toString(), icon: <Beef className="h-5 w-5" />, change: `${flocks.length} total flocks`, positive: true },
           { label: "Mortality Rate", value: `${mortalityRate}%`, icon: <Heart className="h-5 w-5" />, change: `${totalMortality} total deaths`, positive: Number(mortalityRate) <= 3 },
           { label: "Total Investment", value: totalInvestment > 0 ? `KES ${(totalInvestment / 1000).toFixed(0)}k` : "—", icon: <DollarSign className="h-5 w-5" />, change: `${flocks.length} flocks`, positive: true },
