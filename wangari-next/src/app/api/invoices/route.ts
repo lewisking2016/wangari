@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { decodeToken } from "@/lib/jwt";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const farmId = 1;
+    const user = decodeToken(req.headers.get("authorization"));
+    const farmId = user?.farmId;
+    if (!farmId) return NextResponse.json([]);
     const sales = await prisma.sale.findMany({
       where: { farmId },
       include: { customer: true },
@@ -33,11 +36,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const user = decodeToken(request.headers.get("authorization"));
+  if (!user?.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const body = await request.json();
     const sale = await prisma.sale.create({
       data: {
-        farmId: body.farmId || 1,
+        farmId: user.farmId!,
         customerId: body.customerId || null,
         items: body.items || [],
         totalAmount: body.totalAmount,

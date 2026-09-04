@@ -25,7 +25,6 @@ import api from "@/lib/api-client";
 const hubs = [
   { id: "poultry", icon: Bird, name: "My Poultry", desc: "Track flocks, eggs, mortality, and feed", color: "from-emerald-500 to-green-600" },
   { id: "crops", icon: Package, name: "My Crops", desc: "Fields, planting, harvest, and costs", color: "from-amber-500 to-orange-600" },
-  { id: "inventory", icon: Warehouse, name: "My Inventory", desc: "Feed, vaccines, supplies, and alerts", color: "from-blue-500 to-indigo-600" },
   { id: "finance", icon: DollarSign, name: "My Money", desc: "Cashbook, expenses, and profit tracking", color: "from-violet-500 to-purple-600" },
   { id: "sales", icon: BarChart3, name: "My Sales", desc: "Customers, orders, and revenue", color: "from-pink-500 to-rose-600" },
   { id: "team", icon: Users, name: "My Team", desc: "Workers, attendance, and wages", color: "from-teal-500 to-cyan-600" },

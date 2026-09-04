@@ -345,7 +345,7 @@ export default function SettingsPage() {
                     <button
                       id="google-link-btn"
                       onClick={async () => {
-                        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+                        const clientId = process.env.NEXT_GOOGLE_CLIENT_ID;
                         if (!clientId) { showToast("Google sign-in not configured"); return; }
                         if (!window.google) { showToast("Google loading... please try again"); return; }
                         window.google.accounts.id.initialize({

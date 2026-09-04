@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/current-user";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const user = await getCurrentUser(req);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     // Get recent WhatsApp messages from audit log
     const logs = await prisma.auditLog.findMany({
@@ -39,13 +43,16 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const user = await getCurrentUser(request);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const body = await request.json();
 
     // Log the WhatsApp message attempt
     await prisma.auditLog.create({
       data: {
-        farmId: body.farmId || 1,
+        farmId: user.farmId!,
         action: "send",
         entityType: "whatsapp",
         details: {

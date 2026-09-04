@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Check, ArrowRight, Zap, Shield, Sparkles } from "lucide-react";
+import { isLoggedIn } from "@/lib/auth-client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -17,62 +18,76 @@ const stagger = {
 const plans = [
   {
     name: "Starter",
-    price: 500,
+    paystackKey: "starter_monthly",
+    price: 1500,
+    annualPrice: 12000,
     period: "/month",
     description: "Perfect for small farms just getting started with digital records.",
     icon: Zap,
     popular: false,
     features: [
       "1 hub of your choice",
+      "Inventory tracking (always included)",
       "WhatsApp bot for data entry",
       "Daily profit summary",
       "Basic reports",
       "Mobile access",
     ],
-    cta: "Start Free Trial",
+    cta: "Subscribe Now",
     ctaHref: "/register",
   },
   {
-    name: "Pro",
-    price: 1500,
+    name: "Growth",
+    paystackKey: "growth_monthly",
+    price: 4500,
+    annualPrice: 36000,
     period: "/month",
     description: "For serious farmers who want real profit visibility across their operation.",
     icon: Shield,
     popular: true,
     features: [
       "3 hubs of your choice",
-      "WhatsApp bot + Push alerts",
+      "Inventory tracking (always included)",
       "AI assistant (ask questions in plain language)",
       "Advanced reports + PDF export",
       "Vaccination & low-stock reminders",
       "Daily profit reports",
+      "WhatsApp bot for data entry",
     ],
-    cta: "Start Free Trial",
+    cta: "Subscribe Now",
     ctaHref: "/register",
   },
   {
     name: "Enterprise",
-    price: 3000,
+    paystackKey: null,
+    price: 12000,
+    annualPrice: null,
     period: "/month",
-    description: "For large farms, agro-vets, and cooperatives who need everything.",
+    description: "Custom hosting, installation, and dedicated support for large operations.",
     icon: Sparkles,
     popular: false,
     features: [
-      "All 7 hubs unlocked",
+      "All 6 hubs unlocked",
+      "Inventory tracking (always included)",
+      "Individual hosting & installation",
       "Full AI + priority support",
-      "Unlimited team members + roles",
-      "Cooperative dashboard",
-      "API access",
-      "WhatsApp bot + Push alerts",
+      "Unlimited team members",
       "Advanced reports + PDF export",
+      "Dedicated account manager",
+      "Custom integrations",
     ],
-    cta: "Contact Us",
-    ctaHref: "/register",
+    cta: "Contact Sales",
+    ctaHref: "mailto:sales@imeantech.com",
   },
 ];
 
 export default function PricingPage() {
   const [annual, setAnnual] = React.useState(false);
+  const [loggedIn, setLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoggedIn(isLoggedIn());
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FAFBFC]">
@@ -84,7 +99,7 @@ export default function PricingPage() {
             Start free. Upgrade when<br />you see results.
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-5 text-lg text-[#64748B] max-w-2xl mx-auto">
-            Choose the plan that fits your farm. Every plan includes the WhatsApp bot, mobile access, and daily profit reports. Start free for 30 days, no credit card required.
+            Choose the plan that fits your farm. Every plan includes mobile access and daily profit reports. Start with a 30-day free trial — no credit card required.
           </motion.p>
 
           {/* Toggle */}
@@ -139,9 +154,9 @@ export default function PricingPage() {
                     <span className="text-4xl font-extrabold text-[#0F172A]">{monthlyPrice.toLocaleString()}</span>
                     <span className="text-sm text-[#64748B]">{plan.period}</span>
                   </div>
-                  {annual && (
+                  {annual && plan.annualPrice && (
                     <p className="text-xs text-[#22C55E] font-semibold mt-1">
-                      KES {(monthlyPrice * 12).toLocaleString()}/year — save KES {((plan.price - monthlyPrice) * 12).toLocaleString()}
+                      KES {plan.annualPrice.toLocaleString()}/year — save KES {((plan.price * 12) - plan.annualPrice).toLocaleString()}
                     </p>
                   )}
                   <p className="mt-3 text-sm text-[#64748B] leading-relaxed">{plan.description}</p>
@@ -157,14 +172,20 @@ export default function PricingPage() {
                 </ul>
 
                 <Link
-                  href={plan.ctaHref}
+                  href={
+                    plan.ctaHref.startsWith("mailto:")
+                      ? plan.ctaHref
+                      : loggedIn
+                        ? `/dashboard?subscribe=${plan.paystackKey}`
+                        : `/login?callbackUrl=${encodeURIComponent("/pricing")}`
+                  }
                   className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-bold transition-all duration-200 ${
                     plan.popular
                       ? "bg-[#166534] text-white hover:bg-[#14532D] hover:shadow-lg hover:shadow-[#166534]/25"
                       : "border-2 border-[#E5E7EB] text-[#0F172A] hover:border-[#166534] hover:text-[#166534] hover:bg-[#F0FDF4]"
                   }`}
                 >
-                  {plan.cta}
+                  {loggedIn ? plan.cta : "Sign In to Subscribe"}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </motion.div>
@@ -179,7 +200,7 @@ export default function PricingPage() {
           </motion.h2>
           <div className="space-y-6">
             {[
-              { q: "Is there a free trial?", a: "Yes! Every plan starts with a 30-day free trial. No credit card required. You can cancel anytime." },
+              { q: "Is there a free trial?", a: "Yes! Every plan starts with a 30-day free trial. All features included. No credit card required. Cancel anytime." },
               { q: "Can I switch plans later?", a: "Absolutely. Upgrade or downgrade anytime. Your data is always preserved." },
               { q: "What payment methods do you accept?", a: "We accept M-Pesa, Visa, Mastercard, and bank transfers through Paystack." },
               { q: "What happens to my data if I cancel?", a: "We never delete your data. If you cancel, you get read-only access. Come back anytime and your data is there." },

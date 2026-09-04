@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { decodeToken } from "@/lib/jwt";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const farmId = 1; // Default farm
+    const user = decodeToken(request.headers.get("authorization"));
+    const farmId = user?.farmId;
+    if (!farmId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Save each preference as a FarmSetting
     const preferences = [
@@ -43,9 +46,11 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const farmId = 1;
+    const user = decodeToken(req.headers.get("authorization"));
+    const farmId = user?.farmId;
+    if (!farmId) return NextResponse.json({});
     const settings = await prisma.farmSetting.findMany({
       where: { farmId },
     });

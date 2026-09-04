@@ -34,7 +34,7 @@ export default function RegisterPage() {
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
     const script = document.createElement("script");
@@ -78,7 +78,7 @@ export default function RegisterPage() {
 
     try {
       await register(form.name, form.email, form.password);
-      router.push("/onboarding");
+      router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_API = "https://api.paystack.co";
 
-// Plan amounts in KES (Paystack uses kobo/pesewas = amount * 100)
+// Plan amounts in KES (Paystack uses pesewas = amount * 100)
 const PLANS = {
-  growth_monthly: { name: "Growth Monthly", amount: 150000, description: "Growth plan - KES 1,500/month" },
-  growth_annual: { name: "Growth Annual", amount: 1500000, description: "Growth plan - KES 15,000/year" },
-  enterprise_monthly: { name: "Enterprise Monthly", amount: 500000, description: "Enterprise plan - KES 5,000/month" },
-  enterprise_annual: { name: "Enterprise Annual", amount: 5000000, description: "Enterprise plan - KES 50,000/year" },
+  starter_monthly: { name: "Starter Monthly", amount: 150000, description: "Starter plan - KES 1,500/month" },
+  starter_annual: { name: "Starter Annual", amount: 1200000, description: "Starter plan - KES 12,000/year" },
+  growth_monthly: { name: "Growth Monthly", amount: 450000, description: "Growth plan - KES 4,500/month" },
+  growth_annual: { name: "Growth Annual", amount: 3600000, description: "Growth plan - KES 36,000/year" },
 };
 
 // POST /api/paystack - Initialize a payment

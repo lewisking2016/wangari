@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import api from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
+import { TrialBanner } from "@/components/trial/trial-banner";
 
 // Components
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -82,6 +83,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [profileDismissed, setProfileDismissed] = React.useState(false);
+  const [trialData, setTrialData] = React.useState<any>(null);
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -96,13 +98,17 @@ export default function DashboardPage() {
         } catch {}
       }
 
-      const [dashboardData, weatherData] = await Promise.allSettled([
+      const [dashboardData, weatherData, trialResult] = await Promise.allSettled([
         api.get("/api/dashboard"),
         api.get(weatherUrl),
+        api.get("/api/trial/status"),
       ]);
       if (dashboardData.status === "fulfilled") setData(dashboardData.value);
       if (weatherData.status === "fulfilled" && weatherData.value && !weatherData.value.noData) {
         setWeather(weatherData.value);
+      }
+      if (trialResult.status === "fulfilled") {
+        setTrialData(trialResult.value);
       }
     } catch (err) {
       console.error("Dashboard error:", err);
@@ -210,6 +216,15 @@ export default function DashboardPage() {
           <span className="hidden sm:inline">Refresh</span>
         </Button>
       </motion.div>
+
+      {/* Trial / Subscription Banner */}
+      {trialData && (
+        <TrialBanner
+          trialStatus={trialData.trial?.status || "no_trial"}
+          daysLeft={trialData.trial?.daysLeft || 0}
+          subscription={trialData.subscription}
+        />
+      )}
 
       {/* Profile completion reminder */}
       {user && !user.profileComplete && !profileDismissed && (

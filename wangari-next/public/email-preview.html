@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wangari Email Templates</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; padding: 32px; }
+    .title { text-align: center; font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+    .sub { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 32px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1000px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .hdr { padding: 10px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 600; font-size: 13px; color: #334155; }
+    .wrap { background: #f8fafc; padding: 20px; }
+    .em { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .em-head { background: #166534; padding: 18px 20px; text-align: center; color: #fff; font-size: 18px; font-weight: 700; }
+    .em-body { padding: 20px; }
+    .em-body h2 { font-size: 17px; color: #334155; margin-bottom: 6px; }
+    .em-body p { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 14px; }
+    .em-body p:last-child { margin-bottom: 0; }
+    .code-box { background: #f0fdf4; border-radius: 8px; padding: 14px; text-align: center; margin-bottom: 14px; }
+    .code { font-size: 26px; font-weight: 700; letter-spacing: 6px; color: #166534; font-family: monospace; }
+    .btn { display: inline-block; background: #166534; color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; padding: 10px 24px; border-radius: 8px; }
+    .amt-box { background: #f0fdf4; border-radius: 8px; padding: 14px; text-align: center; margin-bottom: 14px; }
+    .amt-lbl { font-size: 12px; color: #64748b; margin-bottom: 2px; }
+    .amt { font-size: 24px; font-weight: 700; color: #166534; }
+    .sm { font-size: 11px; color: #94a3b8; }
+    .em-foot { padding: 10px 20px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #64748b; }
+    .center { text-align: center; margin-bottom: 14px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <p class="title">🌿 Wangari Email Templates</p>
+  <p class="sub">Preview of emails sent from noreply@imeantech.com </p>
+  <div class="grid">
+
+    <!-- Confirmation Code -->
+    <div class="card">
+      <div class="hdr">✉️ Confirmation Code</div>
+      <div class="wrap">
+        <div class="em">
+          <div class="em-head">🌿 Wangari</div>
+          <div class="em-body">
+            <h2>Your verification code</h2>
+            <p>Use the code below to complete your email verification. It expires in <strong>15 minutes</strong>.</p>
+            <div class="code-box"><span class="code">482917</span></div>
+            <p class="sm">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+          <div class="em-foot">© 2026 Wangari · imeantech.com</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Reset -->
+    <div class="card">
+      <div class="hdr">🔑 Password Reset</div>
+      <div class="wrap">
+        <div class="em">
+          <div class="em-head">🌿 Wangari</div>
+          <div class="em-body">
+            <h2>Reset your password</h2>
+            <p>We received a request to reset the password on your Wangari account. Click the button below to set a new one.</p>
+            <div class="center"><a href="#" class="btn">Reset Password</a></div>
+            <p class="sm">This link expires in <strong>1 hour</strong>. If you didn't request a reset, your password stays unchanged.</p>
+          </div>
+          <div class="em-foot">© 2026 Wangari · imeantech.com</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Welcome -->
+    <div class="card">
+      <div class="hdr">🎉 Welcome Email</div>
+      <div class="wrap">
+        <div class="em">
+          <div class="em-head">🌿 Wangari</div>
+          <div class="em-body">
+            <h2>Welcome to Wangari, John! 🎉</h2>
+            <p>Your account is ready. Wangari helps you manage your poultry farm — track flocks, monitor production, handle invoices, and more.</p>
+            <div class="center"><a href="#" class="btn">Go to Dashboard</a></div>
+            <p class="sm">Need help getting started? Reply to this email and we'll guide you through.</p>
+          </div>
+          <div class="em-foot">© 2026 Wangari · imeantech.com</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice -->
+    <div class="card">
+      <div class="hdr">🧾 Invoice Sent</div>
+      <div class="wrap">
+        <div class="em">
+          <div class="em-head">🌿 Wangari</div>
+          <div class="em-body">
+            <h2>Invoice INV-2026-0042</h2>
+            <p>Hi Mary, here is your invoice from Wangari.</p>
+            <div class="amt-box">
+              <div class="amt-lbl">Total Amount</div>
+              <div class="amt">KES 24,500</div>
+            </div>
+            <div class="center"><a href="#" class="btn">View Invoice</a></div>
+          </div>
+          <div class="em-foot">© 2026 Wangari · imeantech.com</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

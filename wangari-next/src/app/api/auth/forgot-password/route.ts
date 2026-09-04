@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     console.error("Forgot password proxy error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to process password reset request", details: message },
+      { error: "Something went wrong. Please try again." },
       { status: 500 }
     );
   }

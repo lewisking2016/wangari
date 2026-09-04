@@ -175,6 +175,30 @@ export async function updateProfile(data: { name?: string; phone?: string; locat
   return result;
 }
 
+export async function sendVerificationCode(email: string): Promise<{ message: string }> {
+  const res = await fetch("/api/auth/send-verification", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to send verification code");
+  return data;
+}
+
+export async function verifyEmail(email: string, code: string): Promise<{ message: string }> {
+  const res = await fetch("/api/auth/verify-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Verification failed");
+  return data;
+}
+
 export function logout(): void {
   removeToken();
   if (typeof window !== "undefined") {

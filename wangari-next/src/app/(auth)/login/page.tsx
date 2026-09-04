@@ -35,7 +35,7 @@ function LoginForm() {
 
   // Load Google Identity Services
   React.useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
     const script = document.createElement("script");
@@ -78,8 +78,14 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      router.push(callbackUrl);
+      const result = await login(email, password);
+
+      // Check if email is verified — the login API includes emailVerified
+      if ((result as any).emailVerified === null) {
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+      } else {
+        router.push(callbackUrl);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

@@ -21,6 +21,7 @@ import {
   Calculator,
   CloudSun,
   Leaf,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +29,7 @@ import { useFarm } from "@/hooks/useFarm";
 import { Tractor } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import api from "@/lib/api-client";
+import { UpgradePopup } from "@/components/trial/upgrade-popup";
 
 interface NavItem {
   label: string;
@@ -96,12 +98,24 @@ export function Sidebar() {
   const { farm, farms, selectFarm } = useFarm();
   const [showFarmPicker, setShowFarmPicker] = React.useState(false);
   const [moduleSettings, setModuleSettings] = React.useState<Record<string, string>>({});
+  const [moduleAccess, setModuleAccess] = React.useState<Record<string, boolean>>({});
+  const [lockedModule, setLockedModule] = React.useState<string>("");
+  const [trialInfo, setTrialInfo] = React.useState<any>(null);
 
   React.useEffect(() => {
     api.get("/api/settings").then((d: any) => setModuleSettings(d.settings || {})).catch(() => {});
+    // Fetch trial/subscription status
+    api.get("/api/trial/status").then((d: any) => {
+      setModuleAccess(d.modules || {});
+      setTrialInfo(d);
+    }).catch(() => {});
   }, []);
 
   const isModuleEnabled = (key: string) => moduleSettings[key] !== "false";
+  const isModuleLocked = (label: string) => {
+    const key = label.toLowerCase().replace(/\s+/g, "-");
+    return moduleAccess[key] === false;
+  };
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     "": true,
     "My Farm": true,
@@ -165,19 +179,24 @@ export function Sidebar() {
                     item.href === "/dashboard"
                       ? pathname === "/dashboard"
                       : pathname.startsWith(item.href);
+                  const locked = isModuleLocked(item.label);
                   return (
                     <Link
                       key={item.href}
-                      href={item.href}
+                      href={locked ? "#" : item.href}
+                      onClick={locked ? (e) => { e.preventDefault(); setLockedModule(item.label); } : undefined}
                       className={cn(
                         "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
-                        isActive
-                          ? "bg-wangari-green-800 text-white shadow-md"
-                          : "text-wangari-text hover:bg-wangari-green-50 hover:text-wangari-green-800"
+                        locked
+                          ? "text-wangari-subtle opacity-60 cursor-pointer"
+                          : isActive
+                            ? "bg-wangari-green-800 text-white shadow-md"
+                            : "text-wangari-text hover:bg-wangari-green-50 hover:text-wangari-green-800"
                       )}
                     >
                       {item.icon}
-                      {item.label}
+                      <span className="flex-1">{item.label}</span>
+                      {locked && <Lock className="h-3.5 w-3.5 text-wangari-subtle" />}
                     </Link>
                   );
                 })}
@@ -188,7 +207,11 @@ export function Sidebar() {
       </nav>
 
       {/* Quick links footer */}
-      <div className="border-t border-wangari-border px-3 py-2">
+      <div className="border-t border-wangari-border px-3 py-2 space-y-0.5">
+        <Link href="/" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Back to Website
+        </Link>
         <Link href="/settings" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
           <Settings className="h-4 w-4" />
           Settings
@@ -216,6 +239,11 @@ export function Sidebar() {
           Sign Out
         </button>
       </div>
+      <UpgradePopup
+        open={!!lockedModule}
+        onClose={() => setLockedModule("")}
+        moduleName={lockedModule}
+      />
     </aside>
   );
 }

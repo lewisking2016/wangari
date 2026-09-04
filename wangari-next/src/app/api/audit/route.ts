@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { decodeToken } from "@/lib/jwt";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const farmId = 1;
+    const user = decodeToken(req.headers.get("authorization"));
+    const farmId = user?.farmId;
+    if (!farmId) return NextResponse.json([]);
     const logs = await prisma.auditLog.findMany({
       where: { farmId },
       include: { user: { select: { name: true } } },
