@@ -77,7 +77,7 @@ const DEFAULT_WEATHER = {
   noData: true,
 };
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user } = useAuth();
   const [data, setData] = React.useState<any>(null);
   const [weather, setWeather] = React.useState<any>(DEFAULT_WEATHER);
@@ -697,5 +697,23 @@ export default function DashboardPage() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <div className="relative">
+            <div className="h-12 w-12 rounded-full border-[3px] border-wangari-green-200 border-t-wangari-green-600 animate-spin" />
+            <Bird className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-wangari-green-600" />
+          </div>
+          <p className="text-sm text-wangari-muted">Loading your farm...</p>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </React.Suspense>
   );
 }
