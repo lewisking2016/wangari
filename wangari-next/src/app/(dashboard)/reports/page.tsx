@@ -33,6 +33,8 @@ export default function ReportsPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  const handleExportPDF = () => { window.print(); };
+
   const handleExportCSV = () => {
     const rows = [["Date", "Output", "Mortality", "Feed (kg)"]];
     prodChart.forEach(d => rows.push([d.date, String(d.output), String(d.mortality), String(d.feed)]));
@@ -109,9 +111,14 @@ export default function ReportsPage() {
           <h1 className="text-2xl font-extrabold text-[#0F172A] tracking-tight">Reports</h1>
           <p className="text-sm text-[#64748B] mt-1">Analytics across all your farm operations.</p>
         </div>
-        <Button onClick={handleExportCSV} variant="outline" className="border-[#E5E7EB] hover:bg-[#F0FDF4] hover:border-[#BBF7D0] cursor-pointer">
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
+        <div className="flex gap-2 no-print">
+          <Button onClick={handleExportPDF} variant="outline" className="border-[#E5E7EB] hover:bg-[#F0FDF4] hover:border-[#BBF7D0] cursor-pointer">
+            <Download className="h-4 w-4 mr-2" /> Export PDF
+          </Button>
+          <Button onClick={handleExportCSV} variant="outline" className="border-[#E5E7EB] hover:bg-[#F0FDF4] hover:border-[#BBF7D0] cursor-pointer">
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+        </div>
       </motion.div>
 
       {/* Summary Cards */}

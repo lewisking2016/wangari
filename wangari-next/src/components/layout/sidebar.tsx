@@ -22,6 +22,7 @@ import {
   CloudSun,
   Leaf,
   Lock,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -212,6 +213,16 @@ export function Sidebar() {
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Back to Website
         </Link>
+        <Link href="/subscription" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
+          <CreditCard className="h-4 w-4" />
+          Subscription
+        </Link>
+        {role === "farm_owner" && (
+          <Link href="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
+            <BarChart3 className="h-4 w-4" />
+            Admin
+          </Link>
+        )}
         <Link href="/settings" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
           <Settings className="h-4 w-4" />
           Settings

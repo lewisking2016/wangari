@@ -126,6 +126,24 @@ select:focus {
   outline: none !important;
 }
 
+/* ─── Mobile Responsive ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+  .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg\:grid-cols-3 { grid-template-columns: 1fr; }
+  .lg\:grid-cols-2 { grid-template-columns: 1fr; }
+  .lg\:col-span-2 { grid-column: span 1; }
+}
+
+/* ─── Print / PDF styles ────────────────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .print-break { page-break-before: always; }
+}
+
 /* ─── Select Dropdown Animation ──────────────────────────── */
 @keyframes animate-in {
   from { opacity: 0; transform: translateY(-4px); }

@@ -26,6 +26,7 @@ import Link from "next/link";
 import api from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import { TrialBanner } from "@/components/trial/trial-banner";
+import { useSearchParams } from "next/navigation";
 
 // Components
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -84,6 +85,29 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [profileDismissed, setProfileDismissed] = React.useState(false);
   const [trialData, setTrialData] = React.useState<any>(null);
+  const searchParams = useSearchParams();
+  const subscribePlan = searchParams.get("subscribe");
+
+  // Handle Paystack checkout on ?subscribe= param
+  React.useEffect(() => {
+    if (subscribePlan && user?.email) {
+      const doCheckout = async () => {
+        try {
+          const res = await api.post("/api/paystack", {
+            email: user.email,
+            plan: subscribePlan,
+            callback_url: `${window.location.origin}/dashboard?payment=success`,
+          });
+          if (res.authorization_url) {
+            window.location.href = res.authorization_url;
+          }
+        } catch (err) {
+          console.error("Paystack checkout error:", err);
+        }
+      };
+      doCheckout();
+    }
+  }, [subscribePlan, user?.email]);
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -216,6 +240,21 @@ export default function DashboardPage() {
           <span className="hidden sm:inline">Refresh</span>
         </Button>
       </motion.div>
+
+      {/* Payment success banner */}
+      {searchParams.get("payment") === "success" && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="border border-[#BBF7D0] bg-[#F0FDF4]">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-[#166534] flex items-center justify-center text-white text-lg">✓</div>
+              <div>
+                <p className="text-sm font-bold text-[#0F172A]">Payment successful!</p>
+                <p className="text-xs text-[#64748B]">Your subscription is now active. Welcome to Wangari.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Trial / Subscription Banner */}
       {trialData && (

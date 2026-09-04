@@ -4,6 +4,7 @@ import * as React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export default function DashboardLayout({
   children,
@@ -38,7 +39,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className={`${isAI ? "" : "lg:pl-[260px]"} min-h-screen flex flex-col`}>
         {!isAI && <Topbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />}
-        <main className={`${isAI ? "" : "flex-1 p-6"}`}>{children}</main>
+        <main className={`${isAI ? "" : "flex-1 p-4 sm:p-6"}`}><ErrorBoundary>{children}</ErrorBoundary></main>
       </div>
     </div>
   );
