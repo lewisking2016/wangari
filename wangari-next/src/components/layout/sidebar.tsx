@@ -15,6 +15,7 @@ import {
   BarChart3,
   Settings,
   Sparkles,
+  MessageCircle,
   ChevronDown,
   LogOut,
   Syringe,
@@ -89,6 +90,7 @@ const navGroups: NavGroup[] = [
       { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
       { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
       { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
+      { label: "WhatsApp Bot", href: "/whatsapp", icon: <MessageCircle className="h-5 w-5" /> },
     ],
   },
 ];
