@@ -90,3 +90,35 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ─── Date Input Styling ─────────────────────────────────── */
+input[type="date"] {
+  color-scheme: light;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+}
+
+/* ─── Select Dropdown Animation ──────────────────────────── */
+@keyframes animate-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: animate-in 0.15s ease-out;
+}
+.fade-in {
+  animation: fadeIn 0.15s ease-out;
+}
+.slide-in-from-top-1 {
+  animation: slideInFromTop 0.15s ease-out;
+}
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
