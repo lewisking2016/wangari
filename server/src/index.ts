@@ -33,7 +33,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ─── Security ─────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ crossOriginOpenerPolicy: false }));
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "https://wangari.imeantech.com",
