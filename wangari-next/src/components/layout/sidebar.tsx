@@ -198,7 +198,7 @@ export function Sidebar() {
       {/* User footer */}
       <div className="border-t border-wangari-border p-4 space-y-3">
         <div className="flex items-center gap-3">
-          <Avatar name={user?.name || "Admin"} size="sm" />
+          <Avatar name={user?.name || "Admin"} src={user?.avatar || undefined} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-wangari-heading truncate">
               {user?.name || "Admin"}

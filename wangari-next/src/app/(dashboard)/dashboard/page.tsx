@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import api from "@/lib/api-client";
+import { useAuth } from "@/hooks/useAuth";
 
 // Components
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -75,10 +76,12 @@ const DEFAULT_WEATHER = {
 };
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [data, setData] = React.useState<any>(null);
   const [weather, setWeather] = React.useState<any>(DEFAULT_WEATHER);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [profileDismissed, setProfileDismissed] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -207,6 +210,31 @@ export default function DashboardPage() {
           <span className="hidden sm:inline">Refresh</span>
         </Button>
       </motion.div>
+
+      {/* Profile completion reminder */}
+      {user && !user.profileComplete && !profileDismissed && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="border border-amber-200 bg-amber-50">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <span className="text-lg">👤</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#0F172A]">Complete your farm profile</p>
+                    <p className="text-xs text-[#64748B] mt-0.5">Add your phone, farm location, and details to get the most out of Wangari. This helps us send you relevant alerts and connect you with buyers.</p>
+                    <Link href="/settings" className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-amber-700 hover:underline">
+                      Complete Profile →
+                    </Link>
+                  </div>
+                </div>
+                <button onClick={() => setProfileDismissed(true)} className="text-amber-400 hover:text-amber-600 text-xs shrink-0 cursor-pointer">Dismiss</button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Onboarding banner for new users */}
       {!data?.totalFlocks && !data?.totalBirds && (

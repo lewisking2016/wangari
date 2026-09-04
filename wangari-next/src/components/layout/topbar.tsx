@@ -71,7 +71,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
           </span>
         </button>
         <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-wangari-border">
-          <Avatar name={user?.name || "Admin"} size="sm" />
+          <Avatar name={user?.name || "Admin"} src={user?.avatar || undefined} size="sm" />
           <div className="hidden md:block">
             <p className="text-sm font-semibold text-wangari-heading">
               {user?.name || "Admin"}

@@ -10,8 +10,11 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  avatar?: string | null;
   role?: string;
   farmId?: number | null;
+  profileComplete?: boolean;
+  googleId?: string | null;
 }
 
 export interface AuthResponse {
@@ -118,6 +121,58 @@ export async function resetPassword(token: string, password: string): Promise<{ 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to reset password");
   return data;
+}
+
+export async function googleLogin(credential: string): Promise<AuthResponse> {
+  const res = await fetch("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Google login failed");
+
+  setToken(data.token);
+  setUser(data.user);
+  return data;
+}
+
+export async function linkGoogleAccount(credential: string): Promise<{ success: boolean; user: any }> {
+  const res = await fetch("/api/auth/link-google", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ credential }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to link Google account");
+  return data;
+}
+
+export async function updateProfile(data: { name?: string; phone?: string; location?: string; county?: string; farmName?: string }): Promise<any> {
+  const res = await fetch("/api/auth/profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || "Failed to update profile");
+
+  // Update local user data
+  const currentUser = getUser();
+  if (currentUser && result.user) {
+    setUser({ ...currentUser, ...result.user });
+  }
+
+  return result;
 }
 
 export function logout(): void {

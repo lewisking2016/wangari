@@ -12,9 +12,11 @@ model User {
   name            String
   email           String    @unique
   phone           String?   @unique
-  password        String
-  role            String    @default("farm_owner")
+  password        String?
+  googleId        String?   @unique @map("google_id")
   avatar          String?
+  role            String    @default("farm_owner")
+  profileComplete Boolean   @default(false) @map("profile_complete")
   resetToken      String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
   createdAt       DateTime  @default(now()) @map("created_at")

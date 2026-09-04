@@ -86,6 +86,10 @@ router.put("/password", async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
     if (!user) return res.status(404).json({ error: "User not found" });
 
+    if (!user.password) {
+      return res.status(400).json({ error: "This account uses Google sign-in. Password cannot be changed here." });
+    }
+
     const valid = await bcrypt.compare(currentPassword, user.password);
     if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
 
