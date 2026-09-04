@@ -35,7 +35,7 @@ function LoginForm() {
 
   // Load Google Identity Services
   React.useEffect(() => {
-    const clientId = process.env.NEXT_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
     const script = document.createElement("script");
