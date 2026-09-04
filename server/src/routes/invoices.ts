@@ -72,7 +72,7 @@ router.post("/from-sale/:saleId", async (req: Request, res: Response) => {
         saleId: sale.id,
         customerId: sale.customerId,
         invoiceNumber: generateInvoiceNumber(),
-        items: sale.items,
+        items: sale.items as any,
         totalAmount: Number(sale.totalAmount),
         amountPaid: Number(sale.amountPaid),
         paymentStatus: sale.paymentStatus,

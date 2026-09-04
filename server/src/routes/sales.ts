@@ -46,7 +46,7 @@ router.post("/", async (req: Request, res: Response) => {
           saleId: result.id,
           customerId: result.customerId,
           invoiceNumber: `INV-${ym}-${rand}`,
-          items: result.items,
+          items: result.items as any,
           totalAmount: Number(result.totalAmount),
           amountPaid: Number(result.amountPaid),
           paymentStatus: result.paymentStatus,

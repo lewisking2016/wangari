@@ -65,7 +65,7 @@ router.post("/:type", async (req: Request, res: Response) => {
       for (const row of rows) {
         try {
           // Find or create customer
-          let customerId = null;
+          let customerId: number | null = null;
           if (row.customer || row.customerName) {
             let cust = await prisma.customer.findFirst({ where: { farmId, name: row.customer || row.customerName } });
             if (!cust) {

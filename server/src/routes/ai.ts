@@ -92,12 +92,12 @@ async function executeTool(toolName: string, args: Record<string, any>, farmId: 
     case "create_flock": return prisma.flock.create({ data: { name: args.name, breed: args.breed, currentCount: args.initialCount, initialCount: args.initialCount, type: args.type || "layer", farmId, status: "active" } });
     case "delete_flock": return prisma.flock.delete({ where: { id: args.id } });
     case "list_production": { const d = (args.days as number) || 7; const s = new Date(); s.setDate(s.getDate() - d); return prisma.dailyProduction.findMany({ where: { farmId, date: { gte: s } }, orderBy: { date: "desc" } }); }
-    case "record_production": return prisma.dailyProduction.create({ data: { flockId: args.flockId, eggsCollected: args.eggsCollected, mortality: args.mortality || 0, feedUsed: args.feedUsed, farmId } });
+    case "record_production": return prisma.dailyProduction.create({ data: { flockId: args.flockId, date: new Date().toISOString().split("T")[0], eggsCollected: args.eggsCollected || 0, mortality: args.mortality || 0, feedUsed: args.feedUsed || 0, farmId } });
     case "list_transactions": { const now = new Date(); let s = new Date(); const p = (args.period as string) || "month"; if (p === "week") s.setDate(now.getDate() - 7); else if (p === "month") s.setMonth(now.getMonth() - 1); else s.setFullYear(now.getFullYear() - 1); return prisma.transaction.findMany({ where: { farmId, date: { gte: s } }, orderBy: { date: "desc" } }); }
-    case "create_transaction": return prisma.transaction.create({ data: { type: args.type, amount: args.amount, category: args.category, description: args.description, farmId } });
+    case "create_transaction": return prisma.transaction.create({ data: { type: args.type, amount: args.amount, category: args.category, description: args.description, date: new Date().toISOString().split("T")[0], farmId } });
     case "delete_transaction": return prisma.transaction.delete({ where: { id: args.id } });
-    case "list_sales": { const d = (args.days as number) || 30; const s = new Date(); s.setDate(s.getDate() - d); return prisma.sale.findMany({ where: { farmId, date: { gte: s } }, orderBy: { date: "desc" } }); }
-    case "create_sale": return prisma.sale.create({ data: { totalAmount: args.totalAmount, paymentStatus: args.paymentStatus || "pending", amountPaid: args.amountPaid || 0, notes: args.notes, farmId } });
+    case "list_sales": { const d = (args.days as number) || 30; const s = new Date(); s.setDate(s.getDate() - d); return prisma.sale.findMany({ where: { farmId, saleDate: { gte: s } }, orderBy: { saleDate: "desc" } }); }
+    case "create_sale": return prisma.sale.create({ data: { totalAmount: args.totalAmount, paymentStatus: args.paymentStatus || "paid", amountPaid: args.amountPaid || args.totalAmount || 0, items: [], farmId } });
     case "delete_sale": return prisma.sale.delete({ where: { id: args.id } });
     case "list_inventory": return prisma.inventory.findMany({ where: { farmId } });
     case "create_inventory_item": return prisma.inventory.create({ data: { itemName: args.itemName, category: args.category, quantity: args.quantity, unit: args.unit, unitCost: args.unitCost, reorderLevel: args.reorderLevel, farmId } });
@@ -108,12 +108,12 @@ async function executeTool(toolName: string, args: Record<string, any>, farmId: 
     case "list_customers": return prisma.customer.findMany({ where: { farmId } });
     case "create_customer": return prisma.customer.create({ data: { name: args.name, phone: args.phone, email: args.email, address: args.address, farmId } });
     case "delete_customer": return prisma.customer.delete({ where: { id: args.id } });
-    case "list_vaccinations": { const w: any = { farmId }; if (args.flockId) w.flockId = args.flockId; return prisma.vaccination.findMany({ where: w, orderBy: { date: "desc" } }); }
-    case "create_vaccination": return prisma.vaccination.create({ data: { flockId: args.flockId, vaccineName: args.vaccineName, dosage: args.dosage, administeredBy: args.administeredBy, notes: args.notes, farmId } });
+    case "list_vaccinations": { const w: any = { flock: { farmId } }; if (args.flockId) w.flockId = args.flockId; return prisma.vaccination.findMany({ where: w, orderBy: { scheduledDate: "desc" } }); }
+    case "create_vaccination": return prisma.vaccination.create({ data: { flockId: args.flockId, vaccineName: args.vaccineName, scheduledDate: new Date().toISOString(), notes: args.notes || null } });
     case "list_attendance": return prisma.attendance.findMany({ where: { farmId }, orderBy: { date: "desc" } });
-    case "record_attendance": return prisma.attendance.create({ data: { workerId: args.workerId, status: args.status, notes: args.notes, farmId } });
+    case "record_attendance": return prisma.attendance.create({ data: { workerId: args.workerId, date: new Date().toISOString().split("T")[0], status: args.status, notes: args.notes || null, farmId } });
     case "list_crops": return prisma.crop.findMany({ where: { farmId }, include: { harvests: true } });
-    case "create_crop": return prisma.crop.create({ data: { fieldName: args.fieldName, cropType: args.cropType, variety: args.variety, areaHectares: args.areaHectares ? Number(args.areaHectares) : null, farmId } });
+    case "create_crop": return prisma.crop.create({ data: { name: args.fieldName || args.name, cropType: args.cropType, variety: args.variety, areaAcres: args.areaHectares ? Number(args.areaHectares) : null, farmId } });
     case "get_weather": return { note: "Weather available via /api/weather" };
     case "get_dashboard": return prisma.flock.findMany({ where: { farmId } });
     default: return { error: `Unknown tool: ${toolName}` };
