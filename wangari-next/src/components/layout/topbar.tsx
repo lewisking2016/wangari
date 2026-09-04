@@ -12,6 +12,7 @@ interface TopbarProps {
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/flocks": "Livestock",
+  "/crops": "Crops",
   "/production": "Production",
   "/finances": "Finances",
   "/sales": "Sales",
@@ -24,10 +25,7 @@ const pageTitles: Record<string, string> = {
   "/attendance": "Attendance",
   "/feed-calculator": "Feed Calculator",
   "/customers": "Customers",
-  "/export": "Export Data",
   "/weather": "Weather",
-  "/audit": "Activity Log",
-  "/whatsapp": "WhatsApp",
   "/invoices": "Invoices",
 };
 

@@ -25,6 +25,9 @@ import auditRoutes from "./routes/audit.js";
 import exportRoutes from "./routes/export.js";
 import importRoutes from "./routes/import.js";
 import settingsRoutes from "./routes/settings.js";
+import zktecoRoutes from "./routes/zkteco.js";
+import flocksUploadRoutes from "./routes/flocks-upload.js";
+import uploadRoutes from "./routes/upload.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -63,6 +66,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/flocks", flocksRoutes);
+app.use("/api/flocks", flocksUploadRoutes);
 app.use("/api/customers", customersRoutes);
 app.use("/api/transactions", transactionsRoutes);
 app.use("/api/sales", salesRoutes);
@@ -81,6 +85,8 @@ app.use("/api/audit", auditRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/import", importRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/zkteco", zktecoRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

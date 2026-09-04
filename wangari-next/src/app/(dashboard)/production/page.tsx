@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Egg, Milk, Beef, Wheat, AlertTriangle, TrendingUp, Plus, X, Search, Leaf, ChevronRight, Check } from "lucide-react";
+import { Egg, Milk, Beef, Wheat, AlertTriangle, TrendingUp, Plus, X, Search, Leaf, ChevronRight, Check, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +52,13 @@ export default function ProductionPage() {
     setForm({ flockId: "", eggsCollected: "", milkCollected: "", avgWeight: "", weightGain: "", feedUsed: "", mortality: "", notes: "" });
     setStep(0);
     setShowForm(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this production record?")) return;
+    await api.delete("/api/production/" + id);
+    showToast("Record deleted!");
+    load();
   };
 
   const handleSubmit = async () => {
@@ -253,9 +260,10 @@ export default function ProductionPage() {
                         {r.mortality > 0 && <p className="text-[10px] text-red-500 font-bold">{r.mortality} deaths</p>}
                       </div>
                     </div>
-                    <div className="flex gap-3 mt-2">
+                    <div className="flex items-center gap-3 mt-2">
                       <p className="text-[10px] text-[#94A3B8]">Feed: {Number(r.feedUsed).toFixed(1)}kg</p>
                       {ft && <Badge variant="outline" className="text-[9px]">{ft.name}</Badge>}
+                      <button onClick={() => handleDelete(r.id)} className="ml-auto text-[#94A3B8] hover:text-red-500 cursor-pointer"><Trash2 className="h-3 w-3" /></button>
                     </div>
                   </CardContent>
                 </Card>

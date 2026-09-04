@@ -18,17 +18,9 @@ import {
   ChevronDown,
   LogOut,
   Syringe,
-  Clock,
   Calculator,
-  UserCheck,
-  Download,
   CloudSun,
-  History,
-  MessageSquare,
-  FileText,
   Leaf,
-  Heart,
-  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,7 +45,6 @@ const MODULE_MAP: Record<string, string> = {
   "Crops": "module_crops",
   "Production": "module_production",
   "Sales": "module_sales",
-  "Customers": "module_customers",
   "Inventory": "module_inventory",
   "Finances": "module_finances",
   "Workers": "module_workers",
@@ -61,60 +52,40 @@ const MODULE_MAP: Record<string, string> = {
   "Feed Calculator": "module_feed_calculator",
   "Weather": "module_weather",
   "Reports": "module_reports",
-  "Farm Health": "module_farm_health",
 };
 
 const navGroups: NavGroup[] = [
   {
-    title: "Overview",
+    title: "",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-      { label: "Farm Health", href: "/farm-health", icon: <Heart className="h-5 w-5" /> },
-      { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
     ],
   },
   {
-    title: "Farm Operations",
+    title: "My Farm",
     items: [
       { label: "Livestock", href: "/flocks", icon: <PawPrint className="h-5 w-5" /> },
       { label: "Crops", href: "/crops", icon: <Leaf className="h-5 w-5" /> },
       { label: "Production", href: "/production", icon: <ClipboardList className="h-5 w-5" /> },
       { label: "Vaccinations", href: "/vaccinations", icon: <Syringe className="h-5 w-5" /> },
-      { label: "Feed Calculator", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
-      { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
     ],
   },
   {
-    title: "Sales & Finance",
+    title: "Money & People",
     items: [
       { label: "Finances", href: "/finances", icon: <DollarSign className="h-5 w-5" /> },
       { label: "Sales", href: "/sales", icon: <ShoppingCart className="h-5 w-5" /> },
-      { label: "Invoices", href: "/invoices", icon: <FileText className="h-5 w-5" /> },
-      { label: "Customers", href: "/customers", icon: <UserCheck className="h-5 w-5" /> },
-    ],
-  },
-  {
-    title: "Operations",
-    items: [
       { label: "Inventory", href: "/inventory", icon: <Package className="h-5 w-5" /> },
       { label: "Workers", href: "/workers", icon: <Users className="h-5 w-5" /> },
-      { label: "Attendance", href: "/attendance", icon: <Clock className="h-5 w-5" /> },
     ],
   },
   {
-    title: "Communications",
+    title: "Tools",
     items: [
-      { label: "WhatsApp", href: "/whatsapp", icon: <MessageSquare className="h-5 w-5" /> },
-    ],
-  },
-  {
-    title: "System",
-    items: [
+      { label: "Feed Calculator", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
+      { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
       { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
-      { label: "Activity Log", href: "/audit", icon: <History className="h-5 w-5" /> },
-      { label: "Export Data", href: "/export", icon: <Download className="h-5 w-5" /> },
-      { label: "Import Data", href: "/import", icon: <Upload className="h-5 w-5" /> },
-      { label: "Settings", href: "/settings", icon: <Settings className="h-5 w-5" /> },
+      { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
     ],
   },
 ];
@@ -132,11 +103,10 @@ export function Sidebar() {
 
   const isModuleEnabled = (key: string) => moduleSettings[key] !== "false";
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
-    Overview: true,
-    "Farm Operations": true,
-    "Sales & Finance": true,
-    Operations: true,
-    System: true,
+    "": true,
+    "My Farm": true,
+    "Money & People": true,
+    Tools: true,
   });
 
   const toggleGroup = (title: string) => {
@@ -171,18 +141,20 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {navGroups.map((group) => (
           <div key={group.title}>
-            <button
-              onClick={() => toggleGroup(group.title)}
-              className="flex items-center justify-between w-full px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-wangari-subtle hover:text-wangari-muted transition-colors"
-            >
-              {group.title}
-              <ChevronDown
-                className={cn(
-                  "h-3.5 w-3.5 transition-transform duration-200",
-                  openGroups[group.title] ? "rotate-180" : ""
-                )}
-              />
-            </button>
+            {group.title && (
+              <button
+                onClick={() => toggleGroup(group.title)}
+                className="flex items-center justify-between w-full px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-wangari-subtle hover:text-wangari-muted transition-colors"
+              >
+                {group.title}
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 transition-transform duration-200",
+                    openGroups[group.title] ? "rotate-180" : ""
+                  )}
+                />
+              </button>
+            )}
             {openGroups[group.title] && (
               <div className="space-y-0.5">
                 {group.items.filter(item => {
@@ -214,6 +186,14 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Quick links footer */}
+      <div className="border-t border-wangari-border px-3 py-2">
+        <Link href="/settings" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
+          <Settings className="h-4 w-4" />
+          Settings
+        </Link>
+      </div>
 
       {/* User footer */}
       <div className="border-t border-wangari-border p-4 space-y-3">

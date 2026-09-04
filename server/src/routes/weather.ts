@@ -26,35 +26,41 @@ router.get("/", async (req: Request, res: Response) => {
       // Cache table might not exist, continue
     }
 
-    // Get farm location
-    let location = "Nairobi";
-    try {
-      const farm = await prisma.farm.findUnique({
-        where: { id: farmId },
-        select: { location: true, county: true },
-      });
-      location = farm?.location || farm?.county || "Nairobi";
-    } catch {
-      // Use default
-    }
+    // Get coordinates from query params (browser geolocation) or farm location
+    let lat = req.query.lat ? Number(req.query.lat) : null;
+    let lon = req.query.lon ? Number(req.query.lon) : null;
+    let location = "Your Farm";
 
-    let lat = -1.2921;
-    let lon = 36.8219;
+    // If no GPS coords provided, try farm location from DB
+    if (!lat || !lon) {
+      try {
+        const farm = await prisma.farm.findUnique({
+          where: { id: farmId },
+          select: { location: true, county: true },
+        });
+        location = farm?.location || farm?.county || "";
+      } catch {}
+    }
 
     // Try to fetch real weather if API key exists
     if (OPENWEATHER_API_KEY && OPENWEATHER_API_KEY !== "your-openweather-api-key") {
-      try {
-        // Get coordinates
-        const geoRes = await fetch(
-          `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)},KE&limit=1&appid=${OPENWEATHER_API_KEY}`
-        );
-        const geoData = (await geoRes.json()) as any[];
-        if (geoData && geoData.length > 0) {
-          lat = geoData[0].lat;
-          lon = geoData[0].lon;
-        }
-      } catch {
-        // Use defaults
+      // Only geocode if we don't have GPS coordinates from browser
+      if (!lat || !lon) {
+        try {
+          const geoRes = await fetch(
+            `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)},KE&limit=1&appid=${OPENWEATHER_API_KEY}`
+          );
+          const geoData = (await geoRes.json()) as any[];
+          if (geoData && geoData.length > 0) {
+            lat = geoData[0].lat;
+            lon = geoData[0].lon;
+            location = geoData[0].name || location;
+          }
+        } catch {}
+      }
+      // If still no coordinates, can't fetch weather
+      if (!lat || !lon) {
+        return res.json({ error: "No location available", location: location || "Set your farm location in Settings" });
       }
 
       try {
@@ -164,32 +170,21 @@ router.get("/", async (req: Request, res: Response) => {
       }
     }
 
-    // Fallback: mock weather data (always works)
+    // Fallback: no API key or no coordinates — return location prompt
     const weather = {
-      temperature: 24 + Math.round(Math.random() * 6),
-      feelsLike: 25 + Math.round(Math.random() * 6),
-      humidity: 55 + Math.round(Math.random() * 30),
-      windSpeed: 5 + Math.round(Math.random() * 15),
-      condition: "Partly Cloudy",
-      description: "partly cloudy",
+      temperature: 0,
+      feelsLike: 0,
+      humidity: 0,
+      windSpeed: 0,
+      condition: "Unknown",
+      description: "Weather data unavailable — set your farm location in Settings or enable GPS",
       icon: "cloud" as const,
-      location,
-      today: {
-        tempMin: 18 + Math.round(Math.random() * 3),
-        tempMax: 26 + Math.round(Math.random() * 4),
-        rainMm: 0,
-        avgHumidity: 65,
-        willRain: false,
-      },
-      sunrise: "06:30",
-      sunset: "18:45",
-      forecast: [
-        { day: "Mon", tempMin: 18, tempMax: 27, icon: "cloud" as const, condition: "Clouds", description: "cloudy" },
-        { day: "Tue", tempMin: 19, tempMax: 29, icon: "sun" as const, condition: "Clear", description: "sunny" },
-        { day: "Wed", tempMin: 17, tempMax: 25, icon: "rain" as const, condition: "Rain", description: "light rain" },
-        { day: "Thu", tempMin: 18, tempMax: 26, icon: "cloud" as const, condition: "Clouds", description: "cloudy" },
-        { day: "Fri", tempMin: 19, tempMax: 28, icon: "sun" as const, condition: "Clear", description: "sunny" },
-      ],
+      location: location || "No location set",
+      today: { tempMin: 0, tempMax: 0, rainMm: 0, avgHumidity: 0, willRain: false },
+      sunrise: "--:--",
+      sunset: "--:--",
+      forecast: [],
+      noData: true,
     };
 
     // Try to cache mock data
@@ -215,20 +210,20 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(weather);
   } catch (error) {
     console.error("Weather error:", error);
-    // Even on error, return mock data so widget doesn't break
     res.json({
-      temperature: 25,
-      feelsLike: 26,
-      humidity: 65,
-      windSpeed: 10,
-      condition: "Partly Cloudy",
-      description: "partly cloudy",
+      temperature: 0,
+      feelsLike: 0,
+      humidity: 0,
+      windSpeed: 0,
+      condition: "Unknown",
+      description: "Unable to load weather. Check your internet connection and farm location.",
       icon: "cloud",
-      location: "Nairobi",
-      today: { tempMin: 20, tempMax: 28, rainMm: 0, avgHumidity: 65, willRain: false },
-      sunrise: "06:30",
-      sunset: "18:45",
+      location: "",
+      today: { tempMin: 0, tempMax: 0, rainMm: 0, avgHumidity: 0, willRain: false },
+      sunrise: "--:--",
+      sunset: "--:--",
       forecast: [],
+      noData: true,
     });
   }
 });

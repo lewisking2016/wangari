@@ -56,6 +56,8 @@ model Farm {
   attendances Attendance[]
   auditLogs AuditLog[]
   settings     FarmSetting[]
+  zktecoDevices ZKTecoDevice[]
+  zktecoLogs    ZKTecoLog[]
   breeding Breeding[]
   crops Crop[]
   cropHarvests     CropHarvest[]
@@ -301,6 +303,8 @@ model Inventory {
   unitCost    Decimal  @map("unit_cost") @db.Decimal(10, 2)
   reorderLevel Int     @default(0) @map("reorder_level")
   supplier    String?
+  expiryDate  DateTime? @map("expiry_date")
+  notes       String?
   createdAt   DateTime @default(now()) @map("created_at")
 
   farm  Farm           @relation(fields: [farmId], references: [id])
@@ -416,6 +420,7 @@ model Worker {
   farm       Farm         @relation(fields: [farmId], references: [id])
   creator    User?        @relation(fields: [createdBy], references: [id])
   attendance Attendance[]
+  zktecoLogs ZKTecoLog[]
 
   @@map("workers")
 }
@@ -481,6 +486,43 @@ model FarmSetting {
 
   @@unique([farmId, settingKey])
   @@map("farm_settings")
+}
+
+model ZKTecoDevice {
+  id           Int      @id @default(autoincrement())
+  farmId       Int      @map("farm_id")
+  serialNumber String   @map("serial_number")
+  name         String?
+  model        String?
+  status       String   @default("active") // active, inactive
+  lastSyncAt   DateTime? @map("last_sync_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  farm Farm @relation(fields: [farmId], references: [id])
+  logs ZKTecoLog[]
+
+  @@unique([farmId, serialNumber])
+  @@map("zkteco_devices")
+}
+
+model ZKTecoLog {
+  id           Int      @id @default(autoincrement())
+  deviceId     Int      @map("device_id")
+  farmId       Int      @map("farm_id")
+  deviceUserId String   @map("device_user_id") // user ID on the ZKTeco device
+  workerId     Int?     @map("worker_id") // mapped Wangari worker ID
+  timestamp    DateTime
+  verifyType   String?  @map("verify_type") // fingerprint, face, card, password
+  attendanceId String?  @map("attendance_id") // unique ID from device to prevent duplicates
+  raw          Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  device ZKTecoDevice @relation(fields: [deviceId], references: [id])
+  farm   Farm         @relation(fields: [farmId], references: [id])
+  worker Worker?      @relation(fields: [workerId], references: [id])
+
+  @@unique([deviceId, attendanceId])
+  @@map("zkteco_logs")
 }
 
 model AuditLog {

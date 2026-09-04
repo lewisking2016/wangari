@@ -44,10 +44,25 @@ export default function CustomersPage() {
 
   const handleRecordPayment = async (customerId: number) => {
     if (!payAmount) return;
+    const amount = Number(payAmount);
+    // Distribute payment across unpaid sales (oldest first)
+    const unpaidSales = sales
+      .filter((s: any) => s.customerId === customerId && s.paymentStatus !== "paid")
+      .sort((a: any, b: any) => new Date(a.saleDate).getTime() - new Date(b.saleDate).getTime());
+    let remaining = amount;
+    for (const sale of unpaidSales) {
+      if (remaining <= 0) break;
+      const owed = Number(sale.totalAmount) - Number(sale.amountPaid);
+      const pay = Math.min(remaining, owed);
+      await api.patch(`/api/sales/${sale.id}`, { amountPaid: pay });
+      remaining -= pay;
+    }
+    // Update customer credit
     const cust = customerStats.find(c => c.id === customerId);
-    if (!cust) return;
-    const newCredit = Math.max(0, cust.totalOwed - Number(payAmount));
-    await api.patch(`/api/customers/${customerId}`, { totalCredit: newCredit });
+    if (cust) {
+      const newCredit = Math.max(0, cust.totalOwed - amount);
+      await api.patch(`/api/customers/${customerId}`, { totalCredit: newCredit });
+    }
     setShowPayModal(null); setPayAmount("");
     showToast("Payment recorded!"); load();
   };

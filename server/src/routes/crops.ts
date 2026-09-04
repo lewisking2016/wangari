@@ -102,6 +102,27 @@ router.post("/:id/harvest", async (req: Request, res: Response) => {
         notes: notes || null,
       },
     });
+
+    // Auto-create finance transaction for harvest sale
+    if (salePrice && Number(salePrice) > 0) {
+      try {
+        await prisma.transaction.create({
+          data: {
+            farmId: req.user!.farmId!,
+            type: "income",
+            category: "crops",
+            description: `Harvest sale: ${crop.cropType} — ${quantityKg}kg${quality ? ` (Grade ${quality})` : ""}`,
+            amount: Number(salePrice),
+            date: date ? new Date(date) : new Date(),
+            paymentMethod: "cash",
+            createdBy: req.user!.userId,
+          },
+        });
+      } catch (e) {
+        console.error("Auto-transaction failed:", e);
+      }
+    }
+
     res.status(201).json(harvest);
   } catch (error) {
     console.error("Record harvest error:", error);
@@ -201,6 +222,34 @@ router.post("/:id/apply", async (req: Request, res: Response) => {
         notes: notes || null,
       },
     });
+
+    // Auto-create finance transaction for input cost
+    if (cost && Number(cost) > 0) {
+      try {
+        const catMap: Record<string, string> = {
+          Fertilizer: "fertilizer",
+          Pesticide: "pesticide",
+          Herbicide: "pesticide",
+          Irrigation: "other",
+          "Organic Manure": "fertilizer",
+        };
+        await prisma.transaction.create({
+          data: {
+            farmId: req.user!.farmId!,
+            type: "expense",
+            category: catMap[type] || "other",
+            description: `${type}: ${productName} (${quantity} ${unit}) — ${crop.name}`,
+            amount: Number(cost),
+            date: date ? new Date(date) : new Date(),
+            paymentMethod: "cash",
+            createdBy: req.user!.userId,
+          },
+        });
+      } catch (e) {
+        console.error("Auto-transaction failed:", e);
+      }
+    }
+
     res.status(201).json(application);
   } catch (error) {
     console.error("Record application error:", error);

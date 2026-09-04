@@ -130,6 +130,28 @@ router.post("/", async (req: Request, res: Response) => {
       await prisma.vaccination.createMany({ data: vaccinations });
     }
 
+    // Auto-create finance transaction for animal purchase
+    const totalInvestment = cost && count ? count * cost : null;
+    if (totalInvestment && totalInvestment > 0) {
+      try {
+        await prisma.transaction.create({
+          data: {
+            farmId: req.user!.farmId!,
+            type: "expense",
+            category: "animal_feed",
+            description: `Livestock purchase: ${name} (${count} ${category || "animals"})`,
+            amount: totalInvestment,
+            date: new Date(),
+            paymentMethod: "cash",
+            createdBy: req.user!.userId,
+          },
+        });
+      } catch (e) {
+        // Don't fail flock creation if transaction fails
+        console.error("Auto-transaction failed:", e);
+      }
+    }
+
     // Re-fetch with vaccinations included
     const flock = await prisma.flock.findUnique({
       where: { id: result.id },

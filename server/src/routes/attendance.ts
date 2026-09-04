@@ -25,13 +25,20 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const farmId = req.user!.farmId!;
     const workerId = Number(req.body.workerId);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Use ISO date string for consistent comparison (avoids UTC timezone shift)
+    const todayStr = new Date().toISOString().split("T")[0];
+    const today = new Date(todayStr + "T00:00:00");
     const now = new Date().toTimeString().slice(0, 5);
 
-    // Check if worker already has a record today
-    const existing = await prisma.attendance.findFirst({
-      where: { workerId, farmId, date: today },
+    // Find existing record today using string comparison to avoid timezone issues
+    const allToday = await prisma.attendance.findMany({
+      where: { workerId, farmId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+    const existing = allToday.find((r) => {
+      const recDate = new Date(r.date).toISOString().split("T")[0];
+      return recDate === todayStr;
     });
 
     if (existing) {

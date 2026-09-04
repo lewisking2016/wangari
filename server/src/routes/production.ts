@@ -52,4 +52,14 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/production/:id
+router.delete("/:id", async (req: Request, res: Response) => {
+  try {
+    await prisma.dailyProduction.deleteMany({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
 export default router;

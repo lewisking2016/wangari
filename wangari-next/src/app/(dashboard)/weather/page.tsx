@@ -20,17 +20,49 @@ export default function WeatherPage() {
   const [weather, setWeather] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
+  const [gpsStatus, setGpsStatus] = React.useState<"idle" | "requesting" | "granted" | "denied">("idle");
 
-  const fetchWeather = async () => {
+  const fetchWeather = async (lat?: number, lon?: number) => {
     setLoading(true); setError("");
-    try { setWeather(await api.get("/api/weather")); }
-    catch { setError("Unable to load weather data."); }
+    try {
+      let url = "/api/weather";
+      if (lat && lon) url += `?lat=${lat}&lon=${lon}`;
+      setWeather(await api.get(url));
+    } catch { setError("Unable to load weather data."); }
     finally { setLoading(false); }
   };
-  React.useEffect(() => { fetchWeather(); }, []);
 
-  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-center"><RefreshCw className="h-8 w-8 text-[#166534] animate-spin mx-auto mb-3" /><p className="text-sm text-[#64748B]">Loading weather...</p></div></div>;
-  if (error || !weather) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-center"><AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-3" /><p className="text-sm text-[#64748B]">{error || "No data"}</p><button onClick={fetchWeather} className="mt-3 px-4 py-2 bg-[#166534] text-white rounded-xl text-sm font-bold cursor-pointer">Retry</button></div></div>;
+  // Request GPS on mount
+  React.useEffect(() => {
+    if ("geolocation" in navigator) {
+      setGpsStatus("requesting");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setGpsStatus("granted");
+          fetchWeather(pos.coords.latitude, pos.coords.longitude);
+        },
+        () => {
+          setGpsStatus("denied");
+          fetchWeather(); // Fallback to farm location
+        },
+        { timeout: 10000, maximumAge: 300000 }
+      );
+    } else {
+      fetchWeather();
+    }
+  }, []);
+
+  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-center"><RefreshCw className="h-8 w-8 text-[#166534] animate-spin mx-auto mb-3" /><p className="text-sm text-[#64748B]">{gpsStatus === "requesting" ? "Getting your location..." : "Loading weather..."}</p></div></div>;
+  if (error || !weather || weather.noData) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-center text-center"><MapPin className="h-8 w-8 text-amber-500 mx-auto mb-3" /><p className="text-sm font-bold text-[#0F172A] mb-1">No weather data</p><p className="text-xs text-[#64748B] mb-3">{weather?.description || error || "Enable location access or set your farm location in Settings"}</p><div className="flex gap-2 justify-center">        <button onClick={() => {
+  if ("geolocation" in navigator) {
+    setGpsStatus("requesting"); setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setGpsStatus("granted"); fetchWeather(pos.coords.latitude, pos.coords.longitude); },
+      () => { setGpsStatus("denied"); fetchWeather(); },
+      { timeout: 10000 }
+    );
+  }
+}} className="px-4 py-2 bg-[#166534] text-white rounded-xl text-sm font-bold cursor-pointer">Enable GPS</button><button onClick={() => fetchWeather()} className="px-4 py-2 border border-[#E5E7EB] rounded-xl text-sm font-bold cursor-pointer">Retry</button></div></div></div>;
 
   const { today, forecast, location, temperature, feelsLike, humidity, windSpeed, condition, description, sunrise, sunset } = weather;
 
@@ -55,7 +87,7 @@ export default function WeatherPage() {
           <h1 className="text-2xl font-extrabold text-[#0F172A] tracking-tight">Weather</h1>
           <div className="flex items-center gap-1.5 mt-1 text-sm text-[#64748B]"><MapPin className="h-3.5 w-3.5" />{location}</div>
         </div>
-        <button onClick={fetchWeather} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#166534] border border-[#E5E7EB] rounded-xl hover:bg-[#F0FDF4] cursor-pointer"><RefreshCw className="h-3.5 w-3.5" />Refresh</button>
+        <button onClick={() => fetchWeather()} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#166534] border border-[#E5E7EB] rounded-xl hover:bg-[#F0FDF4] cursor-pointer"><RefreshCw className="h-3.5 w-3.5" />Refresh</button>
       </motion.div>
 
       {/* Current weather hero */}

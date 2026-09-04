@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, AlertTriangle, TrendingUp, CircleDollarSign, Plus, X, Trash2, Wheat, Leaf, Pill, Wrench, Search, BarChart3, ArrowUp, ArrowDown } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, CircleDollarSign, Plus, X, Trash2, Wheat, Leaf, Pill, Wrench, Search, BarChart3, ArrowUp, ArrowDown, Edit3, Clock } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,49 +17,101 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, tra
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 const COLORS = ["#166534", "#22C55E", "#86EFAC", "#94A3B8", "#CBD5E1", "#F59E0B", "#EF4444", "#3B82F6"];
 
-const CATEGORIES = [
-  { id: "all", label: "All", icon: Package },
-  { id: "animal_feed", label: "Animal Feed", icon: Wheat },
-  { id: "seeds", label: "Seeds", icon: Leaf },
-  { id: "fertilizer", label: "Fertilizer", icon: Leaf },
-  { id: "pesticide", label: "Pesticide", icon: Pill },
-  { id: "herbicide", label: "Herbicide", icon: Pill },
-  { id: "medication", label: "Medication", icon: Pill },
-  { id: "equipment", label: "Equipment", icon: Wrench },
-  { id: "other", label: "Other", icon: Package },
+// Suggested categories — but farmer can type ANYTHING
+const SUGGESTED_CATEGORIES = [
+  "Animal Feed", "Seeds", "Fertilizer", "Pesticide", "Herbicide",
+  "Medication", "Equipment", "Fuel", "Packaging", "Other",
 ];
 
-const UNITS = ["bags", "kg", "litres", "bottles", "pieces", "rolls", "sachets"];
+const SUGGESTED_UNITS = [
+  "bags", "kg", "litres", "bottles", "pieces", "rolls", "sachets", "tonnes", "bundles", "cans",
+];
 
 export default function InventoryPage() {
   const [items, setItems] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [editingItem, setEditingItem] = React.useState<any>(null);
   const [step, setStep] = React.useState(1);
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [search, setSearch] = React.useState("");
   const [adjustItem, setAdjustItem] = React.useState<number | null>(null);
   const [adjustQty, setAdjustQty] = React.useState("");
+  const [adjustReason, setAdjustReason] = React.useState("");
   const { showToast, ToastComponent } = useToast();
-  const [form, setForm] = React.useState({ itemName: "", category: "animal_feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "", supplier: "" });
+
+  const [form, setForm] = React.useState({
+    itemName: "", category: "", quantity: "", unit: "bags",
+    unitCost: "", reorderLevel: "", supplier: "", expiryDate: "", notes: "",
+  });
 
   const load = () => {
     api.get("/api/inventory").then(d => { setItems(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
 
+  // Discover categories from existing items + suggestions
+  const allCategories = React.useMemo(() => {
+    const fromItems = [...new Set(items.map(i => i.category).filter(Boolean))];
+    const merged = [...new Set([...SUGGESTED_CATEGORIES, ...fromItems])];
+    return merged;
+  }, [items]);
+
+  const resetForm = () => {
+    setForm({ itemName: "", category: "", quantity: "", unit: "bags", unitCost: "", reorderLevel: "", supplier: "", expiryDate: "", notes: "" });
+    setEditingItem(null);
+  };
+
+  const openEdit = (item: any) => {
+    setEditingItem(item);
+    setForm({
+      itemName: item.itemName || "",
+      category: item.category || "",
+      quantity: String(item.quantity || ""),
+      unit: item.unit || "bags",
+      unitCost: String(item.unitCost || ""),
+      reorderLevel: String(item.reorderLevel || ""),
+      supplier: item.supplier || "",
+      expiryDate: item.expiryDate ? new Date(item.expiryDate).toISOString().split("T")[0] : "",
+      notes: item.notes || "",
+    });
+    setShowForm(true);
+    setStep(1);
+  };
+
   const handleSubmit = async () => {
-    await api.post("/api/inventory", { ...form, quantity: Number(form.quantity), unitCost: Number(form.unitCost), reorderLevel: Number(form.reorderLevel || 0) });
-    setForm({ itemName: "", category: "animal_feed", quantity: "", unit: "bags", unitCost: "", reorderLevel: "", supplier: "" });
-    setStep(1); setShowForm(false); showToast("Item added!"); load();
+    const payload = {
+      itemName: form.itemName,
+      category: form.category || null,
+      quantity: Number(form.quantity),
+      unit: form.unit,
+      unitCost: Number(form.unitCost),
+      reorderLevel: Number(form.reorderLevel || 0),
+      supplier: form.supplier || null,
+      expiryDate: form.expiryDate || null,
+      notes: form.notes || null,
+    };
+
+    if (editingItem) {
+      await api.patch(`/api/inventory/${editingItem.id}`, payload);
+      showToast("Item updated!");
+    } else {
+      await api.post("/api/inventory", payload);
+      showToast("Item added!");
+    }
+    resetForm();
+    setStep(1);
+    setShowForm(false);
+    load();
   };
 
   const handleAdjust = async (id: number, delta: number) => {
     if (!adjustQty) return;
     const qty = delta > 0 ? Math.abs(Number(adjustQty)) : -Math.abs(Number(adjustQty));
     await api.patch(`/api/inventory/${id}`, { quantity: qty });
-    setAdjustItem(null); setAdjustQty("");
-    showToast(delta > 0 ? "Stock added!" : "Stock used!"); load();
+    setAdjustItem(null); setAdjustQty(""); setAdjustReason("");
+    showToast(delta > 0 ? "Stock added!" : "Stock used!");
+    load();
   };
 
   const handleDelete = async (id: number) => {
@@ -76,9 +128,19 @@ export default function InventoryPage() {
   const lowStock = items.filter(i => Number(i.quantity) <= i.reorderLevel);
   const totalValue = items.reduce((s, i) => s + Number(i.quantity) * Number(i.unitCost), 0);
 
+  // Check for expired items
+  const now = new Date();
+  const expiredItems = items.filter(i => i.expiryDate && new Date(i.expiryDate) < now);
+  const expiringSoon = items.filter(i => {
+    if (!i.expiryDate) return false;
+    const exp = new Date(i.expiryDate);
+    const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / 86400000);
+    return daysLeft > 0 && daysLeft <= 30;
+  });
+
   const valueByCategory: Record<string, number> = {};
   items.forEach(i => { const cat = i.category || "other"; valueByCategory[cat] = (valueByCategory[cat] || 0) + Number(i.quantity) * Number(i.unitCost); });
-  const valuePie = Object.entries(valueByCategory).map(([name, value]) => ({ name: name.replace("_", " "), value })).filter(v => v.value > 0);
+  const valuePie = Object.entries(valueByCategory).map(([name, value]) => ({ name: name.replace(/_/g, " "), value })).filter(v => v.value > 0);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
@@ -86,10 +148,10 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <PageHeader title="Inventory" description="Track feed, seeds, fertilizer and farm supplies"
-          action={<Button onClick={() => { setShowForm(!showForm); setStep(1); }} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Item</Button>} />
+          action={<Button onClick={() => { resetForm(); setShowForm(!showForm); setStep(1); }} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Item</Button>} />
       </motion.div>
 
-      {/* Add form — step by step */}
+      {/* Add/Edit form — step by step */}
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
@@ -97,22 +159,29 @@ export default function InventoryPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-bold text-[#0F172A]">Add Item</h3>
+                    <h3 className="text-sm font-bold text-[#0F172A]">{editingItem ? "Edit Item" : "Add Item"}</h3>
                     <div className="flex gap-1">{[1, 2, 3].map(s => <div key={s} className={`h-1.5 w-8 rounded-full ${step >= s ? "bg-[#166534]" : "bg-gray-200"}`} />)}</div>
                   </div>
-                  <button onClick={() => setShowForm(false)} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
+                  <button onClick={() => { setShowForm(false); resetForm(); }} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
                 </div>
 
                 {step === 1 && (
                   <div className="space-y-3">
-                    <Label className="text-xs font-semibold text-[#64748B]">What is the item?</Label>
-                    <Input placeholder="e.g. NPK fertilizer, Layer mash, vaccines" value={form.itemName} onChange={e => setForm({ ...form, itemName: e.target.value })} className="h-12 rounded-xl text-base" autoFocus />
-                    <Label className="text-xs font-semibold text-[#64748B]">Category</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {CATEGORIES.filter(c => c.id !== "all").map(c => (
-                        <button key={c.id} onClick={() => setForm({ ...form, category: c.id })}
-                          className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${form.category === c.id ? "bg-[#166534] text-white" : "bg-[#F1F5F9] text-[#64748B]"}`}>{c.label}</button>
-                      ))}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-semibold text-[#64748B]">What is the item? *</Label>
+                      <Input placeholder="e.g. Layer Mash, NPK 17:17:17, vaccines, diesel..." value={form.itemName} onChange={e => setForm({ ...form, itemName: e.target.value })} className="h-12 rounded-xl text-base" autoFocus />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-semibold text-[#64748B]">Category</Label>
+                      {/* Quick-pick suggestions */}
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {SUGGESTED_CATEGORIES.slice(0, 6).map(c => (
+                          <button key={c} onClick={() => setForm({ ...form, category: c })}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${form.category === c ? "bg-[#166534] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{c}</button>
+                        ))}
+                      </div>
+                      {/* Or type custom */}
+                      <Input placeholder="Type a custom category..." value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="h-10 rounded-xl text-sm" />
                     </div>
                     <Button onClick={() => form.itemName && setStep(2)} disabled={!form.itemName} className="w-full mt-2 h-11 cursor-pointer">Next</Button>
                   </div>
@@ -121,12 +190,30 @@ export default function InventoryPage() {
                 {step === 2 && (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Quantity</Label><Input type="number" placeholder="0" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" /></div>
-                      <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Unit</Label><select value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} className="w-full h-12 rounded-xl border border-[#E5E7EB] px-3 text-sm font-bold">{UNITS.map(u => <option key={u}>{u}</option>)}</select></div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold text-[#64748B]">Quantity *</Label>
+                        <Input type="number" placeholder="0" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold text-[#64748B]">Unit</Label>
+                        <div className="flex flex-wrap gap-1 mb-1">
+                          {SUGGESTED_UNITS.slice(0, 5).map(u => (
+                            <button key={u} onClick={() => setForm({ ...form, unit: u })}
+                              className={`px-2 py-0.5 rounded text-[9px] font-bold cursor-pointer ${form.unit === u ? "bg-[#166534] text-white" : "bg-gray-100 text-gray-500"}`}>{u}</button>
+                          ))}
+                        </div>
+                        <Input placeholder="Or type custom unit" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} className="h-9 rounded-lg text-sm" />
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Cost per unit (KES)</Label><Input type="number" placeholder="0" value={form.unitCost} onChange={e => setForm({ ...form, unitCost: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" /></div>
-                      <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Alert when below</Label><Input type="number" placeholder="0" value={form.reorderLevel} onChange={e => setForm({ ...form, reorderLevel: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" /></div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold text-[#64748B]">Cost per unit (KES) *</Label>
+                        <Input type="number" placeholder="0" value={form.unitCost} onChange={e => setForm({ ...form, unitCost: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold text-[#64748B]">Alert when below</Label>
+                        <Input type="number" placeholder="0" value={form.reorderLevel} onChange={e => setForm({ ...form, reorderLevel: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" />
+                      </div>
                     </div>
                     {form.quantity && form.unitCost && (
                       <div className="rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] p-3 text-center">
@@ -143,17 +230,31 @@ export default function InventoryPage() {
 
                 {step === 3 && (
                   <div className="space-y-3">
-                    <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Supplier (optional)</Label><Input placeholder="e.g. Chemist supplier" value={form.supplier} onChange={e => setForm({ ...form, supplier: e.target.value })} className="h-11 rounded-xl" /></div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold text-[#64748B]">Supplier (optional)</Label>
+                        <Input placeholder="e.g. Kenchic, Double F" value={form.supplier} onChange={e => setForm({ ...form, supplier: e.target.value })} className="h-10 rounded-xl" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-semibold text-[#64748B]"><Clock className="h-3 w-3 inline" />Expiry date (optional)</Label>
+                        <Input type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} className="h-10 rounded-xl" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-semibold text-[#64748B]">Notes (optional)</Label>
+                      <Input placeholder="e.g. Store in cool dry place, batch #12345..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="h-10 rounded-xl" />
+                    </div>
                     <div className="rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] p-4 space-y-2">
                       <div className="flex justify-between text-xs"><span className="text-[#64748B]">Item</span><span className="font-bold text-[#0F172A]">{form.itemName}</span></div>
-                      <div className="flex justify-between text-xs"><span className="text-[#64748B]">Category</span><span className="font-bold text-[#0F172A] capitalize">{form.category.replace("_", " ")}</span></div>
+                      <div className="flex justify-between text-xs"><span className="text-[#64748B]">Category</span><span className="font-bold text-[#0F172A]">{form.category || "—"}</span></div>
                       <div className="flex justify-between text-xs"><span className="text-[#64748B]">Quantity</span><span className="font-bold text-[#0F172A]">{form.quantity} {form.unit}</span></div>
                       <div className="flex justify-between text-xs"><span className="text-[#64748B]">Unit cost</span><span className="font-bold text-[#0F172A]">KES {Number(form.unitCost || 0).toLocaleString()}</span></div>
+                      {form.expiryDate && <div className="flex justify-between text-xs"><span className="text-[#64748B]">Expires</span><span className="font-bold text-[#0F172A]">{new Date(form.expiryDate).toLocaleDateString()}</span></div>}
                       <div className="flex justify-between text-xs border-t border-[#E5E7EB] pt-2"><span className="text-[#64748B]">Total value</span><span className="font-extrabold text-[#166534]">KES {(Number(form.quantity) * Number(form.unitCost)).toLocaleString()}</span></div>
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={() => setStep(2)} variant="outline" className="flex-1 cursor-pointer">Back</Button>
-                      <Button onClick={handleSubmit} disabled={!form.itemName || !form.quantity} className="flex-1 h-11 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save Item</Button>
+                      <Button onClick={handleSubmit} disabled={!form.itemName || !form.quantity} className="flex-1 h-11 bg-[#166534] hover:bg-[#14532D] cursor-pointer">{editingItem ? "Update Item" : "Save Item"}</Button>
                     </div>
                   </div>
                 )}
@@ -163,27 +264,52 @@ export default function InventoryPage() {
         )}
       </AnimatePresence>
 
-      {/* Low stock alert */}
-      {lowStock.length > 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <Card className="border border-amber-200 bg-amber-50">
-            <CardContent className="flex items-center gap-3 p-4">
-              <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-bold text-amber-800">{lowStock.length} item{lowStock.length > 1 ? "s" : ""} running low</p>
-                <p className="text-xs text-amber-600">{lowStock.map(i => i.itemName).join(", ")}</p>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Alerts */}
+      {(lowStock.length > 0 || expiredItems.length > 0 || expiringSoon.length > 0) && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
+          {expiredItems.length > 0 && (
+            <Card className="border border-red-200 bg-red-50">
+              <CardContent className="flex items-center gap-3 p-3">
+                <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-red-700">{expiredItems.length} item{expiredItems.length > 1 ? "s" : ""} expired!</p>
+                  <p className="text-xs text-red-500">{expiredItems.map(i => i.itemName).join(", ")}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {expiringSoon.length > 0 && (
+            <Card className="border border-amber-200 bg-amber-50">
+              <CardContent className="flex items-center gap-3 p-3">
+                <Clock className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-amber-700">{expiringSoon.length} item{expiringSoon.length > 1 ? "s" : ""} expiring soon</p>
+                  <p className="text-xs text-amber-600">{expiringSoon.map(i => `${i.itemName} (${new Date(i.expiryDate).toLocaleDateString()})`).join(", ")}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {lowStock.length > 0 && (
+            <Card className="border border-amber-200 bg-amber-50">
+              <CardContent className="flex items-center gap-3 p-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-amber-800">{lowStock.length} item{lowStock.length > 1 ? "s" : ""} running low</p>
+                  <p className="text-xs text-amber-600">{lowStock.map(i => i.itemName).join(", ")}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
       )}
 
       {/* KPIs */}
-      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { title: "Total Items", value: items.length.toString(), icon: <Package className="h-5 w-5" />, color: "bg-[#166534]" },
           { title: "Total Value", value: `KES ${totalValue.toLocaleString()}`, icon: <CircleDollarSign className="h-5 w-5" />, color: "bg-emerald-500" },
           { title: "Low Stock", value: lowStock.length.toString(), icon: <AlertTriangle className="h-5 w-5" />, color: lowStock.length > 0 ? "bg-amber-500" : "bg-[#166534]" },
+          { title: "Expiring", value: String(expiredItems.length + expiringSoon.length), icon: <Clock className="h-5 w-5" />, color: (expiredItems.length + expiringSoon.length) > 0 ? "bg-red-500" : "bg-[#166534]" },
         ].map(kpi => (
           <motion.div key={kpi.title} variants={fadeUp}>
             <Card className="border border-[#E5E7EB]">
@@ -197,45 +323,19 @@ export default function InventoryPage() {
         ))}
       </motion.div>
 
-      {/* Chart */}
-      {valuePie.length > 0 && (
-        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-          <Card className="border border-[#E5E7EB]">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <BarChart3 className="h-4 w-4 text-[#166534]" />
-                <p className="text-xs font-bold text-[#0F172A]">Stock Value by Category</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="40%" height={120}>
-                  <PieChart>
-                    <Pie data={valuePie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} strokeWidth={2} stroke="#fff">
-                      {valuePie.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip formatter={(v: any) => `KES ${Number(v).toLocaleString()}`} contentStyle={{ borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 11 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-wrap gap-2 flex-1">
-                  {valuePie.map((v, i) => (
-                    <div key={v.name} className="flex items-center gap-1"><div className="h-2.5 w-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} /><span className="text-[10px] text-[#64748B] capitalize">{v.name}: KES {v.value.toLocaleString()}</span></div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
       {/* Category tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {CATEGORIES.map(cat => {
-          const Icon = cat.icon;
-          const count = cat.id === "all" ? items.length : items.filter(i => i.category === cat.id).length;
-          if (cat.id !== "all" && count === 0) return null;
+        <button onClick={() => setActiveCategory("all")}
+          className={`px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${activeCategory === "all" ? "bg-[#166534] text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+          All ({items.length})
+        </button>
+        {allCategories.map(cat => {
+          const count = items.filter(i => i.category === cat).length;
+          if (count === 0) return null;
           return (
-            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${activeCategory === cat.id ? "bg-[#166534] text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-              <Icon className="h-3.5 w-3.5" />{cat.label} ({count})
+            <button key={cat} onClick={() => setActiveCategory(cat)}
+              className={`px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${activeCategory === cat ? "bg-[#166534] text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+              {cat} ({count})
             </button>
           );
         })}
@@ -252,32 +352,46 @@ export default function InventoryPage() {
         <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-2">
           {filtered.map(item => {
             const isLow = Number(item.quantity) <= item.reorderLevel;
-            const cat = CATEGORIES.find(c => c.id === item.category);
+            const isExpired = item.expiryDate && new Date(item.expiryDate) < now;
+            const isExpiringSoon = item.expiryDate && !isExpired && Math.ceil((new Date(item.expiryDate).getTime() - now.getTime()) / 86400000) <= 30;
             return (
               <motion.div key={item.id} variants={fadeUp}>
-                <Card className={`border ${isLow ? "border-amber-300 bg-amber-50/30" : "border-[#E5E7EB]"}`}>
+                <Card className={`border ${isExpired ? "border-red-300 bg-red-50/30" : isLow ? "border-amber-300 bg-amber-50/30" : "border-[#E5E7EB]"}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isLow ? "bg-amber-100 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
-                          {cat ? <cat.icon className="h-4 w-4" /> : <Package className="h-4 w-4" />}
+                          <Package className="h-4 w-4" />
                         </div>
                         <div>
                           <h3 className="text-sm font-bold text-[#0F172A]">{item.itemName}</h3>
-                          <p className="text-[10px] text-[#94A3B8] capitalize">{(item.category || "other").replace("_", " ")}</p>
+                          <p className="text-[10px] text-[#94A3B8]">{item.category || "No category"}{item.supplier ? ` • ${item.supplier}` : ""}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {isLow && <Badge className="bg-amber-100 text-amber-700 text-[9px] border-amber-200">Low</Badge>}
+                        {isExpired && <Badge className="bg-red-100 text-red-700 text-[9px] border-red-200">Expired</Badge>}
+                        {isExpiringSoon && !isExpired && <Badge className="bg-amber-100 text-amber-700 text-[9px] border-amber-200">Expiring</Badge>}
+                        {isLow && !isExpired && <Badge className="bg-amber-100 text-amber-700 text-[9px] border-amber-200">Low</Badge>}
                         <p className="text-lg font-extrabold text-[#0F172A]">{Number(item.quantity).toLocaleString()}<span className="text-xs font-normal text-[#94A3B8] ml-1">{item.unit}</span></p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-3">
                       <div className="rounded-lg bg-[#F8FAFC] p-2 text-center"><p className="text-[9px] text-[#94A3B8]">Unit cost</p><p className="text-xs font-bold text-[#0F172A]">KES {Number(item.unitCost).toLocaleString()}</p></div>
                       <div className="rounded-lg bg-[#F8FAFC] p-2 text-center"><p className="text-[9px] text-[#94A3B8]">Value</p><p className="text-xs font-bold text-[#166534]">KES {(Number(item.quantity) * Number(item.unitCost)).toLocaleString()}</p></div>
-                      <div className="rounded-lg bg-[#F8FAFC] p-2 text-center"><p className="text-[9px] text-[#94A3B8]">Reorder</p><p className="text-xs font-bold text-[#0F172A]">{item.reorderLevel} {item.unit}</p></div>
+                      <div className="rounded-lg bg-[#F8FAFC] p-2 text-center">
+                        <p className="text-[9px] text-[#94A3B8]">Reorder</p>
+                        <p className="text-xs font-bold text-[#0F172A]">{item.reorderLevel} {item.unit}</p>
+                      </div>
                     </div>
-                    {/* Quick stock actions */}
+                    {item.expiryDate && (
+                      <div className="mt-2 text-[10px] text-[#94A3B8]">
+                        Expires: {new Date(item.expiryDate).toLocaleDateString()}
+                        {isExpired && <span className="text-red-600 font-bold ml-1">(EXPIRED)</span>}
+                        {isExpiringSoon && !isExpired && <span className="text-amber-600 font-bold ml-1">(expiring soon)</span>}
+                      </div>
+                    )}
+                    {item.notes && <p className="mt-1 text-[10px] text-[#94A3B8] italic">{item.notes}</p>}
+                    {/* Actions */}
                     <div className="flex gap-2 mt-3">
                       <button onClick={() => { setAdjustItem(item.id); setAdjustQty(""); }}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#F0FDF4] text-[#166534] text-xs font-bold border border-[#BBF7D0] hover:bg-[#DCFCE7] cursor-pointer">
@@ -287,7 +401,12 @@ export default function InventoryPage() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-50 text-red-600 text-xs font-bold border border-red-200 hover:bg-red-100 cursor-pointer">
                         <ArrowDown className="h-3.5 w-3.5" />Use Stock
                       </button>
-                      <button onClick={() => handleDelete(item.id)} className="py-2.5 px-3 rounded-xl bg-gray-50 text-[#94A3B8] hover:text-red-500 border border-gray-200 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => openEdit(item)} className="py-2.5 px-3 rounded-xl bg-gray-50 text-[#94A3B8] hover:text-[#64748B] border border-gray-200 cursor-pointer">
+                        <Edit3 className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => handleDelete(item.id)} className="py-2.5 px-3 rounded-xl bg-gray-50 text-[#94A3B8] hover:text-red-500 border border-gray-200 cursor-pointer">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </CardContent>
                 </Card>
@@ -306,6 +425,7 @@ export default function InventoryPage() {
                 <h3 className="text-sm font-bold text-[#0F172A]">Adjust Stock</h3>
                 <p className="text-xs text-[#64748B]">How many {items.find(i => i.id === adjustItem)?.unit || "units"}?</p>
                 <Input type="number" placeholder="0" value={adjustQty} onChange={e => setAdjustQty(e.target.value)} className="h-12 rounded-xl text-lg font-bold text-center" />
+                <Input placeholder="Reason (optional)" value={adjustReason} onChange={e => setAdjustReason(e.target.value)} className="h-10 rounded-xl text-sm" />
                 <div className="flex gap-2">
                   <Button onClick={() => setAdjustItem(null)} variant="outline" className="flex-1 cursor-pointer">Cancel</Button>
                   <Button onClick={() => handleAdjust(adjustItem, 1)} disabled={!adjustQty} className="flex-1 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Add</Button>

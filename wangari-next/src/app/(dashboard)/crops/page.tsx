@@ -46,7 +46,7 @@ export default function CropsPage() {
   // Create form
   const [showForm, setShowForm] = React.useState(false);
   const [step, setStep] = React.useState(0);
-  const [form, setForm] = React.useState({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "" });
+  const [form, setForm] = React.useState({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "", pricePerKg: "" });
 
   // Action modals
   const [activeModal, setActiveModal] = React.useState<Modal>(null);
@@ -63,7 +63,7 @@ export default function CropsPage() {
   const openModal = (modal: Modal, crop: any) => { setActiveModal(modal); setModalCrop(crop); };
   const closeModal = () => { setActiveModal(null); setModalCrop(null); };
 
-  const resetForm = () => { setForm({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "" }); setStep(0); setShowForm(false); };
+  const resetForm = () => { setForm({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "", pricePerKg: "" }); setStep(0); setShowForm(false); };
 
   const handleCreate = async () => { await api.post("/api/crops", form); resetForm(); showToast("Crop registered!"); load(); };
   const handleDelete = async (id: number) => { if (!confirm("Delete this crop?")) return; await api.delete("/api/crops/" + id); load(); };
@@ -128,6 +128,7 @@ export default function CropsPage() {
                       <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">📅 Planting Date</Label><Input type="date" value={form.plantingDate} onChange={e => setForm({ ...form, plantingDate: e.target.value })} className="h-11 rounded-xl" /></div>
                       <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">🎯 Expected Harvest</Label><Input type="date" value={form.expectedHarvest} onChange={e => setForm({ ...form, expectedHarvest: e.target.value })} className="h-11 rounded-xl" /></div>
                       <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">📍 Location</Label><Input placeholder="e.g. Behind house" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} className="h-11 rounded-xl" /></div>
+                      <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">💰 Price per kg (KES)</Label><Input type="number" placeholder="e.g. 50" value={form.pricePerKg} onChange={e => setForm({ ...form, pricePerKg: e.target.value })} className="h-11 rounded-xl" /></div>
                     </div>
                     <div className="mt-4 flex gap-2">
                       <Button onClick={() => setStep(2)} disabled={!form.name} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50">Review <ChevronRight className="h-4 w-4 ml-1" /></Button>
@@ -144,6 +145,7 @@ export default function CropsPage() {
                       <div className="flex justify-between"><span className="text-gray-500">Field:</span><span className="font-bold">{form.name || "Unnamed"}</span></div>
                       {form.areaAcres && <div className="flex justify-between"><span className="text-gray-500">Area:</span><span className="font-bold">{form.areaAcres} acres</span></div>}
                       {form.plantingDate && <div className="flex justify-between"><span className="text-gray-500">Planting:</span><span className="font-bold">{new Date(form.plantingDate).toLocaleDateString()}</span></div>}
+                      {form.pricePerKg && <div className="flex justify-between"><span className="text-gray-500">Price/kg:</span><span className="font-bold">KES {form.pricePerKg}</span></div>}
                     </div>
                     <div className="mt-4 flex gap-2">
                       <Button onClick={handleCreate} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">✓ Save Crop</Button>
@@ -321,17 +323,38 @@ export default function CropsPage() {
                       {totalKg > 0 && <div className="rounded-lg bg-emerald-50 p-2"><span className="text-emerald-600">Harvested</span><p className="font-bold text-emerald-700">{totalKg.toFixed(0)} kg</p></div>}
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="grid grid-cols-3 gap-1.5 mt-3 pt-3 border-t border-gray-100">
-                      <button onClick={() => openModal("harvest", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-semibold hover:bg-emerald-100 transition-colors cursor-pointer">
-                        <Check className="h-3.5 w-3.5" />Harvest
-                      </button>
-                      <button onClick={() => openModal("health", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-semibold hover:bg-amber-100 transition-colors cursor-pointer">
-                        <Bug className="h-3.5 w-3.5" />Report Issue
-                      </button>
-                      <button onClick={() => openModal("apply", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-semibold hover:bg-blue-100 transition-colors cursor-pointer">
-                        <Pill className="h-3.5 w-3.5" />Apply Input
-                      </button>
+                    {/* Lifecycle tabs */}
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex gap-1 mb-2">
+                        {[
+                          { key: "growth", label: "Growth", icon: <Sprout className="h-3 w-3" />, color: "bg-emerald-50 text-emerald-700" },
+                          { key: "watering", label: "Water", icon: <Droplets className="h-3 w-3" />, color: "bg-blue-50 text-blue-700" },
+                          { key: "flower", label: "Flower", icon: <Leaf className="h-3 w-3" />, color: "bg-purple-50 text-purple-700" },
+                          { key: "harvest", label: "Harvest", icon: <Check className="h-3 w-3" />, color: "bg-amber-50 text-amber-700" },
+                        ].map(tab => {
+                          const isActive = growth.stage.toLowerCase().includes(tab.key) ||
+                            (tab.key === "growth" && ["Germinating", "Vegetative"].includes(growth.stage)) ||
+                            (tab.key === "flower" && ["Flowering", "Fruiting"].includes(growth.stage)) ||
+                            (tab.key === "harvest" && growth.stage === "Ready");
+                          return (
+                            <div key={tab.key} className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${isActive ? tab.color + " ring-1 ring-current/20" : "bg-gray-50 text-gray-400"}`}>
+                              {tab.icon}{tab.label}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Action buttons */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button onClick={() => openModal("harvest", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-semibold hover:bg-emerald-100 transition-colors cursor-pointer">
+                          <Check className="h-3.5 w-3.5" />Harvest
+                        </button>
+                        <button onClick={() => openModal("health", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-semibold hover:bg-amber-100 transition-colors cursor-pointer">
+                          <Bug className="h-3.5 w-3.5" />Report Issue
+                        </button>
+                        <button onClick={() => openModal("apply", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-semibold hover:bg-blue-100 transition-colors cursor-pointer">
+                          <Pill className="h-3.5 w-3.5" />Apply Input
+                        </button>
+                      </div>
                     </div>
                     <button onClick={() => handleDelete(crop.id)} className="w-full mt-2 text-[10px] text-gray-400 hover:text-red-500 cursor-pointer">Delete crop</button>
                   </CardContent>

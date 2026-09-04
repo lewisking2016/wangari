@@ -64,7 +64,7 @@ export function FlockPhoto({ flockId, photoUrl, onPhotoUpdate, size = "md" }: Fl
       {preview ? (
         <>
           <img
-            src={preview.startsWith("/") ? `${process.env.NEXT_PUBLIC_API_URL || ""}${preview}` : preview}
+            src={preview.startsWith("/") ? `${process.env.NEXT_PUBLIC_API_URL || "https://api.wangari.imeantech.com"}${preview}` : preview}
             alt="Flock photo"
             className="h-full w-full object-cover rounded-2xl"
           />

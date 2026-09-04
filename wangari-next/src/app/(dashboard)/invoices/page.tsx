@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { FileText, Download, Search, Plus, CheckCircle2, Clock, AlertCircle, Eye, X, Printer, DollarSign } from "lucide-react";
+import { FileText, Download, Search, Plus, CheckCircle2, Clock, AlertCircle, Eye, X, Printer, DollarSign, Palette, Settings, Save } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
+import { INVOICE_TEMPLATES, generateInvoiceHtml, getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -25,11 +26,35 @@ export default function InvoicesPage() {
   const [showFromSale, setShowFromSale] = React.useState(false);
   const [showPayModal, setShowPayModal] = React.useState<number | null>(null);
   const [payAmount, setPayAmount] = React.useState("");
+  const [selectedTemplate, setSelectedTemplate] = React.useState("professional");
+  const [farmProfile, setFarmProfile] = React.useState<FarmProfile>(getDefaultFarmProfile());
+  const [showTemplatePicker, setShowTemplatePicker] = React.useState(false);
   const { showToast, ToastComponent } = useToast();
 
   const load = () => {
-    Promise.all([api.get("/api/invoices"), api.get("/api/sales"), api.get("/api/customers")])
-      .then(([i, s, c]) => { setInvoices(Array.isArray(i) ? i : []); setSales(Array.isArray(s) ? s : []); setCustomers(Array.isArray(c) ? c : []); setLoading(false); })
+    Promise.all([api.get("/api/invoices"), api.get("/api/sales"), api.get("/api/customers"), api.get("/api/settings")])
+      .then(([i, s, c, settingsData]) => {
+        setInvoices(Array.isArray(i) ? i : []);
+        setSales(Array.isArray(s) ? s : []);
+        setCustomers(Array.isArray(c) ? c : []);
+        const st = (settingsData as any).settings || {};
+        setSelectedTemplate(st.farm_invoice_template || "professional");
+        setFarmProfile({
+          businessName: st.farm_business_name || "",
+          logoUrl: st.farm_logo_url || "",
+          phone: st.farm_phone || "",
+          email: st.farm_email || "",
+          address: st.farm_address || "",
+          tinNumber: st.farm_tin_number || "",
+          slogan: st.farm_slogan || "",
+          bankName: st.farm_bank_name || "",
+          bankAccount: st.farm_bank_account || "",
+          bankBranch: st.farm_bank_branch || "",
+          invoiceNotes: st.farm_invoice_notes || "",
+          invoiceTerms: st.farm_invoice_terms || "",
+        });
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
@@ -70,31 +95,19 @@ export default function InvoicesPage() {
   const salesWithoutInvoice = sales.filter(s => !invoices.some(inv => inv.saleId === s.id));
 
   const handlePrint = (inv: any) => {
-    const items = Array.isArray(inv.items) ? inv.items : [];
-    const itemRows = items.map((item: any) => `<tr><td>${item.name || "Item"}</td><td>${item.quantity || 1}</td><td>KES ${Number(item.price || 0).toLocaleString()}</td><td>KES ${(Number(item.quantity || 1) * Number(item.price || 0)).toLocaleString()}</td></tr>`).join("");
-
+    const html = generateInvoiceHtml(inv, selectedTemplate, farmProfile);
     const printWindow = window.open("", "_blank");
     if (printWindow) {
-      printWindow.document.write(`<!DOCTYPE html><html><head><title>${inv.invoiceNumber}</title>
-        <style>body{font-family:Arial,sans-serif;padding:40px;color:#333;max-width:800px;margin:0 auto}
-        .header{text-align:center;margin-bottom:30px;border-bottom:2px solid #166534;padding-bottom:20px}
-        .header h1{color:#166534;margin:0;font-size:24px}.header p{margin:5px 0 0;color:#64748B}
-        .info{display:flex;justify-content:space-between;margin-bottom:20px;font-size:14px}
-        table{width:100%;border-collapse:collapse;margin-bottom:20px}
-        th{background:#166534;color:white;padding:10px;text-align:left;font-size:13px}
-        td{padding:10px;border-bottom:1px solid #eee;font-size:13px}
-        .totals{text-align:right;font-size:14px}.totals p{margin:4px 0}
-        .footer{text-align:center;margin-top:40px;font-size:11px;color:#999}</style></head><body>
-        <div class="header"><h1>Wangari Farm Manager</h1><p>Invoice ${inv.invoiceNumber}</p></div>
-        <div class="info"><div><strong>Bill To:</strong><br>${inv.customer?.name || "Walk-in"}<br>${inv.customer?.phone || ""}</div>
-        <div style="text-align:right"><strong>Date:</strong> ${new Date(inv.createdAt).toLocaleDateString()}<br><strong>Status:</strong> ${inv.paymentStatus}</div></div>
-        <table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${itemRows || "<tr><td colspan='4'>No items</td></tr>"}</tbody></table>
-        <div class="totals"><p>Total: KES ${Number(inv.totalAmount).toLocaleString()}</p><p>Paid: KES ${Number(inv.amountPaid).toLocaleString()}</p>
-        ${Number(inv.totalAmount) - Number(inv.amountPaid) > 0 ? `<p style="color:red;font-weight:bold">Balance: KES ${(Number(inv.totalAmount) - Number(inv.amountPaid)).toLocaleString()}</p>` : ""}</div>
-        <div class="footer">Wangari by iMeanTech</div></body></html>`);
+      printWindow.document.write(html);
       printWindow.document.close();
-      printWindow.print();
+      setTimeout(() => printWindow.print(), 300);
     }
+  };
+
+  const handleSaveTemplate = async () => {
+    await api.put("/api/settings", { settings: { farm_invoice_template: selectedTemplate } });
+    showToast("Template saved!");
+    setShowTemplatePicker(false);
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
@@ -133,6 +146,78 @@ export default function InvoicesPage() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Template Picker */}
+      <div className="flex items-center gap-2">
+        <button onClick={() => setShowTemplatePicker(!showTemplatePicker)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] hover:border-[#166534] hover:bg-[#F0FDF4] transition-all cursor-pointer">
+          <Palette className="h-4 w-4 text-[#166534]" />
+          <span className="text-xs font-bold text-[#0F172A]">Invoice Template</span>
+          <span className="text-[10px] font-bold text-[#166534] bg-[#F0FDF4] px-2 py-0.5 rounded-full border border-[#BBF7D0]">
+            {INVOICE_TEMPLATES.find(t => t.id === selectedTemplate)?.name || "Professional"}
+          </span>
+        </button>
+        {!farmProfile.businessName && (
+          <a href="/settings" className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold hover:bg-amber-100 cursor-pointer">
+            <Settings className="h-3 w-3" />Set up farm profile for branded invoices
+          </a>
+        )}
+      </div>
+
+      {/* Template Picker Expanded */}
+      {showTemplatePicker && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+          <Card className="border border-[#E5E7EB]">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-[#0F172A]">Choose Invoice Template</h3>
+                  <p className="text-xs text-[#94A3B8] mt-1">Select a template that matches your farm&apos;s style. All templates include your farm branding.</p>
+                </div>
+                <button onClick={() => setShowTemplatePicker(false)} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {INVOICE_TEMPLATES.map(template => (
+                  <button key={template.id} onClick={() => setSelectedTemplate(template.id)}
+                    className={`text-left rounded-2xl border-2 p-5 transition-all cursor-pointer ${
+                      selectedTemplate === template.id
+                        ? "border-[#166534] bg-[#F0FDF4] shadow-md"
+                        : "border-[#E5E7EB] hover:border-[#BBF7D0] bg-white"
+                    }`}>
+                    {/* Mini preview */}
+                    <div className="rounded-xl border border-[#E5E7EB] bg-white p-3 mb-3 overflow-hidden">
+                      <div className="h-2 rounded-full mb-2" style={{ background: template.color, width: "40%" }} />
+                      <div className="h-1 rounded bg-gray-100 mb-1 w-3/4" />
+                      <div className="h-1 rounded bg-gray-100 mb-1 w-1/2" />
+                      <div className="h-1 rounded bg-gray-100 mb-2 w-2/3" />
+                      <div className="space-y-1">
+                        <div className="flex justify-between"><div className="h-1 rounded bg-gray-100 w-1/3" /><div className="h-1 rounded bg-gray-100 w-1/4" /></div>
+                        <div className="flex justify-between"><div className="h-1 rounded bg-gray-100 w-1/4" /><div className="h-1 rounded bg-gray-100 w-1/5" /></div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between">
+                        <div className="h-1.5 rounded bg-gray-200 w-1/3" />
+                        <div className="h-1.5 rounded w-1/4" style={{ background: template.color }} />
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-[#0F172A]">{template.name}</p>
+                    <p className="text-[10px] text-[#94A3B8] mt-1">{template.preview}</p>
+                    {selectedTemplate === template.id && (
+                      <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-[#166534]">
+                        <CheckCircle2 className="h-3 w-3" /> Selected
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button onClick={handleSaveTemplate} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">
+                  <Save className="h-4 w-4 mr-2" />Save Template
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

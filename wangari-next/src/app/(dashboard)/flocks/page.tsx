@@ -47,6 +47,8 @@ import { GrowthChart } from "@/components/flocks/GrowthChart";
 import { VaccinationReminders } from "@/components/flocks/VaccinationReminders";
 import { BatchProduction } from "@/components/flocks/BatchProduction";
 import { BreedingRecords } from "@/components/flocks/BreedingRecords";
+import { PostCreateWizard } from "@/components/flocks/PostCreateWizard";
+import { FlockSetupProgress } from "@/components/flocks/FlockSetupProgress";
 import { speciesTemplates, getSpeciesCategories, getSpeciesIconId } from "@/lib/species-templates";
 
 const iconMap: Record<string, any> = { bird: Bird, beef: Beef, droplets: Droplets, flower: Flower };
@@ -153,6 +155,8 @@ export default function FlocksPage() {
   const [showComparison, setShowComparison] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<"card" | "list">("card");
   const [showBatchProduction, setShowBatchProduction] = React.useState(false);
+  const [showWizard, setShowWizard] = React.useState(false);
+  const [wizardFlock, setWizardFlock] = React.useState<any>(null);
 
   const loadFlocks = () => {
     api.get("/api/flocks").then(d => {
@@ -178,9 +182,14 @@ export default function FlocksPage() {
   const categories = getSpeciesCategories();
 
   const handleCreate = async (data: any) => {
-    await api.post("/api/flocks", data);
+    const newFlock = await api.post("/api/flocks", data);
     setShowForm(false);
     loadFlocks();
+    // Show the post-create wizard
+    if (newFlock) {
+      setWizardFlock(newFlock);
+      setShowWizard(true);
+    }
   };
 
   const [editingFlock, setEditingFlock] = React.useState<any>(null);
@@ -362,6 +371,9 @@ export default function FlocksPage() {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Setup Progress (first 7 days) */}
+        <FlockSetupProgress flock={flock} />
 
         {/* Quick Mortality Recording */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
@@ -1051,6 +1063,25 @@ export default function FlocksPage() {
             );
           })}
         </motion.div>
+      )}
+
+      {/* Post-Create Wizard */}
+      {showWizard && wizardFlock && (
+        <PostCreateWizard
+          flock={wizardFlock}
+          species={speciesTemplates[wizardFlock.type] || speciesTemplates.layers}
+          onComplete={() => {
+            setShowWizard(false);
+            setWizardFlock(null);
+            loadFlocks();
+            // Navigate to the new flock's detail view
+            setSelectedFlock(wizardFlock);
+          }}
+          onSkip={() => {
+            setShowWizard(false);
+            setWizardFlock(null);
+          }}
+        />
       )}
 
       {showForm && <CreateFlockForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}

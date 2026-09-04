@@ -30,6 +30,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ProductionChart, RevenueChart, FlockChart, HDPTrendChart } from "@/components/dashboard/Charts";
 import { WeatherWidget } from "@/components/dashboard/WeatherWidget";
 import { AlertsCard } from "@/components/dashboard/Alerts";
+import { DailyTasks } from "@/components/dashboard/DailyTasks";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -57,41 +58,47 @@ function getMortalityRating(rate: number): { label: string; color: string; bg: s
   return { label: "Critical", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
 }
 
-const MOCK_WEATHER = {
-  temperature: 24,
-  feelsLike: 25,
-  humidity: 65,
-  windSpeed: 12,
-  condition: "Partly Cloudy",
-  description: "partly cloudy",
+const DEFAULT_WEATHER = {
+  temperature: 0,
+  feelsLike: 0,
+  humidity: 0,
+  windSpeed: 0,
+  condition: "Unknown",
+  description: "Set your farm location for weather",
   icon: "cloud" as const,
-  location: "Your Farm",
-  today: { tempMin: 18, tempMax: 28, rainMm: 0, avgHumidity: 65, willRain: false },
-  sunrise: "06:30",
-  sunset: "18:45",
-  forecast: [
-    { day: "Mon", tempMin: 18, tempMax: 27, icon: "cloud" as const, condition: "Clouds", description: "cloudy" },
-    { day: "Tue", tempMin: 19, tempMax: 29, icon: "sun" as const, condition: "Clear", description: "sunny" },
-    { day: "Wed", tempMin: 17, tempMax: 25, icon: "rain" as const, condition: "Rain", description: "light rain" },
-    { day: "Thu", tempMin: 18, tempMax: 26, icon: "cloud" as const, condition: "Clouds", description: "cloudy" },
-    { day: "Fri", tempMin: 19, tempMax: 28, icon: "sun" as const, condition: "Clear", description: "sunny" },
-  ],
+  location: "",
+  today: { tempMin: 0, tempMax: 0, rainMm: 0, avgHumidity: 0, willRain: false },
+  sunrise: "--:--",
+  sunset: "--:--",
+  forecast: [],
+  noData: true,
 };
 
 export default function DashboardPage() {
   const [data, setData] = React.useState<any>(null);
-  const [weather, setWeather] = React.useState<any>(MOCK_WEATHER);
+  const [weather, setWeather] = React.useState<any>(DEFAULT_WEATHER);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
     try {
+      // Get GPS coordinates for weather
+      let weatherUrl = "/api/weather";
+      if ("geolocation" in navigator) {
+        try {
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300000 })
+          );
+          weatherUrl += `?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`;
+        } catch {}
+      }
+
       const [dashboardData, weatherData] = await Promise.allSettled([
         api.get("/api/dashboard"),
-        api.get("/api/weather"),
+        api.get(weatherUrl),
       ]);
       if (dashboardData.status === "fulfilled") setData(dashboardData.value);
-      if (weatherData.status === "fulfilled" && weatherData.value) {
+      if (weatherData.status === "fulfilled" && weatherData.value && !weatherData.value.noData) {
         setWeather(weatherData.value);
       }
     } catch (err) {
@@ -386,9 +393,16 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* ═══════════════════════════════════════════════════════
-          ROW 3: Weather + Alerts
+          ROW 3: Today's Tasks + Weather + Alerts
           ═══════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div variants={fadeUp}>
+          <Card className="border border-[#E5E7EB]">
+            <CardContent className="p-5">
+              <DailyTasks flocks={data?.flocks || []} />
+            </CardContent>
+          </Card>
+        </motion.div>
         <WeatherWidget
           data={weather}
           location={data?.farmName || "Your Farm"}

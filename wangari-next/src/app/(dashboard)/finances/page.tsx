@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Plus, X, Trash2, BarChart3, Calendar } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Plus, X, Trash2, BarChart3, Calendar, Pencil } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,7 @@ export default function FinancesPage() {
   const [showForm, setShowForm] = React.useState(false);
   const { showToast, ToastComponent } = useToast();
   const [form, setForm] = React.useState({ type: "expense", description: "", amount: "", category: "animal_feed", paymentMethod: "cash" });
+  const [editingTx, setEditingTx] = React.useState<any>(null);
 
   const load = () => {
     api.get("/api/transactions").then(d => { setTxs(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
@@ -53,9 +54,20 @@ export default function FinancesPage() {
 
   const handleDelete = async (id: number) => { if (!confirm("Delete this transaction?")) return; await api.delete("/api/transactions/" + id); load(); };
   const handleSubmit = async () => {
-    await api.post("/api/transactions", { ...form, amount: Number(form.amount), date: new Date().toISOString() });
+    if (editingTx) {
+      await api.patch(`/api/transactions/${editingTx.id}`, { ...form, amount: Number(form.amount) });
+      setEditingTx(null);
+    } else {
+      await api.post("/api/transactions", { ...form, amount: Number(form.amount), date: new Date().toISOString() });
+    }
     setForm({ type: "expense", description: "", amount: "", category: "animal_feed", paymentMethod: "cash" });
-    setShowForm(false); showToast("Transaction saved!"); load();
+    setShowForm(false); showToast(editingTx ? "Transaction updated!" : "Transaction saved!"); load();
+  };
+
+  const handleEdit = (tx: any) => {
+    setEditingTx(tx);
+    setForm({ type: tx.type, description: tx.description || "", amount: String(tx.amount), category: tx.category || "animal_feed", paymentMethod: tx.paymentMethod || "cash" });
+    setShowForm(true);
   };
 
   const categories = form.type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -122,7 +134,7 @@ export default function FinancesPage() {
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900">Add Transaction</h3>
+                <h3 className="text-sm font-bold text-gray-900">{editingTx ? "Edit Transaction" : "Add Transaction"}</h3>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
               {/* Step 1: Income or Expense? */}
@@ -261,8 +273,7 @@ export default function FinancesPage() {
           <CardContent className="p-3 space-y-2">
             {txs.slice(0, 25).map((t: any) => {
               const isIncome = t.type === "income";
-              return (
-                <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+              return (                  <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
                   <div className="flex items-center gap-3">
                     <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isIncome ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>{isIncome ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}</div>
                     <div>
@@ -272,6 +283,7 @@ export default function FinancesPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <p className={`text-sm font-extrabold ${isIncome ? "text-emerald-700" : "text-gray-600"}`}>{isIncome ? "+" : "-"}KES {Number(t.amount).toLocaleString()}</p>
+                    <button onClick={() => handleEdit(t)} className="text-gray-400 hover:text-[#166534] cursor-pointer"><Pencil className="h-3 w-3" /></button>
                     <button onClick={() => handleDelete(t.id)} className="text-gray-400 hover:text-red-500 cursor-pointer"><Trash2 className="h-3 w-3" /></button>
                   </div>
                 </div>
