@@ -178,7 +178,7 @@ router.post("/log-output", async (req: Request, res: Response) => {
     today.setHours(0, 0, 0, 0);
 
     // 1. Record in WorkerLog
-    let logRecord = null;
+    let logRecord: any = null;
     if (workerId) {
       logRecord = await prisma.workerLog.create({
         data: {
