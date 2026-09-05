@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "wangari-secret-key-2025";
 
+const db = prisma as any;
+
 // ─── POST /api/worker/login — Worker PIN & Farm Code login ───
 router.post("/login", async (req: Request, res: Response) => {
   try {
@@ -19,7 +21,7 @@ router.post("/login", async (req: Request, res: Response) => {
     // 1. If farmCode provided, lookup farm
     if (farmCode) {
       const cleanCode = String(farmCode).trim().toUpperCase();
-      const farm = await prisma.farm.findFirst({
+      const farm = await db.farm.findFirst({
         where: {
           OR: [
             { code: cleanCode },
@@ -35,7 +37,7 @@ router.post("/login", async (req: Request, res: Response) => {
     // 2. Lookup worker by farmId + pin OR phone + pin
     let worker: any = null;
     if (targetFarmId) {
-      worker = await prisma.worker.findFirst({
+      worker = await db.worker.findFirst({
         where: {
           farmId: targetFarmId,
           pin: String(pin).trim(),
@@ -48,7 +50,7 @@ router.post("/login", async (req: Request, res: Response) => {
     // Fallback: search by phone number if farmCode didn't yield result
     if (!worker && phone) {
       const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, "");
-      worker = await prisma.worker.findFirst({
+      worker = await db.worker.findFirst({
         where: {
           status: "active",
           phone: { contains: cleanPhone.slice(-9) },
@@ -60,7 +62,7 @@ router.post("/login", async (req: Request, res: Response) => {
 
     // Final fallback: if only 1 worker exists with this PIN on the farm
     if (!worker) {
-      worker = await prisma.worker.findFirst({
+      worker = await db.worker.findFirst({
         where: {
           pin: String(pin).trim(),
           status: "active",
@@ -115,7 +117,7 @@ router.get("/tasks", async (req: Request, res: Response) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const tasks = await prisma.workerTask.findMany({
+    const tasks = await db.workerTask.findMany({
       where: {
         farmId,
         OR: [
@@ -147,7 +149,7 @@ router.post("/tasks", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Task title is required" });
     }
 
-    const task = await prisma.workerTask.create({
+    const task = await db.workerTask.create({
       data: {
         farmId,
         workerId: workerId ? Number(workerId) : null,
@@ -172,7 +174,7 @@ router.post("/tasks/:id/complete", async (req: Request, res: Response) => {
     const farmId = req.user!.farmId!;
     const workerId = (req.user as any).workerId || null;
 
-    const task = await prisma.workerTask.findFirst({
+    const task = await db.workerTask.findFirst({
       where: { id: taskId, farmId },
     });
 
@@ -180,7 +182,7 @@ router.post("/tasks/:id/complete", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Task not found" });
     }
 
-    const updated = await prisma.workerTask.update({
+    const updated = await db.workerTask.update({
       where: { id: taskId },
       data: {
         isCompleted: !task.isCompleted,
@@ -190,7 +192,7 @@ router.post("/tasks/:id/complete", async (req: Request, res: Response) => {
 
     // Also record worker log if completing
     if (!task.isCompleted && workerId) {
-      await prisma.workerLog.create({
+      await db.workerLog.create({
         data: {
           farmId,
           workerId,
@@ -227,7 +229,7 @@ router.post("/log-output", async (req: Request, res: Response) => {
     // 1. Record in WorkerLog
     let logRecord: any = null;
     if (workerId) {
-      logRecord = await prisma.workerLog.create({
+      logRecord = await db.workerLog.create({
         data: {
           farmId,
           workerId,
@@ -241,13 +243,13 @@ router.post("/log-output", async (req: Request, res: Response) => {
 
     // 2. Automatically sync with DailyProduction or Inventory for Farm Owner
     if (flockId) {
-      const targetFlock = await prisma.flock.findFirst({
+      const targetFlock = await db.flock.findFirst({
         where: { id: Number(flockId), farmId },
       });
 
       if (targetFlock) {
         if (type === "eggs") {
-          await prisma.dailyProduction.upsert({
+          await db.dailyProduction.upsert({
             where: { flockId_date: { flockId: targetFlock.id, date: today } },
             create: {
               farmId,
@@ -260,7 +262,7 @@ router.post("/log-output", async (req: Request, res: Response) => {
             },
           });
         } else if (type === "milk") {
-          await prisma.dailyProduction.upsert({
+          await db.dailyProduction.upsert({
             where: { flockId_date: { flockId: targetFlock.id, date: today } },
             create: {
               farmId,
@@ -273,7 +275,7 @@ router.post("/log-output", async (req: Request, res: Response) => {
             },
           });
         } else if (type === "feed") {
-          await prisma.dailyProduction.upsert({
+          await db.dailyProduction.upsert({
             where: { flockId_date: { flockId: targetFlock.id, date: today } },
             create: {
               farmId,
@@ -286,7 +288,7 @@ router.post("/log-output", async (req: Request, res: Response) => {
             },
           });
         } else if (type === "mortality") {
-          await prisma.dailyProduction.upsert({
+          await db.dailyProduction.upsert({
             where: { flockId_date: { flockId: targetFlock.id, date: today } },
             create: {
               farmId,
@@ -300,7 +302,7 @@ router.post("/log-output", async (req: Request, res: Response) => {
           });
 
           // Decrement flock current count
-          await prisma.flock.update({
+          await db.flock.update({
             where: { id: targetFlock.id },
             data: {
               currentCount: { decrement: qty },
@@ -331,7 +333,7 @@ router.get("/my-activity", async (req: Request, res: Response) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const logs = await prisma.workerLog.findMany({
+    const logs = await db.workerLog.findMany({
       where: {
         farmId,
         workerId: workerId || undefined,
