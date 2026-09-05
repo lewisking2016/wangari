@@ -47,3 +47,5 @@ error_log
 *password.yaml
 *password.env
 credentials.json
+.vercel
+.env*

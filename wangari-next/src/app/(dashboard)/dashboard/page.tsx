@@ -204,7 +204,6 @@ function DashboardContent() {
         { month: "Feb", income: 0, expenses: 0 },
         { month: "Mar", income: 0, expenses: 0 },
         { month: "Apr", income: 0, expenses: 0 },
-        { month: "May", income: 0, expenses: 0 },
         { month: "Jun", income: 0, expenses: 0 },
       ];
 
@@ -215,30 +214,47 @@ function DashboardContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header & Quick Action Toolbar */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={fadeUp}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-wangari-green-900 via-wangari-green-800 to-wangari-green-900 p-6 rounded-2xl text-white shadow-md"
       >
         <div>
-          <h1 className="text-2xl font-bold text-wangari-heading tracking-tight">
-            {greeting} 👋
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              🌿 {data?.farmName || "Active Farm"}
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5">
+            {greeting}, {user?.name?.split(" ")[0] || "Farmer"}! 👋
           </h1>
-          <p className="text-sm text-wangari-muted mt-0.5">
-            Here&apos;s what&apos;s happening on your farm today.
+          <p className="text-xs sm:text-sm text-emerald-100/80 mt-1">
+            Here is your daily farm overview and operations summary.
           </p>
         </div>
-        <Button
-          onClick={handleRefresh}
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-wangari-muted"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Refresh</span>
-        </Button>
+
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <Link href="/production">
+            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold gap-1.5 shadow">
+              <Plus className="h-4 w-4" /> Log Output
+            </Button>
+          </Link>
+          <Link href="/finances">
+            <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-medium gap-1.5">
+              <DollarSign className="h-4 w-4" /> Add Expense
+            </Button>
+          </Link>
+          <Button
+            onClick={handleRefresh}
+            variant="ghost"
+            size="sm"
+            className="text-emerald-100 hover:bg-white/10 hover:text-white"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </motion.div>
 
       {/* Payment success banner */}
@@ -246,7 +262,7 @@ function DashboardContent() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border border-[#BBF7D0] bg-[#F0FDF4]">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-[#166534] flex items-center justify-center text-white text-lg">✓</div>
+              <div className="h-10 w-10 rounded-xl bg-[#166534] flex items-center justify-center text-white text-lg font-bold">✓</div>
               <div>
                 <p className="text-sm font-bold text-[#0F172A]">Payment successful!</p>
                 <p className="text-xs text-[#64748B]">Your subscription is now active. Welcome to Wangari.</p>
@@ -268,7 +284,7 @@ function DashboardContent() {
       {/* Profile completion reminder */}
       {user && !user.profileComplete && !profileDismissed && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="border border-amber-200 bg-amber-50">
+          <Card className="border border-amber-200 bg-amber-50/80">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
@@ -277,7 +293,7 @@ function DashboardContent() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#0F172A]">Complete your farm profile</p>
-                    <p className="text-xs text-[#64748B] mt-0.5">Add your phone, farm location, and details to get the most out of Wangari. This helps us send you relevant alerts and connect you with buyers.</p>
+                    <p className="text-xs text-[#64748B] mt-0.5">Add your phone, farm location, and details to get the most out of Wangari.</p>
                     <Link href="/settings" className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-amber-700 hover:underline">
                       Complete Profile →
                     </Link>
@@ -293,18 +309,18 @@ function DashboardContent() {
       {/* Onboarding banner for new users */}
       {!data?.totalFlocks && !data?.totalBirds && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="border border-[#BBF7D0] bg-[#F0FDF4]">
+          <Card className="border border-emerald-200 bg-emerald-50/60">
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-[#0F172A] mb-2">Welcome to Wangari!</h3>
               <p className="text-xs text-[#64748B] mb-4">Get started in 3 simple steps:</p>
-              <div className="space-y-2">
+              <div className="grid sm:grid-cols-3 gap-3">
                 {[
                   { step: "1", text: "Add your livestock or crops", href: "/flocks", color: "bg-[#166534]" },
-                  { step: "2", text: "Record today's production", href: "/production", color: "bg-emerald-500" },
-                  { step: "3", text: "Track your expenses", href: "/finances", color: "bg-amber-500" },
+                  { step: "2", text: "Record today's production", href: "/production", color: "bg-emerald-600" },
+                  { step: "3", text: "Track your expenses", href: "/finances", color: "bg-amber-600" },
                 ].map(s => (
-                  <Link key={s.step} href={s.href} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white transition-colors">
-                    <div className={`flex h-7 w-7 items-center justify-center rounded-full ${s.color} text-white text-xs font-bold`}>{s.step}</div>
+                  <Link key={s.step} href={s.href} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-emerald-100 hover:border-emerald-300 transition-all shadow-sm">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full ${s.color} text-white text-xs font-bold shrink-0`}>{s.step}</div>
                     <p className="text-xs font-semibold text-[#0F172A]">{s.text}</p>
                   </Link>
                 ))}
@@ -315,387 +331,358 @@ function DashboardContent() {
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          ROW 1: What the farmer needs FIRST
-          Production output, total animals, feed stock, money
+          SECTION 1: Primary Key Indicators (Core Highlights)
           ═══════════════════════════════════════════════════════ */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={stagger}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        <motion.div variants={fadeUp}>
-          <KpiCard
-            title="Production Today"
-            value={data?.eggsToday ? `${data.eggsToday} eggs` : data?.milkToday ? `${data.milkToday}L` : (data?.eggsToday || 0).toLocaleString()}
-            icon={data?.milkToday ? <Milk className="h-5 w-5" /> : <Egg className="h-5 w-5" />}
-            change={`${data?.henDayProduction || data?.productionRate || 0}% yield`}
-            changeType="positive"
-          />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-wangari-muted">Primary Overview</h2>
+        </div>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          <motion.div variants={fadeUp}>
+            <KpiCard
+              title="Today's Production"
+              value={data?.eggsToday ? `${data.eggsToday} eggs` : data?.milkToday ? `${data.milkToday}L` : `${data?.eggsToday || 0}`}
+              icon={data?.milkToday ? <Milk className="h-5 w-5" /> : <Egg className="h-5 w-5" />}
+              change={`${data?.henDayProduction || data?.productionRate || 0}% yield rate`}
+              changeType="positive"
+            />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <KpiCard
+              title="Total Animals"
+              value={(data?.totalBirds || data?.totalAnimals || 0).toLocaleString()}
+              icon={<Bird className="h-5 w-5" />}
+              change={`${data?.totalFlocks || 0} active flocks`}
+              changeType="positive"
+            />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <KpiCard
+              title="Feed Inventory"
+              value={data?.feedStock ? `${data.feedStock}` : "Sufficient"}
+              icon={<Wheat className="h-5 w-5" />}
+              change={
+                stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
+                  ? "Low stock — reorder"
+                  : "Good supply"
+              }
+              changeType={
+                stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
+                  ? "negative"
+                  : "positive"
+              }
+            />
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <KpiCard
+              title="Monthly Revenue"
+              value={`KES ${(data?.monthlyRevenue || 0).toLocaleString()}`}
+              icon={<TrendingUp className="h-5 w-5" />}
+              change="This month total"
+              changeType="positive"
+            />
+          </motion.div>
         </motion.div>
-        <motion.div variants={fadeUp}>
-          <KpiCard
-            title="Total Animals"
-            value={(data?.totalBirds || data?.totalAnimals || 0).toLocaleString()}
-            icon={<Bird className="h-5 w-5" />}
-            change={`${data?.totalFlocks || 0} groups`}
-            changeType="positive"
-          />
-        </motion.div>
-        <motion.div variants={fadeUp}>
-          <KpiCard
-            title="Feed Stock"
-            value={data?.feedStock ? `${data.feedStock}` : "—"}
-            icon={<Wheat className="h-5 w-5" />}
-            change={
-              stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
-                ? "Low — reorder"
-                : "Sufficient"
-            }
-            changeType={
-              stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
-                ? "negative"
-                : "positive"
-            }
-          />
-        </motion.div>
-        <motion.div variants={fadeUp}>
-          <KpiCard
-            title="Revenue"
-            value={`KES ${(data?.monthlyRevenue || 0).toLocaleString()}`}
-            icon={<TrendingUp className="h-5 w-5" />}
-            change="This month"
-            changeType="positive"
-          />
-        </motion.div>
-      </motion.div>
-
-      {/* ═══════════════════════════════════════════════════════
-          ROW 2: Performance Metrics
-          FCR, Mortality Rate, Cost per Egg, Feed per Bird
-          ═══════════════════════════════════════════════════════ */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={stagger}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {/* FCR */}
-        <motion.div variants={fadeUp}>
-          <Card className="border border-wangari-border bg-white p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
-                  Feed Conversion
-                </p>
-                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
-                  {data?.fcr || "—"}
-                </p>
-                <Badge variant="default" className={`mt-2 ${fcrRating.bg} ${fcrRating.color}`}>
-                  {fcrRating.label}
-                </Badge>
-              </div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
-                <Target className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-wangari-subtle">                  Feed (kg) per unit produced
-            </p>
-          </Card>
-        </motion.div>
-
-        {/* Mortality Rate */}
-        <motion.div variants={fadeUp}>
-          <Card className="border border-wangari-border bg-white p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
-                  Mortality Rate
-                </p>
-                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
-                  {data?.mortalityRate || 0}%
-                </p>
-                <Badge variant="default" className={`mt-2 ${mortalityRating.bg} ${mortalityRating.color}`}>
-                  {mortalityRating.label}
-                </Badge>
-              </div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
-                <Heart className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-wangari-subtle">
-              Deaths vs starting count
-            </p>
-          </Card>
-        </motion.div>
-
-        {/* Cost Per Egg */}
-        <motion.div variants={fadeUp}>
-          <Card className="border border-wangari-border bg-white p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
-                  Cost Per Unit
-                </p>
-                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
-                  {data?.costPerEgg ? `KES ${data.costPerEgg}` : "—"}
-                </p>
-                <p className="mt-2 text-[11px] text-wangari-subtle">
-                  Monthly cost ÷ output
-                </p>
-              </div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
-                <DollarSign className="h-5 w-5" />
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Feed Per Bird */}
-        <motion.div variants={fadeUp}>
-          <Card className="border border-wangari-border bg-white p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
-                  Feed / Head
-                </p>
-                <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
-                  {data?.feedPerBird ? `${data.feedPerBird}g` : "—"}
-                </p>
-                <p className="mt-2 text-[11px] text-wangari-subtle">
-                  Grams per animal today
-                </p>
-              </div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
-                <Wheat className="h-5 w-5" />
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      {/* ═══════════════════════════════════════════════════════
-          ROW 3: Today's Tasks + Weather + Alerts
-          ═══════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div variants={fadeUp}>
-          <Card className="border border-[#E5E7EB]">
-            <CardContent className="p-5">
-              <DailyTasks flocks={data?.flocks || []} />
-            </CardContent>
-          </Card>
-        </motion.div>
-        <WeatherWidget
-          data={weather}
-          location={data?.farmName || "Your Farm"}
-        />
-        <AlertsCard
-          mortalityAlerts={mortalityAlerts}
-          stockAlerts={stockAlerts}
-          vaccinationAlerts={vaccinationAlerts}
-        />
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          ROW 4: Charts
+          SECTION 2: Farm Health & Efficiency Metrics
           ═══════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {productionChartData.length > 0 && (
-          <ProductionChart data={productionChartData} />
-        )}
-        {data?.hdps && data.hdps.length > 0 && (
-          <HDPTrendChart data={data.hdps} />
-        )}
-      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-wangari-muted">Efficiency & Health Metrics</h2>
+        </div>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          {/* Feed Efficiency (FCR) */}
+          <motion.div variants={fadeUp}>
+            <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                    Feed Efficiency (FCR)
+                  </p>
+                  <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
+                    {data?.fcr || "—"}
+                  </p>
+                  <Badge variant="default" className={`mt-2 ${fcrRating.bg} ${fcrRating.color}`}>
+                    {fcrRating.label}
+                  </Badge>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 shrink-0">
+                  <Target className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-wangari-subtle">
+                Kg feed per unit output
+              </p>
+            </Card>
+          </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart data={revenueChartData} />
-        {flockChartData.length > 0 && (
-          <FlockChart data={flockChartData} />
-        )}
+          {/* Mortality Rate */}
+          <motion.div variants={fadeUp}>
+            <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                    Mortality Rate
+                  </p>
+                  <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
+                    {data?.mortalityRate || 0}%
+                  </p>
+                  <Badge variant="default" className={`mt-2 ${mortalityRating.bg} ${mortalityRating.color}`}>
+                    {mortalityRating.label}
+                  </Badge>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700 shrink-0">
+                  <Heart className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-wangari-subtle">
+                Overall bird loss rate
+              </p>
+            </Card>
+          </motion.div>
+
+          {/* Unit Cost */}
+          <motion.div variants={fadeUp}>
+            <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                    Production Cost / Unit
+                  </p>
+                  <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
+                    {data?.costPerEgg ? `KES ${data.costPerEgg}` : "—"}
+                  </p>
+                  <p className="mt-2 text-[11px] text-wangari-subtle">
+                    Total cost ÷ total yield
+                  </p>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 shrink-0">
+                  <DollarSign className="h-5 w-5" />
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Daily Feed per Head */}
+          <motion.div variants={fadeUp}>
+            <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+                    Daily Feed / Animal
+                  </p>
+                  <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
+                    {data?.feedPerBird ? `${data.feedPerBird}g` : "—"}
+                  </p>
+                  <p className="mt-2 text-[11px] text-wangari-subtle">
+                    Average intake per day
+                  </p>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 shrink-0">
+                  <Wheat className="h-5 w-5" />
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════
-          ROW 5: Feed Stock Detail + Transactions
+          SECTION 3: Main Operations & Analytics Split (2-Col Layout)
           ═══════════════════════════════════════════════════════ */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={stagger}
-        className="grid lg:grid-cols-3 gap-6"
-      >
-        {/* Feed Stock Detail */}
-        <motion.div variants={fadeUp}>
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Tasks & Core Charts (7 Cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Daily Tasks */}
+          <motion.div variants={fadeUp}>
+            <Card className="border border-[#E5E7EB] shadow-sm">
+              <CardContent className="p-5">
+                <DailyTasks flocks={data?.flocks || []} />
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Production Yield Graph */}
+          {productionChartData.length > 0 && (
+            <motion.div variants={fadeUp}>
+              <ProductionChart data={productionChartData} />
+            </motion.div>
+          )}
+
+          {/* Revenue vs Expense Graph */}
+          <motion.div variants={fadeUp}>
+            <RevenueChart data={revenueChartData} />
+          </motion.div>
+
+          {/* Recent Financial Transactions */}
+          <motion.div variants={fadeUp}>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle className="text-base font-bold text-wangari-heading">
-                    Feed Stock
+                    Recent Transactions
                   </CardTitle>
-                  <p className="text-xs text-wangari-muted">Current inventory</p>
+                  <p className="text-xs text-wangari-muted">Latest financial activity</p>
                 </div>
                 <Link
-                  href="/inventory"
+                  href="/finances"
                   className="text-xs font-semibold text-wangari-green-700 hover:underline"
                 >
-                  Manage
+                  View all
                 </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {feedItems.length === 0 ? (
-                <p className="text-sm text-wangari-muted py-6 text-center">
-                  No feed items tracked yet
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {feedItems.map((item: any, i: number) => (
-                    <div key={i} className="rounded-xl border border-wangari-border p-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-wangari-heading">
-                          {item.name}
-                        </p>
-                        {item.reorderLevel > 0 && item.quantity <= item.reorderLevel && (
-                          <Badge variant="danger">Low</Badge>
-                        )}
-                      </div>
-                      <div className="mt-1 flex items-center justify-between text-xs text-wangari-muted">
-                        <span>
-                          {item.quantity} {item.unit}
-                        </span>
-                        {item.daysLeft !== null && (
-                          <span>~{item.daysLeft} days left</span>
-                        )}
-                      </div>
-                      {item.reorderLevel > 0 && (
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-wangari-border">
-                          <div
-                            className="h-full rounded-full bg-wangari-green-500"
-                            style={{
-                              width: `${Math.min((item.quantity / item.reorderLevel) * 100, 100)}%`,
-                            }}
-                          />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  {txs.length === 0 && (
+                    <p className="text-sm text-wangari-muted py-6 text-center">
+                      No transactions recorded yet.
+                    </p>
+                  )}
+                  {txs.map((tx: any, i: number) => (
+                    <motion.div
+                      key={tx.id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-wangari-green-50/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                            tx.type === "income"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {tx.type === "income" ? (
+                            <ArrowUpRight className="h-4 w-4" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4" />
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Recent Transactions */}
-        <motion.div variants={fadeUp} className="lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-base font-bold text-wangari-heading">
-                  Recent Transactions
-                </CardTitle>
-                <p className="text-xs text-wangari-muted">Latest financial activity</p>
-              </div>
-              <Link
-                href="/finances"
-                className="text-xs font-semibold text-wangari-green-700 hover:underline"
-              >
-                View all
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                {txs.length === 0 && (
-                  <p className="text-sm text-wangari-muted py-8 text-center">
-                    No transactions yet.
-                  </p>
-                )}
-                {txs.map((tx: any, i: number) => (
-                  <motion.div
-                    key={tx.id}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-wangari-green-50/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                        <div>
+                          <p className="text-sm font-medium text-wangari-heading">
+                            {tx.description || tx.category}
+                          </p>
+                          <p className="text-[11px] text-wangari-subtle">
+                            {new Date(tx.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <p
+                        className={`text-sm font-semibold tabular-nums ${
                           tx.type === "income"
-                            ? "bg-wangari-green-50 text-wangari-green-700"
-                            : "bg-gray-50 text-wangari-muted"
+                            ? "text-emerald-700"
+                            : "text-gray-700"
                         }`}
                       >
-                        {tx.type === "income" ? (
-                          <ArrowUpRight className="h-4 w-4" />
-                        ) : (
-                          <ArrowDownRight className="h-4 w-4" />
+                        {tx.type === "income" ? "+" : "-"}KES {Number(tx.amount).toLocaleString()}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Right Column: Weather, Alerts, Stock & Distribution (5 Cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Weather Widget */}
+          <WeatherWidget
+            data={weather}
+            location={data?.farmName || "Your Farm"}
+          />
+
+          {/* Alerts & Warnings */}
+          <AlertsCard
+            mortalityAlerts={mortalityAlerts}
+            stockAlerts={stockAlerts}
+            vaccinationAlerts={vaccinationAlerts}
+          />
+
+          {/* Flock / Animal Breakdown */}
+          {flockChartData.length > 0 && (
+            <motion.div variants={fadeUp}>
+              <FlockChart data={flockChartData} />
+            </motion.div>
+          )}
+
+          {/* Feed Stock Detail */}
+          <motion.div variants={fadeUp}>
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base font-bold text-wangari-heading">
+                      Feed Stock Inventory
+                    </CardTitle>
+                    <p className="text-xs text-wangari-muted">Current feed levels</p>
+                  </div>
+                  <Link
+                    href="/inventory"
+                    className="text-xs font-semibold text-wangari-green-700 hover:underline"
+                  >
+                    Manage
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {feedItems.length === 0 ? (
+                  <p className="text-sm text-wangari-muted py-6 text-center">
+                    No feed items tracked yet
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {feedItems.map((item: any, i: number) => (
+                      <div key={i} className="rounded-xl border border-wangari-border p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-wangari-heading">
+                            {item.name}
+                          </p>
+                          {item.reorderLevel > 0 && item.quantity <= item.reorderLevel && (
+                            <Badge variant="danger">Low</Badge>
+                          )}
+                        </div>
+                        <div className="mt-1 flex items-center justify-between text-xs text-wangari-muted">
+                          <span>
+                            {item.quantity} {item.unit}
+                          </span>
+                          {item.daysLeft !== null && (
+                            <span>~{item.daysLeft} days left</span>
+                          )}
+                        </div>
+                        {item.reorderLevel > 0 && (
+                          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-wangari-border">
+                            <div
+                              className="h-full rounded-full bg-emerald-500"
+                              style={{
+                                width: `${Math.min((item.quantity / item.reorderLevel) * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
                         )}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-wangari-heading">
-                          {tx.description || tx.category}
-                        </p>
-                        <p className="text-[11px] text-wangari-subtle">
-                          {new Date(tx.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <p
-                      className={`text-sm font-semibold tabular-nums ${
-                        tx.type === "income"
-                          ? "text-wangari-green-700"
-                          : "text-wangari-muted"
-                      }`}
-                    >
-                      {tx.type === "income" ? "+" : "-"}KES {Number(tx.amount).toLocaleString()}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      {/* ═══════════════════════════════════════════════════════
-          ROW 6: Quick Actions
-          ═══════════════════════════════════════════════════════ */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeUp}
-      >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold text-wangari-heading">
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { href: "/production", icon: Plus, label: "Log Output", desc: "Eggs, milk, meat" },
-                { href: "/flocks", icon: Bird, label: "Livestock", desc: "Add or manage" },
-                { href: "/crops", icon: Leaf, label: "Crops", desc: "Register fields" },
-                { href: "/finances", icon: DollarSign, label: "Expenses", desc: "Add costs" },
-              ].map((action) => (
-                <Link key={action.href} href={action.href}>
-                  <div className="flex flex-col items-center gap-2 rounded-xl border border-wangari-border p-4 text-center transition-all hover:border-wangari-green-300 hover:bg-wangari-green-50 cursor-pointer">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-700">
-                      <action.icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-wangari-heading">{action.label}</p>
-                      <p className="text-[11px] text-wangari-muted">{action.desc}</p>
-                    </div>
+                    ))}
                   </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

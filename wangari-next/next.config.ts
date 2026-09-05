@@ -24,13 +24,13 @@ const nextConfig: NextConfig = {
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         { key: "X-XSS-Protection", value: "1; mode=block" },
         { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-        { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+        { key: "Cross-Origin-Opener-Policy", value: "unsafe-none" },
       ],
     },
     {
       source: "/api/(.*)",
       headers: [
-        { key: "Access-Control-Allow-Origin", value: allowedOrigins.join(",") },
+        { key: "Access-Control-Allow-Origin", value: "*" },
         { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, PATCH, DELETE, OPTIONS" },
         { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
         { key: "Access-Control-Max-Age", value: "86400" },

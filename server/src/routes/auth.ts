@@ -220,7 +220,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 // POST /api/auth/google — sign in/up with Google
 router.post("/google", async (req: Request, res: Response) => {
   try {
-    const { credential, clientId } = req.body;
+    const { credential, clientId } = req.body || {};
     if (!credential) {
       return res.status(400).json({ error: "Google credential is required" });
     }
@@ -316,7 +316,7 @@ router.post("/google", async (req: Request, res: Response) => {
 // POST /api/auth/link-google — link Google account to existing user
 router.post("/link-google", async (req: Request, res: Response) => {
   try {
-    const { credential } = req.body;
+    const { credential } = req.body || {};
     if (!credential) {
       return res.status(400).json({ error: "Google credential is required" });
     }
