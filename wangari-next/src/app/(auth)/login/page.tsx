@@ -4,11 +4,12 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, UserCheck, HardHat, KeyRound, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login, googleLogin } from "@/lib/auth-client";
+import { login, googleLogin, setToken } from "@/lib/auth-client";
+import api from "@/lib/api-client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -24,19 +25,28 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
+  // Role Tab state: "owner" | "worker"
+  const [userRole, setUserRole] = React.useState<"owner" | "worker">("owner");
+
+  // Farm Owner Form State
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+
+  // Farm Worker Form State
+  const [farmCode, setFarmCode] = React.useState("");
+  const [workerPin, setWorkerPin] = React.useState("");
+
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
 
   const googleButtonRef = React.useRef<HTMLDivElement>(null);
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
-  // Load Google Identity Services
+  // Load Google Identity Services (For Farm Owners)
   React.useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+    if (!clientId || userRole !== "owner") return;
 
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
@@ -70,24 +80,48 @@ function LoginForm() {
       }
     };
     document.head.appendChild(script);
-  }, [router, callbackUrl]);
+  }, [router, callbackUrl, userRole]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handle Farm Owner Login
+  const handleOwnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
       const result = await login(email, password);
-
-      // Check if email is verified — the login API includes emailVerified
       if ((result as any).emailVerified === null) {
         router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       } else {
         router.push(callbackUrl);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Worker Connection Code Login
+  const handleWorkerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res: any = await api.post("/api/worker/login", {
+        farmCode,
+        pin: workerPin,
+      });
+
+      if (res.token) {
+        setToken(res.token);
+        router.push("/worker");
+      } else {
+        throw new Error("Login failed. No token received.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Incorrect Farm Code or 4-digit PIN.");
     } finally {
       setLoading(false);
     }
@@ -98,140 +132,238 @@ function LoginForm() {
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="space-y-8"
+      className="space-y-6"
     >
       {/* Heading */}
       <motion.div variants={fadeUp}>
-        <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight">
-          Welcome back
+        <h1 className="text-3xl font-black text-[#0F172A] tracking-tight">
+          Welcome to Wangari
         </h1>
-        <p className="mt-2 text-sm text-[#64748B]">
-          Sign in to your farm management dashboard
+        <p className="mt-1 text-sm text-[#64748B] font-medium">
+          Select your role to access your farm portal
         </p>
       </motion.div>
 
-      {/* Error */}
+      {/* DUAL ROLE TAB SELECTOR */}
+      <motion.div variants={fadeUp} className="grid grid-cols-2 p-1.5 bg-gray-100 rounded-2xl gap-1">
+        <button
+          type="button"
+          onClick={() => { setUserRole("owner"); setError(""); }}
+          className={`py-3 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            userRole === "owner"
+              ? "bg-[#166534] text-white shadow-md"
+              : "text-[#64748B] hover:text-[#0F172A]"
+          }`}
+        >
+          <UserCheck className="h-4 w-4" />
+          Farm Owner
+        </button>
+        <button
+          type="button"
+          onClick={() => { setUserRole("worker"); setError(""); }}
+          className={`py-3 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            userRole === "worker"
+              ? "bg-[#166534] text-white shadow-md"
+              : "text-[#64748B] hover:text-[#0F172A]"
+          }`}
+        >
+          <HardHat className="h-4 w-4" />
+          Farm Worker
+        </button>
+      </motion.div>
+
+      {/* Error display */}
       {error && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium"
+          className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-xs font-bold text-rose-700"
         >
           {error}
         </motion.div>
       )}
 
-      {/* Form */}
-      <motion.form
-        variants={fadeUp}
-        onSubmit={handleSubmit}
-        className="space-y-5"
-      >
-        <motion.div variants={fadeUp} className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-semibold text-[#334155]">
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 transition-all"
-          />
-        </motion.div>
-
-        <motion.div variants={fadeUp} className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-semibold text-[#334155]">
-            Password
-          </Label>
-          <div className="relative">
+      {/* ─── TAB 1: FARM OWNER FORM ─── */}
+      {userRole === "owner" && (
+        <motion.form
+          variants={fadeUp}
+          onSubmit={handleOwnerSubmit}
+          className="space-y-4"
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-bold text-[#334155]">
+              Email Address
+            </Label>
             <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 transition-all pr-12"
+              className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 font-semibold"
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors"
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
           </div>
-        </motion.div>
 
-        <motion.div variants={fadeUp} className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm text-[#64748B] cursor-pointer">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-[#E5E7EB] text-[#166534] focus:ring-[#166534]/20"
-            />
-            Remember me
-          </label>
-          <Link
-            href="/forgot-password"
-            className="text-sm font-semibold text-[#166534] hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </motion.div>
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-xs font-bold text-[#334155]">
+              Password
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 pr-12 font-semibold"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
 
-        <motion.div variants={fadeUp}>
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-xs font-semibold text-[#64748B] cursor-pointer">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-[#E5E7EB] text-[#166534] focus:ring-[#166534]/20"
+              />
+              Remember me
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-bold text-[#166534] hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-[#166534] hover:bg-[#14532D] text-white font-bold text-sm transition-all duration-200 hover:shadow-lg hover:shadow-[#166534]/25 hover:-translate-y-0.5 cursor-pointer"
+            className="w-full h-12 rounded-2xl bg-[#166534] hover:bg-[#14532D] text-white font-black text-sm transition-all cursor-pointer shadow-md"
           >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Signing in...
+                SIGNING IN...
               </>
             ) : (
               <>
-                Sign In
+                SIGN IN AS FARMER
                 <ArrowRight className="h-4 w-4 ml-2" />
               </>
             )}
           </Button>
-        </motion.div>
-      </motion.form>
+        </motion.form>
+      )}
 
-      {/* Divider */}
-      <motion.div variants={fadeUp} className="flex items-center gap-4">
-        <div className="flex-1 h-px bg-[#E5E7EB]" />
-        <span className="text-xs text-[#94A3B8] font-medium">or</span>
-        <div className="flex-1 h-px bg-[#E5E7EB]" />
-      </motion.div>
-
-      {/* Google Sign-In */}
-      <motion.div variants={fadeUp} className="space-y-3">
-        <div ref={googleButtonRef} className="w-full" />
-        {!googleLoaded && (
-          <div className="w-full h-12 rounded-xl border border-[#E5E7EB] flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
-            <svg className="h-5 w-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            <span className="text-sm font-medium text-[#64748B]">Sign in with Google</span>
-          </div>
-        )}
-        <p className="text-[10px] text-[#94A3B8] text-center">Only Gmail and Outlook emails accepted for manual sign-in</p>
-      </motion.div>
-
-      {/* Register link */}
-      <motion.p variants={fadeUp} className="text-center text-sm text-[#64748B]">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/register"
-          className="font-bold text-[#166534] hover:underline"
+      {/* ─── TAB 2: FARM WORKER CODE LOGIN ─── */}
+      {userRole === "worker" && (
+        <motion.form
+          variants={fadeUp}
+          onSubmit={handleWorkerSubmit}
+          className="space-y-4"
         >
-          Create one free
-        </Link>
-      </motion.p>
+          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <p className="text-xs font-bold text-emerald-900">
+              Ask your Farm Owner for your Farm Connection Code or 4-digit PIN.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="farmCode" className="text-xs font-bold text-[#334155]">
+              Farm Connection Code (Optional if single farm)
+            </Label>
+            <div className="relative">
+              <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                id="farmCode"
+                type="text"
+                placeholder="e.g. WANGARI-482"
+                value={farmCode}
+                onChange={(e) => setFarmCode(e.target.value.toUpperCase())}
+                className="h-12 pl-11 rounded-xl border-[#E5E7EB] focus:border-[#166534] uppercase font-black tracking-wider text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="workerPin" className="text-xs font-bold text-[#334155]">
+              Your 4-Digit Worker PIN
+            </Label>
+            <div className="relative">
+              <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                id="workerPin"
+                type="password"
+                maxLength={4}
+                placeholder="e.g. 1234"
+                value={workerPin}
+                onChange={(e) => setWorkerPin(e.target.value)}
+                required
+                className="h-12 pl-11 rounded-xl border-[#E5E7EB] focus:border-[#166534] font-black tracking-widest text-lg"
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading || !workerPin}
+            className="w-full h-14 rounded-2xl bg-[#166534] hover:bg-[#14532D] text-white font-black text-base transition-all cursor-pointer shadow-lg active:scale-98"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                CONNECTING...
+              </>
+            ) : (
+              <>
+                CONNECT & LOG IN
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </>
+            )}
+          </Button>
+        </motion.form>
+      )}
+
+      {/* Google Sign-In (Owner only) */}
+      {userRole === "owner" && (
+        <>
+          <motion.div variants={fadeUp} className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-[#E5E7EB]" />
+            <span className="text-xs text-[#94A3B8] font-medium">or</span>
+            <div className="flex-1 h-px bg-[#E5E7EB]" />
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="space-y-3">
+            <div ref={googleButtonRef} className="w-full" />
+            {!googleLoaded && (
+              <div className="w-full h-12 rounded-xl border border-[#E5E7EB] flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
+                <svg className="h-5 w-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                <span className="text-sm font-medium text-[#64748B]">Sign in with Google</span>
+              </div>
+            )}
+          </motion.div>
+
+          <motion.p variants={fadeUp} className="text-center text-sm text-[#64748B]">
+            Don&apos;t have a farm account?{" "}
+            <Link
+              href="/register"
+              className="font-bold text-[#166534] hover:underline"
+            >
+              Create one free
+            </Link>
+          </motion.p>
+        </>
+      )}
     </motion.div>
   );
 }

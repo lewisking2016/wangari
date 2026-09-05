@@ -37,6 +37,7 @@ model User {
 model Farm {
   id        Int      @id @default(autoincrement())
   name      String
+  code      String?  @unique
   location  String?
   county    String?
   farmType  String?  @map("farm_type")

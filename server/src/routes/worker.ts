@@ -6,25 +6,71 @@ import jwt from "jsonwebtoken";
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "wangari-secret-key-2025";
 
-// ─── POST /api/worker/login — Worker 4-digit PIN login ───
+// ─── POST /api/worker/login — Worker PIN & Farm Code login ───
 router.post("/login", async (req: Request, res: Response) => {
   try {
-    const { phone, pin } = req.body;
-    if (!phone || !pin) {
-      return res.status(400).json({ error: "Phone number and PIN are required" });
+    const { farmCode, phone, pin } = req.body;
+    if (!pin) {
+      return res.status(400).json({ error: "4-digit PIN is required" });
     }
 
-    const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, "");
-    const worker = await prisma.worker.findFirst({
-      where: {
-        status: "active",
-        phone: { contains: cleanPhone.slice(-9) },
-      },
-      include: { farm: true },
-    });
+    let targetFarmId: number | null = null;
 
-    if (!worker || worker.pin !== pin) {
-      return res.status(401).json({ error: "Incorrect phone number or 4-digit PIN" });
+    // 1. If farmCode provided, lookup farm
+    if (farmCode) {
+      const cleanCode = String(farmCode).trim().toUpperCase();
+      const farm = await prisma.farm.findFirst({
+        where: {
+          OR: [
+            { code: cleanCode },
+            { name: { contains: cleanCode, mode: "insensitive" } },
+          ],
+        },
+      });
+      if (farm) {
+        targetFarmId = farm.id;
+      }
+    }
+
+    // 2. Lookup worker by farmId + pin OR phone + pin
+    let worker: any = null;
+    if (targetFarmId) {
+      worker = await prisma.worker.findFirst({
+        where: {
+          farmId: targetFarmId,
+          pin: String(pin).trim(),
+          status: "active",
+        },
+        include: { farm: true },
+      });
+    }
+
+    // Fallback: search by phone number if farmCode didn't yield result
+    if (!worker && phone) {
+      const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, "");
+      worker = await prisma.worker.findFirst({
+        where: {
+          status: "active",
+          phone: { contains: cleanPhone.slice(-9) },
+          pin: String(pin).trim(),
+        },
+        include: { farm: true },
+      });
+    }
+
+    // Final fallback: if only 1 worker exists with this PIN on the farm
+    if (!worker) {
+      worker = await prisma.worker.findFirst({
+        where: {
+          pin: String(pin).trim(),
+          status: "active",
+        },
+        include: { farm: true },
+      });
+    }
+
+    if (!worker) {
+      return res.status(401).json({ error: "Incorrect Farm Code, Phone, or 4-digit PIN" });
     }
 
     // Generate worker JWT token
@@ -48,6 +94,7 @@ router.post("/login", async (req: Request, res: Response) => {
         role: worker.role || "Farm Worker",
         farmId: worker.farmId,
         farmName: worker.farm.name,
+        farmCode: worker.farm.code || `WANGARI-${worker.farm.id}`,
       },
     });
   } catch (error) {

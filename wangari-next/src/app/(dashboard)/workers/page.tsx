@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, DollarSign, TrendingUp, X, Trash2, Phone, Briefcase, UserCheck, UserX, Edit3, Clock, Calendar, CheckCircle2, Save } from "lucide-react";
+import { Users, Plus, DollarSign, TrendingUp, X, Trash2, Phone, Briefcase, UserCheck, UserX, Edit3, Clock, Calendar, CheckCircle2, Save, Building2, KeyRound } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -247,7 +247,28 @@ export default function WorkersPage() {
         )}
       </AnimatePresence>
 
-      {/* KPIs */}
+      {/* Farm Connection Code Banner */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+        <Card className="border-2 border-emerald-300 bg-emerald-50/80 p-5 rounded-2xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl bg-[#166534] text-white flex items-center justify-center font-bold shrink-0">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Farm Connection Code</p>
+                <p className="text-sm text-[#0F172A] font-semibold mt-0.5">Share this code with your farm workers to log in from their phones:</p>
+              </div>
+            </div>
+            <div className="bg-white border-2 border-emerald-400 px-4 py-2 rounded-xl text-center shadow-xs shrink-0">
+              <p className="text-xs text-gray-400 font-bold uppercase">Farm Code</p>
+              <p className="text-xl font-black text-[#166534] tracking-widest">WANGARI-482</p>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Form */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {[
           { title: "Active Workers", value: String(activeWorkers.length), icon: <Users className="h-5 w-5" />, color: "bg-[#166534]" },
