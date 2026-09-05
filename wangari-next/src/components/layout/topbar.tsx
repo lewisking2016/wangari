@@ -289,9 +289,9 @@ function ProfileDropdown({ open, onOpenChange }: { open: boolean; onOpenChange: 
         {/* User info */}
         <div className="px-4 py-4 border-b border-wangari-border">
           <div className="flex items-center gap-3">
-            <Avatar name={user?.name || "Admin"} src={user?.avatar || undefined} size="md" />
+            <Avatar name={user?.name || "Farmer"} src={user?.avatar || undefined} size="md" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-wangari-heading truncate">{user?.name || "Admin"}</p>
+              <p className="text-sm font-bold text-wangari-heading truncate">{user?.name || "Farmer"}</p>
               <p className="text-xs text-wangari-muted truncate">{user?.email}</p>
               <p className="text-[11px] text-wangari-subtle capitalize mt-0.5">{role?.replace("_", " ") || "Farm Owner"}</p>
             </div>
@@ -382,7 +382,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
             className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all font-bold text-xs cursor-pointer shadow-xs"
             title="Switch Language / Badili Lugha"
           >
-            <span>{lang === "sw" ? "🇰🇪 Swahili" : "🇬🇧 English"}</span>
+            <span>{lang === "sw" ? "Swahili" : "English"}</span>
           </button>
 
           {/* Search */}
@@ -416,10 +416,10 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
               onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
               className="flex items-center gap-2 pl-3 border-l border-wangari-border hover:bg-wangari-green-50 rounded-xl py-1.5 pr-2 transition-colors cursor-pointer"
             >
-              <Avatar name={user?.name || "Admin"} src={user?.avatar || undefined} size="sm" />
+              <Avatar name={user?.name || "Farmer"} src={user?.avatar || undefined} size="sm" />
               <div className="text-left hidden md:block">
                 <p className="text-sm font-semibold text-wangari-heading">
-                  {user?.name || "Admin"}
+                  {user?.name || "Farmer"}
                 </p>
                 <p className="text-[11px] text-wangari-muted capitalize">
                   {user?.role?.replace("_", " ") || "Farm Owner"}

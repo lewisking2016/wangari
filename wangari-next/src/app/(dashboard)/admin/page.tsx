@@ -10,9 +10,13 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/shared/page-header";
 import api from "@/lib/api-client";
 
+import { useAuth } from "@/hooks/useAuth";
+import { ShieldAlert } from "lucide-react";
+
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function AdminPage() {
+  const { role } = useAuth();
   const [users, setUsers] = React.useState<any[]>([]);
   const [subs, setSubs] = React.useState<any[]>([]);
   const [stats, setStats] = React.useState({ totalUsers: 0, activeSubs: 0, trialUsers: 0, revenue: 0 });
@@ -20,6 +24,10 @@ export default function AdminPage() {
   const [search, setSearch] = React.useState("");
 
   React.useEffect(() => {
+    if (role !== "super_admin") {
+      setLoading(false);
+      return;
+    }
     Promise.allSettled([
       api.get("/api/admin/users"),
       api.get("/api/admin/subscriptions"),
@@ -37,7 +45,19 @@ export default function AdminPage() {
         setStats(prev => ({ ...prev, activeSubs: active, revenue }));
       }
     }).finally(() => setLoading(false));
-  }, []);
+  }, [role]);
+
+  if (role !== "super_admin") {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4 text-center">
+        <ShieldAlert className="h-12 w-12 text-red-500" />
+        <h2 className="text-xl font-extrabold text-wangari-heading">Access Restricted</h2>
+        <p className="text-sm text-wangari-muted max-w-sm">
+          This system admin panel is restricted strictly to Wangari System Super Administrators.
+        </p>
+      </div>
+    );
+  }
 
   const trialUsers = users.filter((u: any) => {
     if (!u.trialEndsAt) return false;

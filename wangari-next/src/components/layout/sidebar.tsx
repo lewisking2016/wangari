@@ -221,10 +221,10 @@ export function Sidebar() {
           <CreditCard className="h-4 w-4" />
           Subscription
         </Link>
-        {role === "farm_owner" && (
+        {role === "super_admin" && (
           <Link href="/admin" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
             <BarChart3 className="h-4 w-4" />
-            Admin
+            System Admin
           </Link>
         )}
         <Link href="/settings" className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-all">
@@ -236,10 +236,10 @@ export function Sidebar() {
       {/* User footer */}
       <div className="border-t border-wangari-border p-4 space-y-3">
         <div className="flex items-center gap-3">
-          <Avatar name={user?.name || "Admin"} src={user?.avatar || undefined} size="sm" />
+          <Avatar name={user?.name || "Farmer"} src={user?.avatar || undefined} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-wangari-heading truncate">
-              {user?.name || "Admin"}
+              {user?.name || "Farmer"}
             </p>
             <p className="text-[11px] text-wangari-muted capitalize">
               {role?.replace("_", " ") || "Farm Owner"}
