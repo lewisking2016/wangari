@@ -201,38 +201,16 @@ export default function SettingsPage() {
           {/* AI Assistant */}
           {activeTab === "ai" && (
             <Card className="border border-[#E5E7EB]">
-              <CardHeader><CardTitle className="flex items-center gap-2 text-base font-bold"><Sparkles className="h-4 w-4 text-[#166534]" /> AI Assistant Setup</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2 text-base font-bold"><Sparkles className="h-4 w-4 text-[#166534]" /> AI Assistant (Coming Soon)</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] p-4">
-                  <p className="text-sm font-bold text-[#0F172A] mb-1">Connect your AI provider</p>
-                  <p className="text-xs text-[#64748B] mb-3">Choose a free AI provider to power your farm assistant. No credit card needed.</p>
-                  <div className="space-y-2">
-                    {[
-                      { name: "Google Gemini", env: "AI_PROVIDER=gemini AI_API_KEY=your-key AI_MODEL=gemini-2.0-flash", free: "Free tier: 15 req/min" },
-                      { name: "Groq (Fast)", env: "AI_PROVIDER=groq AI_API_KEY=your-key AI_MODEL=llama-3.3-70b-versatile", free: "Free tier: 30 req/min" },
-                      { name: "Cerebras", env: "AI_PROVIDER=cerebras AI_API_KEY=your-key AI_MODEL=llama-3.3-70b", free: "Free tier: 30 req/min" },
-                      { name: "OpenRouter", env: "AI_PROVIDER=openrouter AI_API_KEY=your-key AI_MODEL=google/gemini-2.0-flash", free: "Free models available" },
-                      { name: "Ollama (Local)", env: "AI_PROVIDER=ollama OLLAMA_URL=http://127.0.0.1:11434 AI_MODEL=qwen2.5:1.5b", free: "Free — runs on your computer" },
-                    ].map(p => (
-                      <div key={p.name} className="rounded-lg bg-white border border-[#E5E7EB] p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-xs font-bold text-[#0F172A]">{p.name}</p>
-                          <span className="text-[9px] font-bold text-[#166534] bg-[#F0FDF4] px-2 py-0.5 rounded-full">{p.free}</span>
-                        </div>
-                        <p className="text-[10px] text-[#94A3B8] font-mono bg-[#F8FAFC] rounded px-2 py-1">{p.env}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-[#E5E7EB] p-4">
-                  <p className="text-xs font-bold text-[#0F172A] mb-2">How to connect</p>
-                  <div className="space-y-1.5 text-[11px] text-[#64748B]">
-                    <p>1. Get a free API key from one of the providers above</p>
-                    <p>2. Add the environment variables to your server</p>
-                    <p>3. Restart the server</p>
-                    <p>4. Open the AI Assistant and start chatting</p>
-                  </div>
-                  <a href="/ai" className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#166534] text-white text-xs font-bold hover:bg-[#14532D] cursor-pointer">Open AI Assistant</a>
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-5 text-center">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">
+                    Under Active Development
+                  </span>
+                  <p className="text-sm font-bold text-[#0F172A] mt-3">Smart AI Farm Intelligence is Launching Soon</p>
+                  <p className="text-xs text-[#64748B] mt-1 max-w-md mx-auto">
+                    We are currently building automated AI models for feed calculation, yield forecasting, and health advisory tailored for Kenyan livestock & poultry.
+                  </p>
                 </div>
               </CardContent>
             </Card>

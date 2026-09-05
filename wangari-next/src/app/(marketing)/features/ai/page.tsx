@@ -7,7 +7,7 @@ export default function AIFeaturePage() {
   return (
     <FeaturePage
       icon={Sparkles}
-      badge="AI Assistant — New"
+      badge="AI Assistant — Coming Soon"
       title="Ask your farm anything"
       subtitle="Get instant, data-driven answers about your farm. Powered by your own production data, market prices, and agricultural best practices."
       description="Wangari's AI Assistant is like having an agricultural expert in your pocket. Ask it anything about your farm — from 'Which flock is most profitable?' to 'How much feed should I order this week?' — and get instant, personalized answers based on your actual data."

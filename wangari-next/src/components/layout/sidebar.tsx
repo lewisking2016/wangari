@@ -37,6 +37,7 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  badge?: string;
 }
 
 interface NavGroup {
@@ -91,8 +92,8 @@ const navGroups: NavGroup[] = [
       { label: "Feed Helper", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
       { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
       { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
-      { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
-      { label: "WhatsApp Bot", href: "/whatsapp", icon: <MessageCircle className="h-5 w-5" /> },
+      { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" />, badge: "Soon" },
+      { label: "WhatsApp & USSD", href: "/whatsapp", icon: <MessageCircle className="h-5 w-5" />, badge: "Soon" },
     ],
   },
 ];
@@ -201,6 +202,11 @@ export function Sidebar() {
                     >
                       {item.icon}
                       <span className="flex-1">{item.label}</span>
+                      {item.badge && (
+                        <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-extrabold border", isActive ? "bg-emerald-700/60 text-white border-emerald-500" : "bg-amber-100 text-amber-800 border-amber-200")}>
+                          {item.badge}
+                        </span>
+                      )}
                       {locked && <Lock className="h-3.5 w-3.5 text-wangari-subtle" />}
                     </Link>
                   );
