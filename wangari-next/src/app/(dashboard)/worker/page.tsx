@@ -11,8 +11,14 @@ import {
   ListTodo,
   RefreshCw,
   Plus,
-  ArrowRight,
-  ShieldCheck,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  BarChart3,
+  Check,
+  Sparkles,
+  ClipboardList,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +26,15 @@ import api from "@/lib/api-client";
 import { WorkerQuickLogModal } from "@/components/worker/WorkerQuickLogModal";
 import { WorkerTaskCard } from "@/components/worker/WorkerTaskCard";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 export default function WorkerDashboardPage() {
   const { user } = useAuth();
@@ -28,6 +43,9 @@ export default function WorkerDashboardPage() {
   const [activities, setActivities] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+
+  // Calendar State
+  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
 
   // Quick Log Modal state
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -77,7 +95,7 @@ export default function WorkerDashboardPage() {
       fetchData();
     } catch (err) {
       console.error("Failed to complete task:", err);
-      fetchData(); // Rollback on error
+      fetchData();
     }
   };
 
@@ -86,9 +104,43 @@ export default function WorkerDashboardPage() {
     setModalOpen(true);
   };
 
+  // Calendar Date Navigation
+  const changeDate = (days: number) => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + days);
+    setSelectedDate(d);
+  };
+
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+
   const completedCount = tasks.filter((t) => t.isCompleted).length;
   const totalTasks = tasks.length;
   const progressPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 100;
+
+  // Compute 7-day activity chart data from activities
+  const activityChartData = React.useMemo(() => {
+    const daysMap: Record<string, { day: string; eggs: number; milk: number; feed: number }> = {};
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      const dayLabel = i === 0 ? "Today" : d.toLocaleDateString("en-KE", { weekday: "short" });
+      daysMap[key] = { day: dayLabel, eggs: 0, milk: 0, feed: 0 };
+    }
+
+    activities.forEach((act) => {
+      const dateKey = new Date(act.createdAt).toISOString().split("T")[0];
+      if (daysMap[dateKey]) {
+        const qty = Number(act.quantity) || 0;
+        if (act.type === "eggs") daysMap[dateKey].eggs += qty;
+        else if (act.type === "milk") daysMap[dateKey].milk += qty;
+        else if (act.type === "feed") daysMap[dateKey].feed += qty;
+      }
+    });
+
+    return Object.values(daysMap);
+  }, [activities]);
 
   if (loading) {
     return (
@@ -109,8 +161,8 @@ export default function WorkerDashboardPage() {
               Worker Portal
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight mt-2">
-            Jambo, {user?.name?.split(" ")[0] || "Worker"}! 👋
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight mt-2 flex items-center gap-2">
+            Jambo, {user?.name?.split(" ")[0] || "Worker"}!
           </h1>
           <p className="text-xs text-emerald-100/80 font-medium mt-1">
             Tap any big card below to log output or mark tasks done.
@@ -125,6 +177,74 @@ export default function WorkerDashboardPage() {
         </button>
       </div>
 
+      {/* INTERACTIVE CALENDAR WIDGET */}
+      <Card className="border border-gray-200 bg-white rounded-3xl p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-emerald-50 text-[#166534]">
+              <CalendarIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-[#0F172A]">Farm Calendar</h3>
+              <p className="text-xs text-[#64748B]">
+                {isToday ? "Today" : selectedDate.toLocaleDateString("en-KE", { weekday: "long" })},{" "}
+                {selectedDate.toLocaleDateString("en-KE", { month: "short", day: "numeric", year: "numeric" })}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => changeDate(-1)}
+              className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-[#0F172A] cursor-pointer"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setSelectedDate(new Date())}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                isToday
+                  ? "bg-[#166534] text-white border-[#166534]"
+                  : "bg-gray-50 text-[#0F172A] border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => changeDate(1)}
+              className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-[#0F172A] cursor-pointer"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* 7-Day Pill Selector */}
+        <div className="flex justify-between gap-1 overflow-x-auto pt-1">
+          {[-3, -2, -1, 0, 1, 2, 3].map((offset) => {
+            const dateObj = new Date();
+            dateObj.setDate(dateObj.getDate() + offset);
+            const isSelected = selectedDate.toDateString() === dateObj.toDateString();
+            const dayName = dateObj.toLocaleDateString("en-KE", { weekday: "short" });
+            const dayNum = dateObj.getDate();
+
+            return (
+              <button
+                key={offset}
+                onClick={() => setSelectedDate(dateObj)}
+                className={`flex-1 py-2 px-1 text-center rounded-2xl transition-all cursor-pointer border ${
+                  isSelected
+                    ? "bg-[#166534] text-white border-[#166534] shadow-sm font-black"
+                    : "bg-gray-50 text-[#64748B] border-transparent hover:bg-gray-100 font-semibold"
+                }`}
+              >
+                <p className="text-[10px] uppercase tracking-wider">{dayName}</p>
+                <p className="text-sm font-black mt-0.5">{dayNum}</p>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
       {/* Task Progress Summary */}
       <Card className="border-2 border-emerald-200 bg-emerald-50/50 rounded-3xl p-5 shadow-sm">
         <div className="flex items-center justify-between">
@@ -133,7 +253,7 @@ export default function WorkerDashboardPage() {
               {progressPct}%
             </div>
             <div>
-              <h3 className="text-base font-black text-[#0F172A]">Today's Task Progress</h3>
+              <h3 className="text-base font-black text-[#0F172A]">Daily Task Progress</h3>
               <p className="text-xs font-bold text-[#64748B]">
                 {completedCount} of {totalTasks} tasks completed
               </p>
@@ -141,7 +261,7 @@ export default function WorkerDashboardPage() {
           </div>
           {progressPct === 100 && totalTasks > 0 && (
             <span className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-extrabold rounded-full flex items-center gap-1 shadow-xs">
-              <CheckCircle2 className="h-4 w-4" /> All Done!
+              <CheckCircle2 className="h-4 w-4" /> All Done
             </span>
           )}
         </div>
@@ -155,7 +275,7 @@ export default function WorkerDashboardPage() {
         </div>
       </Card>
 
-      {/* GIANT QUICK LOG CARDS */}
+      {/* GIANT QUICK LOG CARDS (No Emojis — Lucide Icons Only) */}
       <div>
         <h2 className="text-xs font-black text-[#64748B] uppercase tracking-wider mb-3 px-1">
           Quick Logging (Tap to Record)
@@ -235,14 +355,45 @@ export default function WorkerDashboardPage() {
         </div>
       </div>
 
+      {/* WORKER OUTPUT CHART (GOOD CHARTS) */}
+      <Card className="border border-gray-200 bg-white rounded-3xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-emerald-50 text-[#166534]">
+              <BarChart3 className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-[#0F172A]">Weekly Logged Output</h3>
+              <p className="text-xs text-[#64748B]">Output trends over the past 7 days</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-48 w-full pt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={activityChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748B" }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#64748B" }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#0F172A", color: "#fff", borderRadius: "12px", border: "none" }}
+              />
+              <Bar dataKey="eggs" fill="#166534" radius={[6, 6, 0, 0]} name="Eggs" />
+              <Bar dataKey="milk" fill="#0284C7" radius={[6, 6, 0, 0]} name="Milk (L)" />
+              <Bar dataKey="feed" fill="#D97706" radius={[6, 6, 0, 0]} name="Feed (kg)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
       {/* TODAY'S TASKS LIST */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-black text-[#64748B] uppercase tracking-wider">
-            Today's Assigned Tasks
+            Assigned Tasks ({tasks.length})
           </h2>
           <span className="text-xs font-bold text-[#166534] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-            {tasks.length} tasks
+            {completedCount} completed
           </span>
         </div>
 
@@ -269,14 +420,14 @@ export default function WorkerDashboardPage() {
       {activities.length > 0 && (
         <div className="space-y-3 pt-2">
           <h2 className="text-xs font-black text-[#64748B] uppercase tracking-wider px-1">
-            My Activity Today ({activities.length})
+            My Activity History ({activities.length})
           </h2>
           <Card className="border border-gray-200 rounded-3xl p-4 divide-y divide-gray-100 bg-white">
             {activities.map((act) => (
               <div key={act.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-gray-100 flex items-center justify-center font-black text-xs text-[#166534]">
-                    ✓
+                  <div className="h-9 w-9 rounded-xl bg-emerald-50 text-[#166534] flex items-center justify-center shrink-0">
+                    <Check className="h-5 w-5 stroke-[2.5]" />
                   </div>
                   <div>
                     <p className="text-sm font-extrabold text-[#0F172A] capitalize">
@@ -287,7 +438,7 @@ export default function WorkerDashboardPage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#64748B] bg-gray-50 px-2.5 py-1 rounded-xl">
+                <span className="text-xs font-bold text-[#64748B] bg-gray-50 px-2.5 py-1 rounded-xl uppercase">
                   {act.type}
                 </span>
               </div>
