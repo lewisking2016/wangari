@@ -12,13 +12,11 @@ model User {
   name            String
   email           String    @unique
   phone           String?   @unique
-  password        String
-  role            String    @default("farm_owner")
+  password        String?
+  googleId        String?   @unique @map("google_id")
   avatar          String?
-  emailVerified   DateTime? @map("email_verified")
-  trialStartsAt   DateTime? @map("trial_starts_at")
-  trialEndsAt     DateTime? @map("trial_ends_at")
-  selectedHubs    String?   @map("selected_hubs")
+  role            String    @default("farm_owner")
+  profileComplete Boolean   @default(false) @map("profile_complete")
   resetToken      String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -33,44 +31,7 @@ model User {
   auditLogs    AuditLog[]
   crops        Crop[]
 
-  verifications VerificationCode[]
-  subscriptions Subscription[]
-
   @@map("users")
-}
-
-model Subscription {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @map("user_id")
-  plan          String
-  planName      String   @map("plan_name")
-  amount        Decimal  @db.Decimal(12, 2)
-  status        String   @default("active")
-  reference     String?
-  startsAt      DateTime @default(now()) @map("starts_at")
-  expiresAt     DateTime @map("expires_at")
-  renewedAt     DateTime? @map("renewed_at")
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, status])
-  @@map("subscriptions")
-}
-
-model VerificationCode {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  code      String
-  purpose   String   @default("email_verification")
-  expiresAt DateTime @map("expires_at")
-  usedAt    DateTime? @map("used_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, purpose])
-  @@map("verification_codes")
 }
 
 model Farm {
@@ -97,6 +58,10 @@ model Farm {
   attendances Attendance[]
   auditLogs AuditLog[]
   settings     FarmSetting[]
+  workerTasks   WorkerTask[]
+  workerLogs    WorkerLog[]
+  zktecoDevices ZKTecoDevice[]
+  zktecoLogs    ZKTecoLog[]
   breeding Breeding[]
   crops Crop[]
   cropHarvests     CropHarvest[]
@@ -133,6 +98,7 @@ model Flock {
   status       String    @default("active")
   type         String?   @default("layers")
 
+  // Extended fields
   category         String?   @default("poultry")
   purpose          String?
   gender           String?
@@ -343,6 +309,8 @@ model Inventory {
   unitCost    Decimal  @map("unit_cost") @db.Decimal(10, 2)
   reorderLevel Int     @default(0) @map("reorder_level")
   supplier    String?
+  expiryDate  DateTime? @map("expiry_date")
+  notes       String?
   createdAt   DateTime @default(now()) @map("created_at")
 
   farm  Farm           @relation(fields: [farmId], references: [id])
@@ -449,6 +417,7 @@ model Worker {
   name      String
   phone     String?
   role      String?
+  pin       String?
   dailyWage Decimal?  @map("daily_wage") @db.Decimal(10, 2)
   status    String    @default("active")
   hiredDate DateTime? @map("hired_date")
@@ -458,8 +427,45 @@ model Worker {
   farm       Farm         @relation(fields: [farmId], references: [id])
   creator    User?        @relation(fields: [createdBy], references: [id])
   attendance Attendance[]
+  zktecoLogs ZKTecoLog[]
+  tasks      WorkerTask[]
+  logs       WorkerLog[]
 
   @@map("workers")
+}
+
+model WorkerTask {
+  id          Int       @id @default(autoincrement())
+  farmId      Int       @map("farm_id")
+  workerId    Int?      @map("worker_id")
+  title       String
+  description String?
+  category    String    @default("general")
+  dueDate     DateTime  @default(now()) @map("due_date") @db.Date
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  farm   Farm    @relation(fields: [farmId], references: [id])
+  worker Worker? @relation(fields: [workerId], references: [id])
+
+  @@map("worker_tasks")
+}
+
+model WorkerLog {
+  id        Int      @id @default(autoincrement())
+  farmId    Int      @map("farm_id")
+  workerId  Int      @map("worker_id")
+  type      String
+  quantity  Decimal  @default(0) @db.Decimal(10, 2)
+  unit      String?
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  farm   Farm   @relation(fields: [farmId], references: [id])
+  worker Worker @relation(fields: [workerId], references: [id])
+
+  @@map("worker_logs")
 }
 
 model Attendance {
@@ -522,6 +528,43 @@ model FarmSetting {
 
   @@unique([farmId, settingKey])
   @@map("farm_settings")
+}
+
+model ZKTecoDevice {
+  id           Int      @id @default(autoincrement())
+  farmId       Int      @map("farm_id")
+  serialNumber String   @map("serial_number")
+  name         String?
+  model        String?
+  status       String   @default("active")
+  lastSyncAt   DateTime? @map("last_sync_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  farm Farm @relation(fields: [farmId], references: [id])
+  logs ZKTecoLog[]
+
+  @@unique([farmId, serialNumber])
+  @@map("zkteco_devices")
+}
+
+model ZKTecoLog {
+  id           Int      @id @default(autoincrement())
+  deviceId     Int      @map("device_id")
+  farmId       Int      @map("farm_id")
+  deviceUserId String   @map("device_user_id")
+  workerId     Int?     @map("worker_id")
+  timestamp    DateTime
+  verifyType   String?  @map("verify_type")
+  attendanceId String?  @map("attendance_id")
+  raw          Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  device ZKTecoDevice @relation(fields: [deviceId], references: [id])
+  farm   Farm         @relation(fields: [farmId], references: [id])
+  worker Worker?      @relation(fields: [workerId], references: [id])
+
+  @@unique([deviceId, attendanceId])
+  @@map("zkteco_logs")
 }
 
 model AuditLog {
