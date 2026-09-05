@@ -16,25 +16,25 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, tra
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 
 const EXPENSE_CATEGORIES = [
-  { id: "animal_feed", label: "Animal Feed", emoji: "🌾" },
-  { id: "seeds", label: "Seeds", emoji: "🌱" },
-  { id: "fertilizer", label: "Fertilizer", emoji: "🪴" },
-  { id: "pesticide", label: "Pesticide", emoji: "🤟" },
-  { id: "labor", label: "Labor/Wages", emoji: "👷" },
-  { id: "veterinary", label: "Vet / Medicine", emoji: "💉" },
-  { id: "equipment", label: "Equipment", emoji: "🔧" },
-  { id: "transport", label: "Transport", emoji: "🚚" },
-  { id: "infrastructure", label: "Building", emoji: "🏗️" },
-  { id: "other", label: "Other", emoji: "📝" },
+  { id: "animal_feed", label: "Animal Feed" },
+  { id: "seeds", label: "Seeds" },
+  { id: "fertilizer", label: "Fertilizer" },
+  { id: "pesticide", label: "Pesticide" },
+  { id: "labor", label: "Labor / Wages" },
+  { id: "veterinary", label: "Vet / Medicine" },
+  { id: "equipment", label: "Equipment" },
+  { id: "transport", label: "Transport" },
+  { id: "infrastructure", label: "Building" },
+  { id: "other", label: "Other" },
 ];
 
 const INCOME_CATEGORIES = [
-  { id: "eggs", label: "Egg Sales", emoji: "🥚" },
-  { id: "milk", label: "Milk Sales", emoji: "🥛" },
-  { id: "meat", label: "Meat Sales", emoji: "🍖" },
-  { id: "livestock", label: "Animal Sales", emoji: "🐄" },
-  { id: "crops", label: "Crop Sales", emoji: "🌽" },
-  { id: "other_income", label: "Other Income", emoji: "💰" },
+  { id: "eggs", label: "Egg Sales" },
+  { id: "milk", label: "Milk Sales" },
+  { id: "meat", label: "Meat Sales" },
+  { id: "livestock", label: "Animal Sales" },
+  { id: "crops", label: "Crop Sales" },
+  { id: "other_income", label: "Other Income" },
 ];
 
 const COLORS = ["#166534", "#22C55E", "#86EFAC", "#94A3B8", "#CBD5E1", "#F59E0B", "#EF4444", "#3B82F6", "#8B5CF6", "#EC4899"];
@@ -123,8 +123,8 @@ export default function FinancesPage() {
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <PageHeader title="💵 Income & Expenses" description="Track money coming in and going out of your farm"
-          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer h-12 text-base font-bold"><Plus className="h-4 w-4 mr-2" />💰 Record Money</Button>}
+        <PageHeader title="Income & Expenses" description="Track money coming in and going out of your farm"
+          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer h-12 text-base font-bold"><Plus className="h-4 w-4 mr-2" />Record Money</Button>}
         />
       </motion.div>
 
@@ -145,7 +145,7 @@ export default function FinancesPage() {
                     className={`py-5 rounded-xl text-base font-bold transition-all cursor-pointer flex flex-col items-center gap-1 ${
                       form.type === "income" ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-400 shadow-md" : "bg-gray-50 text-gray-500 border border-gray-200"
                     }`}>
-                    <span className="text-2xl">💰</span>
+                    <TrendingUp className="h-6 w-6" />
                     <span>Money IN</span>
                     <span className="text-[10px] font-normal opacity-70">(Sales, income)</span>
                   </button>
@@ -153,7 +153,7 @@ export default function FinancesPage() {
                     className={`py-5 rounded-xl text-base font-bold transition-all cursor-pointer flex flex-col items-center gap-1 ${
                       form.type === "expense" ? "bg-red-50 text-red-700 border-2 border-red-400 shadow-md" : "bg-gray-50 text-gray-500 border border-gray-200"
                     }`}>
-                    <span className="text-2xl">🛍️</span>
+                    <TrendingDown className="h-6 w-6" />
                     <span>Money OUT</span>
                     <span className="text-[10px] font-normal opacity-70">(Expenses, costs)</span>
                   </button>
@@ -173,14 +173,13 @@ export default function FinancesPage() {
                       className={`py-3 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-1 ${
                         form.category === c.id ? "bg-[#166534] text-white shadow-md" : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
                       }`}>
-                      <span className="text-lg">{(c as any).emoji || "📝"}</span>
                       <span className="text-center leading-tight">{c.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
               <Button onClick={handleSubmit} disabled={!form.amount} className="w-full mt-4 bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50 h-14 text-base font-bold">
-                {form.type === "income" ? "💰 Save Income" : "🛍️ Save Expense"}
+                {form.type === "income" ? "Save Income" : "Save Expense"}
               </Button>
             </CardContent>
           </Card>
@@ -190,10 +189,10 @@ export default function FinancesPage() {
       {/* KPIs */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "💰 Money IN (This Month)", value: `KES ${monthIncome.toLocaleString()}`, icon: <TrendingUp className="h-5 w-5" />, color: "bg-emerald-500" },
-          { title: "🛍️ Money OUT (This Month)", value: `KES ${monthExpenses.toLocaleString()}`, icon: <TrendingDown className="h-5 w-5" />, color: "bg-red-500" },
-          { title: "💵 Total Income (Ever)", value: `KES ${income.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-[#166534]" },
-          { title: profit >= 0 ? "✅ Net Profit" : "❌ Net Loss", value: `KES ${profit.toLocaleString()}`, icon: <Wallet className="h-5 w-5" />, color: profit >= 0 ? "bg-[#166534]" : "bg-red-500" },
+          { title: "Money IN (This Month)", value: `KES ${monthIncome.toLocaleString()}`, icon: <TrendingUp className="h-5 w-5" />, color: "bg-emerald-500" },
+          { title: "Money OUT (This Month)", value: `KES ${monthExpenses.toLocaleString()}`, icon: <TrendingDown className="h-5 w-5" />, color: "bg-red-500" },
+          { title: "Total Income (All Time)", value: `KES ${income.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-[#166534]" },
+          { title: profit >= 0 ? "Net Profit" : "Net Loss", value: `KES ${profit.toLocaleString()}`, icon: <Wallet className="h-5 w-5" />, color: profit >= 0 ? "bg-[#166534]" : "bg-red-500" },
         ].map(kpi => (
           <motion.div key={kpi.title} variants={fadeUp}>
             <Card className="border border-gray-100 hover:shadow-lg transition-all">

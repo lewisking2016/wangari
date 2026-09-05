@@ -18,6 +18,8 @@ import {
   Target,
   Heart,
   Leaf,
+  PawPrint,
+  ClipboardList,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,20 +47,20 @@ const stagger = {
 };
 
 // ─── FCR Rating ──────────────────────────────────────────
-function getFCRRating(fcr: number): { label: string; color: string; bg: string; emoji: string } {
-  if (fcr === 0) return { label: "No data yet", emoji: "📊", color: "text-wangari-muted", bg: "bg-gray-50" };
-  if (fcr <= 1.8) return { label: "Excellent! 👍", emoji: "🌟", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
-  if (fcr <= 2.2) return { label: "Good 👍", emoji: "✅", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
-  if (fcr <= 2.5) return { label: "Watch out ⚠️", emoji: "⚠️", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
-  return { label: "Too much feed used ❌", emoji: "❌", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
+function getFCRRating(fcr: number): { label: string; color: string; bg: string } {
+  if (fcr === 0) return { label: "No data yet", color: "text-wangari-muted", bg: "bg-gray-50" };
+  if (fcr <= 1.8) return { label: "Excellent", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (fcr <= 2.2) return { label: "Good", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (fcr <= 2.5) return { label: "Watch", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
+  return { label: "Too High", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
 }
 
 // ─── Mortality Rating ────────────────────────────────────
-function getMortalityRating(rate: number): { label: string; color: string; bg: string; emoji: string } {
-  if (rate <= 1) return { label: "Normal ✅", emoji: "✅", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
-  if (rate <= 3) return { label: "Acceptable", emoji: "⚠️", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
-  if (rate <= 5) return { label: "Getting high ⚠️", emoji: "⚠️", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
-  return { label: "Too many deaths! ❌", emoji: "❌", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
+function getMortalityRating(rate: number): { label: string; color: string; bg: string } {
+  if (rate <= 1) return { label: "Normal", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (rate <= 3) return { label: "Acceptable", color: "text-wangari-green-700", bg: "bg-wangari-green-50" };
+  if (rate <= 5) return { label: "Getting High", color: "text-badge-yellow-text", bg: "bg-badge-yellow-bg" };
+  return { label: "Critical", color: "text-badge-red-text", bg: "bg-badge-red-bg" };
 }
 
 const DEFAULT_WEATHER = {
@@ -224,11 +226,11 @@ function DashboardContent() {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              🌿 {data?.farmName || "Active Farm"}
+              {data?.farmName || "Active Farm"}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1.5">
-            {greeting}, {user?.name?.split(" ")[0] || "Farmer"}! 👋
+            {greeting}, {user?.name?.split(" ")[0] || "Farmer"}!
           </h1>
           <p className="text-xs sm:text-sm text-emerald-100/80 mt-1">
             Here is your daily farm overview and operations summary.
@@ -238,12 +240,12 @@ function DashboardContent() {
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Link href="/production">
             <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold gap-1.5 shadow">
-              <Plus className="h-4 w-4" /> 📦 Record Today's Output
+              <Plus className="h-4 w-4" /> Record Today's Output
             </Button>
           </Link>
           <Link href="/finances">
             <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-medium gap-1.5">
-              <DollarSign className="h-4 w-4" /> 💵 Add Expense
+              <DollarSign className="h-4 w-4" /> Add Expense
             </Button>
           </Link>
           <Button
@@ -289,7 +291,7 @@ function DashboardContent() {
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
                   <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                    <span className="text-lg">👤</span>
+                    <Target className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#0F172A]">Complete your farm profile</p>
@@ -311,16 +313,16 @@ function DashboardContent() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border-2 border-emerald-300 bg-emerald-50/60">
             <CardContent className="p-5">
-              <h3 className="text-base font-bold text-[#0F172A] mb-1">👋 Welcome to Wangari!</h3>
-              <p className="text-sm text-[#64748B] mb-4">Start here — 3 easy steps to get going:</p>
+              <h3 className="text-base font-bold text-[#0F172A] mb-1">Welcome to Wangari!</h3>
+              <p className="text-sm text-[#64748B] mb-4">Start here — follow these 3 easy steps:</p>
               <div className="grid sm:grid-cols-3 gap-3">
                 {[
-                  { step: "1", emoji: "🐔", text: "Add your animals or crops", href: "/flocks", color: "bg-[#166534]" },
-                  { step: "2", emoji: "📦", text: "Record today's output", href: "/production", color: "bg-emerald-600" },
-                  { step: "3", emoji: "💵", text: "Record money in or out", href: "/finances", color: "bg-amber-600" },
+                  { step: "1", icon: <PawPrint className="h-5 w-5" />, text: "Add your animals or crops", href: "/flocks", color: "bg-[#166534]" },
+                  { step: "2", icon: <ClipboardList className="h-5 w-5" />, text: "Record today's output", href: "/production", color: "bg-emerald-600" },
+                  { step: "3", icon: <DollarSign className="h-5 w-5" />, text: "Record money in or out", href: "/finances", color: "bg-amber-600" },
                 ].map(s => (
                   <Link key={s.step} href={s.href} className="flex items-center gap-3 p-4 rounded-xl bg-white border-2 border-emerald-100 hover:border-emerald-400 transition-all shadow-sm">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${s.color} text-white text-base font-bold shrink-0`}>{s.emoji}</div>
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${s.color} text-white shrink-0`}>{s.icon}</div>
                     <p className="text-sm font-semibold text-[#0F172A]">{s.text}</p>
                   </Link>
                 ))}
@@ -335,7 +337,7 @@ function DashboardContent() {
           ═══════════════════════════════════════════════════════ */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-bold text-wangari-text">📈 Today's Farm Summary</h2>
+          <h2 className="text-sm font-bold text-wangari-text">Today's Farm Summary</h2>
         </div>
         <motion.div
           initial="hidden"
@@ -345,7 +347,7 @@ function DashboardContent() {
         >
           <motion.div variants={fadeUp}>
             <KpiCard
-              title="📦 Today's Output"
+              title="Today's Output"
               value={data?.eggsToday ? `${data.eggsToday} eggs` : data?.milkToday ? `${data.milkToday}L` : `${data?.eggsToday || 0}`}
               icon={data?.milkToday ? <Milk className="h-5 w-5" /> : <Egg className="h-5 w-5" />}
               change={`${data?.henDayProduction || data?.productionRate || 0}% yield today`}
@@ -354,7 +356,7 @@ function DashboardContent() {
           </motion.div>
           <motion.div variants={fadeUp}>
             <KpiCard
-              title="🐔 My Animals"
+              title="My Animals"
               value={(data?.totalBirds || data?.totalAnimals || 0).toLocaleString()}
               icon={<Bird className="h-5 w-5" />}
               change={`${data?.totalFlocks || 0} active groups`}
@@ -363,13 +365,13 @@ function DashboardContent() {
           </motion.div>
           <motion.div variants={fadeUp}>
             <KpiCard
-              title="🌾 Feed in Store"
+              title="Feed in Store"
               value={data?.feedStock ? `${data.feedStock}` : "Enough"}
               icon={<Wheat className="h-5 w-5" />}
               change={
                 stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
-                  ? "⚠️ Low stock — buy more!"
-                  : "✅ Good supply"
+                  ? "Low stock — buy more"
+                  : "Good supply"
               }
               changeType={
                 stockAlerts.some((a: any) => a.itemName?.toLowerCase().includes("feed"))
@@ -380,7 +382,7 @@ function DashboardContent() {
           </motion.div>
           <motion.div variants={fadeUp}>
             <KpiCard
-              title="💰 Money Earned"
+              title="Money Earned"
               value={`KES ${(data?.monthlyRevenue || 0).toLocaleString()}`}
               icon={<TrendingUp className="h-5 w-5" />}
               change="This month total"
@@ -395,8 +397,8 @@ function DashboardContent() {
           ═══════════════════════════════════════════════════════ */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-bold text-wangari-text">🏥 Farm Health Check</h2>
-          <p className="text-xs text-wangari-muted">How is your farm doing?</p>
+          <h2 className="text-sm font-bold text-wangari-text">Farm Health Check</h2>
+          <p className="text-xs text-wangari-muted">How is your farm performing?</p>
         </div>
         <motion.div
           initial="hidden"
@@ -409,9 +411,7 @@ function DashboardContent() {
             <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-[12px] font-bold text-wangari-text">
-                    🌾 Feed Score
-                  </p>
+                  <p className="text-[12px] font-bold text-wangari-text">Feed Score</p>
                   <p className="text-[10px] text-wangari-muted mt-0.5">How well are animals using feed?</p>
                   <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
                     {data?.fcr || "—"}
@@ -432,9 +432,7 @@ function DashboardContent() {
             <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-[12px] font-bold text-wangari-text">
-                    💔 Animals Lost
-                  </p>
+                  <p className="text-[12px] font-bold text-wangari-text">Animals Lost</p>
                   <p className="text-[10px] text-wangari-muted mt-0.5">Percentage of animals that died</p>
                   <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
                     {data?.mortalityRate || 0}%
@@ -455,9 +453,7 @@ function DashboardContent() {
             <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-[12px] font-bold text-wangari-text">
-                    💰 Cost per Egg/Litre
-                  </p>
+                  <p className="text-[12px] font-bold text-wangari-text">Cost per Egg / Litre</p>
                   <p className="text-[10px] text-wangari-muted mt-0.5">How much it costs to produce one unit</p>
                   <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
                     {data?.costPerEgg ? `KES ${data.costPerEgg}` : "—"}
@@ -475,9 +471,7 @@ function DashboardContent() {
             <Card className="border border-wangari-border bg-white p-4 sm:p-5 hover:border-wangari-green-300 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-[12px] font-bold text-wangari-text">
-                    🍽️ Feed per Animal (daily)
-                  </p>
+                  <p className="text-[12px] font-bold text-wangari-text">Feed per Animal (daily)</p>
                   <p className="text-[10px] text-wangari-muted mt-0.5">Average food each animal eats per day</p>
                   <p className="mt-1.5 text-2xl sm:text-3xl font-bold text-wangari-heading font-serif">
                     {data?.feedPerBird ? `${data.feedPerBird}g` : "—"}

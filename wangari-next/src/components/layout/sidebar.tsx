@@ -62,36 +62,36 @@ const navGroups: NavGroup[] = [
   {
     title: "",
     items: [
-      { label: "🏠 Home", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+      { label: "Home", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
     ],
   },
   {
-    title: "🌾 My Farm",
+    title: "My Farm",
     items: [
-      { label: "🐔 My Animals", href: "/flocks", icon: <PawPrint className="h-5 w-5" /> },
-      { label: "🌿 My Crops", href: "/crops", icon: <Leaf className="h-5 w-5" /> },
-      { label: "📦 Daily Output", href: "/production", icon: <ClipboardList className="h-5 w-5" /> },
-      { label: "💉 Health & Vaccines", href: "/vaccinations", icon: <Syringe className="h-5 w-5" /> },
+      { label: "My Animals", href: "/flocks", icon: <PawPrint className="h-5 w-5" /> },
+      { label: "My Crops", href: "/crops", icon: <Leaf className="h-5 w-5" /> },
+      { label: "Daily Output", href: "/production", icon: <ClipboardList className="h-5 w-5" /> },
+      { label: "Health & Vaccines", href: "/vaccinations", icon: <Syringe className="h-5 w-5" /> },
     ],
   },
   {
-    title: "💰 Money & Workers",
+    title: "Money & Workers",
     items: [
-      { label: "💵 Income & Expenses", href: "/finances", icon: <DollarSign className="h-5 w-5" /> },
-      { label: "🛒 Sales", href: "/sales", icon: <ShoppingCart className="h-5 w-5" /> },
-      { label: "📦 Store / Inventory", href: "/inventory", icon: <Package className="h-5 w-5" /> },
-      { label: "👷 My Workers", href: "/workers", icon: <Users className="h-5 w-5" /> },
-      { label: "✅ Worker Attendance", href: "/attendance", icon: <Users className="h-5 w-5" /> },
+      { label: "Income & Expenses", href: "/finances", icon: <DollarSign className="h-5 w-5" /> },
+      { label: "Sales", href: "/sales", icon: <ShoppingCart className="h-5 w-5" /> },
+      { label: "Store / Inventory", href: "/inventory", icon: <Package className="h-5 w-5" /> },
+      { label: "My Workers", href: "/workers", icon: <Users className="h-5 w-5" /> },
+      { label: "Worker Attendance", href: "/attendance", icon: <Users className="h-5 w-5" /> },
     ],
   },
   {
-    title: "🔧 Tools",
+    title: "Tools",
     items: [
-      { label: "🧮 Feed Helper", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
-      { label: "🌤️ Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
-      { label: "📊 Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
-      { label: "🤖 AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
-      { label: "💬 WhatsApp Bot", href: "/whatsapp", icon: <MessageCircle className="h-5 w-5" /> },
+      { label: "Feed Helper", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
+      { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
+      { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
+      { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" /> },
+      { label: "WhatsApp Bot", href: "/whatsapp", icon: <MessageCircle className="h-5 w-5" /> },
     ],
   },
 ];
@@ -122,9 +122,9 @@ export function Sidebar() {
   };
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     "": true,
-    "🌾 My Farm": true,
-    "💰 Money & Workers": true,
-    "🔧 Tools": true,
+    "My Farm": true,
+    "Money & Workers": true,
+    Tools: true,
   });
 
   const toggleGroup = (title: string) => {
