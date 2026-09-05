@@ -16,25 +16,25 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, tra
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 
 const EXPENSE_CATEGORIES = [
-  { id: "animal_feed", label: "Animal Feed" },
-  { id: "seeds", label: "Seeds" },
-  { id: "fertilizer", label: "Fertilizer" },
-  { id: "pesticide", label: "Pesticide" },
-  { id: "labor", label: "Labor" },
-  { id: "veterinary", label: "Veterinary" },
-  { id: "equipment", label: "Equipment" },
-  { id: "transport", label: "Transport" },
-  { id: "infrastructure", label: "Infrastructure" },
-  { id: "other", label: "Other" },
+  { id: "animal_feed", label: "Animal Feed", emoji: "🌾" },
+  { id: "seeds", label: "Seeds", emoji: "🌱" },
+  { id: "fertilizer", label: "Fertilizer", emoji: "🪴" },
+  { id: "pesticide", label: "Pesticide", emoji: "🤟" },
+  { id: "labor", label: "Labor/Wages", emoji: "👷" },
+  { id: "veterinary", label: "Vet / Medicine", emoji: "💉" },
+  { id: "equipment", label: "Equipment", emoji: "🔧" },
+  { id: "transport", label: "Transport", emoji: "🚚" },
+  { id: "infrastructure", label: "Building", emoji: "🏗️" },
+  { id: "other", label: "Other", emoji: "📝" },
 ];
 
 const INCOME_CATEGORIES = [
-  { id: "eggs", label: "Egg Sales" },
-  { id: "milk", label: "Milk Sales" },
-  { id: "meat", label: "Meat Sales" },
-  { id: "livestock", label: "Livestock Sales" },
-  { id: "crops", label: "Crop Sales" },
-  { id: "other_income", label: "Other Income" },
+  { id: "eggs", label: "Egg Sales", emoji: "🥚" },
+  { id: "milk", label: "Milk Sales", emoji: "🥛" },
+  { id: "meat", label: "Meat Sales", emoji: "🍖" },
+  { id: "livestock", label: "Animal Sales", emoji: "🐄" },
+  { id: "crops", label: "Crop Sales", emoji: "🌽" },
+  { id: "other_income", label: "Other Income", emoji: "💰" },
 ];
 
 const COLORS = ["#166534", "#22C55E", "#86EFAC", "#94A3B8", "#CBD5E1", "#F59E0B", "#EF4444", "#3B82F6", "#8B5CF6", "#EC4899"];
@@ -123,8 +123,8 @@ export default function FinancesPage() {
   return (
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <PageHeader title="Finances" description="Income, expenses, and profit tracking"
-          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Add Transaction</Button>}
+        <PageHeader title="💵 Income & Expenses" description="Track money coming in and going out of your farm"
+          action={<Button onClick={() => setShowForm(!showForm)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer h-12 text-base font-bold"><Plus className="h-4 w-4 mr-2" />💰 Record Money</Button>}
         />
       </motion.div>
 
@@ -134,30 +134,54 @@ export default function FinancesPage() {
           <Card className="border border-[#E5E7EB] hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-900">{editingTx ? "Edit Transaction" : "Add Transaction"}</h3>
+                <h3 className="text-sm font-bold text-gray-900">{editingTx ? "Edit Entry" : "Record Money"}</h3>
                 <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
-              {/* Step 1: Income or Expense? */}
-              <div className="space-y-3">
-                <Label className="text-xs font-semibold text-gray-500">Income or Expense?</Label>
+              {/* Step 1: Money coming in or going out? */}
+              <div className="space-y-2">
+                <Label className="text-sm font-bold text-gray-700">Did money come IN or go OUT?</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => setForm({ ...form, type: "expense", category: "animal_feed" })}
-                    className={`py-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${form.type === "expense" ? "bg-red-50 text-red-700 border-2 border-red-300 shadow-md" : "bg-gray-50 text-gray-500 border border-gray-200"}`}>Expense</button>
                   <button onClick={() => setForm({ ...form, type: "income", category: "eggs" })}
-                    className={`py-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${form.type === "income" ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-300 shadow-md" : "bg-gray-50 text-gray-500 border border-gray-200"}`}>Income</button>
+                    className={`py-5 rounded-xl text-base font-bold transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                      form.type === "income" ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-400 shadow-md" : "bg-gray-50 text-gray-500 border border-gray-200"
+                    }`}>
+                    <span className="text-2xl">💰</span>
+                    <span>Money IN</span>
+                    <span className="text-[10px] font-normal opacity-70">(Sales, income)</span>
+                  </button>
+                  <button onClick={() => setForm({ ...form, type: "expense", category: "animal_feed" })}
+                    className={`py-5 rounded-xl text-base font-bold transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                      form.type === "expense" ? "bg-red-50 text-red-700 border-2 border-red-400 shadow-md" : "bg-gray-50 text-gray-500 border border-gray-200"
+                    }`}>
+                    <span className="text-2xl">🛍️</span>
+                    <span>Money OUT</span>
+                    <span className="text-[10px] font-normal opacity-70">(Expenses, costs)</span>
+                  </button>
                 </div>
               </div>
               {/* Step 2: Amount */}
               <div className="space-y-1 mt-4">
-                <Label className="text-xs font-semibold text-gray-500">Amount (KES)</Label>
-                <Input type="number" placeholder="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" />
+                <Label className="text-sm font-bold text-gray-700">How much? (KES)</Label>
+                <Input type="number" placeholder="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="h-14 rounded-xl text-2xl font-bold text-center" />
               </div>
-              {/* Step 3: Category */}
-              <div className="space-y-1 mt-3">
-                <Label className="text-xs font-semibold text-gray-500">Category</Label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full h-10 rounded-xl border border-gray-200 px-3 text-sm">{categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select>
+              {/* Step 3: Category as icon grid */}
+              <div className="space-y-2 mt-3">
+                <Label className="text-sm font-bold text-gray-700">What is it for?</Label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {categories.map(c => (
+                    <button key={c.id} onClick={() => setForm({ ...form, category: c.id })}
+                      className={`py-3 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                        form.category === c.id ? "bg-[#166534] text-white shadow-md" : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
+                      }`}>
+                      <span className="text-lg">{(c as any).emoji || "📝"}</span>
+                      <span className="text-center leading-tight">{c.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <Button onClick={handleSubmit} disabled={!form.amount} className="w-full mt-4 bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50 h-12 text-base font-bold">Save</Button>
+              <Button onClick={handleSubmit} disabled={!form.amount} className="w-full mt-4 bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50 h-14 text-base font-bold">
+                {form.type === "income" ? "💰 Save Income" : "🛍️ Save Expense"}
+              </Button>
             </CardContent>
           </Card>
         </motion.div>
@@ -166,10 +190,10 @@ export default function FinancesPage() {
       {/* KPIs */}
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { title: "This Month Income", value: `KES ${monthIncome.toLocaleString()}`, icon: <TrendingUp className="h-5 w-5" />, color: "bg-emerald-500" },
-          { title: "This Month Expenses", value: `KES ${monthExpenses.toLocaleString()}`, icon: <TrendingDown className="h-5 w-5" />, color: "bg-red-500" },
-          { title: "All-time Income", value: `KES ${income.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-[#166534]" },
-          { title: "Net Profit", value: `KES ${profit.toLocaleString()}`, icon: <Wallet className="h-5 w-5" />, color: profit >= 0 ? "bg-[#166534]" : "bg-red-500" },
+          { title: "💰 Money IN (This Month)", value: `KES ${monthIncome.toLocaleString()}`, icon: <TrendingUp className="h-5 w-5" />, color: "bg-emerald-500" },
+          { title: "🛍️ Money OUT (This Month)", value: `KES ${monthExpenses.toLocaleString()}`, icon: <TrendingDown className="h-5 w-5" />, color: "bg-red-500" },
+          { title: "💵 Total Income (Ever)", value: `KES ${income.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-[#166534]" },
+          { title: profit >= 0 ? "✅ Net Profit" : "❌ Net Loss", value: `KES ${profit.toLocaleString()}`, icon: <Wallet className="h-5 w-5" />, color: profit >= 0 ? "bg-[#166534]" : "bg-red-500" },
         ].map(kpi => (
           <motion.div key={kpi.title} variants={fadeUp}>
             <Card className="border border-gray-100 hover:shadow-lg transition-all">
