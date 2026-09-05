@@ -181,7 +181,7 @@ export default function WorkerDashboardPage() {
       <Card className="border border-gray-200 bg-white rounded-3xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-emerald-50 text-[#166534]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
               <CalendarIcon className="h-5 w-5" />
             </div>
             <div>
@@ -249,7 +249,7 @@ export default function WorkerDashboardPage() {
       <Card className="border-2 border-emerald-200 bg-emerald-50/50 rounded-3xl p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-[#166534] text-white flex items-center justify-center font-black text-lg">
+            <div className="h-12 w-12 rounded-full bg-[#166534] text-white flex items-center justify-center font-black text-lg shadow-xs">
               {progressPct}%
             </div>
             <div>
@@ -288,8 +288,8 @@ export default function WorkerDashboardPage() {
             className="p-5 rounded-3xl bg-emerald-600 text-white shadow-lg cursor-pointer hover:bg-emerald-700 transition-all flex flex-col justify-between h-36 border-2 border-emerald-500"
           >
             <div className="flex items-center justify-between">
-              <div className="p-3 bg-white/20 rounded-2xl">
-                <Egg className="h-7 w-7 stroke-[2.5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/25 text-white shrink-0">
+                <Egg className="h-6 w-6 stroke-[2.5]" />
               </div>
               <Plus className="h-6 w-6 text-white/80" />
             </div>
@@ -306,8 +306,8 @@ export default function WorkerDashboardPage() {
             className="p-5 rounded-3xl bg-sky-600 text-white shadow-lg cursor-pointer hover:bg-sky-700 transition-all flex flex-col justify-between h-36 border-2 border-sky-500"
           >
             <div className="flex items-center justify-between">
-              <div className="p-3 bg-white/20 rounded-2xl">
-                <Milk className="h-7 w-7 stroke-[2.5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/25 text-white shrink-0">
+                <Milk className="h-6 w-6 stroke-[2.5]" />
               </div>
               <Plus className="h-6 w-6 text-white/80" />
             </div>
@@ -324,8 +324,8 @@ export default function WorkerDashboardPage() {
             className="p-5 rounded-3xl bg-amber-600 text-white shadow-lg cursor-pointer hover:bg-amber-700 transition-all flex flex-col justify-between h-36 border-2 border-amber-500"
           >
             <div className="flex items-center justify-between">
-              <div className="p-3 bg-white/20 rounded-2xl">
-                <Wheat className="h-7 w-7 stroke-[2.5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/25 text-white shrink-0">
+                <Wheat className="h-6 w-6 stroke-[2.5]" />
               </div>
               <Plus className="h-6 w-6 text-white/80" />
             </div>
@@ -342,8 +342,8 @@ export default function WorkerDashboardPage() {
             className="p-5 rounded-3xl bg-rose-600 text-white shadow-lg cursor-pointer hover:bg-rose-700 transition-all flex flex-col justify-between h-36 border-2 border-rose-500"
           >
             <div className="flex items-center justify-between">
-              <div className="p-3 bg-white/20 rounded-2xl">
-                <Heart className="h-7 w-7 stroke-[2.5]" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/25 text-white shrink-0">
+                <Heart className="h-6 w-6 stroke-[2.5]" />
               </div>
               <Plus className="h-6 w-6 text-white/80" />
             </div>
@@ -359,7 +359,7 @@ export default function WorkerDashboardPage() {
       <Card className="border border-gray-200 bg-white rounded-3xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-emerald-50 text-[#166534]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
               <BarChart3 className="h-5 w-5" />
             </div>
             <div>
@@ -426,7 +426,7 @@ export default function WorkerDashboardPage() {
             {activities.map((act) => (
               <div key={act.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-emerald-50 text-[#166534] flex items-center justify-center shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
                     <Check className="h-5 w-5 stroke-[2.5]" />
                   </div>
                   <div>

@@ -420,7 +420,7 @@ function DashboardContent() {
                     {fcrRating.label}
                   </Badge>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
                   <Target className="h-5 w-5" />
                 </div>
               </div>
@@ -441,7 +441,7 @@ function DashboardContent() {
                     {mortalityRating.label}
                   </Badge>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700 shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
                   <Heart className="h-5 w-5" />
                 </div>
               </div>
@@ -459,7 +459,7 @@ function DashboardContent() {
                     {data?.costPerEgg ? `KES ${data.costPerEgg}` : "—"}
                   </p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
                   <DollarSign className="h-5 w-5" />
                 </div>
               </div>
@@ -477,7 +477,7 @@ function DashboardContent() {
                     {data?.feedPerBird ? `${data.feedPerBird}g` : "—"}
                   </p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
                   <Wheat className="h-5 w-5" />
                 </div>
               </div>

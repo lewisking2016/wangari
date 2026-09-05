@@ -26,16 +26,16 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-wangari-border bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:-translate-y-0.5",
+        "rounded-2xl border border-gray-200 bg-white p-5 shadow-xs transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
         className
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-wangari-muted">
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
             {title}
           </p>
-          <p className="mt-2 text-3xl font-bold text-wangari-heading font-serif">
+          <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#0F172A] font-serif tracking-tight truncate">
             {value}
           </p>
           {change && (
@@ -49,7 +49,7 @@ export function KpiCard({
             </p>
           )}
         </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-800">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0 ml-3">
           {icon}
         </div>
       </div>
