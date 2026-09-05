@@ -234,7 +234,7 @@ export default function InvoicesPage() {
           <motion.div key={kpi.title} variants={fadeUp}>
             <Card className="border border-[#E5E7EB]">
               <CardContent className="pt-4 pb-3 px-4">
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${kpi.color} text-white mb-2`}>{kpi.icon}</div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] mb-2">{kpi.icon}</div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">{kpi.title}</p>
                 <p className="text-xl font-extrabold text-[#0F172A]">{kpi.value}</p>
               </CardContent>

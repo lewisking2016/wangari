@@ -197,7 +197,7 @@ export default function FinancesPage() {
           <motion.div key={kpi.title} variants={fadeUp}>
             <Card className="border border-gray-100 hover:shadow-lg transition-all">
               <CardContent className="pt-5 pb-4 px-5">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${kpi.color} text-white shadow-md mb-3`}>{kpi.icon}</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] mb-3">{kpi.icon}</div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{kpi.title}</p>
                 <p className="text-2xl font-extrabold text-gray-900">{kpi.value}</p>
               </CardContent>

@@ -223,7 +223,7 @@ export default function ProductionPage() {
           <motion.div key={kpi.title} variants={fadeUp} whileHover={{ y: -4, scale: 1.02 }}>
             <Card className="border border-[#E5E7EB] hover:shadow-lg hover:border-[#BBF7D0] transition-all duration-300">
               <CardContent className="pt-6 pb-4 px-5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white shadow-md mb-3">{kpi.icon}</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] mb-3">{kpi.icon}</div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1">{kpi.title}</p>
                 <p className="text-2xl font-extrabold text-[#0F172A] tracking-tight">{kpi.value}</p>
               </CardContent>
