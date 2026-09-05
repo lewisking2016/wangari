@@ -6,6 +6,8 @@ import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
 import { ErrorBoundary } from "@/components/error-boundary";
 
+import { FloatingActionButton } from "@/components/dashboard/floating-action-button";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -16,7 +18,7 @@ export default function DashboardLayout({
   const isAI = pathname.startsWith("/ai");
 
   return (
-    <div className="min-h-screen bg-wangari-cream">
+    <div className="min-h-screen bg-wangari-cream relative">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -41,6 +43,9 @@ export default function DashboardLayout({
         {!isAI && <Topbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />}
         <main className={`${isAI ? "" : "flex-1 p-4 sm:p-6"}`}><ErrorBoundary>{children}</ErrorBoundary></main>
       </div>
+
+      {/* Floating Action Button for Grade-3 Easy Data Logging */}
+      <FloatingActionButton />
     </div>
   );
 }

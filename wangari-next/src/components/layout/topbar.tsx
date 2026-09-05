@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api-client";
+import { useLanguage } from "@/components/language-provider";
 
 interface TopbarProps {
   onMenuToggle?: () => void;
@@ -340,6 +341,7 @@ function ProfileDropdown({ open, onOpenChange }: { open: boolean; onOpenChange: 
 export function Topbar({ onMenuToggle }: TopbarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { lang, setLang } = useLanguage();
   const title = pageTitles[pathname] || "Dashboard";
 
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -374,6 +376,15 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
 
         {/* Right */}
         <div className="flex items-center gap-2">
+          {/* Language Switcher */}
+          <button
+            onClick={() => setLang(lang === "en" ? "sw" : "en")}
+            className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all font-bold text-xs cursor-pointer shadow-xs"
+            title="Switch Language / Badili Lugha"
+          >
+            <span>{lang === "sw" ? "🇰🇪 Swahili" : "🇬🇧 English"}</span>
+          </button>
+
           {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}
