@@ -17,6 +17,10 @@ model User {
   avatar          String?
   role            String    @default("farm_owner")
   profileComplete Boolean   @default(false) @map("profile_complete")
+  emailVerified   DateTime? @map("email_verified")
+  trialStartsAt   DateTime? @map("trial_starts_at")
+  trialEndsAt     DateTime? @map("trial_ends_at")
+  selectedHubs    String?   @map("selected_hubs")
   resetToken      String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -30,8 +34,44 @@ model User {
   workers      Worker[]
   auditLogs    AuditLog[]
   crops        Crop[]
+  verifications VerificationCode[]
+  subscriptions Subscription[]
 
   @@map("users")
+}
+
+model VerificationCode {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  code      String
+  purpose   String   @default("email_verification")
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("verification_codes")
+}
+
+model Subscription {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  plan          String
+  planName      String   @map("plan_name")
+  amount        Decimal  @db.Decimal(12, 2)
+  status        String   @default("active")
+  reference     String?
+  startsAt      DateTime @default(now()) @map("starts_at")
+  expiresAt     DateTime @map("expires_at")
+  renewedAt     DateTime? @map("renewed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("subscriptions")
 }
 
 model Farm {
