@@ -26,6 +26,7 @@ import exportRoutes from "./routes/export.js";
 import importRoutes from "./routes/import.js";
 import settingsRoutes from "./routes/settings.js";
 import zktecoRoutes from "./routes/zkteco.js";
+import workerApiRoutes from "./routes/worker.js";
 import flocksUploadRoutes from "./routes/flocks-upload.js";
 import uploadRoutes from "./routes/upload.js";
 
@@ -87,6 +88,7 @@ app.use("/api/import", importRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/zkteco", zktecoRoutes);
+app.use("/api/worker", workerApiRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
