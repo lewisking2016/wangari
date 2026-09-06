@@ -46,6 +46,53 @@ function LoginForm() {
   const googleButtonRef = React.useRef<HTMLDivElement>(null);
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
+  React.useEffect(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const setupGoogle = () => {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response: any) => {
+            try {
+              setError("");
+              setLoading(true);
+              setAvatarState("loading");
+              await googleLogin(response.credential);
+              setAvatarState("success");
+              router.push(callbackUrl);
+            } catch (err) {
+              setAvatarState("error");
+              setError(err instanceof Error ? err.message : "Google sign-in failed");
+            } finally {
+              setLoading(false);
+            }
+          },
+        });
+        if (googleButtonRef.current) {
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: "outline",
+            size: "large",
+            width: "100%",
+          });
+        }
+        setGoogleLoaded(true);
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      setupGoogle();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = setupGoogle;
+    document.head.appendChild(script);
+  }, [callbackUrl, router, setAvatarState]);
+
   // Handle Farm Owner Login
   const handleOwnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -341,8 +388,10 @@ function LoginForm() {
                 onClick={() => {
                   if (window.google?.accounts?.id) {
                     window.google.accounts.id.prompt();
+                  } else if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+                    setError("Google Sign-In is not configured on this domain. Please use email and password.");
                   } else {
-                    setError("Google Sign-In is initializing. If it doesn't open, please check your network or use email login.");
+                    setError("Connecting to Google... Please check your internet connection or use email login.");
                   }
                 }}
                 className="w-full h-12 rounded-xl border border-[#E5E7EB] flex items-center justify-center gap-3 hover:bg-gray-50 active:scale-98 transition-all cursor-pointer bg-white"

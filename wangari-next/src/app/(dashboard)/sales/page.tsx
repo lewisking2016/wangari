@@ -27,7 +27,13 @@ export default function SalesPage() {
   const [search, setSearch] = React.useState("");
   const [filter, setFilter] = React.useState<"all" | "paid" | "pending">("all");
   const { showToast, ToastComponent } = useToast();
-  const [form, setForm] = React.useState({ customerId: "", totalAmount: "", productType: "general" });
+  const [form, setForm] = React.useState({
+    buyerCategory: "walk_in",
+    customerId: "",
+    otherDescription: "",
+    totalAmount: "",
+    productType: "general",
+  });
 
   const load = () => {
     Promise.all([api.get("/api/sales"), api.get("/api/customers")])
@@ -37,14 +43,35 @@ export default function SalesPage() {
   React.useEffect(() => { load(); }, []);
 
   const handleSubmit = async () => {
+    const buyerNotes =
+      form.buyerCategory === "other"
+        ? form.otherDescription || "Other Buyer"
+        : form.buyerCategory === "wholesale"
+        ? "Wholesale Buyer"
+        : form.buyerCategory === "trader"
+        ? "Local Trader / Broker"
+        : form.buyerCategory === "neighbor"
+        ? "Neighbor / Visitor"
+        : form.buyerCategory === "walk_in"
+        ? "Walk-in Customer"
+        : "";
+
     await api.post("/api/sales", {
-      customerId: Number(form.customerId) || null,
+      customerId: form.buyerCategory === "customer" && form.customerId ? Number(form.customerId) : null,
       totalAmount: Number(form.totalAmount),
       amountPaid: Number(form.totalAmount),
       paymentStatus: "paid",
-      items: [{ name: form.productType, quantity: 1, price: Number(form.totalAmount) }],
+      items: [
+        {
+          name: form.productType,
+          quantity: 1,
+          price: Number(form.totalAmount),
+          buyerCategory: form.buyerCategory,
+          buyerNotes,
+        },
+      ],
     });
-    setForm({ customerId: "", totalAmount: "", productType: "general" });
+    setForm({ buyerCategory: "walk_in", customerId: "", otherDescription: "", totalAmount: "", productType: "general" });
     setShowForm(false);
     showToast("Sale recorded!");
     load();
@@ -65,6 +92,17 @@ export default function SalesPage() {
     load();
   };
 
+  const getBuyerLabel = (s: any) => {
+    if (s.customer?.name) return s.customer.name;
+    const items = Array.isArray(s.items) ? s.items : [];
+    const firstItem = items[0];
+    if (firstItem?.buyerNotes) return firstItem.buyerNotes;
+    if (firstItem?.buyerCategory === "wholesale") return "Wholesale Buyer";
+    if (firstItem?.buyerCategory === "trader") return "Local Trader / Broker";
+    if (firstItem?.buyerCategory === "neighbor") return "Neighbor / Visitor";
+    return "Walk-in Customer";
+  };
+
   const totalRevenue = sales.reduce((s, sale) => s + Number(sale.totalAmount), 0);
   const totalPaid = sales.reduce((s, sale) => s + Number(sale.amountPaid), 0);
   const pending = totalRevenue - totalPaid;
@@ -74,7 +112,8 @@ export default function SalesPage() {
     if (filter === "pending" && s.paymentStatus === "paid") return false;
     if (search) {
       const q = search.toLowerCase();
-      return s.customer?.name?.toLowerCase().includes(q) || false;
+      const buyerLabel = getBuyerLabel(s).toLowerCase();
+      return buyerLabel.includes(q);
     }
     return true;
   });
@@ -132,14 +171,65 @@ export default function SalesPage() {
                 <Label className="text-xs font-semibold text-[#64748B]">Amount (KES)</Label>
                 <Input type="number" placeholder="0" value={form.totalAmount} onChange={e => setForm({ ...form, totalAmount: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" />
               </div>
-              <div className="space-y-1 mt-3">
-                <Label className="text-xs font-semibold text-[#64748B]">Buyer (optional)</Label>
-                <select value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full h-10 rounded-xl border border-[#E5E7EB] px-3 text-sm">
-                  <option value="">Walk-in</option>
-                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+              
+              {/* Buyer selection */}
+              <div className="space-y-2 mt-4">
+                <Label className="text-xs font-semibold text-[#64748B]">Buyer Category / Type</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { v: "walk_in", l: "Walk-in Customer" },
+                    { v: "wholesale", l: "Wholesale Off-taker" },
+                    { v: "trader", l: "Market Trader / Broker" },
+                    { v: "neighbor", l: "Neighbor / Visitor" },
+                    { v: "customer", l: "Saved Customer" },
+                    { v: "other", l: "Other (Specify)" },
+                  ].map(b => (
+                    <button
+                      key={b.v}
+                      type="button"
+                      onClick={() => setForm({ ...form, buyerCategory: b.v })}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border min-h-[44px] ${
+                        form.buyerCategory === b.v
+                          ? "bg-[#166534] text-white border-[#166534] shadow-sm"
+                          : "bg-[#F8FAFC] text-[#64748B] border-[#E5E7EB] hover:bg-[#F1F5F9]"
+                      }`}
+                    >
+                      {b.l}
+                    </button>
+                  ))}
+                </div>
+
+                {form.buyerCategory === "customer" && (
+                  <div className="mt-2">
+                    <Label className="text-xs text-[#64748B]">Select Customer</Label>
+                    <select
+                      value={form.customerId}
+                      onChange={e => setForm({ ...form, customerId: e.target.value })}
+                      className="w-full h-11 rounded-xl border border-[#E5E7EB] px-3 text-sm font-semibold bg-white mt-1"
+                    >
+                      <option value="">Choose registered customer...</option>
+                      {customers.map((c: any) => (
+                        <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ""}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {form.buyerCategory === "other" && (
+                  <div className="mt-2 space-y-1">
+                    <Label className="text-xs text-[#64748B]">Describe Buyer / Buyer Name</Label>
+                    <Input
+                      type="text"
+                      placeholder="e.g. Mama Mboga Jane, St. Jude School, County Hotel..."
+                      value={form.otherDescription}
+                      onChange={e => setForm({ ...form, otherDescription: e.target.value })}
+                      className="h-11 rounded-xl font-medium"
+                    />
+                  </div>
+                )}
               </div>
-              <Button onClick={handleSubmit} disabled={!form.totalAmount} className="w-full mt-4 bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50 h-12 text-base font-bold">Save Sale</Button>
+
+              <Button onClick={handleSubmit} disabled={!form.totalAmount} className="w-full mt-5 bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50 h-12 text-base font-bold">Save Sale</Button>
             </CardContent>
           </Card>
         </motion.div>
@@ -258,7 +348,7 @@ export default function SalesPage() {
                           <span className="text-[10px] text-[#94A3B8]">{new Date(s.saleDate).toLocaleDateString()}</span>
                         </div>
                         <p className="text-xs text-[#64748B]">{productNames}</p>
-                        <p className="text-[10px] text-[#94A3B8] mt-0.5">{s.customer?.name || "Walk-in"}</p>
+                        <p className="text-[10px] font-medium text-[#64748B] mt-0.5">{getBuyerLabel(s)}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-extrabold text-[#0F172A]">KES {Number(s.totalAmount).toLocaleString()}</p>

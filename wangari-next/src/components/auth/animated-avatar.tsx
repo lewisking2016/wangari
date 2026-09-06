@@ -74,7 +74,7 @@ export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
       case "success":
         return "Karibu! Welcome to your farm portal 🎉";
       default:
-        return "Jambo! Move your cursor, I'm watching you! 👀✨";
+        return "Jambo! Karibu Wangari Farm System! 👀✨";
     }
   };
 
