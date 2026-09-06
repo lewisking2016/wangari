@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 
 // Routes
@@ -32,6 +33,9 @@ import uploadRoutes from "./routes/upload.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// ─── Performance & Compression ──────────────────────────────
+app.use(compression());
 
 // ─── Security ─────────────────────────────────────────────
 app.use(helmet({ crossOriginOpenerPolicy: false }));
