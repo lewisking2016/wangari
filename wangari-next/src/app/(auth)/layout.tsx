@@ -49,16 +49,16 @@ export default function AuthLayout({
             <AnimatedAvatar state={avatarState} />
           </div>
 
-          {/* Bottom stats */}
+          {/* Bottom stats — Honest & Transparent Highlights */}
           <div className="relative z-10 flex justify-between border-t border-white/10 pt-4">
             {[
-              { value: "50K+", label: "Farmers" },
-              { value: "2M+", label: "Birds Tracked" },
-              { value: "99.9%", label: "Uptime" },
+              { value: "100%", label: "Offline Sync" },
+              { value: "< 3 Taps", label: "Daily Output Log" },
+              { value: "0 Fees", label: "Free 14-Day Trial" },
             ].map((stat) => (
               <div key={stat.label}>
-                <p className="text-xl font-black text-white">{stat.value}</p>
-                <p className="text-[11px] text-white/60 font-semibold">{stat.label}</p>
+                <p className="text-lg font-black text-[#4ADE80]">{stat.value}</p>
+                <p className="text-[11px] text-white/70 font-semibold">{stat.label}</p>
               </div>
             ))}
           </div>

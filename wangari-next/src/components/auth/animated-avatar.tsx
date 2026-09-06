@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, WifiOff, Sparkles, CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { ShieldCheck, WifiOff, Sparkles } from "lucide-react";
 
 export type AvatarState =
   | "idle"
@@ -21,9 +21,38 @@ interface AnimatedAvatarProps {
 }
 
 export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
-  // Eye tracking offset for typing fields
-  const eyeX = state === "typing-email" ? 4 : state === "typing-name" ? -4 : state === "typing-farm" ? 2 : 0;
-  const eyeY = state.startsWith("typing") ? 3 : 0;
+  const avatarRef = React.useRef<HTMLDivElement>(null);
+  const [mouseEye, setMouseEye] = React.useState({ x: 0, y: 0 });
+
+  // Track global mouse pointer movement everywhere on screen
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!avatarRef.current) return;
+      const rect = avatarRef.current.getBoundingClientRect();
+      const avatarCenterX = rect.left + rect.width / 2;
+      const avatarCenterY = rect.top + rect.height / 2;
+
+      const dx = e.clientX - avatarCenterX;
+      const dy = e.clientY - avatarCenterY;
+      const angle = Math.atan2(dy, dx);
+      const dist = Math.min(Math.hypot(dx, dy) / 30, 6.5);
+
+      setMouseEye({
+        x: Math.cos(angle) * dist,
+        y: Math.sin(angle) * dist,
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // Additional typing field offset override if focused
+  const fieldEyeX = state === "typing-email" ? 3 : state === "typing-name" ? -3 : state === "typing-farm" ? 2 : 0;
+  const fieldEyeY = state.startsWith("typing") ? 2 : 0;
+
+  const pupilX = mouseEye.x + fieldEyeX;
+  const pupilY = mouseEye.y + fieldEyeY;
 
   // Status message speech bubble
   const getSpeechBubbleText = () => {
@@ -45,7 +74,7 @@ export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
       case "success":
         return "Karibu! Welcome to your farm portal 🎉";
       default:
-        return "Jambo! Ready to grow your farm? 🌿";
+        return "Jambo! Move your cursor, I'm watching you! 👀✨";
     }
   };
 
@@ -65,8 +94,8 @@ export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
       </motion.div>
 
       {/* SVG ANIMATED CARTOON EMOJI AVATAR */}
-      <div className="relative w-44 h-44 flex items-center justify-center">
-        {/* Confetti or glow on success */}
+      <div ref={avatarRef} className="relative w-44 h-44 flex items-center justify-center">
+        {/* Confetti / glow on success */}
         {state === "success" && (
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
@@ -159,29 +188,29 @@ export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
                   <line x1="128" y1="88" x2="116" y2="100" />
                 </g>
               ) : (
-                /* Normal tracking eyes */
+                /* Dynamic Mouse Pointer Tracking Eyes 👀 */
                 <g>
                   {/* Eyeballs */}
-                  <circle cx="76" cy="95" r="10" fill="#FFFFFF" stroke="#0F172A" strokeWidth="1.5" />
-                  <circle cx="124" cy="95" r="10" fill="#FFFFFF" stroke="#0F172A" strokeWidth="1.5" />
-                  {/* Pupils with smooth offset */}
+                  <circle cx="76" cy="95" r="11" fill="#FFFFFF" stroke="#0F172A" strokeWidth="1.5" />
+                  <circle cx="124" cy="95" r="11" fill="#FFFFFF" stroke="#0F172A" strokeWidth="1.5" />
+                  {/* Pupils with smooth mouse tracking */}
                   <motion.circle
-                    cx={76 + eyeX}
-                    cy={95 + eyeY}
+                    cx={76 + pupilX}
+                    cy={95 + pupilY}
                     r="5"
                     fill="#0F172A"
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   />
                   <motion.circle
-                    cx={124 + eyeX}
-                    cy={95 + eyeY}
+                    cx={124 + pupilX}
+                    cy={95 + pupilY}
                     r="5"
                     fill="#0F172A"
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   />
-                  {/* Eye shine */}
-                  <circle cx={74 + eyeX} cy={93 + eyeY} r="1.8" fill="#FFFFFF" />
-                  <circle cx={122 + eyeX} cy={93 + eyeY} r="1.8" fill="#FFFFFF" />
+                  {/* Eye shine reflection */}
+                  <circle cx={74 + pupilX} cy={93 + pupilY} r="1.8" fill="#FFFFFF" />
+                  <circle cx={122 + pupilX} cy={93 + pupilY} r="1.8" fill="#FFFFFF" />
                 </g>
               )}
             </g>
