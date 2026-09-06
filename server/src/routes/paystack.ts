@@ -17,16 +17,15 @@ const PLANS = {
 router.post("/", authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.userId;
-    let { email, plan, callback_url } = req.body;
+    let { email, plan, callback_url, phone } = req.body;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    if (!email) {
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
-      email = user?.email;
-    }
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, phone: true } });
+    if (!email) email = user?.email;
+    if (!phone) phone = user?.phone;
 
     if (!email || !plan) {
       return res.status(400).json({ error: "Email and plan are required" });
@@ -37,23 +36,30 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid plan" });
     }
 
+    const payload: any = {
+      email,
+      amount: planConfig.amount,
+      currency: "KES",
+      channels: ["card", "mobile_money"],
+      callback_url: callback_url || `https://wangari.imeantech.com/subscription?payment=success`,
+      metadata: {
+        userId,
+        plan,
+        plan_name: planConfig.name,
+      },
+    };
+
+    if (phone) {
+      payload.phone = phone;
+    }
+
     const response = await fetch(`${PAYSTACK_API}/transaction/initialize`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email,
-        amount: planConfig.amount,
-        currency: "KES",
-        callback_url: callback_url || `https://wangari.imeantech.com/subscription?payment=success`,
-        metadata: {
-          userId,
-          plan,
-          plan_name: planConfig.name,
-        },
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = (await response.json()) as any;

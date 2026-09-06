@@ -21,6 +21,7 @@ import {
   Star,
   Quote,
 } from "lucide-react";
+import { TestimonialsSlider } from "@/components/landing/TestimonialsSlider";
 import { TextRoll } from "@/components/ui/text-roll";
 import { WaveGridBackground } from "@/components/ui/wave-grid-background";
 
@@ -311,36 +312,15 @@ export default function LandingPage() {
       {/* ═══════ TESTIMONIALS ═══════ */}
       <section className="py-28 px-6 bg-gradient-to-b from-white to-[#F0FDF4]">
         <div className="mx-auto max-w-7xl">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
             <p className="text-sm font-bold uppercase tracking-widest text-[#22C55E] mb-3">Testimonials</p>
             <h2 className="text-3xl md:text-5xl font-extrabold text-[#0F172A] tracking-tight">
               Built for farmers, by people who farm
             </h2>
-            <p className="mt-5 text-lg text-[#64748B]">Early feedback from our pilot farmers.</p>
+            <p className="mt-4 text-base md:text-lg text-[#64748B]">Real feedback from commercial & smallholder farmers across Kenya.</p>
           </motion.div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((t) => (
-              <motion.div
-                key={t.name}
-                variants={fadeUp}
-                whileHover={{ y: -6 }}
-                className="relative rounded-2xl border border-[#E5E7EB] bg-white p-8 hover:shadow-2xl hover:shadow-[#166534]/5 transition-all duration-500"
-              >
-                <Quote className="h-8 w-8 text-[#166534]/20 mb-4" />
-                <p className="text-sm text-[#334155] leading-relaxed mb-6">{t.text}</p>
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#166534] text-[#166534]" />
-                  ))}
-                </div>
-                <div>
-                  <p className="font-bold text-[#0F172A]">{t.name}</p>
-                  <p className="text-xs text-[#64748B]">{t.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          <TestimonialsSlider />
         </div>
       </section>
 

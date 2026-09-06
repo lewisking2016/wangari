@@ -45,8 +45,24 @@ router.get("/", async (req: Request, res: Response) => {
     let lon = req.query.lon ? Number(req.query.lon) : null;
     let locationName = "Your Farm";
 
-    // If no GPS coords, lookup farm location/county in DB
-    if (!lat || !lon) {
+    // If GPS coords provided, reverse geocode to get real place name
+    if (lat && lon) {
+      try {
+        const revRes = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+        );
+        if (revRes.ok) {
+          const revData: any = await revRes.json();
+          const place = revData.locality || revData.city || revData.principalSubdivision;
+          if (place) {
+            locationName = `${place}${revData.countryName ? `, ${revData.countryName}` : ""}`;
+          }
+        }
+      } catch (e) {
+        console.error("Reverse geocoding error:", e);
+      }
+    } else {
+      // Lookup farm location/county in DB
       try {
         const farm = await prisma.farm.findUnique({
           where: { id: farmId },
@@ -76,13 +92,13 @@ router.get("/", async (req: Request, res: Response) => {
       }
     }
 
-    // Default coordinates if still empty: Nakuru, Kenya
+    // If no real GPS coords and no farm location set, return noData (no fake demo defaults)
     if (!lat || !lon) {
-      lat = -0.3031;
-      lon = 36.08;
-      if (locationName === "Your Farm") {
-        locationName = "Nakuru, Kenya";
-      }
+      return res.json({
+        noData: true,
+        location: "",
+        description: "Set your farm location in Settings or enable browser location to view live weather.",
+      });
     }
 
     // Fetch from Open-Meteo (100% free, no API key needed)

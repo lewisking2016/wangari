@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import api from "@/lib/api-client";
+import { PaymentResultModal } from "@/components/subscription/PaymentResultModal";
+import { useSearchParams } from "next/navigation";
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
@@ -21,14 +23,42 @@ const PLANS = [
 export default function SubscriptionPage() {
   const [sub, setSub] = React.useState<any>(null);
   const [trial, setTrial] = React.useState<any>(null);
+  const [userEmail, setUserEmail] = React.useState<string>("");
   const [loading, setLoading] = React.useState(true);
   const [purchasing, setPurchasing] = React.useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const paymentParam = searchParams.get("payment");
+  const trxrefParam = searchParams.get("trxref") || searchParams.get("reference");
+  const reasonParam = searchParams.get("reason");
+
+  const [modalState, setModalState] = React.useState<{
+    show: boolean;
+    type: "success" | "failed";
+    reference?: string | null;
+    reason?: string | null;
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (paymentParam === "success" || trxrefParam) {
+      setModalState({ show: true, type: "success", reference: trxrefParam });
+    } else if (paymentParam === "failed") {
+      setModalState({ show: true, type: "failed", reason: reasonParam || "Transaction was not completed or was cancelled." });
+    }
+  }, [paymentParam, trxrefParam, reasonParam]);
+
   React.useEffect(() => {
     api.get("/api/trial/status")
-      .then((d: any) => { setSub(d.subscription); setTrial(d.trial); })
+      .then((d: any) => {
+        setSub(d.subscription);
+        setTrial(d.trial);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    api.get("/api/auth/me").then((d: any) => {
+      if (d?.email) setUserEmail(d.email);
+    }).catch(() => {});
   }, []);
 
   const handleSubscribe = async (planKey: string) => {
@@ -172,6 +202,22 @@ export default function SubscriptionPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {modalState?.show && (
+        <PaymentResultModal
+          type={modalState.type}
+          reference={modalState.reference}
+          amount={sub?.amount || 150000}
+          planName={sub?.planName || "Starter Plan"}
+          userEmail={userEmail}
+          reason={modalState.reason}
+          onClose={() => setModalState(null)}
+          onRetry={() => {
+            setModalState(null);
+            handleSubscribe("starter_monthly");
+          }}
+        />
+      )}
     </div>
   );
 }

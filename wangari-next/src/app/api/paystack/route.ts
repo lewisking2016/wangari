@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
         email,
         amount: planConfig.amount,
         currency: "KES",
+        channels: ["card", "mobile_money"],
         callback_url: callback_url || `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
         metadata: {
           plan,

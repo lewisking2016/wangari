@@ -30,7 +30,8 @@ import Link from "next/link";
 import api from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import { TrialBanner } from "@/components/trial/trial-banner";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { PaymentResultModal } from "@/components/subscription/PaymentResultModal";
 
 // Components
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -83,16 +84,18 @@ const DEFAULT_WEATHER = {
 
 function DashboardContent() {
   const { user } = useAuth();
+  const router = useRouter();
   const [data, setData] = React.useState<any>(null);
   const [weather, setWeather] = React.useState<any>(DEFAULT_WEATHER);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [profileDismissed, setProfileDismissed] = React.useState(false);
   const [trialData, setTrialData] = React.useState<any>(null);
+  const [paymentModal, setPaymentModal] = React.useState<{ type: "success" | "failed"; reference?: string | null } | null>(null);
   const searchParams = useSearchParams();
   const subscribePlan = searchParams.get("subscribe");
 
-  // Handle Paystack checkout on ?subscribe= param
+  // Handle Paystack checkout on ?subscribe= param → always redirect to /subscription for receipt
   React.useEffect(() => {
     if (subscribePlan && user?.email) {
       const doCheckout = async () => {
@@ -100,7 +103,7 @@ function DashboardContent() {
           const res = await api.post("/api/paystack", {
             email: user.email,
             plan: subscribePlan,
-            callback_url: `${window.location.origin}/dashboard?payment=success`,
+            callback_url: `${window.location.origin}/subscription?payment=success`,
           });
           if (res.authorization_url) {
             window.location.href = res.authorization_url;
@@ -112,6 +115,21 @@ function DashboardContent() {
       doCheckout();
     }
   }, [subscribePlan, user?.email]);
+
+  // Handle ?payment= params if user lands on dashboard (legacy / direct link)
+  React.useEffect(() => {
+    const payment = searchParams.get("payment");
+    const ref = searchParams.get("trxref") || searchParams.get("reference");
+    if (payment === "success") {
+      setPaymentModal({ type: "success", reference: ref });
+      // Clean up URL
+      router.replace("/dashboard", { scroll: false });
+    } else if (payment === "failed") {
+      setPaymentModal({ type: "failed" });
+      router.replace("/dashboard", { scroll: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -269,19 +287,20 @@ function DashboardContent() {
         </div>
       </motion.div>
 
-      {/* Payment success banner */}
-      {searchParams.get("payment") === "success" && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="border border-[#BBF7D0] bg-[#F0FDF4]">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-[#166534] flex items-center justify-center text-white text-lg font-bold">✓</div>
-              <div>
-                <p className="text-sm font-bold text-[#0F172A]">Payment successful!</p>
-                <p className="text-xs text-[#64748B]">Your subscription is now active. Welcome to Wangari.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      {/* Payment result modal */}
+      {paymentModal && (
+        <PaymentResultModal
+          type={paymentModal.type}
+          reference={paymentModal.reference}
+          amount={trialData?.subscription?.amount || 150000}
+          planName={trialData?.subscription?.plan_name || "Wangari Plan"}
+          userEmail={user?.email}
+          onClose={() => setPaymentModal(null)}
+          onRetry={() => {
+            setPaymentModal(null);
+            router.push("/subscription");
+          }}
+        />
       )}
 
       {/* Trial / Subscription Banner */}
