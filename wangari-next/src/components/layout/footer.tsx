@@ -17,9 +17,8 @@ export function Footer() {
               <span className="text-xl font-extrabold text-[#0F172A]">Wangari</span>
             </div>
             <p className="text-sm text-[#64748B] leading-relaxed max-w-sm">
-              The all-in-one farm management platform built for African farmers.
-              Track flocks, manage inventory, monitor finances, and grow your farm
-              with confidence.
+              The smart, offline-first farm management platform for farmers in Kenya & East Africa.
+              Track poultry, livestock, feed inventory, sales, and profit in KES from your phone or WhatsApp.
             </p>
             <div className="mt-5 space-y-2.5">
               <div className="flex items-center gap-2.5 text-sm text-[#64748B]">
@@ -28,35 +27,37 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2.5 text-sm text-[#64748B]">
                 <Phone className="h-4 w-4 text-[#166534]" />
-                <span>+254 114 971 070</span>
+                <span>+254 114 971 070 (Kenya)</span>
               </div>
               <div className="flex items-center gap-2.5 text-sm text-[#64748B]">
                 <MapPin className="h-4 w-4 text-[#166534]" />
-                <span>Nairobi, Kenya</span>
+                <span>Nairobi, Kenya &middot; East Africa</span>
               </div>
             </div>
           </div>
 
-          {/* Product */}
+          {/* Product Modules */}
           <div>
-            <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-widest mb-4">Product</h3>
+            <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-widest mb-4">Platform Hubs</h3>
             <ul className="space-y-3">
-              <li><Link002 href="/pricing" className="text-sm text-[#64748B] hover:text-[#166534]">Pricing</Link002></li>
-              <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">Features</Link002></li>
-              <li><Link002 href="/ai" className="text-sm text-[#64748B] hover:text-[#166534]">AI Assistant</Link002></li>
-              <li><Link002 href="/dashboard" className="text-sm text-[#64748B] hover:text-[#166534]">Dashboard</Link002></li>
-              <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">Documentation</Link002></li>
+              <li><Link002 href="/features/flocks" className="text-sm text-[#64748B] hover:text-[#166534]">Flock & Livestock</Link002></li>
+              <li><Link002 href="/features/production" className="text-sm text-[#64748B] hover:text-[#166534]">Daily Production</Link002></li>
+              <li><Link002 href="/features/inventory" className="text-sm text-[#64748B] hover:text-[#166534]">Feed & Inventory</Link002></li>
+              <li><Link002 href="/features/analytics" className="text-sm text-[#64748B] hover:text-[#166534]">Financial Analytics</Link002></li>
+              <li><Link002 href="/features/team" className="text-sm text-[#64748B] hover:text-[#166534]">Worker Attendance</Link002></li>
+              <li><Link002 href="/features/ai" className="text-sm text-[#64748B] hover:text-[#166534]">AI Farm Assistant</Link002></li>
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Navigation & Pricing */}
           <div>
-            <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-widest mb-4">Company</h3>
+            <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-widest mb-4">Explore</h3>
             <ul className="space-y-3">
-              <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">About Us</Link002></li>
-              <li><Link002 href="mailto:info@imeantech.com" className="text-sm text-[#64748B] hover:text-[#166534]">Contact</Link002></li>
-              <li><Link002 href="https://imeantech.com" className="text-sm text-[#64748B] hover:text-[#166534]">iMeanTech</Link002></li>
-              <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">Careers</Link002></li>
+              <li><Link002 href="/pricing" className="text-sm text-[#64748B] hover:text-[#166534]">Pricing Plans</Link002></li>
+              <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">About Wangari</Link002></li>
+              <li><Link002 href="/register" className="text-sm text-[#64748B] hover:text-[#166534]">Create Free Account</Link002></li>
+              <li><Link002 href="/login" className="text-sm text-[#64748B] hover:text-[#166534]">Sign In</Link002></li>
+              <li><Link002 href="https://imeantech.com" className="text-sm text-[#64748B] hover:text-[#166534]">iMeanTech Platform</Link002></li>
             </ul>
           </div>
 
