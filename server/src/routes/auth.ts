@@ -24,13 +24,19 @@ router.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Name, email, and password are required" });
     }
 
-    if (!isAllowedEmail(email)) {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    if (!isAllowedEmail(normalizedEmail)) {
       return res.status(400).json({ error: "Only Gmail and Outlook email addresses are accepted for registration" });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findFirst({
+      where: {
+        email: { equals: normalizedEmail, mode: "insensitive" },
+      },
+    });
     if (existing) {
-      return res.status(409).json({ error: "Email already registered" });
+      return res.status(409).json({ error: "An account with this email address already has a registered farm. Please sign in instead." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -40,7 +46,7 @@ router.post("/register", async (req: Request, res: Response) => {
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         phone: phone || null,
         trialStartsAt: now,
@@ -83,15 +89,17 @@ router.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (!isAllowedEmail(email)) {
+    if (!isAllowedEmail(normalizedEmail)) {
       return res.status(400).json({ error: "Only Gmail and Outlook email addresses are accepted" });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findFirst({
+      where: {
+        email: { equals: normalizedEmail, mode: "insensitive" },
+      },
+    });
     if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -245,12 +253,14 @@ router.post("/google", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid Google token data" });
     }
 
-    // Check if user exists by googleId or email
+    const normalizedGoogleEmail = googleUser.email.toLowerCase().trim();
+
+    // Check if user exists by googleId or email (case-insensitive)
     let user = await prisma.user.findFirst({
       where: {
         OR: [
           { googleId: googleUser.sub },
-          { email: googleUser.email },
+          { email: { equals: normalizedGoogleEmail, mode: "insensitive" } },
         ],
       },
     });
@@ -270,8 +280,8 @@ router.post("/google", async (req: Request, res: Response) => {
 
       user = await prisma.user.create({
         data: {
-          name: googleUser.name || googleUser.email.split("@")[0],
-          email: googleUser.email,
+          name: googleUser.name || normalizedGoogleEmail.split("@")[0],
+          email: normalizedGoogleEmail,
           googleId: googleUser.sub,
           avatar: googleUser.picture || null,
           trialStartsAt: now,

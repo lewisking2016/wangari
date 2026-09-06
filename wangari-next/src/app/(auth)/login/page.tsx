@@ -47,8 +47,7 @@ function LoginForm() {
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1068800164805-4g9b55vg23a9d9g030b4j4g1v0n2s4.apps.googleusercontent.com";
 
     const setupGoogle = () => {
       if (window.google?.accounts?.id) {

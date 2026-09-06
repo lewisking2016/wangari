@@ -37,14 +37,10 @@ export default function RegisterPage() {
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1068800164805-4g9b55vg23a9d9g030b4j4g1v0n2s4.apps.googleusercontent.com";
 
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.onload = () => {
-      if (window.google) {
+    const setupGoogle = () => {
+      if (window.google?.accounts?.id) {
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: async (response: any) => {
@@ -74,6 +70,16 @@ export default function RegisterPage() {
         setGoogleLoaded(true);
       }
     };
+
+    if (window.google?.accounts?.id) {
+      setupGoogle();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = setupGoogle;
     document.head.appendChild(script);
   }, [router, setAvatarState]);
 
