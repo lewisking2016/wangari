@@ -1,10 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import * as React from "react";
 import { motion } from "framer-motion";
-import { CreditCard, Calendar, CheckCircle2, AlertTriangle, Clock, ArrowUpRight, ExternalLink } from "lucide-react";
+import { CreditCard, AlertTriangle, Clock, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +20,8 @@ const PLANS = [
   { key: "growth_annual", name: "Growth Annual", price: "KES 36,000/yr", hubs: "3 hubs + Inventory", features: ["Same as Growth monthly", "2 months free"] },
 ];
 
-export default function SubscriptionPage() {
+// ── Inner component — uses useSearchParams, must be inside <Suspense> ──────────
+function SubscriptionContent() {
   const [sub, setSub] = React.useState<any>(null);
   const [trial, setTrial] = React.useState<any>(null);
   const [userEmail, setUserEmail] = React.useState<string>("");
@@ -67,7 +66,7 @@ export default function SubscriptionPage() {
     setPurchasing(planKey);
     try {
       const res = await api.post("/api/paystack", {
-        email: "", // filled by backend from JWT
+        email: "",
         plan: planKey,
         callback_url: `${window.location.origin}/subscription?payment=success`,
       });
@@ -81,7 +80,11 @@ export default function SubscriptionPage() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" />
+    </div>
+  );
 
   const isActive = sub?.status === "active";
   const isPending = sub?.status === "pending";
@@ -163,7 +166,7 @@ export default function SubscriptionPage() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <h3 className="text-sm font-bold text-[#0F172A] mb-3">Available Plans</h3>
         <div className="grid gap-4">
-          {PLANS.filter(p => !p.key.includes("annual") || true).map(plan => (
+          {PLANS.map(plan => (
             <Card key={plan.key} className="border border-[#E5E7EB] hover:border-[#166534] transition-colors">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
@@ -210,7 +213,7 @@ export default function SubscriptionPage() {
           type={modalState.type}
           reference={modalState.reference}
           amount={sub?.amount || 150000}
-          planName={sub?.planName || "Starter Plan"}
+          planName={sub?.plan_name || "Starter Plan"}
           userEmail={userEmail}
           reason={modalState.reason}
           onClose={() => setModalState(null)}
@@ -221,5 +224,20 @@ export default function SubscriptionPage() {
         />
       )}
     </div>
+  );
+}
+
+// ── Page shell — wraps content in Suspense so useSearchParams works ────────────
+export default function SubscriptionPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" />
+        </div>
+      }
+    >
+      <SubscriptionContent />
+    </React.Suspense>
   );
 }
