@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
-import { X, Lock, Check, ArrowRight } from "lucide-react";
+import { X, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface UpgradePopupProps {
   open: boolean;
@@ -33,39 +34,47 @@ const plans = [
 ];
 
 export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!open) return null;
 
   const isExpired = moduleName === "Free Trial Expired";
 
-  return (
+  const content = (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4"
-      onClick={isExpired ? undefined : onClose}
+      className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[9999] p-4 overflow-y-auto"
+      onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+        className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl my-auto border border-gray-100 animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-[#0B1220] via-[#14532D] to-[#166534] px-6 py-8 text-center">
-          {!isExpired && (
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          )}
+        <div className="relative bg-gradient-to-br from-[#0B1220] via-[#14532D] to-[#166534] px-6 py-8 text-center text-white">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all cursor-pointer border border-white/20"
+            aria-label="Close modal"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Back</span>
+            <X className="h-3.5 w-3.5 ml-1" />
+          </button>
+          
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 mx-auto mb-4">
             <Lock className="h-7 w-7 text-white" />
           </div>
           <h2 className="text-xl font-extrabold text-white">
-            {isExpired ? "Your 14-Day Free Trial Has Expired" : moduleName ? `"${moduleName}" requires a plan` : "Upgrade your plan"}
+            {isExpired ? "Your 14-Day Free Trial Has Expired" : moduleName ? `"${moduleName}" Requires a Plan` : "Upgrade Your Plan"}
           </h2>
-          <p className="text-white/80 text-sm mt-2">
+          <p className="text-white/80 text-xs sm:text-sm mt-2 max-w-sm mx-auto">
             {isExpired
               ? "Subscribe to a plan to continue managing your farm, flocks, and finances."
-              : "Choose a plan to unlock this module and many more features."}
+              : "Choose a plan to unlock this module and enjoy full access to all features."}
           </p>
         </div>
 
@@ -101,7 +110,7 @@ export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
                 </div>
               </div>
               <Link
-                href="/pricing"
+                href="/subscription"
                 onClick={onClose}
                 className={`flex items-center gap-1 px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
                   plan.popular
@@ -109,24 +118,33 @@ export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
                     : "border border-[#E5E7EB] text-[#0F172A] hover:border-[#166534] hover:text-[#166534]"
                 }`}
               >
-                View <ArrowRight className="h-3 w-3" />
+                Choose <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 pb-6">
+        {/* Footer Actions */}
+        <div className="px-6 pb-6 space-y-2">
           <Link
-            href="/pricing"
+            href="/subscription"
             onClick={onClose}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#166534] text-white text-sm font-bold hover:bg-[#14532D] transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#166534] text-white text-sm font-extrabold hover:bg-[#14532D] transition-colors shadow-md"
           >
-            See All Plans & Pricing
+            See All Plans & Subscription Options
             <ArrowRight className="h-4 w-4" />
           </Link>
+          <button
+            onClick={onClose}
+            className="w-full py-2 text-xs font-bold text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer text-center"
+          >
+            ← Back to Farm Navigation
+          </button>
         </div>
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+  return createPortal(content, document.body);
 }

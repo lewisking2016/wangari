@@ -1,10 +1,13 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Clock, CheckCircle2, LogIn, LogOut, Trash2, Users, Calendar, DollarSign, AlertTriangle } from "lucide-react";
+import { Clock, CheckCircle2, LogIn, LogOut, Trash2, Users, Calendar, DollarSign, AlertTriangle, Plus, X, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
@@ -18,6 +21,8 @@ export default function AttendancePage() {
   const [workers, setWorkers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split("T")[0]);
+  const [showAddWorker, setShowAddWorker] = React.useState(false);
+  const [newWorker, setNewWorker] = React.useState({ name: "", role: "", phone: "", dailyWage: "" });
   const { showToast, ToastComponent } = useToast();
 
   const load = () => {
@@ -29,24 +34,49 @@ export default function AttendancePage() {
 
   const isToday = selectedDate === new Date().toISOString().split("T")[0];
   const dayRecords = records.filter(r => new Date(r.date).toISOString().split("T")[0] === selectedDate);
+  const activeWorkers = workers.filter(w => !w.status || w.status.toLowerCase() === "active");
   const present = dayRecords.filter(r => r.checkIn).length;
   const checkedOut = dayRecords.filter(r => r.checkOut).length;
-  const absent = workers.filter(w => w.status === "active").length - present;
+  const absent = Math.max(0, activeWorkers.length - present);
 
   // Wage calculation for the day
   const dayWages = dayRecords.reduce((s, r) => s + (r.worker?.dailyWage ? Number(r.worker.dailyWage) : 0), 0);
 
   const handleClockInOut = async (workerId: number) => {
-    await api.post("/api/attendance", { workerId, date: new Date().toISOString() });
-    const worker = workers.find(w => w.id === workerId);
-    const existing = dayRecords.find(r => r.workerId === workerId);
-    showToast(existing?.checkIn && !existing?.checkOut ? `${worker?.name} clocked out` : `${worker?.name} clocked in`);
-    load();
+    try {
+      await api.post("/api/attendance", { workerId, date: new Date().toISOString() });
+      const worker = workers.find(w => w.id === workerId);
+      const existing = dayRecords.find(r => r.workerId === workerId);
+      showToast(existing?.checkIn && !existing?.checkOut ? `${worker?.name || "Worker"} clocked out!` : `${worker?.name || "Worker"} clocked in!`);
+      load();
+    } catch {
+      showToast("Failed to record clock in/out. Try again.");
+    }
+  };
+
+  const handleAddWorker = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newWorker.name.trim()) return;
+    try {
+      const added: any = await api.post("/api/workers", {
+        name: newWorker.name,
+        role: newWorker.role || "Farm Hand",
+        phone: newWorker.phone || null,
+        dailyWage: newWorker.dailyWage ? Number(newWorker.dailyWage) : null,
+      });
+      setNewWorker({ name: "", role: "", phone: "", dailyWage: "" });
+      setShowAddWorker(false);
+      showToast(`${added.name || "Worker"} added successfully!`);
+      load();
+    } catch {
+      showToast("Failed to add worker.");
+    }
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this record?")) return;
-    await api.delete("/api/attendance/" + id); load();
+    await api.delete("/api/attendance/" + id);
+    load();
   };
 
   // Date navigation
@@ -60,15 +90,60 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6">
+      {ToastComponent}
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <PageHeader title="Attendance" description="Track worker clock in and out" />
+        <PageHeader
+          title="Attendance"
+          description="Track worker clock in and out"
+          action={
+            <Button onClick={() => setShowAddWorker(!showAddWorker)} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer font-bold">
+              <UserPlus className="h-4 w-4 mr-2" /> Add Worker
+            </Button>
+          }
+        />
       </motion.div>
+
+      {/* Add Worker Inline Modal/Card */}
+      {showAddWorker && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+          <Card className="border border-[#166534]/30 bg-[#F0FDF4]">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-[#0F172A]">Add New Farm Worker</h3>
+                <button onClick={() => setShowAddWorker(false)} className="text-[#64748B] hover:text-[#0F172A]"><X className="h-4 w-4" /></button>
+              </div>
+              <form onSubmit={handleAddWorker} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <Label className="text-xs text-[#64748B]">Worker Name *</Label>
+                  <Input required placeholder="e.g. John Kamau" value={newWorker.name} onChange={e => setNewWorker({ ...newWorker, name: e.target.value })} className="h-10 bg-white" />
+                </div>
+                <div>
+                  <Label className="text-xs text-[#64748B]">Role / Title</Label>
+                  <Input placeholder="e.g. Feeder, Milker, General" value={newWorker.role} onChange={e => setNewWorker({ ...newWorker, role: e.target.value })} className="h-10 bg-white" />
+                </div>
+                <div>
+                  <Label className="text-xs text-[#64748B]">Phone (Optional)</Label>
+                  <Input placeholder="0712345678" value={newWorker.phone} onChange={e => setNewWorker({ ...newWorker, phone: e.target.value })} className="h-10 bg-white" />
+                </div>
+                <div>
+                  <Label className="text-xs text-[#64748B]">Daily Wage (KES)</Label>
+                  <Input type="number" placeholder="500" value={newWorker.dailyWage} onChange={e => setNewWorker({ ...newWorker, dailyWage: e.target.value })} className="h-10 bg-white" />
+                </div>
+                <div className="sm:col-span-2 lg:col-span-4 flex justify-end gap-2 mt-2">
+                  <Button type="button" variant="outline" onClick={() => setShowAddWorker(false)}>Cancel</Button>
+                  <Button type="submit" className="bg-[#166534] hover:bg-[#14532D]">Save Worker</Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Date picker */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <Card className="border border-[#E5E7EB]">
           <CardContent className="flex items-center justify-between p-4">
-            <button onClick={() => changeDate(-1)} className="px-3 py-2 rounded-xl bg-[#F1F5F9] text-[#64748B] text-sm font-bold cursor-pointer">Prev</button>
+            <button onClick={() => changeDate(-1)} className="px-3 py-2 rounded-xl bg-[#F1F5F9] text-[#64748B] text-sm font-bold cursor-pointer hover:bg-[#E2E8F0]">Prev</button>
             <div className="text-center">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-[#166534]" />
@@ -76,7 +151,7 @@ export default function AttendancePage() {
               </div>
               {isToday && <p className="text-[10px] text-[#166534] font-bold mt-0.5">Today</p>}
             </div>
-            <button onClick={() => changeDate(1)} disabled={isToday} className="px-3 py-2 rounded-xl bg-[#F1F5F9] text-[#64748B] text-sm font-bold cursor-pointer disabled:opacity-30">Next</button>
+            <button onClick={() => changeDate(1)} disabled={isToday} className="px-3 py-2 rounded-xl bg-[#F1F5F9] text-[#64748B] text-sm font-bold cursor-pointer disabled:opacity-30 hover:bg-[#E2E8F0]">Next</button>
           </CardContent>
         </Card>
       </motion.div>
@@ -85,9 +160,9 @@ export default function AttendancePage() {
       <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { title: "Present", value: String(present), icon: <CheckCircle2 className="h-5 w-5" />, color: "bg-emerald-500" },
-          { title: "Absent", value: String(Math.max(0, absent)), icon: <AlertTriangle className="h-5 w-5" />, color: absent > 0 ? "bg-red-500" : "bg-[#166534]" },
+          { title: "Absent", value: String(absent), icon: <AlertTriangle className="h-5 w-5" />, color: absent > 0 ? "bg-amber-500" : "bg-[#166534]" },
           { title: "Checked Out", value: String(checkedOut), icon: <LogOut className="h-5 w-5" />, color: "bg-[#166534]" },
-          { title: "Day Wages", value: `KES ${dayWages.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-amber-500" },
+          { title: "Day Wages", value: `KES ${dayWages.toLocaleString()}`, icon: <DollarSign className="h-5 w-5" />, color: "bg-emerald-600" },
         ].map(kpi => (
           <motion.div key={kpi.title} variants={fadeUp}>
             <Card className="border border-[#E5E7EB]">
@@ -105,42 +180,66 @@ export default function AttendancePage() {
       {isToday && (
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
           <Card className="border border-[#E5E7EB]">
-            <CardContent className="p-4">
-              <p className="text-xs font-bold text-[#0F172A] mb-3">Quick Clock In/Out</p>
-              <div className="space-y-2">
-                {workers.filter(w => w.status === "active").map(w => {
-                  const todayRec = dayRecords.find(r => r.workerId === w.id);
-                  const isCheckedIn = todayRec?.checkIn && !todayRec?.checkOut;
-                  const isDone = todayRec?.checkIn && todayRec?.checkOut;
-                  return (
-                    <div key={w.id} className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB]">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={w.name} size="sm" />
-                        <div>
-                          <p className="text-sm font-bold text-[#0F172A]">{w.name}</p>
-                          <p className="text-[10px] text-[#94A3B8]">{w.role || "Worker"}</p>
-                        </div>
-                      </div>
-                      {isDone ? (
-                        <div className="text-right">
-                          <Badge className="bg-gray-100 text-[#64748B] border-gray-200">Done</Badge>
-                          <p className="text-[9px] text-[#94A3B8] mt-0.5">{todayRec.checkIn}-{todayRec.checkOut}</p>
-                        </div>
-                      ) : isCheckedIn ? (
-                        <button onClick={() => handleClockInOut(w.id)}
-                          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 hover:bg-amber-100 cursor-pointer">
-                          <LogOut className="h-3.5 w-3.5" />Clock Out
-                        </button>
-                      ) : (
-                        <button onClick={() => handleClockInOut(w.id)}
-                          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#166534] text-white text-xs font-bold hover:bg-[#14532D] cursor-pointer">
-                          <LogIn className="h-3.5 w-3.5" />Clock In
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-[#166534]" />
+                  <p className="text-sm font-extrabold text-[#0F172A]">Quick Clock In / Out</p>
+                </div>
+                <Button size="sm" onClick={() => setShowAddWorker(true)} className="bg-[#166534] text-white text-xs font-bold hover:bg-[#14532D]">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Worker
+                </Button>
               </div>
+
+              {activeWorkers.length === 0 ? (
+                <div className="text-center py-8 px-4 bg-[#F8FAFC] rounded-2xl border border-dashed border-[#E5E7EB] space-y-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] mx-auto">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#0F172A]">No Farm Workers Found</p>
+                    <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">Add workers to your farm profile to clock them in and out each day.</p>
+                  </div>
+                  <Button onClick={() => setShowAddWorker(true)} className="bg-[#166534] hover:bg-[#14532D] font-bold text-xs">
+                    <Plus className="h-4 w-4 mr-1.5" /> Add Worker Now
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {activeWorkers.map(w => {
+                    const todayRec = dayRecords.find(r => r.workerId === w.id);
+                    const isCheckedIn = todayRec?.checkIn && !todayRec?.checkOut;
+                    const isDone = todayRec?.checkIn && todayRec?.checkOut;
+                    return (
+                      <div key={w.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] hover:border-[#BBF7D0] transition-all">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={w.name} size="sm" />
+                          <div>
+                            <p className="text-sm font-bold text-[#0F172A]">{w.name}</p>
+                            <p className="text-[11px] text-[#64748B]">{w.role || "Farm Hand"}</p>
+                          </div>
+                        </div>
+                        {isDone ? (
+                          <div className="text-right">
+                            <Badge className="bg-gray-100 text-[#64748B] border-gray-200">Shift Done</Badge>
+                            <p className="text-[10px] text-[#94A3B8] mt-0.5">{todayRec.checkIn} - {todayRec.checkOut}</p>
+                          </div>
+                        ) : isCheckedIn ? (
+                          <button onClick={() => handleClockInOut(w.id)}
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 hover:bg-amber-100 cursor-pointer min-h-[44px]">
+                            <LogOut className="h-4 w-4" /> Clock Out
+                          </button>
+                        ) : (
+                          <button onClick={() => handleClockInOut(w.id)}
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#166534] text-white text-xs font-bold hover:bg-[#14532D] cursor-pointer min-h-[44px] shadow-xs">
+                            <LogIn className="h-4 w-4" /> Clock In
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

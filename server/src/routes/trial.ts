@@ -108,11 +108,7 @@ router.get("/status", authMiddleware, async (req: Request, res: Response) => {
 
     const moduleAccess: Record<string, boolean> = {};
     for (const [module, hub] of Object.entries(MODULE_HUB_MAP)) {
-      if (hub === "_always") {
-        moduleAccess[module] = true;
-      } else if (hasAccess && selectedHubs.includes(hub)) {
-        moduleAccess[module] = true;
-      } else if (hasAccess && accessReason === "subscription") {
+      if (hub === "_always" || hasAccess) {
         moduleAccess[module] = true;
       } else {
         moduleAccess[module] = false;
