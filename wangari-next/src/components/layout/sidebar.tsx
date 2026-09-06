@@ -115,7 +115,17 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     api.get("/api/trial/status").then((d: any) => {
       setModuleAccess(d.modules || {});
       setTrialInfo(d);
+      if (d.trial?.status === "expired" && !d.subscription) {
+        setLockedModule("Free Trial Expired");
+      }
     }).catch(() => {});
+
+    const handleTrialExpired = (e: any) => {
+      setLockedModule("Free Trial Expired");
+    };
+
+    window.addEventListener("wangari:trial_expired", handleTrialExpired);
+    return () => window.removeEventListener("wangari:trial_expired", handleTrialExpired);
   }, []);
 
   const isModuleEnabled = (key: string) => moduleSettings[key] !== "false";

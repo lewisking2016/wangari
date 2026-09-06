@@ -34,6 +34,8 @@ router.post("/register", async (req: Request, res: Response) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+    const now = new Date();
+    const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
     const user = await prisma.user.create({
       data: {
@@ -41,6 +43,8 @@ router.post("/register", async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         phone: phone || null,
+        trialStartsAt: now,
+        trialEndsAt,
       },
     });
 
@@ -261,12 +265,17 @@ router.post("/google", async (req: Request, res: Response) => {
       }
     } else {
       // New user — create account
+      const now = new Date();
+      const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
       user = await prisma.user.create({
         data: {
           name: googleUser.name || googleUser.email.split("@")[0],
           email: googleUser.email,
           googleId: googleUser.sub,
           avatar: googleUser.picture || null,
+          trialStartsAt: now,
+          trialEndsAt,
           // No password for Google users
         },
       });

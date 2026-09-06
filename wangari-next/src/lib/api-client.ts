@@ -52,6 +52,12 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
 
   const data = await res.json();
 
+  if (res.status === 403 && data?.trialExpired) {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("wangari:trial_expired", { detail: data.error }));
+    }
+  }
+
   if (!res.ok) {
     throw new Error(data.error || `Request failed: ${res.status}`);
   }

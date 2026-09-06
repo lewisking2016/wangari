@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Wangari — Smart Farm Management System",
     description:
-      "Wangari App: Know your real farm profit. Track poultry, crops, feed & sales offline. Free trial available.",
+      "Wangari App: Know your real farm profit. Track poultry, crops, feed & sales offline. 14-day free trial available.",
   },
   icons: {
     icon: [
@@ -128,7 +128,7 @@ export default function RootLayout({
                   price: "0",
                   priceCurrency: "KES",
                   name: "Starter Free Trial",
-                  description: "30-day free trial, no credit card",
+                  description: "14-day free trial, no credit card",
                 },
                 {
                   "@type": "Offer",

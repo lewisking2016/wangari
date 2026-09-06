@@ -35,28 +35,37 @@ const plans = [
 export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
   if (!open) return null;
 
+  const isExpired = moduleName === "Free Trial Expired";
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4"
+      onClick={isExpired ? undefined : onClose}
+    >
       <div
         className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="relative bg-gradient-to-br from-[#0B1220] via-[#14532D] to-[#166534] px-6 py-8 text-center">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {!isExpired && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 mx-auto mb-4">
             <Lock className="h-7 w-7 text-white" />
           </div>
           <h2 className="text-xl font-extrabold text-white">
-            {moduleName ? `"${moduleName}" requires a plan` : "Upgrade your plan"}
+            {isExpired ? "Your 14-Day Free Trial Has Expired" : moduleName ? `"${moduleName}" requires a plan` : "Upgrade your plan"}
           </h2>
-          <p className="text-white/60 text-sm mt-2">
-            Choose a plan to unlock this module and many more features.
+          <p className="text-white/80 text-sm mt-2">
+            {isExpired
+              ? "Subscribe to a plan to continue managing your farm, flocks, and finances."
+              : "Choose a plan to unlock this module and many more features."}
           </p>
         </div>
 

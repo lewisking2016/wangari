@@ -69,7 +69,7 @@ export default function AboutPage() {
               { icon: Users, value: "7", label: "Hubs Built" },
               { icon: Zap, value: "30s", label: "To See Your Profit" },
               { icon: Target, value: "KES 500", label: "Starting Price/Month" },
-              { icon: Shield, value: "Free", label: "30-Day Trial" },
+              { icon: Shield, value: "Free", label: "14-Day Trial" },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center hover:shadow-lg hover:border-[#BBF7D0] transition-all">
                 <s.icon className="h-6 w-6 text-[#166534] mx-auto mb-3" />

@@ -99,7 +99,7 @@ export default function PricingPage() {
             Start free. Upgrade when<br />you see results.
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-5 text-lg text-[#64748B] max-w-2xl mx-auto">
-            Choose the plan that fits your farm. Every plan includes mobile access and daily profit reports. Start with a 30-day free trial — no credit card required.
+            Choose the plan that fits your farm. Every plan includes mobile access and daily profit reports. Start with a 14-day free trial — no credit card required.
           </motion.p>
 
           {/* Toggle */}
@@ -204,7 +204,7 @@ export default function PricingPage() {
           </motion.h2>
           <div className="space-y-6">
             {[
-              { q: "Is there a free trial?", a: "Yes! Every plan starts with a 30-day free trial. All features included. No credit card required. Cancel anytime." },
+              { q: "Is there a free trial?", a: "Yes! Every plan starts with a 14-day free trial. All features included. No credit card required. Cancel anytime." },
               { q: "Can I switch plans later?", a: "Absolutely. Upgrade or downgrade anytime. Your data is always preserved." },
               { q: "What payment methods do you accept?", a: "We accept M-Pesa, Visa, Mastercard, and bank transfers through Paystack." },
               { q: "What happens to my data if I cancel?", a: "We never delete your data. If you cancel, you get read-only access. Come back anytime and your data is there." },

@@ -87,7 +87,7 @@ const stats = [
   { value: "7", label: "Hubs Built", icon: Users },
   { value: "30s", label: "See Your Profit", icon: Bird },
   { value: "KES 500", label: "Starting Monthly", icon: TrendingUp },
-  { value: "Free", label: "30-Day Trial", icon: Shield },
+  { value: "Free", label: "14-Day Trial", icon: Shield },
 ];
 
 const testimonials = [
@@ -143,7 +143,7 @@ export default function LandingPage() {
                 href="/register"
                 className="group inline-flex items-center gap-3 rounded-full bg-white text-[#166534] px-8 py-4 text-base font-bold hover:bg-[#F0FDF4] transition-all duration-300 shadow-2xl shadow-black/20 hover:shadow-3xl hover:-translate-y-1"
               >
-                Start Free — 30 Days, No Card
+                Start Free — 14 Days, No Card
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1.5" />
               </Link>
               <Link
