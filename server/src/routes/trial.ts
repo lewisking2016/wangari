@@ -69,20 +69,27 @@ router.get("/status", authMiddleware, async (req: Request, res: Response) => {
     let trialDaysLeft = 0;
     let trialEndsAt: string | null = null;
 
-    if (user.trialEndsAt) {
-      if (now < user.trialEndsAt) {
+    // Resolve the canonical trial end date
+    let resolvedTrialEndsAt: Date | null = user.trialEndsAt;
+
+    // If trialEndsAt was never persisted, calculate from createdAt and LOCK it in the DB
+    if (!resolvedTrialEndsAt && user.createdAt) {
+      resolvedTrialEndsAt = new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+      // Persist so subsequent calls return a stable, unchanging end date
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          trialStartsAt: user.createdAt,
+          trialEndsAt: resolvedTrialEndsAt,
+        },
+      });
+    }
+
+    if (resolvedTrialEndsAt) {
+      if (now < resolvedTrialEndsAt) {
         trialStatus = "active";
-        trialDaysLeft = Math.ceil((user.trialEndsAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-        trialEndsAt = user.trialEndsAt.toISOString();
-      } else {
-        trialStatus = "expired";
-      }
-    } else if (user.createdAt) {
-      const fourteenDays = new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
-      if (now < fourteenDays) {
-        trialStatus = "active";
-        trialDaysLeft = Math.ceil((fourteenDays.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-        trialEndsAt = fourteenDays.toISOString();
+        trialDaysLeft = Math.ceil((resolvedTrialEndsAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+        trialEndsAt = resolvedTrialEndsAt.toISOString();
       } else {
         trialStatus = "expired";
       }
