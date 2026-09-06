@@ -126,15 +126,35 @@ select:focus {
   outline: none !important;
 }
 
-/* ─── Mobile Responsive ─────────────────────────────────── */
-@media (max-width: 768px) {
-  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-  .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .lg\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .lg\:grid-cols-3 { grid-template-columns: 1fr; }
-  .lg\:grid-cols-2 { grid-template-columns: 1fr; }
-  .lg\:col-span-2 { grid-column: span 1; }
+/* ─── Safe Area (iPhone notch / home bar) ───────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pb-safe-nav {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+/* ─── Horizontal scroll wrapper for tables on mobile ─────── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+.table-scroll table {
+  min-width: 600px;
+}
+
+/* ─── Mobile touch target minimums ───────────────────────── */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* ─── Mobile bottom nav spacing ──────────────────────────── */
+@media (max-width: 1023px) {
+  .main-content-mobile {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* ─── Print / PDF styles ────────────────────────────────── */

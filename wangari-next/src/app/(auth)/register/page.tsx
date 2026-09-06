@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { register, googleLogin } from "@/lib/auth-client";
 
+import { AuthAvatarContext } from "@/app/(auth)/layout";
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
@@ -21,6 +23,7 @@ const stagger = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setAvatarState } = React.useContext(AuthAvatarContext);
   const [form, setForm] = React.useState({
     name: "",
     email: "",
@@ -48,9 +51,12 @@ export default function RegisterPage() {
             try {
               setError("");
               setLoading(true);
+              setAvatarState("loading");
               await googleLogin(response.credential);
+              setAvatarState("success");
               router.push("/dashboard");
             } catch (err) {
+              setAvatarState("error");
               setError(err instanceof Error ? err.message : "Google sign-up failed");
             } finally {
               setLoading(false);
@@ -69,17 +75,20 @@ export default function RegisterPage() {
       }
     };
     document.head.appendChild(script);
-  }, [router]);
+  }, [router, setAvatarState]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setAvatarState("loading");
 
     try {
       await register(form.name, form.email, form.password);
+      setAvatarState("success");
       router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
     } catch (err) {
+      setAvatarState("error");
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -87,10 +96,10 @@ export default function RegisterPage() {
   };
 
   const fields = [
-    { id: "name", label: "Full Name", type: "text", placeholder: "John Kamau", icon: User, key: "name" as const },
-    { id: "email", label: "Email", type: "email", placeholder: "you@example.com", icon: Mail, key: "email" as const },
-    { id: "farmName", label: "Farm Name", type: "text", placeholder: "Kamau Poultry Farm", icon: Sprout, key: "farmName" as const },
-    { id: "password", label: "Password", type: "password", placeholder: "At least 6 characters", icon: Lock, key: "password" as const },
+    { id: "name", label: "Full Name", type: "text", placeholder: "John Kamau", icon: User, key: "name" as const, avatarState: "typing-name" as const },
+    { id: "email", label: "Email", type: "email", placeholder: "you@example.com", icon: Mail, key: "email" as const, avatarState: "typing-email" as const },
+    { id: "farmName", label: "Farm Name", type: "text", placeholder: "Kamau Poultry Farm", icon: Sprout, key: "farmName" as const, avatarState: "typing-farm" as const },
+    { id: "password", label: "Password", type: "password", placeholder: "At least 6 characters", icon: Lock, key: "password" as const, avatarState: "typing-password" as const },
   ];
 
   return (
@@ -142,6 +151,8 @@ export default function RegisterPage() {
                 placeholder={field.placeholder}
                 value={form[field.key]}
                 onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                onFocus={() => setAvatarState(field.avatarState)}
+                onBlur={() => setAvatarState("idle")}
                 required
                 minLength={field.key === "password" ? 6 : undefined}
                 className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 transition-all pl-10"

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -98,7 +99,7 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { user, role, signOut } = useAuth();
   const { farm, farms, selectFarm } = useFarm();
@@ -135,9 +136,18 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-[260px] bg-white border-r border-wangari-border flex flex-col">
-      {/* Brand */}
-      <div className="flex items-center px-5 py-5 border-b border-wangari-border">
+      {/* Brand + mobile close button */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-wangari-border">
         <Link href="/"><Logo size="lg" /></Link>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden flex items-center justify-center h-9 w-9 rounded-xl text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800 transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Farm Switcher */}
@@ -190,9 +200,9 @@ export function Sidebar() {
                     <Link
                       key={item.href}
                       href={locked ? "#" : item.href}
-                      onClick={locked ? (e) => { e.preventDefault(); setLockedModule(item.label); } : undefined}
+                      onClick={locked ? (e) => { e.preventDefault(); setLockedModule(item.label); } : onClose}
                       className={cn(
-                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                        "flex items-center gap-3 rounded-xl px-3 min-h-[48px] text-sm font-medium transition-all duration-150",
                         locked
                           ? "text-wangari-subtle opacity-60 cursor-pointer"
                           : isActive

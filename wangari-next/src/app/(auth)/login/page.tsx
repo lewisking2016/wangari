@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { login, googleLogin, setToken } from "@/lib/auth-client";
 import api from "@/lib/api-client";
 
+import { AuthAvatarContext } from "@/app/(auth)/layout";
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
@@ -24,6 +26,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const { setAvatarState } = React.useContext(AuthAvatarContext);
 
   // Role Tab state: "owner" | "worker"
   const [userRole, setUserRole] = React.useState<"owner" | "worker">("owner");
@@ -43,59 +46,23 @@ function LoginForm() {
   const googleButtonRef = React.useRef<HTMLDivElement>(null);
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
-  // Load Google Identity Services (For Farm Owners)
-  React.useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || userRole !== "owner") return;
-
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.onload = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async (response: any) => {
-            try {
-              setError("");
-              setLoading(true);
-              await googleLogin(response.credential);
-              router.push(callbackUrl);
-            } catch (err) {
-              setError(err instanceof Error ? err.message : "Google sign-in failed");
-            } finally {
-              setLoading(false);
-            }
-          },
-        });
-        if (googleButtonRef.current) {
-          window.google.accounts.id.renderButton(googleButtonRef.current, {
-            theme: "outline",
-            size: "large",
-            width: "100%",
-            text: "signin_with",
-          });
-        }
-        setGoogleLoaded(true);
-      }
-    };
-    document.head.appendChild(script);
-  }, [router, callbackUrl, userRole]);
-
   // Handle Farm Owner Login
   const handleOwnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setAvatarState("loading");
 
     try {
       const result = await login(email, password);
+      setAvatarState("success");
       if ((result as any).emailVerified === null) {
         router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       } else {
         router.push(callbackUrl);
       }
     } catch (err) {
+      setAvatarState("error");
       setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
     } finally {
       setLoading(false);
@@ -107,6 +74,7 @@ function LoginForm() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setAvatarState("loading");
 
     try {
       const res: any = await api.post("/api/worker/login", {
@@ -115,12 +83,14 @@ function LoginForm() {
       });
 
       if (res.token) {
+        setAvatarState("success");
         setToken(res.token);
         router.push("/worker");
       } else {
         throw new Error("Login failed. No token received.");
       }
     } catch (err) {
+      setAvatarState("error");
       setError(err instanceof Error ? err.message : "Incorrect Farm Code or 4-digit PIN.");
     } finally {
       setLoading(false);
@@ -200,6 +170,8 @@ function LoginForm() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setAvatarState("typing-email")}
+              onBlur={() => setAvatarState("idle")}
               required
               className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 font-semibold"
             />
@@ -216,12 +188,18 @@ function LoginForm() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setAvatarState(showPassword ? "show-password" : "typing-password")}
+                onBlur={() => setAvatarState("idle")}
                 required
                 className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 pr-12 font-semibold"
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => {
+                  const next = !showPassword;
+                  setShowPassword(next);
+                  setAvatarState(next ? "show-password" : "typing-password");
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -290,6 +268,8 @@ function LoginForm() {
                 placeholder="e.g. WANGARI-482"
                 value={farmCode}
                 onChange={(e) => setFarmCode(e.target.value.toUpperCase())}
+                onFocus={() => setAvatarState("typing-farm")}
+                onBlur={() => setAvatarState("idle")}
                 className="h-12 pl-11 rounded-xl border-[#E5E7EB] focus:border-[#166534] uppercase font-black tracking-wider text-sm"
               />
             </div>
@@ -308,6 +288,8 @@ function LoginForm() {
                 placeholder="e.g. 1234"
                 value={workerPin}
                 onChange={(e) => setWorkerPin(e.target.value)}
+                onFocus={() => setAvatarState("typing-password")}
+                onBlur={() => setAvatarState("idle")}
                 required
                 className="h-12 pl-11 rounded-xl border-[#E5E7EB] focus:border-[#166534] font-black tracking-widest text-lg"
               />

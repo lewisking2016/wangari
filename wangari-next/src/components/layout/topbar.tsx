@@ -216,7 +216,7 @@ function NotificationDropdown({ open, onOpenChange }: { open: boolean; onOpenCha
 
   return (
     <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)}>
-      <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-wangari-border overflow-hidden animate-fade-in" onClick={(e) => e.stopPropagation()}>
+      <div className="absolute right-2 sm:right-0 top-full mt-2 w-[calc(100vw-1rem)] sm:w-80 md:w-96 max-w-sm bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-wangari-border overflow-hidden animate-fade-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-wangari-border">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-wangari-heading">Notifications</h3>
@@ -356,39 +356,41 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-4 bg-white/80 backdrop-blur-xl border-b border-wangari-border px-6 py-3">
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-white/80 backdrop-blur-xl border-b border-wangari-border px-3 sm:px-6 py-3">
         {/* Left */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <button
             onClick={onMenuToggle}
-            className="lg:hidden flex items-center justify-center h-9 w-9 rounded-xl bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200 hover:bg-wangari-green-100 transition-colors"
-            aria-label="Toggle menu"
+            className="lg:hidden flex items-center justify-center h-10 w-10 rounded-xl bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200 hover:bg-wangari-green-100 transition-colors shrink-0"
+            aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-wangari-subtle">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest text-wangari-subtle hidden sm:block">
               Wangari
             </p>
-            <h1 className="text-lg font-bold text-wangari-heading">{title}</h1>
+            <h1 className="text-base sm:text-lg font-bold text-wangari-heading truncate max-w-[160px] sm:max-w-xs md:max-w-none">{title}</h1>
           </div>
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-2">
-          {/* Language Switcher */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Language Switcher — short on mobile, full on sm+ */}
           <button
             onClick={() => setLang(lang === "en" ? "sw" : "en")}
-            className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all font-bold text-xs cursor-pointer shadow-xs"
+            className="flex items-center gap-1 h-9 px-2 sm:px-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-all font-bold text-xs cursor-pointer shadow-xs"
             title="Switch Language / Badili Lugha"
           >
-            <span>{lang === "sw" ? "Swahili" : "English"}</span>
+            {/* Short code on xs, full word on sm+ */}
+            <span className="sm:hidden">{lang === "sw" ? "SW" : "EN"}</span>
+            <span className="hidden sm:inline">{lang === "sw" ? "Swahili" : "English"}</span>
           </button>
 
           {/* Search */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 h-9 px-3 rounded-xl bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200 hover:bg-wangari-green-100 transition-colors cursor-pointer"
+            className="flex items-center justify-center h-9 w-9 sm:w-auto sm:px-3 gap-2 rounded-xl bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200 hover:bg-wangari-green-100 transition-colors cursor-pointer"
             aria-label="Search"
           >
             <Search className="h-4 w-4" />
@@ -410,11 +412,11 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
             <NotificationDropdown open={notifOpen} onOpenChange={setNotifOpen} />
           </div>
 
-          {/* Profile */}
-          <div className="relative hidden sm:block">
+          {/* Profile — always visible (avatar only on xs, avatar+name on md+) */}
+          <div className="relative">
             <button
               onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
-              className="flex items-center gap-2 pl-3 border-l border-wangari-border hover:bg-wangari-green-50 rounded-xl py-1.5 pr-2 transition-colors cursor-pointer"
+              className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-wangari-border hover:bg-wangari-green-50 rounded-xl py-1.5 pr-2 transition-colors cursor-pointer"
             >
               <Avatar name={user?.name || "Farmer"} src={user?.avatar || undefined} size="sm" />
               <div className="text-left hidden md:block">

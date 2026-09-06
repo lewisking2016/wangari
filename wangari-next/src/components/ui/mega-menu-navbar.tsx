@@ -306,12 +306,11 @@ export function MegaMenuNavbar({
   const isSolid = !isTransparent || scrolled;
 
   React.useEffect(() => {
-    if (!isTransparent) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isTransparent]);
+  }, []);
 
   React.useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
@@ -351,8 +350,8 @@ export function MegaMenuNavbar({
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
         isSolid
-          ? "border-b border-[#E5E7EB] bg-white/95 backdrop-blur-lg"
-          : "bg-transparent",
+          ? "border-b border-[#E5E7EB] bg-white/95 backdrop-blur-md shadow-xs"
+          : "bg-gradient-to-b from-black/60 via-black/30 to-transparent backdrop-blur-[2px]",
         className,
       )}
       onMouseLeave={() => setOpenMenu(null)}
@@ -456,9 +455,14 @@ export function MegaMenuNavbar({
               aria-label="Open navigation menu"
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen(true)}
-              className={cn("flex size-10 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534] lg:hidden", isSolid ? "text-[#64748B] hover:bg-[#F0FDF4]" : "text-white hover:bg-white/10")}
+              className={cn(
+                "flex h-11 w-11 min-h-[48px] min-w-[48px] items-center justify-center rounded-xl transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#166534] lg:hidden cursor-pointer",
+                isSolid
+                  ? "text-[#0F172A] bg-gray-100/80 hover:bg-[#F0FDF4] hover:text-[#166534]"
+                  : "text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+              )}
             >
-              <Menu className="size-6" />
+              <Menu className="size-6 stroke-[2.5]" />
             </button>
           </div>
         </div>
