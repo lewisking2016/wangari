@@ -733,12 +733,12 @@ export default function FlocksPage() {
   // ─── LIST VIEW ──────────────────────────────────────
   return (
     <div className="space-y-6">
-      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex items-center justify-between">
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Livestock</h1>
           <p className="text-sm text-gray-400 mt-0.5">Manage your livestock groups — poultry, cattle, goats, fish & more</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button onClick={loadFlocks} variant="ghost" size="sm" className="gap-1.5 text-gray-400"><RefreshCw className="h-4 w-4" /></Button>
           <Button
             onClick={() => {
@@ -756,7 +756,7 @@ export default function FlocksPage() {
             <BarChart3 className="h-4 w-4" />
             {compareMode ? `Compare (${selectedForCompare.size})` : "Compare"}
           </Button>
-          <Button onClick={() => setShowForm(true)} className="bg-emerald-700 hover:bg-emerald-800 cursor-pointer">
+          <Button onClick={() => setShowForm(true)} className="bg-emerald-700 hover:bg-emerald-800 cursor-pointer font-bold">
             <Plus className="h-4 w-4 mr-2" />Add Livestock
           </Button>
         </div>

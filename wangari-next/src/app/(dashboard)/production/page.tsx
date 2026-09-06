@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
+import Link from "next/link";
 import { speciesTemplates } from "@/lib/species-templates";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
@@ -63,7 +64,7 @@ export default function ProductionPage() {
 
   const handleSubmit = async () => {
     const payload: any = {
-      flockId: Number(form.flockId),
+      flockId: Number(form.flockId) || null,
       eggsCollected: info.metric === "eggs" ? Number(form.eggsCollected || 0) : 0,
       milkCollected: info.metric === "milk" ? Number(form.milkCollected || 0) : 0,
       avgWeight: info.metric === "weight" && form.avgWeight ? Number(form.avgWeight) : null,
@@ -96,7 +97,7 @@ export default function ProductionPage() {
     <div className="space-y-6">
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <PageHeader title="Production" description="Track daily output for all your farm groups"
-          action={<Button onClick={() => { setShowForm(true); setStep(0); }} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Plus className="h-4 w-4 mr-2" />Log Production</Button>}
+          action={<Button onClick={() => { setShowForm(true); setStep(0); }} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer font-bold"><Plus className="h-4 w-4 mr-2" />Log Production</Button>}
         />
       </motion.div>
 
@@ -126,18 +127,33 @@ export default function ProductionPage() {
                 {step === 0 && (
                   <div>
                     <p className="text-sm font-bold text-gray-900 mb-3">Which group are you recording for?</p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
-                      {flocks.map(f => {
-                        const ft = speciesTemplates[f.type];
-                        return (
-                          <button key={f.id} onClick={() => { setForm({ ...form, flockId: String(f.id) }); setStep(1); }}
-                            className="text-left rounded-xl border border-gray-200 px-3 py-2.5 hover:border-[#166534] hover:bg-[#F0FDF4] transition-all cursor-pointer">
-                            <p className="text-sm font-semibold text-gray-900">{f.name}</p>
-                            <p className="text-[10px] text-gray-400">{ft?.name || f.type} · {f.currentCount} head</p>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    
+                    {flocks.length === 0 ? (
+                      <div className="text-center py-6 px-4 bg-[#F8FAFC] rounded-2xl border border-dashed border-[#E5E7EB] space-y-3">
+                        <p className="text-sm font-bold text-[#0F172A]">No Animal Groups Created Yet</p>
+                        <p className="text-xs text-[#64748B]">Create an animal or poultry group first to track group production.</p>
+                        <div className="flex justify-center gap-2 pt-1">
+                          <Link href="/flocks">
+                            <Button className="bg-[#166534] hover:bg-[#14532D] font-bold text-xs">
+                              <Plus className="h-4 w-4 mr-1.5" /> Add Animal Group
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                        {flocks.map(f => {
+                          const ft = speciesTemplates[f.type];
+                          return (
+                            <button key={f.id} onClick={() => { setForm({ ...form, flockId: String(f.id) }); setStep(1); }}
+                              className="text-left rounded-xl border border-gray-200 px-3 py-2.5 hover:border-[#166534] hover:bg-[#F0FDF4] transition-all cursor-pointer">
+                              <p className="text-sm font-semibold text-gray-900">{f.name}</p>
+                              <p className="text-[10px] text-gray-400">{ft?.name || f.type} · {f.currentCount} head</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
