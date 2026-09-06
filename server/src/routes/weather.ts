@@ -40,13 +40,43 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const farmId = req.user!.farmId!;
 
-    // Get coordinates from query params (browser geolocation) or farm location
+    // Get location from query, GPS, or farm DB
+    let queryLoc = (req.query.location as string || "").trim();
     let lat = req.query.lat ? Number(req.query.lat) : null;
     let lon = req.query.lon ? Number(req.query.lon) : null;
-    let locationName = "Your Farm";
+    let locationName = "Nairobi, Kenya";
 
-    // If GPS coords provided, reverse geocode to get real place name
-    if (lat && lon) {
+    // 1. If explicit location string passed
+    if (queryLoc) {
+      try {
+        const geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryLoc)}&count=1`
+        );
+        if (geoRes.ok) {
+          const geoData: any = await geoRes.json();
+          if (geoData.results && geoData.results.length > 0) {
+            lat = geoData.results[0].latitude;
+            lon = geoData.results[0].longitude;
+            locationName = `${geoData.results[0].name}${geoData.results[0].admin1 ? `, ${geoData.results[0].admin1}` : ""}`;
+            
+            // Save to farm in DB if save param is set or location was empty
+            if (req.query.save === "true") {
+              await prisma.farm.update({
+                where: { id: farmId },
+                data: { location: locationName },
+              }).catch(() => {});
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Custom location geocoding failed:", e);
+      }
+    }
+
+    // 2. If GPS coords provided, reverse geocode to get real place name
+    if (!lat && !lon && req.query.lat && req.query.lon) {
+      lat = Number(req.query.lat);
+      lon = Number(req.query.lon);
       try {
         const revRes = await fetch(
           `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
@@ -61,8 +91,10 @@ router.get("/", async (req: Request, res: Response) => {
       } catch (e) {
         console.error("Reverse geocoding error:", e);
       }
-    } else {
-      // Lookup farm location/county in DB
+    }
+
+    // 3. Lookup farm location/county in DB if still no coords
+    if (!lat || !lon) {
       try {
         const farm = await prisma.farm.findUnique({
           where: { id: farmId },
@@ -70,7 +102,6 @@ router.get("/", async (req: Request, res: Response) => {
         });
         const targetLoc = farm?.location || farm?.county;
         if (targetLoc) {
-          locationName = targetLoc;
           try {
             const geoRes = await fetch(
               `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(targetLoc)}&count=1`
@@ -92,13 +123,11 @@ router.get("/", async (req: Request, res: Response) => {
       }
     }
 
-    // If no real GPS coords and no farm location set, return noData (no fake demo defaults)
+    // 4. Default fallback to Nairobi, Kenya if still no coords
     if (!lat || !lon) {
-      return res.json({
-        noData: true,
-        location: "",
-        description: "Set your farm location in Settings or enable browser location to view live weather.",
-      });
+      lat = -1.286389;
+      lon = 36.817223;
+      locationName = "Nairobi, Kenya (Default)";
     }
 
     // Fetch from Open-Meteo (100% free, no API key needed)

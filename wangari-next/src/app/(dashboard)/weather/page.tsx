@@ -1,9 +1,8 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Sun, Cloud, CloudRain, Droplets, Wind, Thermometer, AlertTriangle, RefreshCw, MapPin, Calendar, Clock, Leaf, Umbrella } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Sun, Cloud, CloudRain, Droplets, Wind, Thermometer, AlertTriangle, RefreshCw, MapPin, Calendar, Leaf, Umbrella } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import api from "@/lib/api-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
@@ -21,15 +20,31 @@ export default function WeatherPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [gpsStatus, setGpsStatus] = React.useState<"idle" | "requesting" | "granted" | "denied">("idle");
+  const [searchLocation, setSearchLocation] = React.useState("");
+  const [isSearching, setIsSearching] = React.useState(false);
 
-  const fetchWeather = async (lat?: number, lon?: number) => {
-    setLoading(true); setError("");
+  const fetchWeather = async (lat?: number, lon?: number, locName?: string, saveLoc = false) => {
+    setLoading(true);
+    setError("");
     try {
       let url = "/api/weather";
-      if (lat && lon) url += `?lat=${lat}&lon=${lon}`;
-      setWeather(await api.get(url));
-    } catch { setError("Unable to load weather data."); }
-    finally { setLoading(false); }
+      const params = new URLSearchParams();
+      if (lat && lon) {
+        params.append("lat", String(lat));
+        params.append("lon", String(lon));
+      } else if (locName) {
+        params.append("location", locName);
+        if (saveLoc) params.append("save", "true");
+      }
+      if (params.toString()) url += `?${params.toString()}`;
+      const data = await api.get(url);
+      setWeather(data);
+    } catch {
+      setError("Unable to load weather data.");
+    } finally {
+      setLoading(false);
+      setIsSearching(false);
+    }
   };
 
   // Request GPS on mount
@@ -43,28 +58,40 @@ export default function WeatherPage() {
         },
         () => {
           setGpsStatus("denied");
-          fetchWeather(); // Fallback to farm location
+          fetchWeather(); // Server will fallback to farm location or Nairobi, Kenya
         },
-        { timeout: 10000, maximumAge: 300000 }
+        { timeout: 8000, maximumAge: 300000 }
       );
     } else {
       fetchWeather();
     }
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-center"><RefreshCw className="h-8 w-8 text-[#166534] animate-spin mx-auto mb-3" /><p className="text-sm text-[#64748B]">{gpsStatus === "requesting" ? "Getting your location..." : "Loading weather..."}</p></div></div>;
-  if (error || !weather || weather.noData) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-center text-center"><MapPin className="h-8 w-8 text-amber-500 mx-auto mb-3" /><p className="text-sm font-bold text-[#0F172A] mb-1">No weather data</p><p className="text-xs text-[#64748B] mb-3">{weather?.description || error || "Enable location access or set your farm location in Settings"}</p><div className="flex gap-2 justify-center">        <button onClick={() => {
-  if ("geolocation" in navigator) {
-    setGpsStatus("requesting"); setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { setGpsStatus("granted"); fetchWeather(pos.coords.latitude, pos.coords.longitude); },
-      () => { setGpsStatus("denied"); fetchWeather(); },
-      { timeout: 10000 }
+  const handleLocationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchLocation.trim()) return;
+    setIsSearching(true);
+    fetchWeather(undefined, undefined, searchLocation.trim(), true);
+  };
+
+  const handleQuickLocation = (loc: string) => {
+    setSearchLocation(loc);
+    setIsSearching(true);
+    fetchWeather(undefined, undefined, loc, true);
+  };
+
+  if (loading && !weather) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 text-[#166534] animate-spin mx-auto mb-3" />
+          <p className="text-sm text-[#64748B]">{gpsStatus === "requesting" ? "Getting your location..." : "Loading live weather..."}</p>
+        </div>
+      </div>
     );
   }
-}} className="px-4 py-2 bg-[#166534] text-white rounded-xl text-sm font-bold cursor-pointer">Enable GPS</button><button onClick={() => fetchWeather()} className="px-4 py-2 border border-[#E5E7EB] rounded-xl text-sm font-bold cursor-pointer">Retry</button></div></div></div>;
 
-  const { today, forecast, location, temperature, feelsLike, humidity, windSpeed, condition, description, sunrise, sunset } = weather;
+  const { today, forecast, location, temperature, feelsLike, humidity, windSpeed, condition, description, sunrise, sunset } = weather || {};
 
   // Farm-specific alerts
   const alerts: { type: "danger" | "warning" | "info"; text: string }[] = [];
@@ -82,12 +109,83 @@ export default function WeatherPage() {
   return (
     <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-6">
       {/* Header */}
-      <motion.div variants={fadeUp} className="flex items-center justify-between">
+      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-[#0F172A] tracking-tight">Weather</h1>
-          <div className="flex items-center gap-1.5 mt-1 text-sm text-[#64748B]"><MapPin className="h-3.5 w-3.5" />{location}</div>
+          <div className="flex items-center gap-1.5 mt-1 text-sm text-[#64748B] font-medium">
+            <MapPin className="h-4 w-4 text-[#166534]" />
+            <span>{location || "Nairobi, Kenya"}</span>
+          </div>
         </div>
-        <button onClick={() => fetchWeather()} className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#166534] border border-[#E5E7EB] rounded-xl hover:bg-[#F0FDF4] cursor-pointer"><RefreshCw className="h-3.5 w-3.5" />Refresh</button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if ("geolocation" in navigator) {
+                setGpsStatus("requesting");
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    setGpsStatus("granted");
+                    fetchWeather(pos.coords.latitude, pos.coords.longitude);
+                  },
+                  () => {
+                    setGpsStatus("denied");
+                    fetchWeather();
+                  },
+                  { timeout: 8000 }
+                );
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#166534] bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl hover:bg-[#DCFCE7] active:scale-95 transition-all cursor-pointer min-h-[44px]"
+          >
+            <MapPin className="h-3.5 w-3.5" />
+            {gpsStatus === "requesting" ? "Locating..." : "Use GPS"}
+          </button>
+          <button
+            type="button"
+            onClick={() => fetchWeather()}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#64748B] border border-[#E5E7EB] rounded-xl hover:bg-gray-50 active:scale-95 transition-all cursor-pointer min-h-[44px]"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Location Search Bar & Quick Chips */}
+      <motion.div variants={fadeUp} className="bg-white p-3.5 rounded-2xl border border-[#E5E7EB] shadow-xs space-y-2.5">
+        <form onSubmit={handleLocationSubmit} className="flex gap-2">
+          <div className="relative flex-1">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+            <input
+              type="text"
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+              placeholder="Search town/county (e.g. Nakuru, Eldoret, Kiambu)..."
+              className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#0F172A] focus:outline-hidden focus:ring-2 focus:ring-[#166534] min-h-[44px]"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isSearching || !searchLocation.trim()}
+            className="px-4 py-2.5 bg-[#166534] text-white rounded-xl text-xs font-bold hover:bg-[#14532D] disabled:opacity-50 transition-all cursor-pointer min-h-[44px]"
+          >
+            {isSearching ? "Searching..." : "Set Location"}
+          </button>
+        </form>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs text-[#64748B]">
+          <span className="font-semibold text-[10px] uppercase tracking-wider text-[#94A3B8] whitespace-nowrap">Quick:</span>
+          {["Nairobi", "Nakuru", "Eldoret", "Kiambu", "Nyeri", "Machakos", "Meru", "Mombasa"].map((town) => (
+            <button
+              key={town}
+              type="button"
+              onClick={() => handleQuickLocation(town)}
+              className="px-2.5 py-1 bg-[#F1F5F9] hover:bg-[#E2E8F0] active:scale-95 text-[#334155] font-medium rounded-lg text-[11px] whitespace-nowrap cursor-pointer transition-all"
+            >
+              {town}
+            </button>
+          ))}
+        </div>
       </motion.div>
 
       {/* Current weather hero */}
@@ -96,19 +194,19 @@ export default function WeatherPage() {
           <div>
             <p className="text-white/50 text-xs font-semibold uppercase tracking-wider">Now</p>
             <div className="flex items-end gap-2 mt-1">
-              <span className="text-5xl font-extrabold">{Math.round(temperature)}°</span>
-              <span className="text-white/60 text-sm mb-2">{description}</span>
+              <span className="text-5xl font-extrabold">{temperature !== undefined ? Math.round(temperature) : "--"}°</span>
+              <span className="text-white/60 text-sm mb-2">{description || condition}</span>
             </div>
-            <p className="text-sm text-white/50 mt-1">Feels like {Math.round(feelsLike)}°</p>
+            <p className="text-sm text-white/50 mt-1">Feels like {feelsLike !== undefined ? Math.round(feelsLike) : "--"}°</p>
           </div>
           <WeatherIcon condition={condition} className="h-16 w-16 text-white/80" />
         </div>
         <div className="grid grid-cols-3 gap-3 mt-5">
           {[
-            { icon: Droplets, label: "Humidity", value: `${humidity}%` },
-            { icon: Wind, label: "Wind", value: `${windSpeed} km/h` },
+            { icon: Droplets, label: "Humidity", value: `${humidity || 0}%` },
+            { icon: Wind, label: "Wind", value: `${windSpeed || 0} km/h` },
             { icon: Thermometer, label: "High/Low", value: `${today?.tempMax || "--"}°/${today?.tempMin || "--"}°` },
-          ].map(item => (
+          ].map((item) => (
             <div key={item.label} className="bg-white/10 rounded-xl p-2.5 text-center">
               <item.icon className="h-4 w-4 text-white/50 mx-auto mb-1" />
               <p className="text-sm font-bold">{item.value}</p>
@@ -184,7 +282,7 @@ export default function WeatherPage() {
                     <WeatherIcon condition={day.condition} className="h-5 w-5 text-[#64748B] mx-auto my-2" />
                     <p className="text-sm font-bold text-[#0F172A]">{day.tempMax || day.maxTemp}°</p>
                     <p className="text-[10px] text-[#94A3B8]">{day.tempMin || day.minTemp}°</p>
-                    {(day.rain > 0) && <p className="text-[9px] text-blue-500 font-bold mt-1">{day.rain}mm</p>}
+                    {day.rain > 0 && <p className="text-[9px] text-blue-500 font-bold mt-1">{day.rain}mm</p>}
                   </div>
                 );
               })}
@@ -206,7 +304,6 @@ export default function WeatherPage() {
                 {forecast.map((day: any, i: number) => {
                   const maxT = day.tempMax || day.maxTemp || 30;
                   const minT = day.tempMin || day.minTemp || 15;
-                  const range = maxT - minT;
                   const maxH = (maxT / 40) * 100;
                   const minH = (minT / 40) * 100;
                   const d = new Date(day.date || day.day);
