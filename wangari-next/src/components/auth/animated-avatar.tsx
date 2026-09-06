@@ -24,8 +24,11 @@ export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
   const avatarRef = React.useRef<HTMLDivElement>(null);
   const [mouseEye, setMouseEye] = React.useState({ x: 0, y: 0 });
 
-  // Track global mouse pointer movement everywhere on screen
+  // Only track cursor on non-touch devices (no cursor on phones)
   React.useEffect(() => {
+    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+    if (isTouchDevice) return; // No cursor on mobile — skip tracking
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!avatarRef.current) return;
       const rect = avatarRef.current.getBoundingClientRect();
@@ -74,7 +77,7 @@ export function AnimatedAvatar({ state, className }: AnimatedAvatarProps) {
       case "success":
         return "Karibu! Welcome to your farm portal 🎉";
       default:
-        return "Jambo! Karibu Wangari Farm System! 👀✨";
+        return "Jambo! Karibu Wangari Farm System! 🌾✨";
     }
   };
 

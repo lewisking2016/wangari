@@ -211,9 +211,26 @@ export default function RegisterPage() {
             type="button"
             onClick={() => {
               if (window.google?.accounts?.id) {
+                // Already loaded — just prompt
                 window.google.accounts.id.prompt();
+                setGoogleLoaded(true);
               } else {
-                setError("Google Sign-In is initializing. If it doesn't open, please check your network or use email login.");
+                // Silently retry (no error shown on mobile)
+                const existing = document.querySelector('script[src*="accounts.google.com/gsi"]');
+                if (!existing) {
+                  const s = document.createElement("script");
+                  s.src = "https://accounts.google.com/gsi/client";
+                  s.async = true;
+                  s.onload = () => {
+                    if (window.google?.accounts?.id) {
+                      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1068800164805-4g9b55vg23a9d9g030b4j4g1v0n2s4.apps.googleusercontent.com";
+                      window.google.accounts.id.initialize({ client_id: clientId, callback: async (r: any) => { try { await googleLogin(r.credential); router.push("/dashboard"); } catch (e: any) { setError(e?.message || "Google sign-up failed"); } } });
+                      if (googleButtonRef.current) window.google.accounts.id.renderButton(googleButtonRef.current, { theme: "outline", size: "large", width: "100%", text: "signup_with" });
+                      setGoogleLoaded(true);
+                    }
+                  };
+                  document.head.appendChild(s);
+                }
               }
             }}
             className="w-full h-12 rounded-xl border border-[#E5E7EB] flex items-center justify-center gap-3 hover:bg-gray-50 active:scale-98 transition-all cursor-pointer bg-white"
