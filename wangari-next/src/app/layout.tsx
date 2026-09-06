@@ -17,6 +17,15 @@ export const metadata: Metadata = {
   description:
     "Stop guessing your farm profit. Track poultry, dairy, crops, feed inventory, sales & finances from your phone or offline. Built for farmers in Kenya & East Africa. Start free.",
   keywords: [
+    "Wangari",
+    "Wangari App",
+    "Wangari Farm",
+    "Wangari Kenya",
+    "Wangari Farm Management",
+    "Wangari App Kenya",
+    "Wangari Poultry",
+    "Wangari Smart Farm",
+    "Wangari Maathai Farm Tech",
     "farm management software Kenya",
     "poultry farm management software",
     "Kenya poultry record keeping app",
@@ -42,7 +51,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Wangari — Smart Farm Management System for Kenyan Farmers",
     description:
-      "Track every egg, every bag of feed, and every shilling in 30 seconds. Works 100% offline with M-Pesa tracking.",
+      "Wangari Farm App: Track every egg, every bag of feed, and every shilling in 30 seconds. Works 100% offline with M-Pesa tracking.",
     url: "https://wangari.imeantech.com",
     siteName: "Wangari Farm Management",
     locale: "en_KE",
@@ -60,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Wangari — Smart Farm Management System",
     description:
-      "Know your real farm profit. Track poultry, crops, feed & sales offline. Free trial available.",
+      "Wangari App: Know your real farm profit. Track poultry, crops, feed & sales offline. Free trial available.",
   },
   icons: {
     icon: [
@@ -108,9 +117,10 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               name: "Wangari",
+              alternateName: ["Wangari App", "Wangari Farm Management", "Wangari Kenya", "Wangari Farm Tracker"],
               applicationCategory: "BusinessApplication",
               operatingSystem: "Web, Android, iOS",
-              description: "Farm management software with WhatsApp bot for Kenyan farmers. Track poultry, crops, inventory, sales, and finances.",
+              description: "Wangari is an offline-first farm management software and WhatsApp bot built for Kenyan farmers to track poultry, livestock, crops, feed inventory, and net KES profits.",
               url: "https://wangari.imeantech.com",
               offers: [
                 {

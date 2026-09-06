@@ -19,7 +19,11 @@ description: >
 - **FAQPage**: Rich snippet question & answer structured data.
 - **Organization**: iMeanTech brand link, logo, contacts.
 
-## 3. High-Intent Geo Keywords
+## 3. High-Intent Geo & Brand Keywords
+- `Wangari`
+- `Wangari App`
+- `Wangari Farm Management`
+- `Wangari Kenya`
 - `farm management software Kenya`
 - `poultry record keeping app Kenya`
 - `farm profit calculator KES`
