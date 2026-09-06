@@ -20,6 +20,8 @@ import {
   Leaf,
   PawPrint,
   ClipboardList,
+  CreditCard,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -238,13 +240,21 @@ function DashboardContent() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {(!trialData?.subscription || trialData?.subscription?.daysLeft <= 7) && (
+            <Link href="/subscription">
+              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white font-extrabold gap-1.5 shadow cursor-pointer">
+                <CreditCard className="h-4 w-4" />
+                {trialData?.subscription ? "Renew Subscription" : "Subscribe Now"}
+              </Button>
+            </Link>
+          )}
           <Link href="/production">
-            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold gap-1.5 shadow">
+            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold gap-1.5 shadow cursor-pointer">
               <Plus className="h-4 w-4" /> Record Today's Output
             </Button>
           </Link>
           <Link href="/finances">
-            <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-medium gap-1.5">
+            <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-medium gap-1.5 cursor-pointer">
               <DollarSign className="h-4 w-4" /> Add Expense
             </Button>
           </Link>
@@ -252,7 +262,7 @@ function DashboardContent() {
             onClick={handleRefresh}
             variant="ghost"
             size="sm"
-            className="text-emerald-100 hover:bg-white/10 hover:text-white"
+            className="text-emerald-100 hover:bg-white/10 hover:text-white cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </Button>
@@ -279,6 +289,7 @@ function DashboardContent() {
         <TrialBanner
           trialStatus={trialData.trial?.status || "no_trial"}
           daysLeft={trialData.trial?.daysLeft || 0}
+          endsAt={trialData.trial?.endsAt}
           subscription={trialData.subscription}
         />
       )}
