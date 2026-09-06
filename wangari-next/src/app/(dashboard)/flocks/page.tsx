@@ -1084,7 +1084,13 @@ export default function FlocksPage() {
         />
       )}
 
-      {showForm && <CreateFlockForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
+            <CreateFlockForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
 
       {showEditForm && editingFlock && (
         <EditFlockForm flock={editingFlock} onSubmit={handleEdit} onCancel={() => { setShowEditForm(false); setEditingFlock(null); }} />

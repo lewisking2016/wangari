@@ -30,6 +30,8 @@ import zktecoRoutes from "./routes/zkteco.js";
 import workerApiRoutes from "./routes/worker.js";
 import flocksUploadRoutes from "./routes/flocks-upload.js";
 import uploadRoutes from "./routes/upload.js";
+import paystackRoutes from "./routes/paystack.js";
+import trialRoutes from "./routes/trial.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -93,6 +95,8 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/zkteco", zktecoRoutes);
 app.use("/api/worker", workerApiRoutes);
+app.use("/api/paystack", paystackRoutes);
+app.use("/api/trial", trialRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
