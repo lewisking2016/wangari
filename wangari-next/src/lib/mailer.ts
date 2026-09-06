@@ -71,7 +71,7 @@ export async function sendPlanExpiredEmail(email: string, name: string, planName
     <p style="margin:0 0 24px;font-size:15px;color:#64748b;">Hi ${name}, your <strong>${planName}</strong> subscription has expired.</p>
     <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:16px;margin-bottom:24px;"><p style="margin:0;font-size:14px;color:#991B1B;font-weight:600;">⚠️ Renew to keep full access</p></div>
     <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center"><a href="${renewUrl}" style="display:inline-block;background:#166534;color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:12px 32px;border-radius:8px;">Renew Now</a></td></tr></table>
-    <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Your data will be kept safe for 30 days.</p>
+    <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Your data remains safe — subscribe to restore full access.</p>
   `);
   await transporter.sendMail({ from: FROM, to: email, subject: `Your ${planName} subscription has expired`, html });
 }

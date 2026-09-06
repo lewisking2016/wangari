@@ -66,10 +66,10 @@ export default function AboutPage() {
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="grid grid-cols-2 gap-4">
             {[
-              { icon: Users, value: "7", label: "Hubs Built" },
-              { icon: Zap, value: "30s", label: "To See Your Profit" },
-              { icon: Target, value: "KES 500", label: "Starting Price/Month" },
-              { icon: Shield, value: "Free", label: "14-Day Trial" },
+              { icon: Users, value: "7", label: "Farm Hubs" },
+              { icon: Zap, value: "100%", label: "Offline Sync" },
+              { icon: Target, value: "KES 1,500", label: "Starter/Month" },
+              { icon: Shield, value: "14 Days", label: "Free Trial" },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl border border-[#E5E7EB] bg-white p-6 text-center hover:shadow-lg hover:border-[#BBF7D0] transition-all">
                 <s.icon className="h-6 w-6 text-[#166534] mx-auto mb-3" />

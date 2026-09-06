@@ -91,7 +91,7 @@ export function TrialBanner({ trialStatus, daysLeft, subscription }: TrialBanner
           <AlertTriangle className="h-5 w-5 text-red-600" />
           <div>
             <p className="text-sm font-bold text-red-800">Your free trial has ended</p>
-            <p className="text-xs text-red-600">Subscribe to continue using Wangari. Your data is safe for 30 days.</p>
+            <p className="text-xs text-red-600">Subscribe to continue using Wangari. Your data remains safe.</p>
           </div>
         </div>
         <Link

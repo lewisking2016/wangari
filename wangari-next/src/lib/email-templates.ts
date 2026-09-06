@@ -183,7 +183,7 @@ export function planExpiredEmail(userName: string, planName: string, renewUrl: s
       </tr>
     </table>
     <p style="margin:0;font-size:13px;color:${BRAND.mutedColor};">
-      If you don't renew, your data will be kept safe for 30 days. After that, it may be removed.
+      Your data remains safe — subscribe to restore full access.
     </p>
   `);
 }

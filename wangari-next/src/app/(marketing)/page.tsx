@@ -84,10 +84,10 @@ function ClipboardIcon({ className }: { className?: string }) {
 }
 
 const stats = [
-  { value: "7", label: "Hubs Built", icon: Users },
-  { value: "30s", label: "See Your Profit", icon: Bird },
-  { value: "KES 500", label: "Starting Monthly", icon: TrendingUp },
-  { value: "Free", label: "14-Day Trial", icon: Shield },
+  { value: "100%", label: "Offline Sync", icon: Users },
+  { value: "< 3 Taps", label: "Daily Data Entry", icon: Bird },
+  { value: "KES 1,500", label: "Starter Monthly", icon: TrendingUp },
+  { value: "14 Days", label: "Free Trial", icon: Shield },
 ];
 
 const testimonials = [
@@ -134,7 +134,7 @@ export default function LandingPage() {
               </div>
             </motion.h1>
             <motion.p variants={fadeUp} className="mt-8 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-              Know your real profit in 30 seconds. Track every egg, every bag of feed,
+              Know your real farm profit every day. Track every egg, every bag of feed,
               every shilling — from your phone or via WhatsApp.
             </motion.p>
 
