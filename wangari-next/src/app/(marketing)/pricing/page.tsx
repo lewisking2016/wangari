@@ -177,15 +177,19 @@ export default function PricingPage() {
                       ? plan.ctaHref
                       : loggedIn
                         ? `/dashboard?subscribe=${plan.paystackKey}`
-                        : `/login?callbackUrl=${encodeURIComponent("/pricing")}`
+                        : "/register"
                   }
-                  className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                  className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer ${
                     plan.popular
                       ? "bg-[#166534] text-white hover:bg-[#14532D] hover:shadow-lg hover:shadow-[#166534]/25"
                       : "border-2 border-[#E5E7EB] text-[#0F172A] hover:border-[#166534] hover:text-[#166534] hover:bg-[#F0FDF4]"
                   }`}
                 >
-                  {loggedIn ? plan.cta : "Sign In to Subscribe"}
+                  {plan.ctaHref.startsWith("mailto:")
+                    ? plan.cta
+                    : loggedIn
+                      ? plan.cta
+                      : "Start 14-Day Free Trial"}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </motion.div>

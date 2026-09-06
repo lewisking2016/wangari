@@ -9,39 +9,58 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export const metadata: Metadata = {    title: {
-    default: "Wangari — Stop Guessing. Start Knowing. | Farm Management Kenya",
+export const metadata: Metadata = {
+  title: {
+    default: "Wangari — Smart Farm Management System Kenya | Poultry & Livestock App",
     template: "%s | Wangari — Smart Farm Management",
   },
   description:
-    "Stop guessing your farm profit. Know it in 30 seconds. Track poultry, crops, inventory, sales & finances from your phone or via WhatsApp. Free for 30 days.",
+    "Stop guessing your farm profit. Track poultry, dairy, crops, feed inventory, sales & finances from your phone or offline. Built for farmers in Kenya & East Africa. Start free.",
   keywords: [
     "farm management software Kenya",
-    "poultry farm tracker",
-    "WhatsApp farm bot",
-    "farm profit calculator",
-    "Kenya farming app",
-    "livestock management",
-    "farm record keeping",
-    "poultry farm management",
-    "farm inventory tracker",
-    "African farm management",
+    "poultry farm management software",
+    "Kenya poultry record keeping app",
+    "farm profit calculator KES",
+    "offline farm management app",
+    "livestock tracker Kenya",
+    "farm inventory management system",
+    "Kienyeji layers broiler farm software",
+    "farm accounting app Kenya",
+    "WhatsApp farm management bot",
   ],
-  authors: [{ name: "iMeanTech" }],
+  authors: [{ name: "iMeanTech", url: "https://imeantech.com" }],
+  creator: "iMeanTech",
+  publisher: "iMeanTech",
+  metadataBase: new URL("https://wangari.imeantech.com"),
+  other: {
+    "geo.region": "KE",
+    "geo.placename": "Nairobi, Kenya",
+    "geo.position": "-1.286389;36.817223",
+    "ICBM": "-1.286389, 36.817223",
+    "theme-color": "#166534",
+  },
   openGraph: {
-    title: "Wangari — Stop Guessing. Start Knowing.",
+    title: "Wangari — Smart Farm Management System for Kenyan Farmers",
     description:
-      "Track every egg, every bag of feed, every shilling. Know your real farm profit in 30 seconds. WhatsApp bot for easy data entry.",
+      "Track every egg, every bag of feed, and every shilling in 30 seconds. Works 100% offline with M-Pesa tracking.",
     url: "https://wangari.imeantech.com",
-    siteName: "Wangari",
+    siteName: "Wangari Farm Management",
     locale: "en_KE",
     type: "website",
+    images: [
+      {
+        url: "https://wangari.imeantech.com/images/wangari-real-logo.png",
+        width: 800,
+        height: 800,
+        alt: "Wangari Farm Management Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wangari — Stop Guessing. Start Knowing.",
+    title: "Wangari — Smart Farm Management System",
     description:
-      "Know your real farm profit. Track poultry, crops, inventory via WhatsApp. Free for 30 days.",
+      "Know your real farm profit. Track poultry, crops, feed & sales offline. Free trial available.",
   },
   icons: {
     icon: [
