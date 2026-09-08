@@ -5,17 +5,10 @@
  * password when creating without one.
  */
 import bcrypt from "bcryptjs";
-import pg from "pg";
+import { PrismaClient } from "@prisma/client";
 import { randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
 
-function loadDatabaseUrl() {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
-  const env = readFileSync(new URL("../.env", import.meta.url), "utf8");
-  const line = env.split("\n").find((l) => l.startsWith("DATABASE_URL="));
-  if (!line) throw new Error("DATABASE_URL not found");
-  return line.slice("DATABASE_URL=".length).trim().replace(/^["']|["']$/g, "");
-}
+const prisma = new PrismaClient();
 
 const email = process.argv[2]?.toLowerCase().trim();
 if (!email) {
@@ -26,28 +19,24 @@ if (!email) {
 const ADMIN_ROLES = ["super_admin", "billing", "support", "support_read"];
 const requestedRole = process.argv[3] && ADMIN_ROLES.includes(process.argv[3]) ? process.argv[3] : "super_admin";
 
-const client = new pg.Client({ connectionString: loadDatabaseUrl() });
-await client.connect();
-
 try {
-  const existing = await client.query("SELECT id, name, role FROM users WHERE email = $1", [email]);
-  let password = process.argv[4] || null;
-  if (existing.rows.length > 0) {
-    const user = existing.rows[0];
-    await client.query("UPDATE users SET role = $1 WHERE id = $2", [requestedRole, user.id]);
-    console.log(`✓ Promoted existing user #${user.id} (${user.name}, ${email}) to ${requestedRole}`);
+  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, name: true, role: true } });
+  const password = process.argv[4] || null;
+  if (existing) {
+    await prisma.user.update({ where: { id: existing.id }, data: { role: requestedRole } });
+    console.log(`✓ Promoted existing user #${existing.id} (${existing.name}, ${email}) to ${requestedRole}`);
     if (!password) console.log("  Password unchanged — use their existing password to log in at /waadmin");
   } else {
-    password = password || randomBytes(9).toString("base64url");
-    const hash = await bcrypt.hash(password, 12);
+    const plain = password || randomBytes(9).toString("base64url");
+    const hash = await bcrypt.hash(plain, 12);
     const name = email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const inserted = await client.query(
-      "INSERT INTO users (name, email, password, role, email_verified) VALUES ($1, $2, $3, $4, NOW()) RETURNING id",
-      [name, email, hash, requestedRole]
-    );
-    console.log(`✓ Created super admin #${inserted.rows[0].id}: ${email} (${requestedRole})`);
-    if (!process.argv[4]) console.log(`  Password: ${password}\n  (Store it now — it is not shown again)`);
+    const created = await prisma.user.create({
+      data: { name, email, password: hash, role: requestedRole, emailVerified: new Date() },
+      select: { id: true },
+    });
+    console.log(`✓ Created ${requestedRole} #${created.id}: ${email}`);
+    if (!password) console.log(`  Password: ${plain}\n  (Store it now — it is not shown again)`);
   }
 } finally {
-  await client.end();
+  await prisma.$disconnect();
 }
