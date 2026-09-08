@@ -148,7 +148,10 @@ export default function WorkerDashboardPage() {
 
   const completedCount = tasks.filter((t) => t.isCompleted).length;
   const totalTasks = tasks.length;
-  const progressPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 100;
+  // No tasks assigned = nothing to show yet, not 100% success.
+  const progressPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+  const progressLabel =
+    totalTasks === 0 ? "No tasks assigned yet" : `${completedCount} of ${totalTasks} tasks completed`;
 
   // Compute 7-day activity chart data from activities
   const activityChartData = React.useMemo(() => {
@@ -288,12 +291,11 @@ export default function WorkerDashboardPage() {
             </div>
             <div>
               <h3 className="text-base font-black text-[#0F172A]">Daily Task Progress</h3>
-              <p className="text-xs font-bold text-[#64748B]">
-                {completedCount} of {totalTasks} tasks completed
-              </p>
+              <p className="text-xs font-bold text-[#64748B]">{progressLabel}</p>
             </div>
           </div>
           {progressPct === 100 && totalTasks > 0 && (
+            // "All Done" badge only appears when there is at least one task
             <span className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-extrabold rounded-full flex items-center gap-1 shadow-xs">
               <CheckCircle2 className="h-4 w-4" /> All Done
             </span>

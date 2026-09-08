@@ -312,6 +312,96 @@ router.post("/log-output", async (req: Request, res: Response) => {
   }
 });
 
+// ─── GET /api/worker/me — own profile ───
+router.get("/me", async (req: Request, res: Response) => {
+  try {
+    const workerId = (req.user as any).workerId;
+    if (!workerId) return res.status(403).json({ error: "Worker token required" });
+
+    const worker = await db.worker.findUnique({
+      where: { id: workerId },
+      select: { id: true, name: true, phone: true, role: true, status: true, farm: { select: { name: true, code: true } } },
+    });
+    if (!worker || worker.status !== "active") {
+      return res.status(401).json({ error: "Worker not found or inactive" });
+    }
+    return res.json({
+      id: worker.id,
+      name: worker.name,
+      phone: worker.phone,
+      role: worker.role || "Farm Worker",
+      farmName: worker.farm?.name || null,
+      farmCode: worker.farm?.code || null,
+    });
+  } catch (error) {
+    console.error("Get worker profile error:", error);
+    return res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
+// ─── PATCH /api/worker/me — edit own name/phone (NOT role/wage/status) ───
+router.patch("/me", async (req: Request, res: Response) => {
+  try {
+    const workerId = (req.user as any).workerId;
+    if (!workerId) return res.status(403).json({ error: "Worker token required" });
+
+    const data: Record<string, string | null> = {};
+    if (req.body.name !== undefined) {
+      const name = String(req.body.name).trim();
+      if (!name || name.length > 80) return res.status(400).json({ error: "Valid name required" });
+      data.name = name;
+    }
+    if (req.body.phone !== undefined) {
+      const phone = String(req.body.phone).replace(/[\s\-\(\)]/g, "");
+      if (phone && !/^\+?\d{9,15}$/.test(phone)) {
+        return res.status(400).json({ error: "Phone must be 9–15 digits" });
+      }
+      data.phone = phone || null;
+    }
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ error: "Nothing to update" });
+    }
+
+    const updated = await db.worker.update({
+      where: { id: workerId },
+      data,
+      select: { id: true, name: true, phone: true, role: true },
+    });
+    return res.json(updated);
+  } catch (error) {
+    console.error("Update worker profile error:", error);
+    return res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+// ─── POST /api/worker/change-pin — worker changes own PIN ───
+router.post("/change-pin", async (req: Request, res: Response) => {
+  try {
+    const workerId = (req.user as any).workerId;
+    if (!workerId) return res.status(403).json({ error: "Worker token required" });
+
+    const { currentPin, newPin } = req.body;
+    const newDigits = String(newPin ?? "").replace(/\D/g, "");
+    if (newDigits.length !== 4) {
+      return res.status(400).json({ error: "New PIN must be exactly 4 digits" });
+    }
+
+    const worker = await db.worker.findUnique({ where: { id: workerId }, select: { pin: true } });
+    if (!worker) return res.status(404).json({ error: "Worker not found" });
+
+    const current = String(currentPin ?? "").trim();
+    if (!worker.pin || worker.pin !== current) {
+      return res.status(401).json({ error: "Current PIN is incorrect" });
+    }
+
+    await db.worker.update({ where: { id: workerId }, data: { pin: newDigits } });
+    return res.json({ success: true, message: "PIN changed successfully" });
+  } catch (error) {
+    console.error("Change PIN error:", error);
+    return res.status(500).json({ error: "Failed to change PIN" });
+  }
+});
+
 // ─── GET /api/worker/my-attendance — Worker's own attendance (this week) ───
 router.get("/my-attendance", async (req: Request, res: Response) => {
   try {
