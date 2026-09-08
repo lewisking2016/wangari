@@ -62,7 +62,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     const now = new Date();
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId! },
-      select: { trialEndsAt: true, createdAt: true },
+      select: { trialEndsAt: true, createdAt: true, tokenVersion: true },
     });
 
     if (!user) {
