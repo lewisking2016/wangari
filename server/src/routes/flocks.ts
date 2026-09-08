@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 
 const router = Router();
 router.use(authMiddleware);
@@ -44,7 +45,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // POST /api/flocks — create a new flock with auto-scheduled vaccinations
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", requireOwner, async (req: Request, res: Response) => {
   try {
     const {
       name, breed, type, category, initialCount, hatchDate,
@@ -166,7 +167,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // PATCH /api/flocks/:id — update a flock
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", requireOwner, async (req: Request, res: Response) => {
   try {
     const allowed = [
       "name", "breed", "type", "category", "status", "currentCount", "mortality",
@@ -198,7 +199,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /api/flocks/:id
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", requireOwner, async (req: Request, res: Response) => {
   try {
     // Delete associated vaccinations first
     await prisma.vaccination.deleteMany({

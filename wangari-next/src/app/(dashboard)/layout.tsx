@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { WorkerBlock } from "@/components/worker-block";
 import { FloatingActionButton } from "@/components/dashboard/floating-action-button";
 import Link from "next/link";
 import {
@@ -109,7 +110,8 @@ export default function DashboardLayout({
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-wangari-cream relative">
+    <WorkerBlock>
+      <div className="min-h-screen bg-wangari-cream relative">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -154,5 +156,6 @@ export default function DashboardLayout({
       {/* Floating Action Button */}
       <FloatingActionButton />
     </div>
+    </WorkerBlock>
   );
 }

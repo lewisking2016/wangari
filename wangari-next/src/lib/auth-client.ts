@@ -61,6 +61,24 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
+/** Decode JWT payload (no verification — server verifies on every API call). */
+export function getTokenPayload(): { userId?: number; workerId?: number; farmId?: number | null; role?: string } | null {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+  } catch {
+    return null;
+  }
+}
+
+/** True if the stored token belongs to a farm worker (PIN login). */
+export function isWorkerSession(): boolean {
+  const p = getTokenPayload();
+  return !!p && (p.role === "worker" || !!p.workerId);
+}
+
 // ─── Auth Actions ─────────────────────────────────────────
 // All auth calls go through Next.js API routes (same origin, no env var needed)
 

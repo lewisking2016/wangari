@@ -8,7 +8,7 @@ import { Eye, EyeOff, Loader2, ArrowRight, UserCheck, HardHat, KeyRound, Buildin
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login, googleLogin, setToken } from "@/lib/auth-client";
+import { login, googleLogin, setToken, setUser } from "@/lib/auth-client";
 import api from "@/lib/api-client";
 
 import { AuthAvatarContext } from "@/app/(auth)/layout";
@@ -131,6 +131,14 @@ function LoginForm() {
       if (res.token) {
         setAvatarState("success");
         setToken(res.token);
+        // Store worker identity — replaces any owner profile in localStorage
+        setUser({
+          id: res.worker?.id ?? 0,
+          name: res.worker?.name ?? "Worker",
+          email: res.worker?.phone ?? "",
+          role: "worker",
+          farmId: res.worker?.farmId ?? null,
+        });
         router.push("/worker");
       } else {
         throw new Error("Login failed. No token received.");

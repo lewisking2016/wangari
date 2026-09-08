@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import crypto from "crypto";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
@@ -140,7 +141,7 @@ router.post("/push", async (req: Request, res: Response) => {
 });
 
 // ─── AUTHENTICATED: Device Management ─────────────────────
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // GET /api/zkteco/devices — list registered devices
 router.get("/devices", async (req: Request, res: Response) => {

@@ -1,10 +1,11 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { createUniqueFarmCode, ensureFarmCode } from "../lib/farm-code.js";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // GET /api/farms — list all farms the user is a member of
 router.get("/", async (req: Request, res: Response) => {

@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware, generateToken } from "../middleware/auth.js";
 import { ensureFarmCode } from "../lib/farm-code.js";
 import bcrypt from "bcryptjs";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // GET /api/settings — get all farm settings
 router.get("/", async (req: Request, res: Response) => {

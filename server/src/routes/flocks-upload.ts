@@ -1,12 +1,13 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // Configure multer storage
 const uploadsDir = path.join(process.cwd(), "uploads");

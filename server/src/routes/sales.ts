@@ -1,10 +1,11 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { auditMoneyMutation } from "../lib/audit.js";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // GET /api/sales
 router.get("/", async (req: Request, res: Response) => {

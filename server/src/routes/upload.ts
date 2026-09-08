@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/auth.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // Configure multer storage
 const uploadsDir = path.join(process.cwd(), "uploads");

@@ -1,10 +1,11 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { AI_PROVIDERS, getProvider, type AIProviderConfig } from "../ai-providers.js";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // ─── Provider Configuration ───────────────────────────────
 const AI_PROVIDER = process.env.AI_PROVIDER || "gemini";

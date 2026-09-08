@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { generateWorkerPin } from "../lib/farm-code.js";
 
@@ -11,7 +12,7 @@ function normalizePin(pin: any): string | null {
 }
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 // GET /api/workers
 router.get("/", async (req: Request, res: Response) => {

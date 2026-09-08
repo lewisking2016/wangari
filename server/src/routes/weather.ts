@@ -1,9 +1,10 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
-router.use(authMiddleware);
+router.use(authMiddleware, requireOwner);
 
 const WEATHER_CODES: Record<number, { desc: string; condition: string; icon: "sun" | "cloud" | "rain" }> = {
   0: { desc: "Clear sky", condition: "Clear", icon: "sun" },
