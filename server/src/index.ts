@@ -57,9 +57,21 @@ app.use(compression());
 
 // ─── Security ─────────────────────────────────────────────
 app.use(helmet({ crossOriginOpenerPolicy: false }));
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "https://wangari.imeantech.com",
+  // Local development (any port) — matches only pages actually served from
+  // localhost/127.0.0.1, so it cannot be abused by third-party sites.
+  /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
+];
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://wangari.imeantech.com",
+    origin(origin, cb) {
+      // No Origin header = non-browser client (curl, device, server-to-server).
+      if (!origin || allowedOrigins.some((o) => (typeof o === "string" ? o === origin : o.test(origin)))) {
+        return cb(null, true);
+      }
+      cb(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
