@@ -35,6 +35,7 @@ import trialRoutes from "./routes/trial.js";
 import plansRoutes from "./routes/plans.js";
 import adminRoutes from "./routes/admin.js";
 import adminModulesRoutes from "./routes/admin-modules.js";
+import supportRoutes from "./routes/support.js";
 import { initSentry, captureError } from "./lib/sentry.js";
 import { seedPlans } from "./lib/seed-plans.js";
 
@@ -154,6 +155,7 @@ const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHead
 app.use("/api/admin/login", adminLimiter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminModulesRoutes);
+app.use("/api", supportRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { AnnouncementBanner } from "@/components/dashboard/AnnouncementBanner";
 import { usePathname } from "next/navigation";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { WorkerBlock } from "@/components/worker-block";
@@ -134,6 +135,11 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className={`${isAI ? "" : "lg:pl-[260px]"} min-h-screen flex flex-col`}>
         {!isAI && <Topbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />}
+        {!isAI && (
+          <div className="px-4 sm:px-6 pt-4">
+            <AnnouncementBanner />
+          </div>
+        )}
         <main
           className={cn(
             isAI ? "" : "flex-1 p-4 sm:p-6",

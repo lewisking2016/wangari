@@ -37,6 +37,8 @@ function SubscriptionContent() {
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [loading, setLoading] = React.useState(true);
   const [purchasing, setPurchasing] = React.useState<string | null>(null);
+  const [promoCode, setPromoCode] = React.useState("");
+  const [promoNote, setPromoNote] = React.useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   const searchParams = useSearchParams();
   const paymentParam = searchParams.get("payment");
@@ -82,12 +84,17 @@ function SubscriptionContent() {
       const res = await api.post("/api/paystack", {
         email: "",
         plan: planKey,
+        ...(promoCode.trim() ? { promoCode: promoCode.trim().toUpperCase() } : {}),
         callback_url: `${window.location.origin}/subscription?payment=success`,
       });
       if (res.authorization_url) {
         window.location.href = res.authorization_url;
       }
-    } catch (err) {
+    } catch (err: any) {
+      // Promo problems surface here as a clean message from the API.
+      if (err?.message && /promo/i.test(err.message)) {
+        setPromoNote({ kind: "err", text: err.message });
+      }
       console.error(err);
     } finally {
       setPurchasing(null);
@@ -178,7 +185,37 @@ function SubscriptionContent() {
 
       {/* Available plans */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-        <h3 className="text-sm font-bold text-[#0F172A] mb-3">Available Plans</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 className="text-sm font-bold text-[#0F172A]">Available Plans</h3>
+          {/* Promo code — validated server-side at checkout init; applied by the webhook on payment */}
+          <div className="flex items-center gap-2">
+            <input
+              value={promoCode}
+              onChange={(e) => {
+                setPromoCode(e.target.value.toUpperCase());
+                setPromoNote(null);
+              }}
+              placeholder="Promo code"
+              className="h-9 w-36 rounded-lg border border-[#E5E7EB] px-3 text-xs font-semibold tracking-wide uppercase placeholder:font-normal placeholder:normal-case focus:border-[#166534] focus:outline-none"
+            />
+            {promoCode && (
+              <button
+                onClick={() => { setPromoCode(""); setPromoNote(null); }}
+                className="text-xs text-[#64748B] hover:text-[#0F172A]"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        {promoNote && (
+          <div className={`mb-3 rounded-lg px-3 py-2 text-xs ${promoNote.kind === "err" ? "bg-red-50 text-red-700 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+            {promoNote.text}
+          </div>
+        )}
+        {!promoCode && (
+          <p className="mb-3 text-[11px] text-[#94A3B8]">Have a promo or partner code? Enter it above — the discount is applied to your payment.</p>
+        )}
         <div className="grid gap-4">
           {plans.map(plan => (
             <Card key={plan.id} className="border border-[#E5E7EB] hover:border-[#166534] transition-colors">

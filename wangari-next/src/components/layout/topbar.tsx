@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Search, Bell, X, LogOut, Settings, User, ChevronRight, AlertTriangle, Package, Syringe, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Menu, Search, Bell, X, LogOut, Settings, User, ChevronRight, AlertTriangle, Package, Syringe, ArrowUpRight, ArrowDownRight, LifeBuoy } from "lucide-react";
+import { HelpModal } from "@/components/support/HelpModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useFarm } from "@/hooks/useFarm";
 import { Avatar } from "@/components/ui/avatar";
@@ -347,6 +348,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [notifOpen, setNotifOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [helpOpen, setHelpOpen] = React.useState(false);
 
   // Close dropdowns on route change
   React.useEffect(() => {
@@ -397,6 +399,16 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
             <kbd className="hidden sm:inline text-[10px] font-semibold text-wangari-muted">⌘K</kbd>
           </button>
 
+          {/* Help — opens a support ticket into the admin console */}
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="hidden sm:flex items-center justify-center h-9 w-9 rounded-xl bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200 hover:bg-wangari-green-100 transition-colors cursor-pointer"
+            aria-label="Help & Support"
+            title="Help & Support"
+          >
+            <LifeBuoy className="h-4 w-4" />
+          </button>
+
           {/* Notifications */}
           <div className="relative">
             <button
@@ -434,6 +446,7 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
       </header>
 
       <SearchPalette open={searchOpen} onOpenChange={setSearchOpen} />
+      <HelpModal open={helpOpen} onOpenChange={setHelpOpen} />
     </>
   );
 }
