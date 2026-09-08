@@ -33,6 +33,7 @@ import uploadRoutes from "./routes/upload.js";
 import paystackRoutes from "./routes/paystack.js";
 import trialRoutes from "./routes/trial.js";
 import plansRoutes from "./routes/plans.js";
+import adminRoutes from "./routes/admin.js";
 import { seedPlans } from "./lib/seed-plans.js";
 
 // ─── Process-Level Crash Safety ────────────────────────────
@@ -143,6 +144,12 @@ app.use("/api/worker", workerApiRoutes);
 app.use("/api/paystack", paystackRoutes);
 app.use("/api/trial", trialRoutes);
 app.use("/api/plans", plansRoutes);
+
+// ─── Super-Admin API ──────────────────────────────────────
+// Stricter limiter: admin login is a high-value brute-force target.
+const adminLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+app.use("/api/admin/login", adminLimiter);
+app.use("/api/admin", adminRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
