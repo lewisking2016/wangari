@@ -91,6 +91,10 @@ function DashboardContent() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [profileDismissed, setProfileDismissed] = React.useState(false);
   const [trialData, setTrialData] = React.useState<any>(null);
+  const [needsFarm, setNeedsFarm] = React.useState(false);
+  const [farmName, setFarmName] = React.useState("");
+  const [creatingFarm, setCreatingFarm] = React.useState(false);
+  const [farmError, setFarmError] = React.useState("");
   const [paymentModal, setPaymentModal] = React.useState<{ type: "success" | "failed"; reference?: string | null } | null>(null);
   const searchParams = useSearchParams();
   const subscribePlan = searchParams.get("subscribe");
@@ -149,6 +153,12 @@ function DashboardContent() {
         api.get(weatherUrl),
         api.get("/api/trial/status"),
       ]);
+      // Fresh signup with no farm yet: the API answers 403 + needsFarm.
+      if (dashboardData.status === "rejected" && (dashboardData.reason as any)?.needsFarm) {
+        setNeedsFarm(true);
+        setLoading(false);
+        return;
+      }
       if (dashboardData.status === "fulfilled") setData(dashboardData.value);
       if (weatherData.status === "fulfilled" && weatherData.value && !weatherData.value.noData) {
         setWeather(weatherData.value);
@@ -187,6 +197,55 @@ function DashboardContent() {
         <p className="text-sm text-wangari-muted">Loading your farm...</p>
       </div>
     );
+
+  // Fresh signup, no farm yet — inline onboarding instead of an error.
+  if (needsFarm) {
+    const createFarm = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setCreatingFarm(true);
+      setFarmError("");
+      try {
+        await api.post("/api/farms", { name: farmName });
+        setNeedsFarm(false);
+        fetchData(); // reload the dashboard with the new farm
+      } catch (err: any) {
+        setFarmError(err?.message || "Could not create farm");
+      } finally {
+        setCreatingFarm(false);
+      }
+    };
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-2xl border border-wangari-border bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-wangari-green-50 text-2xl">🌱</div>
+          <h1 className="text-xl font-bold text-wangari-heading">Welcome to Wangari!</h1>
+          <p className="mt-2 text-sm text-wangari-muted">
+            One last step — name your farm and your 14-day free trial starts immediately.
+          </p>
+          <form onSubmit={createFarm} className="mt-6 space-y-4 text-left">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-wangari-muted">Farm name</label>
+              <input
+                required
+                value={farmName}
+                onChange={(e) => setFarmName(e.target.value)}
+                placeholder="e.g. Lewis Ndungu Farm"
+                className="h-12 w-full rounded-xl border border-wangari-border px-4 text-sm focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
+              />
+            </div>
+            {farmError && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{farmError}</div>}
+            <button
+              type="submit"
+              disabled={creatingFarm || !farmName.trim()}
+              className="h-12 w-full rounded-xl bg-wangari-green-600 text-sm font-semibold text-white transition-colors hover:bg-wangari-green-700 disabled:opacity-60"
+            >
+              {creatingFarm ? "Creating your farm…" : "Create my farm & start trial"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const txs = data?.recentTransactions || [];
   const recentProd = data?.recentProduction || [];

@@ -3,6 +3,7 @@ import { prisma } from "../db.js";
 import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { generateWorkerPin } from "../lib/farm-code.js";
+import { hashPin } from "../lib/pin.js";
 
 // Normalize a 4-digit PIN: strip non-digits, pad/trim to exactly 4.
 function normalizePin(pin: any): string | null {
@@ -31,6 +32,8 @@ router.get("/", async (req: Request, res: Response) => {
 router.post("/", async (req: Request, res: Response) => {
   try {
     const pin = normalizePin(req.body.pin) || generateWorkerPin();
+    // Return the plaintext PIN exactly once — the owner needs it to hand to
+    // the worker. The DB stores only the bcrypt hash.
     const result = await prisma.worker.create({
       data: {
         farmId: req.user!.farmId!,
@@ -38,11 +41,11 @@ router.post("/", async (req: Request, res: Response) => {
         phone: req.body.phone || null,
         role: req.body.role || null,
         dailyWage: req.body.dailyWage ? Number(req.body.dailyWage) : null,
-        pin,
+        pin: await hashPin(pin),
         createdBy: req.user!.userId,
       },
     });
-    res.status(201).json(result);
+    res.status(201).json({ ...result, pin });
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }
@@ -59,12 +62,18 @@ router.patch("/:id", async (req: Request, res: Response) => {
     if (req.body.phone !== undefined) data.phone = req.body.phone;
     if (req.body.status !== undefined) data.status = req.body.status;
     if (req.body.dailyWage !== undefined) data.dailyWage = Number(req.body.dailyWage);
-    if (req.body.pin !== undefined) data.pin = normalizePin(req.body.pin) || generateWorkerPin();
+    let newPlainPin: string | null = null;
+    if (req.body.pin !== undefined) {
+      newPlainPin = normalizePin(req.body.pin) || generateWorkerPin();
+      data.pin = await hashPin(newPlainPin);
+      data.tokenVersion = { increment: 1 }; // old PIN's sessions die
+    }
 
     const updated = await prisma.worker.updateMany({ where: { id, farmId: req.user!.farmId! }, data });
     if (updated.count === 0) return res.status(404).json({ error: "Worker not found" });
     const result = await prisma.worker.findFirst({ where: { id, farmId: req.user!.farmId! } });
-    res.json(result);
+    // Hand the new plaintext PIN back once when it was (re)generated.
+    res.json(newPlainPin ? { ...result, pin: newPlainPin } : result);
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }

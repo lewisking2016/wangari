@@ -99,8 +99,9 @@ router.put("/password", async (req: Request, res: Response) => {
     if (!valid) return res.status(401).json({ error: "Current password is incorrect" });
 
     const hashed = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
-    res.json({ success: true });
+    // Bump tokenVersion: every other session for this user is revoked.
+    await prisma.user.update({ where: { id: user.id }, data: { password: hashed, tokenVersion: { increment: 1 } } });
+    res.json({ success: true, tokenRevoked: true });
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }

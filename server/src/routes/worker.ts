@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware, JWT_SECRET } from "../middleware/auth.js";
 import jwt from "jsonwebtoken";
+import { hashPin, verifyPin } from "../lib/pin.js";
 
 const router = Router();
 
@@ -33,43 +34,44 @@ router.post("/login", async (req: Request, res: Response) => {
       }
     }
 
-    // 2. Lookup worker by farmId + pin OR phone + pin
+    // 2. Lookup candidate workers, then verify PIN against the (bcrypt) hash.
+    // PINs are hashed at rest, so matching happens in code, not SQL.
+    const plainPin = String(pin).trim();
     let worker: any = null;
     if (targetFarmId) {
-      worker = await db.worker.findFirst({
-        where: {
-          farmId: targetFarmId,
-          pin: String(pin).trim(),
-          status: "active",
-        },
+      const candidates = await db.worker.findMany({
+        where: { farmId: targetFarmId, status: "active", pin: { not: null } },
         include: { farm: true },
       });
+      for (const candidate of candidates) {
+        if (await verifyPin(plainPin, candidate.pin)) { worker = candidate; break; }
+      }
     }
 
     // Fallback: search by phone number if farmCode didn't yield result
     if (!worker && phone) {
       const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, "");
-      worker = await db.worker.findFirst({
-        where: {
-          status: "active",
-          phone: { contains: cleanPhone.slice(-9) },
-          pin: String(pin).trim(),
-        },
+      const candidates = await db.worker.findMany({
+        where: { status: "active", phone: { contains: cleanPhone.slice(-9) }, pin: { not: null } },
         include: { farm: true },
       });
+      for (const candidate of candidates) {
+        if (await verifyPin(plainPin, candidate.pin)) { worker = candidate; break; }
+      }
     }
 
     if (!worker) {
       return res.status(401).json({ error: "Incorrect Farm Code, Phone, or 4-digit PIN" });
     }
 
-    // Generate worker JWT token
+    // Generate worker JWT token (tokenVersion enables server-side revocation)
     const token = jwt.sign(
       {
         workerId: worker.id,
         farmId: worker.farmId,
         role: "worker",
         name: worker.name,
+        tv: worker.tokenVersion || 0,
       },
       JWT_SECRET,
       { expiresIn: "30d" }
@@ -390,11 +392,15 @@ router.post("/change-pin", async (req: Request, res: Response) => {
     if (!worker) return res.status(404).json({ error: "Worker not found" });
 
     const current = String(currentPin ?? "").trim();
-    if (!worker.pin || worker.pin !== current) {
+    if (!(await verifyPin(current, worker.pin))) {
       return res.status(401).json({ error: "Current PIN is incorrect" });
     }
 
-    await db.worker.update({ where: { id: workerId }, data: { pin: newDigits } });
+    // Hash the new PIN and bump tokenVersion so all other sessions die.
+    await db.worker.update({
+      where: { id: workerId },
+      data: { pin: await hashPin(newDigits), tokenVersion: { increment: 1 } },
+    });
     return res.json({ success: true, message: "PIN changed successfully" });
   } catch (error) {
     console.error("Change PIN error:", error);

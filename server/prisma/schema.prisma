@@ -23,6 +23,7 @@ model User {
   selectedHubs    String?   @map("selected_hubs")
   resetToken      String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
+  tokenVersion    Int       @default(0) @map("token_version")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -471,6 +472,7 @@ model Worker {
   phone     String?
   role      String?
   pin       String?
+  tokenVersion Int    @default(0) @map("token_version")
   dailyWage Decimal?  @map("daily_wage") @db.Decimal(10, 2)
   status    String    @default("active")
   hiredDate DateTime? @map("hired_date")

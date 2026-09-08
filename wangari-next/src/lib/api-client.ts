@@ -59,7 +59,10 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
   }
 
   if (!res.ok) {
-    throw new Error(data.error || `Request failed: ${res.status}`);
+    const err = new Error(data.error || `Request failed: ${res.status}`) as Error & { status?: number; needsFarm?: boolean };
+    err.status = res.status;
+    if (data.needsFarm) err.needsFarm = true;
+    throw err;
   }
 
   return data as T;

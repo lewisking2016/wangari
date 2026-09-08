@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        working-directory: server
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma client
+        working-directory: server
+        run: npx prisma generate
+      - name: Typecheck
+        working-directory: server
+        run: npx tsc --noEmit
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install
+        working-directory: wangari-next
+        run: npm install --no-audit --no-fund
+      - name: Typecheck
+        working-directory: wangari-next
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: wangari-next
+        run: npm run build
+        env:
+          NEXT_PUBLIC_BACKEND_URL: https://api.wangari.imeantech.com

@@ -52,11 +52,10 @@ export default function WorkersPage() {
   };
 
   const regeneratePin = async (w: any) => {
-    const pin = String(Math.floor(1000 + Math.random() * 9000));
-    const updated: any = await api.patch(`/api/workers/${w.id}`, { pin });
+    const updated: any = await api.patch(`/api/workers/${w.id}`, { pin: "" }); // empty = server generates
     setWorkers((prev) => prev.map((x) => (x.id === w.id ? { ...x, pin: updated.pin } : x)));
     if (selectedWorker?.id === w.id) setSelectedWorker((prev: any) => ({ ...prev, pin: updated.pin }));
-    showToast(`New PIN: ${updated.pin}`);
+    showToast(`New PIN: ${updated.pin} — shown once, save it now`);
   };
   React.useEffect(() => { load(); }, []);
 
@@ -67,10 +66,10 @@ export default function WorkersPage() {
     if (form.pin) payload.pin = form.pin;
     if (editingId) {
       await api.patch(`/api/workers/${editingId}`, payload);
-      showToast("Worker updated!");
+      showToast("Worker updated!" + (payload.pin ? ` New PIN: ${payload.pin} — shown once` : ""));
     } else {
-      await api.post("/api/workers", payload);
-      showToast("Worker added!");
+      const created: any = await api.post("/api/workers", payload);
+      showToast(`Worker added! PIN: ${created.pin} — shown once, save it now`);
     }
     resetForm(); setStep(1); setShowForm(false); load();
   };
@@ -150,13 +149,12 @@ export default function WorkersPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* PINs are hashed at rest — the plaintext is only shown once
+                      at create/regenerate time, so here we show a masked state. */}
                   <div className="bg-white border-2 border-[#166534] px-4 py-1.5 rounded-xl text-center">
-                    <p className="text-xl font-black text-[#166534] tracking-[0.3em]">{w.pin ? `${w.pin}` : "—"}</p>
+                    <p className="text-xl font-black text-[#166534] tracking-[0.3em]">••••</p>
                   </div>
-                  {w.pin && (
-                    <Button onClick={() => navigator.clipboard.writeText(w.pin).then(() => showToast("PIN copied!"))} variant="ghost" size="sm" className="gap-1 text-[#166534] cursor-pointer"><Copy className="h-4 w-4" /></Button>
-                  )}
-                  <Button onClick={() => regeneratePin(w)} variant="outline" size="sm" className="gap-1 text-[#166534] cursor-pointer"><RefreshCw className="h-4 w-4" />{w.pin ? "Regenerate" : "Generate"}</Button>
+                  <Button onClick={() => regeneratePin(w)} variant="outline" size="sm" className="gap-1 text-[#166534] cursor-pointer"><RefreshCw className="h-4 w-4" />Regenerate PIN</Button>
                 </div>
               </div>
             </CardContent>

@@ -34,6 +34,7 @@ import paystackRoutes from "./routes/paystack.js";
 import trialRoutes from "./routes/trial.js";
 import plansRoutes from "./routes/plans.js";
 import adminRoutes from "./routes/admin.js";
+import { initSentry, captureError } from "./lib/sentry.js";
 import { seedPlans } from "./lib/seed-plans.js";
 
 // ─── Process-Level Crash Safety ────────────────────────────
@@ -49,6 +50,7 @@ process.on("uncaughtException", (err) => {
 });
 
 const app = express();
+initSentry(app); // no-op unless SENTRY_DSN is set
 
 // Behind nginx on the VPS — required for express-rate-limit to identify
 // clients correctly from X-Forwarded-For (silences ERR_ERL_UNEXPECTED_X_FORWARDED_FOR).
@@ -157,8 +159,9 @@ app.use((_req, res) => {
 });
 
 // ─── Error Handler ────────────────────────────────────────
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("Unhandled error:", err);
+  captureError(err, { path: req.path, method: req.method });
   res.status(500).json({ error: "Internal server error" });
 });
 

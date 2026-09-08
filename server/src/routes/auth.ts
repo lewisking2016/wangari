@@ -28,8 +28,10 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    if (!isAllowedEmail(normalizedEmail)) {
-      return res.status(400).json({ error: "Only Gmail and Outlook email addresses are accepted for registration" });
+    // Basic format sanity only — no domain allowlist. It blocked legitimate
+    // business/organization emails while rate limiting handles spam.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({ error: "Please provide a valid email address" });
     }
 
     const existing = await prisma.user.findFirst({
@@ -74,7 +76,7 @@ router.post("/register", async (req: Request, res: Response) => {
       },
     });
 
-    const token = generateToken(user.id, farm.id);
+    const token = await generateToken(user.id, farm.id);
 
     res.status(201).json({
       token,
@@ -124,7 +126,7 @@ router.post("/login", async (req: Request, res: Response) => {
     const member = await prisma.farmMember.findFirst({ where: { userId: user.id } });
     const farmId = member?.farmId || null;
 
-    const token = generateToken(user.id, farmId);
+    const token = await generateToken(user.id, farmId);
 
     res.json({
       token,
@@ -151,7 +153,7 @@ router.post("/switch-farm", async (req: Request, res: Response) => {
     const member = await prisma.farmMember.findFirst({ where: { userId: decoded.userId, farmId: Number(farmId) } });
     if (!member) return res.status(403).json({ error: "Not a member of this farm" });
 
-    const newToken = generateToken(decoded.userId, Number(farmId));
+    const newToken = await generateToken(decoded.userId, Number(farmId));
     res.json({ token: newToken, farmId: Number(farmId) });
   } catch (error) {
     res.status(500).json({ error: "Failed" });
@@ -328,7 +330,7 @@ router.post("/google", async (req: Request, res: Response) => {
     const member = await prisma.farmMember.findFirst({ where: { userId: user.id } });
     const farmId = member?.farmId || null;
 
-    const token = generateToken(user.id, farmId);
+    const token = await generateToken(user.id, farmId);
 
     res.json({
       token,

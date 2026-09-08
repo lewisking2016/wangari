@@ -40,8 +40,13 @@ export interface AdminTokenPayload {
   name: string;
 }
 
+// Separate signing secret for admin tokens — a leaked farm-app JWT_SECRET
+// cannot be used to mint super-admin tokens. Falls back to JWT_SECRET only in
+// development; production must set ADMIN_JWT_SECRET.
+export const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || (process.env.NODE_ENV === "production" ? (() => { throw new Error("ADMIN_JWT_SECRET must be set in production"); })() : JWT_SECRET);
+
 export function signAdminToken(payload: AdminTokenPayload): string {
-  return jwt.sign({ ...payload, type: "admin" }, JWT_SECRET, { expiresIn: "4h" });
+  return jwt.sign({ ...payload, type: "admin" }, ADMIN_JWT_SECRET, { expiresIn: "4h" });
 }
 
 /** Login with email + password. Only users with an admin role may log in here. */
@@ -67,7 +72,7 @@ export function requireAdmin(roles?: AdminRole[]) {
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as AdminTokenPayload & { type?: string };
+      const decoded = jwt.verify(token, ADMIN_JWT_SECRET) as AdminTokenPayload & { type?: string };
       if (decoded.type !== "admin" || !decoded.adminId) {
         return res.status(403).json({ error: "Admin token required" });
       }

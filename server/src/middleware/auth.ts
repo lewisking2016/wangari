@@ -28,14 +28,24 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser & { role?: string };
-    req.user = decoded;
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser & { role?: string; tv?: number };
 
-    // A worker token carries workerId + role "worker", never userId.
-    // Skip the subscription gate for workers (owner-gated endpoints already reject non-owners elsewhere).
+    // Token revocation: worker tokens carry the worker's tokenVersion at sign
+    // time. If the DB version is higher (PIN change / owner regen / status
+    // change), the token is dead. Checked only for worker tokens — cheap.
     if (decoded.role === "worker" || decoded.workerId) {
+      const current = await prisma.worker.findUnique({
+        where: { id: decoded.workerId! },
+        select: { tokenVersion: true, status: true },
+      });
+      if (!current || current.status !== "active" || (current.tokenVersion || 0) !== (decoded.tv ?? 0)) {
+        return res.status(401).json({ error: "Session expired. Please log in again." });
+      }
+      req.user = decoded;
       return next();
     }
+
+    req.user = decoded;
 
     // Exempt endpoints: auth, trial status, paystack, subscriptions
     const url = req.originalUrl || req.url || "";
@@ -57,6 +67,12 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
     if (!user) {
       return res.status(401).json({ error: "User not found" });
+    }
+
+    // Token revocation: user tokens carry tv (tokenVersion). A mismatch means
+    // the password changed or the account was reset — token is dead.
+    if ((decoded.tv ?? 0) !== (user as any).tokenVersion) {
+      return res.status(401).json({ error: "Session expired. Please log in again." });
     }
 
     let trialActive = false;
@@ -96,6 +112,9 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 }
 
-export function generateToken(userId: number, farmId: number | null): string {
-  return jwt.sign({ userId, farmId }, JWT_SECRET, { expiresIn: "7d" });
+export async function generateToken(userId: number, farmId: number | null): Promise<string> {
+  // Embed the user's tokenVersion at sign time; the middleware compares it so
+  // password changes / deactivations revoke outstanding tokens.
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { tokenVersion: true } });
+  return jwt.sign({ userId, farmId, tv: user?.tokenVersion ?? 0 }, JWT_SECRET, { expiresIn: "7d" });
 }
