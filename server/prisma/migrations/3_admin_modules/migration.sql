@@ -67,6 +67,7 @@ CREATE TABLE "announcements" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "promo_codes_code_key" ON "promo_codes"("code");
 CREATE INDEX "tickets_status_idx" ON "tickets"("status");
 CREATE INDEX "ticket_messages_ticket_id_idx" ON "ticket_messages"("ticket_id");
 CREATE INDEX "promo_redemptions_promo_code_id_idx" ON "promo_redemptions"("promo_code_id");
