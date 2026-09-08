@@ -152,9 +152,10 @@ export default function WorkerDashboardPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-12">
+    <div className="w-full pb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       {/* Worker Header */}
-      <div className="bg-gradient-to-br from-[#0F172A] via-[#14532D] to-[#166534] p-6 rounded-3xl text-white shadow-xl flex items-center justify-between">
+      <div className="bg-gradient-to-br from-[#0F172A] via-[#14532D] to-[#166534] p-6 rounded-3xl text-white shadow-xl flex items-center justify-between lg:col-span-12">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
@@ -178,7 +179,7 @@ export default function WorkerDashboardPage() {
       </div>
 
       {/* INTERACTIVE CALENDAR WIDGET */}
-      <Card className="border border-gray-200 bg-white rounded-3xl p-4 shadow-sm">
+      <Card className="border border-gray-200 bg-white rounded-3xl p-4 shadow-sm lg:col-span-7">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
@@ -246,7 +247,7 @@ export default function WorkerDashboardPage() {
       </Card>
 
       {/* Task Progress Summary */}
-      <Card className="border-2 border-emerald-200 bg-emerald-50/50 rounded-3xl p-5 shadow-sm">
+      <Card className="border-2 border-emerald-200 bg-emerald-50/50 rounded-3xl p-5 shadow-sm lg:col-span-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-full bg-[#166534] text-white flex items-center justify-center font-black text-lg shadow-xs">
@@ -276,11 +277,11 @@ export default function WorkerDashboardPage() {
       </Card>
 
       {/* GIANT QUICK LOG CARDS (No Emojis — Lucide Icons Only) */}
-      <div>
+      <div className="lg:col-span-12">
         <h2 className="text-xs font-black text-[#64748B] uppercase tracking-wider mb-3 px-1">
           Quick Logging (Tap to Record)
         </h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Log Eggs */}
           <motion.div
             whileTap={{ scale: 0.96 }}
@@ -356,7 +357,7 @@ export default function WorkerDashboardPage() {
       </div>
 
       {/* WORKER OUTPUT CHART (GOOD CHARTS) */}
-      <Card className="border border-gray-200 bg-white rounded-3xl p-5 shadow-sm">
+      <Card className="border border-gray-200 bg-white rounded-3xl p-5 shadow-sm lg:col-span-7">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
@@ -387,7 +388,7 @@ export default function WorkerDashboardPage() {
       </Card>
 
       {/* TODAY'S TASKS LIST */}
-      <div className="space-y-3">
+      <div className="space-y-3 lg:col-span-5">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-black text-[#64748B] uppercase tracking-wider">
             Assigned Tasks ({tasks.length})
@@ -418,7 +419,7 @@ export default function WorkerDashboardPage() {
 
       {/* TODAY'S ACTIVITY LOG */}
       {activities.length > 0 && (
-        <div className="space-y-3 pt-2">
+        <div className="space-y-3 pt-2 lg:col-span-12">
           <h2 className="text-xs font-black text-[#64748B] uppercase tracking-wider px-1">
             My Activity History ({activities.length})
           </h2>
@@ -446,6 +447,7 @@ export default function WorkerDashboardPage() {
           </Card>
         </div>
       )}
+      </div>
 
       {/* Quick Modal */}
       <WorkerQuickLogModal
