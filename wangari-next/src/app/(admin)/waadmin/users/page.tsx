@@ -53,26 +53,26 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">Users</h1>
-        <p className="mt-1 text-sm text-slate-400">All accounts with controlled support actions — every action audited.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Users</h1>
+        <p className="mt-1 text-sm text-wangari-muted">All accounts with controlled support actions — every action audited.</p>
       </div>
 
-      {flash && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">{error}</div>}
+      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
+      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
 
       <input
         value={q}
         onChange={(e) => { setQ(e.target.value); setPage(1); }}
         placeholder="Search name, email, or phone…"
-        className="h-10 w-72 rounded-lg border border-slate-700 bg-slate-800/60 px-3 text-sm text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
+        className="h-10 w-72 rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none"
       />
 
       {!rows ? (
-        <div className="animate-pulse text-sm text-slate-400">Loading users…</div>
+        <div className="animate-pulse text-sm text-wangari-muted">Loading users…</div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-800">
+        <div className="overflow-hidden rounded-xl border border-wangari-border">
           <table className="w-full text-sm">
-            <thead className="bg-slate-900/80 text-left text-[11px] uppercase tracking-wider text-slate-500">
+            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
               <tr>
                 <th className="px-4 py-3">User</th>
                 <th className="px-4 py-3">Farms</th>
@@ -81,43 +81,43 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 bg-slate-900/40">
+            <tbody className="divide-y divide-wangari-border bg-white">
               {rows.map((u) => (
                 <tr key={u.id}>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-100">{u.name} {u.role !== "farm_owner" && <span className="ml-1 rounded bg-violet-500/20 px-1.5 py-0.5 text-[10px] text-violet-300">{u.role}</span>}</div>
-                    <div className="text-xs text-slate-500">{u.email}{u.phone ? ` · ${u.phone}` : ""}</div>
+                    <div className="font-medium text-wangari-heading">{u.name} {u.role !== "farm_owner" && <span className="ml-1 rounded bg-badge-blue-bg px-1.5 py-0.5 text-[10px] text-badge-blue-text">{u.role}</span>}</div>
+                    <div className="text-xs text-wangari-subtle">{u.email}{u.phone ? ` · ${u.phone}` : ""}</div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-400">
+                  <td className="px-4 py-3 text-xs text-wangari-muted">
                     {u.ownedFarms.length ? u.ownedFarms.map((f) => f.name).join(", ") : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    {u.emailVerified ? <span className="text-emerald-400 text-xs">✓ yes</span> : <span className="text-amber-400 text-xs">no</span>}
+                    {u.emailVerified ? <span className="text-emerald-700 text-xs">✓ yes</span> : <span className="text-badge-yellow-text text-xs">no</span>}
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-xs text-wangari-muted">{new Date(u.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => act(u.id, "force-logout", `Force-logout ${u.email} from all devices?`)}
-                      className="rounded-lg px-2.5 py-1 text-xs text-amber-400 hover:bg-amber-950/40"
+                      className="rounded-lg px-2.5 py-1 text-xs text-badge-yellow-text hover:bg-badge-yellow-bg"
                     >Force logout</button>
                     {!u.emailVerified && (
-                      <button onClick={() => act(u.id, "verify-email")} className="rounded-lg px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-800 hover:text-white">Verify email</button>
+                      <button onClick={() => act(u.id, "verify-email")} className="rounded-lg px-2.5 py-1 text-xs text-wangari-text hover:bg-wangari-cream hover:text-wangari-heading">Verify email</button>
                     )}
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">No users match.</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-wangari-subtle">No users match.</td></tr>}
             </tbody>
           </table>
         </div>
       )}
 
       {pages > 1 && (
-        <div className="flex items-center justify-between text-sm text-slate-400">
+        <div className="flex items-center justify-between text-sm text-wangari-muted">
           <span>Page {page} of {pages} · {total} users</span>
           <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-slate-700 px-3 py-1.5 disabled:opacity-40">← Prev</button>
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-slate-700 px-3 py-1.5 disabled:opacity-40">Next →</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">← Prev</button>
+            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">Next →</button>
           </div>
         </div>
       )}

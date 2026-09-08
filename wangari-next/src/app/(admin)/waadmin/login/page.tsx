@@ -30,48 +30,48 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-wangari-cream px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/15 text-2xl">🛡️</div>
-          <h1 className="text-xl font-semibold text-white">Wangari Admin</h1>
-          <p className="mt-1 text-sm text-slate-400">Platform mission control — staff only</p>
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-wangari-green-50 text-2xl shadow-sm">🛡️</div>
+          <h1 className="text-xl font-bold text-wangari-heading">Wangari Admin</h1>
+          <p className="mt-1 text-sm text-wangari-muted">Platform mission control — staff only</p>
         </div>
-        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-wangari-border bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Email</label>
+            <label className="mb-1.5 block text-xs font-semibold text-wangari-muted">Email</label>
             <input
               type="email"
               required
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 text-sm text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="h-11 w-full rounded-xl border border-wangari-border px-4 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
               placeholder="admin@imeantech.com"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Password</label>
+            <label className="mb-1.5 block text-xs font-semibold text-wangari-muted">Password</label>
             <input
               type="password"
               required
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11 w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 text-sm text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="h-11 w-full rounded-xl border border-wangari-border px-4 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
               placeholder="••••••••"
             />
           </div>
-          {error && <div className="rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-xs text-red-300">{error}</div>}
+          {error && <div className="rounded-lg border border-badge-red-bg bg-red-50 px-3 py-2 text-xs text-badge-red-text">{error}</div>}
           <button
             type="submit"
             disabled={busy}
-            className="h-11 w-full rounded-xl bg-emerald-500 text-sm font-semibold text-slate-950 transition-colors hover:bg-emerald-400 disabled:opacity-60"
+            className="h-11 w-full rounded-xl bg-wangari-green-800 text-sm font-semibold text-white shadow-md transition-all hover:bg-wangari-green-900 hover:shadow-lg disabled:opacity-60"
           >
             {busy ? "Signing in…" : "Sign in to Admin"}
           </button>
         </form>
-        <p className="mt-4 text-center text-[11px] text-slate-500">
+        <p className="mt-4 text-center text-[11px] text-wangari-subtle">
           Admin accounts are provisioned internally. Sessions expire after 4 hours.
         </p>
       </div>

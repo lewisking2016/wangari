@@ -33,16 +33,16 @@ export default function AdminAuditPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">Audit Log</h1>
-        <p className="mt-1 text-sm text-slate-400">Immutable trail of admin actions and money-path mutations. Append-only.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Audit Log</h1>
+        <p className="mt-1 text-sm text-wangari-muted">Immutable trail of admin actions and money-path mutations. Append-only.</p>
       </div>
-      {error && <div className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">{error}</div>}
+      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
       {!rows ? (
-        <div className="animate-pulse text-sm text-slate-400">Loading audit trail…</div>
+        <div className="animate-pulse text-sm text-wangari-muted">Loading audit trail…</div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-800">
+        <div className="overflow-hidden rounded-xl border border-wangari-border">
           <table className="w-full text-sm">
-            <thead className="bg-slate-900/80 text-left text-[11px] uppercase tracking-wider text-slate-500">
+            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
               <tr>
                 <th className="px-4 py-3">When</th>
                 <th className="px-4 py-3">Actor</th>
@@ -51,18 +51,18 @@ export default function AdminAuditPage() {
                 <th className="px-4 py-3">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800 bg-slate-900/40">
+            <tbody className="divide-y divide-wangari-border bg-white">
               {rows.map((r) => (
                 <tr key={r.id}>
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-xs text-slate-300">
-                    {r.details?._actor ? <span className="text-emerald-400">{String(r.details._actor)}</span> : r.user ? `${r.user.name}` : `user #${r.userId ?? "?"}`}
+                  <td className="whitespace-nowrap px-4 py-3 text-xs text-wangari-muted">{new Date(r.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-xs text-wangari-text">
+                    {r.details?._actor ? <span className="text-emerald-700">{String(r.details._actor)}</span> : r.user ? `${r.user.name}` : `user #${r.userId ?? "?"}`}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-200">{r.action}</td>
-                  <td className="px-4 py-3 text-xs text-slate-400">
+                  <td className="px-4 py-3 font-mono text-xs text-wangari-heading">{r.action}</td>
+                  <td className="px-4 py-3 text-xs text-wangari-muted">
                     {r.entityType ? `${r.entityType}${r.details?._entityIdStr != null ? `#${r.details._entityIdStr}` : r.entityId != null ? `#${r.entityId}` : ""}` : "—"}
                   </td>
-                  <td className="max-w-xs truncate px-4 py-3 font-mono text-[11px] text-slate-500" title={JSON.stringify(r.details)}>
+                  <td className="max-w-xs truncate px-4 py-3 font-mono text-[11px] text-wangari-subtle" title={JSON.stringify(r.details)}>
                     {r.details ? JSON.stringify(r.details) : "—"}
                   </td>
                 </tr>
@@ -72,11 +72,11 @@ export default function AdminAuditPage() {
         </div>
       )}
       {pages > 1 && (
-        <div className="flex items-center justify-between text-sm text-slate-400">
+        <div className="flex items-center justify-between text-sm text-wangari-muted">
           <span>Page {page} of {pages} · {total} entries</span>
           <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-slate-700 px-3 py-1.5 disabled:opacity-40">← Prev</button>
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-slate-700 px-3 py-1.5 disabled:opacity-40">Next →</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">← Prev</button>
+            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">Next →</button>
           </div>
         </div>
       )}

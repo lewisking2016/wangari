@@ -59,21 +59,21 @@ export default function AdminPlansPage() {
     }
   }
 
-  if (!plans) return <div className="animate-pulse text-sm text-slate-400">{error || "Loading plans…"}</div>;
+  if (!plans) return <div className="animate-pulse text-sm text-wangari-muted">{error || "Loading plans…"}</div>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">Plans & Pricing</h1>
-        <p className="mt-1 text-sm text-slate-400">DB-driven pricing — changes apply to checkout and webhook validation instantly, every edit audited.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Plans & Pricing</h1>
+        <p className="mt-1 text-sm text-wangari-muted">DB-driven pricing — changes apply to checkout and webhook validation instantly, every edit audited.</p>
       </div>
 
-      {flash && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">{error}</div>}
+      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
+      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
 
-      <div className="overflow-hidden rounded-xl border border-slate-800">
+      <div className="overflow-hidden rounded-xl border border-wangari-border">
         <table className="w-full text-sm">
-          <thead className="bg-slate-900/80 text-left text-[11px] uppercase tracking-wider text-slate-500">
+          <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
             <tr>
               <th className="px-4 py-3">Plan</th>
               <th className="px-4 py-3">Price (KES)</th>
@@ -83,24 +83,24 @@ export default function AdminPlansPage() {
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 bg-slate-900/40">
+          <tbody className="divide-y divide-wangari-border bg-white">
             {plans.map((p) => (
               <tr key={p.id}>
                 <td className="px-4 py-3">
-                  <div className="font-medium text-slate-100">{p.name}</div>
-                  <div className="text-xs text-slate-500">{p.id}{p.description ? ` — ${p.description}` : ""}</div>
+                  <div className="font-medium text-wangari-heading">{p.name}</div>
+                  <div className="text-xs text-wangari-subtle">{p.id}{p.description ? ` — ${p.description}` : ""}</div>
                 </td>
-                <td className="px-4 py-3 text-slate-200">{(p.amount / 100).toLocaleString()}</td>
-                <td className="px-4 py-3 text-slate-300">{p.days}</td>
-                <td className="px-4 py-3 text-slate-300">{p.activeSubscriptions}</td>
+                <td className="px-4 py-3 text-wangari-heading">{(p.amount / 100).toLocaleString()}</td>
+                <td className="px-4 py-3 text-wangari-text">{p.days}</td>
+                <td className="px-4 py-3 text-wangari-text">{p.activeSubscriptions}</td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${p.active ? "bg-emerald-500/15 text-emerald-400" : "bg-slate-700/50 text-slate-400"}`}>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${p.active ? "bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200" : "bg-wangari-cream text-wangari-muted"}`}>
                     {p.active ? "Active" : "Hidden"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => setEditing({ ...p })} className="rounded-lg px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-800 hover:text-white">Edit</button>
-                  <button onClick={() => toggleActive(p)} className="rounded-lg px-2.5 py-1 text-xs text-slate-400 hover:bg-slate-800 hover:text-white">
+                  <button onClick={() => setEditing({ ...p })} className="rounded-lg px-2.5 py-1 text-xs text-wangari-text hover:bg-wangari-cream hover:text-wangari-heading">Edit</button>
+                  <button onClick={() => toggleActive(p)} className="rounded-lg px-2.5 py-1 text-xs text-wangari-muted hover:bg-wangari-cream hover:text-wangari-heading">
                     {p.active ? "Hide" : "Show"}
                   </button>
                 </td>
@@ -111,34 +111,34 @@ export default function AdminPlansPage() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setEditing(null)}>
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-700 bg-slate-900 p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold text-white">Edit plan — {editing.id}</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setEditing(null)}>
+          <div className="w-full max-w-md space-y-4 rounded-2xl border border-wangari-border bg-white p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold text-wangari-heading">Edit plan — {editing.id}</h2>
             <div>
-              <label className="mb-1 block text-xs text-slate-400">Name</label>
-              <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="h-10 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-white focus:border-emerald-500 focus:outline-none" />
+              <label className="mb-1 block text-xs text-wangari-muted">Name</label>
+              <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading focus:border-wangari-green-500 focus:outline-none" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs text-slate-400">Price (KES)</label>
-                <input type="number" value={editing.amount / 100} onChange={(e) => setEditing({ ...editing, amount: Math.round(Number(e.target.value) * 100) })} className="h-10 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-white focus:border-emerald-500 focus:outline-none" />
+                <label className="mb-1 block text-xs text-wangari-muted">Price (KES)</label>
+                <input type="number" value={editing.amount / 100} onChange={(e) => setEditing({ ...editing, amount: Math.round(Number(e.target.value) * 100) })} className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading focus:border-wangari-green-500 focus:outline-none" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-slate-400">Duration (days)</label>
-                <input type="number" value={editing.days} onChange={(e) => setEditing({ ...editing, days: Number(e.target.value) })} className="h-10 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-white focus:border-emerald-500 focus:outline-none" />
+                <label className="mb-1 block text-xs text-wangari-muted">Duration (days)</label>
+                <input type="number" value={editing.days} onChange={(e) => setEditing({ ...editing, days: Number(e.target.value) })} className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading focus:border-wangari-green-500 focus:outline-none" />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-400">Description</label>
-              <input value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="h-10 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm text-white focus:border-emerald-500 focus:outline-none" />
+              <label className="mb-1 block text-xs text-wangari-muted">Description</label>
+              <input value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading focus:border-wangari-green-500 focus:outline-none" />
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-wangari-text">
               <input type="checkbox" checked={editing.active} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} className="h-4 w-4 accent-emerald-500" />
               Visible to customers
             </label>
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setEditing(null)} className="rounded-lg px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
-              <button onClick={save} disabled={saving} className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-60">
+              <button onClick={() => setEditing(null)} className="rounded-lg px-4 py-2 text-sm text-wangari-muted hover:text-wangari-heading">Cancel</button>
+              <button onClick={save} disabled={saving} className="rounded-lg bg-wangari-green-800 px-4 py-2 text-sm font-semibold text-wangari-heading shadow-md hover:bg-wangari-green-900 disabled:opacity-60">
                 {saving ? "Saving…" : "Save plan"}
               </button>
             </div>

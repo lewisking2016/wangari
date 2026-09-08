@@ -6,10 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from "@/lib/admin-client";
 
 /**
- * Admin shell for the super-admin dashboard. UX-only guard: presence of an
- * admin token gates rendering — actual authorization is enforced server-side
- * on every /api/admin request (requireAdmin + role map). A customer or worker
- * token stored in the farm app's keys is ignored entirely here.
+ * Admin shell for the super-admin dashboard, styled with the same wangari
+ * design system as the farm dashboards (light theme, green accents, same
+ * card/border tokens). UX-only guard: presence of an admin token gates
+ * rendering — authorization is enforced server-side on every /api/admin call.
  */
 
 const NAV = [
@@ -57,8 +57,8 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
 
   if (!ready || !admin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="animate-pulse text-sm text-slate-400">Checking admin session…</div>
+      <div className="flex min-h-screen items-center justify-center bg-wangari-cream">
+        <div className="animate-pulse text-sm text-wangari-muted">Checking admin session…</div>
       </div>
     );
   }
@@ -67,29 +67,29 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
     end ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      {/* Sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-slate-800 bg-slate-900/60 md:flex">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15 text-lg">🛡️</div>
+    <div className="flex min-h-screen bg-wangari-cream text-wangari-text">
+      {/* Sidebar — same structure as the farm app's */}
+      <aside className="hidden w-[260px] shrink-0 flex-col border-r border-wangari-border bg-white md:sticky md:top-0 md:flex md:h-screen">
+        <div className="flex items-center gap-2.5 px-5 py-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-50 text-lg">🛡️</div>
           <div>
-            <div className="text-sm font-semibold tracking-tight">Wangari Admin</div>
-            <div className="text-[11px] uppercase tracking-widest text-slate-500">Mission Control</div>
+            <div className="text-sm font-bold tracking-tight text-wangari-heading">Wangari Admin</div>
+            <div className="text-[11px] uppercase tracking-widest text-wangari-muted">Mission Control</div>
           </div>
         </div>
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
           {NAV.map((group) => (
             <div key={group.section}>
-              <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500">{group.section}</div>
+              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-widest text-wangari-subtle">{group.section}</div>
               <div className="space-y-1">
                 {group.items.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
                       isActive(item.href, item.end)
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                        ? "bg-wangari-green-800 text-white shadow-md"
+                        : "text-wangari-text hover:bg-wangari-green-50 hover:text-wangari-green-800"
                     }`}
                   >
                     <span className="text-base leading-none">{item.icon}</span>
@@ -100,15 +100,15 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
             </div>
           ))}
         </nav>
-        <div className="border-t border-slate-800 px-4 py-4">
+        <div className="border-t border-wangari-border px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium">{admin.name}</div>
-              <div className="truncate text-[11px] text-emerald-400">{admin.role.replace("_", " ")}</div>
+              <div className="truncate text-sm font-semibold text-wangari-heading">{admin.name}</div>
+              <div className="truncate text-[11px] font-medium capitalize text-wangari-green-700">{admin.role.replace("_", " ")}</div>
             </div>
             <button
               onClick={() => { clearAdminSession(); router.replace("/waadmin/login"); }}
-              className="rounded-lg px-2.5 py-1.5 text-xs text-slate-400 hover:bg-slate-800 hover:text-white"
+              className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800"
             >
               Sign out
             </button>
@@ -119,11 +119,11 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile topbar */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3 md:hidden">
-          <div className="text-sm font-semibold">Wangari Admin</div>
+        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-wangari-border bg-white/80 px-4 py-3 backdrop-blur-xl md:hidden">
+          <div className="text-sm font-bold text-wangari-heading">Wangari Admin</div>
           <button
             onClick={() => { clearAdminSession(); router.replace("/waadmin/login"); }}
-            className="text-xs text-slate-400 hover:text-white"
+            className="text-xs font-medium text-wangari-muted hover:text-wangari-green-800"
           >
             Sign out
           </button>
