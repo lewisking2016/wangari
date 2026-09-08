@@ -58,13 +58,20 @@ export { verifyTotp };
  *
  * MFA flow: correct password + MFA enabled + no code → returns
  * { mfaRequired: true } with NO token. Client re-posts with totpCode.
- * A valid recovery code is accepted once and consumed.
+ * A code that was provided but is wrong → { mfaInvalid: true } (route maps
+ * to 401 so the UI can show "invalid code"). A valid recovery code is
+ * accepted once and consumed.
  */
 export async function adminLogin(
   email: string,
   password: string,
   totpCode?: string
-): Promise<null | { token: string; admin: { id: number; name: string; email: string; role: string } } | { mfaRequired: true }> {
+): Promise<
+  | null
+  | { token: string; admin: { id: number; name: string; email: string; role: string } }
+  | { mfaRequired: true }
+  | { mfaInvalid: true }
+> {
   const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase().trim() } });
   if (!user || !user.password) return null;
 
@@ -86,7 +93,7 @@ export async function adminLogin(
       const hashes: string[] = user.recoveryCodes ? JSON.parse(user.recoveryCodes) : [];
       const h = hashCode(code);
       const idx = hashes.indexOf(h);
-      if (idx === -1) return { mfaRequired: true }; // wrong code — same response, no oracle
+      if (idx === -1) return { mfaInvalid: true }; // code given but wrong → explicit rejection
       hashes.splice(idx, 1);
       await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
     }

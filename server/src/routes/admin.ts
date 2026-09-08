@@ -28,6 +28,9 @@ router.post("/login", async (req: Request, res: Response) => {
       // Correct password but MFA challenge outstanding — never reveal whether the account exists.
       return res.status(200).json({ mfaRequired: true });
     }
+    if ("mfaInvalid" in result) {
+      return res.status(401).json({ error: "Invalid authenticator or recovery code" });
+    }
     auditAdminAction(undefined, "admin.login", "admin", result.admin.id, { email: result.admin.email });
     res.json(result);
   } catch (error) {
