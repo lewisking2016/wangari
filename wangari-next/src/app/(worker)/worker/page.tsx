@@ -19,6 +19,9 @@ import {
   Check,
   Sparkles,
   ClipboardList,
+  LogIn,
+  LogOut,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,8 +44,10 @@ export default function WorkerDashboardPage() {
   const [tasks, setTasks] = React.useState<any[]>([]);
   const [flocks, setFlocks] = React.useState<any[]>([]);
   const [activities, setActivities] = React.useState<any[]>([]);
+  const [attendance, setAttendance] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [clocking, setClocking] = React.useState(false);
 
   // Calendar State
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
@@ -53,10 +58,11 @@ export default function WorkerDashboardPage() {
 
   const fetchData = async () => {
     try {
-      const [tasksRes, flocksRes, activityRes] = await Promise.allSettled([
+      const [tasksRes, flocksRes, activityRes, attRes] = await Promise.allSettled([
         api.get("/api/worker/tasks"),
         api.get("/api/flocks"),
         api.get("/api/worker/my-activity"),
+        api.get("/api/worker/my-attendance"),
       ]);
 
       if (tasksRes.status === "fulfilled" && Array.isArray(tasksRes.value)) {
@@ -67,6 +73,9 @@ export default function WorkerDashboardPage() {
       }
       if (activityRes.status === "fulfilled" && Array.isArray(activityRes.value)) {
         setActivities(activityRes.value);
+      }
+      if (attRes.status === "fulfilled" && Array.isArray(attRes.value)) {
+        setAttendance(attRes.value);
       }
     } catch (err) {
       console.error("Worker dashboard fetch error:", err);
@@ -103,6 +112,30 @@ export default function WorkerDashboardPage() {
     setLogType(type);
     setModalOpen(true);
   };
+
+  const handleClock = async () => {
+    setClocking(true);
+    try {
+      await api.post("/api/worker/clock", {});
+      fetchData();
+    } catch (err) {
+      console.error("Clock failed:", err);
+    } finally {
+      setClocking(false);
+    }
+  };
+
+  // Attendance state derived from records
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayAtt = attendance.find(
+    (r) => new Date(r.date).toISOString().split("T")[0] === todayStr
+  );
+  const clockState: "none" | "in" | "done" = todayAtt?.checkIn
+    ? todayAtt?.checkOut
+      ? "done"
+      : "in"
+    : "none";
+  const daysWorked = attendance.filter((r) => r.checkIn).length;
 
   // Calendar Date Navigation
   const changeDate = (days: number) => {
@@ -274,6 +307,77 @@ export default function WorkerDashboardPage() {
             style={{ width: `${progressPct}%` }}
           />
         </div>
+      </Card>
+
+      {/* CLOCK IN / OUT + THIS WEEK'S ATTENDANCE */}
+      <Card className="border border-gray-200 bg-white rounded-3xl p-5 shadow-sm lg:col-span-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#166534] shrink-0">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-[#0F172A]">My Attendance</h3>
+              <p className="text-xs text-[#64748B]">{daysWorked} days worked in the last 7</p>
+            </div>
+          </div>
+          {clockState === "none" && (
+            <button
+              onClick={handleClock}
+              disabled={clocking}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#166534] text-white text-xs font-bold hover:bg-[#14532D] cursor-pointer min-h-[44px] shadow-xs disabled:opacity-50"
+            >
+              <LogIn className="h-4 w-4" /> Clock In
+            </button>
+          )}
+          {clockState === "in" && (
+            <button
+              onClick={handleClock}
+              disabled={clocking}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 hover:bg-amber-100 cursor-pointer min-h-[44px] disabled:opacity-50"
+            >
+              <LogOut className="h-4 w-4" /> Clock Out
+            </button>
+          )}
+          {clockState === "done" && (
+            <span className="px-3 py-1.5 rounded-xl bg-gray-100 text-[#64748B] text-xs font-bold">
+              {todayAtt.checkIn} – {todayAtt.checkOut} ✓
+            </span>
+          )}
+        </div>
+
+        {attendance.length === 0 ? (
+          <p className="text-xs text-[#94A3B8] text-center py-4">
+            No attendance yet — clock in to start your shift.
+          </p>
+        ) : (
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {attendance.map((r) => (
+              <div
+                key={r.id}
+                className="flex items-center justify-between py-2 px-3 rounded-xl bg-gray-50 border border-gray-100"
+              >
+                <div>
+                  <p className="text-xs font-extrabold text-[#0F172A]">
+                    {new Date(r.date).toLocaleDateString("en-KE", { weekday: "short", day: "numeric", month: "short" })}
+                  </p>
+                  <p className="text-[10px] text-[#94A3B8]">
+                    {r.checkIn || "--:--"} – {r.checkOut || "working…"}
+                  </p>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                    r.checkOut
+                      ? "bg-gray-100 text-[#64748B]"
+                      : "bg-emerald-50 text-[#166534]"
+                  }`}
+                >
+                  {r.checkOut ? "Done" : "Present"}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* GIANT QUICK LOG CARDS (No Emojis — Lucide Icons Only) */}

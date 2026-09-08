@@ -133,13 +133,13 @@ export default function WhatsAppPage() {
       {/* Webhook Technical Config */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <Card className="border border-[#E5E7EB] rounded-3xl">
-          <CardContent className="p-5 flex items-center justify-between">
+          <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <p className="text-xs font-bold text-[#0F172A]">System Service Endpoint</p>
               <p className="text-[11px] text-[#64748B] mt-0.5">Meta Cloud API Webhook URL</p>
             </div>
-            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E5E7EB] px-3 py-1.5 rounded-xl text-xs font-mono text-[#0F172A]">
-              <span>https://api.wangari.imeantech.com/api/whatsapp/webhook</span>
+            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E5E7EB] px-3 py-1.5 rounded-xl text-xs font-mono text-[#0F172A] max-w-full">
+              <span className="break-all">https://api.wangari.imeantech.com/api/whatsapp/webhook</span>
               <button onClick={() => handleCopy("https://api.wangari.imeantech.com/api/whatsapp/webhook")} className="text-[#166534] hover:text-emerald-800 cursor-pointer">
                 <Copy className="h-3.5 w-3.5" />
               </button>

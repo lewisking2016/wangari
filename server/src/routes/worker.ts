@@ -312,6 +312,81 @@ router.post("/log-output", async (req: Request, res: Response) => {
   }
 });
 
+// ─── GET /api/worker/my-attendance — Worker's own attendance (this week) ───
+router.get("/my-attendance", async (req: Request, res: Response) => {
+  try {
+    const farmId = req.user!.farmId!;
+    const workerId = (req.user as any).workerId;
+    if (!workerId) return res.json([]);
+
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    weekAgo.setHours(0, 0, 0, 0);
+
+    const records = await db.attendance.findMany({
+      where: { farmId, workerId, date: { gte: weekAgo } },
+      orderBy: { date: "desc" },
+      take: 30,
+    });
+
+    return res.json(records);
+  } catch (error) {
+    console.error("Get my attendance error:", error);
+    return res.status(500).json({ error: "Failed to fetch attendance" });
+  }
+});
+
+// ─── POST /api/worker/clock — Worker clocks themselves in/out ───
+router.post("/clock", async (req: Request, res: Response) => {
+  try {
+    const farmId = req.user!.farmId!;
+    const workerId = (req.user as any).workerId;
+    if (!workerId) {
+      return res.status(403).json({ error: "Only workers can clock themselves" });
+    }
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const today = new Date(todayStr + "T00:00:00");
+    const now = new Date().toTimeString().slice(0, 5);
+
+    // Reuse the same logic as the owner endpoint: existing record today = clock out
+    const allToday = await db.attendance.findMany({
+      where: { workerId, farmId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+    const existing = allToday.find((r: any) => {
+      const recDate = new Date(r.date).toISOString().split("T")[0];
+      return recDate === todayStr;
+    });
+
+    if (existing) {
+      if (existing.checkOut) {
+        return res.status(400).json({ error: "Already clocked out today" });
+      }
+      const updated = await db.attendance.update({
+        where: { id: existing.id },
+        data: { checkOut: now, status: "present" },
+      });
+      return res.json({ action: "out", record: updated });
+    }
+
+    const created = await db.attendance.create({
+      data: {
+        workerId,
+        farmId,
+        date: today,
+        checkIn: now,
+        status: "present",
+      },
+    });
+    return res.status(201).json({ action: "in", record: created });
+  } catch (error) {
+    console.error("Worker clock error:", error);
+    return res.status(500).json({ error: "Failed to record clock in/out" });
+  }
+});
+
 // ─── GET /api/worker/my-activity — Worker's logs for today ───
 router.get("/my-activity", async (req: Request, res: Response) => {
   try {

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { requireOwner } from "../middleware/requireOwner.js";
 
 const router = Router();
 router.use(authMiddleware);
@@ -20,8 +21,8 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/attendance — clock in or create record
-router.post("/", async (req: Request, res: Response) => {
+// POST /api/attendance — clock in or create record (owner action — workers clock themselves via /api/worker/clock)
+router.post("/", requireOwner, async (req: Request, res: Response) => {
   try {
     const farmId = req.user!.farmId!;
     const workerId = Number(req.body.workerId);
@@ -67,8 +68,8 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/attendance/:id — update status or notes
-router.patch("/:id", async (req: Request, res: Response) => {
+// PATCH /api/attendance/:id — update status or notes (owner only)
+router.patch("/:id", requireOwner, async (req: Request, res: Response) => {
   try {
     const result = await prisma.attendance.update({
       where: { id: Number(req.params.id) },
@@ -80,8 +81,8 @@ router.patch("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/attendance/:id
-router.delete("/:id", async (req: Request, res: Response) => {
+// DELETE /api/attendance/:id (owner only)
+router.delete("/:id", requireOwner, async (req: Request, res: Response) => {
   try {
     await prisma.attendance.deleteMany({
       where: { id: Number(req.params.id), farmId: req.user!.farmId! },
