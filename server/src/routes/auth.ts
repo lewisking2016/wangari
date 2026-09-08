@@ -98,9 +98,9 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    if (!isAllowedEmail(normalizedEmail)) {
-      return res.status(400).json({ error: "Only Gmail and Outlook email addresses are accepted" });
-    }
+    // NOTE: no domain allowlist here — the allowlist is a registration-time
+    // spam control. Existing users (e.g. staff on imeantech.com, or users who
+    // registered before/with other domains) must always be able to log in.
 
     const user = await prisma.user.findFirst({
       where: {
