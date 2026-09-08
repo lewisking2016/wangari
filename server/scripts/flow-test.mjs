@@ -84,7 +84,8 @@ async function main() {
       const t = await req("POST", "/api/transactions", wt, { type: "income", amount: 1 });
       check("worker blocked from money writes", t.status === 403);
       const a = await req("GET", "/api/admin/overview", wt);
-      check("worker blocked from admin", a.status === 403);
+      // 403 (type mismatch) or 401 (different signing secret) — both rejections.
+      check("worker blocked from admin", a.status === 403 || a.status === 401);
     }
   }
 
