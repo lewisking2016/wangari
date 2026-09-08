@@ -111,8 +111,8 @@ export default function AdminEmailsPage() {
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-wangari-border bg-white px-4 py-8 text-center text-sm text-wangari-subtle">No emails yet — receipts and ticket replies will appear here.</div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-wangari-border">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-wangari-border">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
               <tr>
                 <th className="px-4 py-3">When</th>

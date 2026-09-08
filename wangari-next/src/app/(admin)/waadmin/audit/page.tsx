@@ -40,8 +40,8 @@ export default function AdminAuditPage() {
       {!rows ? (
         <div className="animate-pulse text-sm text-wangari-muted">Loading audit trail…</div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-wangari-border">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-wangari-border">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
               <tr>
                 <th className="px-4 py-3">When</th>
