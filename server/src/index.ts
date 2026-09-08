@@ -36,6 +36,8 @@ import plansRoutes from "./routes/plans.js";
 import adminRoutes from "./routes/admin.js";
 import adminModulesRoutes from "./routes/admin-modules.js";
 import supportRoutes from "./routes/support.js";
+import adminCrmRoutes from "./routes/admin-crm.js";
+import contactRoutes from "./routes/contact.js";
 import { initSentry, captureError } from "./lib/sentry.js";
 import { seedPlans } from "./lib/seed-plans.js";
 
@@ -156,6 +158,8 @@ app.use("/api/admin/login", adminLimiter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminModulesRoutes);
 app.use("/api", supportRoutes);
+app.use("/api/admin", adminCrmRoutes);
+app.use("/api", contactRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {

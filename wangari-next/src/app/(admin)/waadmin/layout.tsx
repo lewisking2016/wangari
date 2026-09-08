@@ -22,10 +22,12 @@ const NAV = [
   ]},
   { section: "Growth", items: [
     { href: "/waadmin/promos", label: "Promo Codes", icon: "🎟️" },
+    { href: "/waadmin/crm", label: "CRM Pipeline", icon: "🤝" },
     { href: "/waadmin/announcements", label: "Announcements", icon: "📢" },
   ]},
   { section: "Support", items: [
     { href: "/waadmin/tickets", label: "Tickets", icon: "🎫" },
+    { href: "/waadmin/emails", label: "Email Ops", icon: "📧" },
     { href: "/waadmin/audit", label: "Audit Log", icon: "🛡️" },
     { href: "/waadmin/system", label: "System Health", icon: "🖥️" },
   ]},

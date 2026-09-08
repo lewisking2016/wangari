@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { requireAdmin, auditAdminAction } from "../lib/admin-auth.js";
+import { sendEmail, emailTemplates } from "../lib/email.js";
 
 /**
  * Admin modules — farms/users management, promo codes, tickets, announcements.
@@ -292,6 +293,18 @@ router.post("/tickets/:id/reply", requireAdmin(["support"]), async (req: Request
     const nextStatus = ["open", "pending", "solved", "closed"].includes(status) ? status : "pending";
     await prisma.ticket.update({ where: { id: ticket.id }, data: { status: nextStatus } });
     auditAdminAction(admin, "admin.ticket.reply", "ticket", ticket.id, { status: nextStatus });
+
+    // Notify the ticket owner by email (if they have an address).
+    const fullTicket = await prisma.ticket.findUnique({
+      where: { id: ticket.id },
+      select: { subject: true, user: { select: { id: true, email: true } } },
+    });
+    const userEmail = fullTicket?.user?.email;
+    if (userEmail) {
+      const tpl = emailTemplates.ticketReply(ticket.id, fullTicket.subject, String(body).trim());
+      await sendEmail({ to: userEmail, subject: tpl.subject, html: tpl.html, template: "ticket_reply", userId: fullTicket.user?.id });
+    }
+
     res.status(201).json(message);
   } catch (error) {
     console.error("Admin ticket reply error:", error);

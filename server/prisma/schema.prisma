@@ -700,6 +700,54 @@ model Announcement {
   @@map("announcements")
 }
 
+model CrmContact {
+  id        Int             @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  company   String? // farm / organization
+  type      String          @default("lead") // lead | partner | customer
+  stage     String          @default("lead") // lead | contacted | demo | trial | customer | churned
+  source    String? // contact_form | manual | referral
+  ownerId   Int?            @map("owner_id") // admin responsible
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  notes CrmContactNote[]
+
+  @@index([stage])
+  @@map("crm_contacts")
+}
+
+model CrmContactNote {
+  id        Int      @id @default(autoincrement())
+  contactId Int      @map("contact_id")
+  body      String
+  authorId  Int?     @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  contact CrmContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@map("crm_contact_notes")
+}
+
+model EmailLog {
+  id         Int      @id @default(autoincrement())
+  to         String
+  subject    String
+  template   String? // receipt | ticket_reply | announcement | oneoff
+  status     String   @default("queued") // queued | sent | failed
+  provider   String?
+  providerId String?  @map("provider_id")
+  error      String?
+  userId     Int?     @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([status])
+  @@map("email_logs")
+}
+
 model AuditLog {
   id         Int      @id @default(autoincrement())
   userId     Int?     @map("user_id")

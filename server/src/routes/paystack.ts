@@ -4,6 +4,7 @@ import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { auditMoneyMutation } from "../lib/audit.js";
 import { getPlan } from "../lib/plans.js";
+import { sendEmail, emailTemplates } from "../lib/email.js";
 
 const router = Router();
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
@@ -195,6 +196,17 @@ router.post("/webhook", async (req: Request, res: Response) => {
         entityId: existing?.id || null,
         details: { plan, reference, amountKes: planConfig.amount / 100, expiresAt: expiresAt.toISOString() },
       });
+
+      // Email receipt (logged to email_logs; failure never blocks the webhook).
+      try {
+        const subUser = await prisma.user.findUnique({ where: { id: Number(userId) }, select: { email: true } });
+        if (subUser?.email) {
+          const tpl = emailTemplates.receipt(planConfig.amount / 100, planConfig.name, expiresAt);
+          await sendEmail({ to: subUser.email, subject: tpl.subject, html: tpl.html, template: "receipt", userId: Number(userId) });
+        }
+      } catch (mailErr) {
+        console.warn("receipt email failed:", mailErr);
+      }
 
       // Promo attribution: record the redemption and bump the counter.
       const promoCode = data?.metadata?.promoCode;

@@ -107,7 +107,7 @@ const WANGARI_RESOURCES: MegaMenuResourceGroup[] = [
     title: "Company",
     links: [
       { title: "About Us", href: "/about", icon: Building2 },
-      { title: "Contact", href: "mailto:hello@wangari.app", icon: MessagesSquare },
+      { title: "Contact", href: "/contact", icon: MessagesSquare },
       { title: "Careers", href: "/about", icon: Briefcase },
     ],
   },
