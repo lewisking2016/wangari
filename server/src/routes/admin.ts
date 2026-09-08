@@ -125,14 +125,23 @@ router.get("/plans", requireAdmin(["billing", "support", "support_read"]), async
   }
 });
 
+// Coerce to a finite number or undefined (rejects NaN from bad input).
+function numOrUndef(v: unknown): number | undefined {
+  if (v === undefined || v === null || v === "") return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 router.post("/plans", requireAdmin(["billing"]), async (req: Request, res: Response) => {
   try {
     const { id, name, description, amount, days, active, sortOrder } = req.body || {};
-    if (!id || !name || !amount || !days) {
-      return res.status(400).json({ error: "id, name, amount (pesewas) and days are required" });
+    const amt = numOrUndef(amount);
+    const d = numOrUndef(days);
+    if (!id || !name || amt === undefined || d === undefined) {
+      return res.status(400).json({ error: "id, name, amount (pesewas) and days are required and must be numbers" });
     }
     const plan = await prisma.plan.create({
-      data: { id: String(id).trim().toLowerCase(), name: String(name).trim(), description: description || null, amount: Number(amount), days: Number(days), active: active !== false, sortOrder: Number(sortOrder) || 0 },
+      data: { id: String(id).trim().toLowerCase(), name: String(name).trim(), description: description || null, amount: amt, days: d, active: active !== false, sortOrder: numOrUndef(sortOrder) || 0 },
     });
     auditAdminAction((req as any).admin, "admin.plan.create", "plan", plan.id, { name: plan.name, amount: plan.amount, days: plan.days });
     res.json(plan);
@@ -149,15 +158,20 @@ router.patch("/plans/:id", requireAdmin(["billing"]), async (req: Request, res: 
     const before = await prisma.plan.findUnique({ where: { id: planId } });
     if (!before) return res.status(404).json({ error: "Plan not found" });
     const { name, description, amount, days, active, sortOrder } = req.body || {};
+    const amt = numOrUndef(amount);
+    const d = numOrUndef(days);
+    if ((amount !== undefined && amt === undefined) || (days !== undefined && d === undefined)) {
+      return res.status(400).json({ error: "amount and days must be numbers" });
+    }
     const plan = await prisma.plan.update({
       where: { id: planId },
       data: {
         ...(name !== undefined ? { name: String(name).trim() } : {}),
         ...(description !== undefined ? { description: description || null } : {}),
-        ...(amount !== undefined ? { amount: Number(amount) } : {}),
-        ...(days !== undefined ? { days: Number(days) } : {}),
+        ...(amt !== undefined ? { amount: amt } : {}),
+        ...(d !== undefined ? { days: d } : {}),
         ...(active !== undefined ? { active: Boolean(active) } : {}),
-        ...(sortOrder !== undefined ? { sortOrder: Number(sortOrder) } : {}),
+        ...(sortOrder !== undefined ? { sortOrder: numOrUndef(sortOrder) || 0 } : {}),
       },
     });
     auditAdminAction((req as any).admin, "admin.plan.update", "plan", plan.id, {
