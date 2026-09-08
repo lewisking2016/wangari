@@ -1,17 +1,38 @@
 import { prisma } from "../db.js";
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
 
 /**
- * Transactional email via Resend (https://resend.com) — plain fetch, no SDK
- * dependency. Behavior:
- *  - RESEND_API_KEY unset  → send is skipped, EmailLog row records "failed"
+ * Transactional email — SMTP first (Mailbux noreply mailbox), Resend fallback.
+ * Plain-fetch Resend, no SDK. Behavior:
+ *  - SMTP_HOST+SMTP_USER set   → send via SMTP (nodemailer); preferred path.
+ *  - Else RESEND_API_KEY set   → send via Resend REST API.
+ *  - Neither configured        → send is skipped, EmailLog row records "failed"
  *    with a clear error. App never breaks because email is down.
- *  - RESEND_API_KEY set    → send via Resend REST API; log sent/failed with
- *    the provider id for support lookups.
  * Every attempt is logged to email_logs (the admin Email Ops module reads it).
  */
 
 const RESEND_API = "https://api.resend.com/emails";
 const FROM = process.env.EMAIL_FROM || "Wangari <noreply@imeantech.com>";
+
+// SMTP transport (created lazily once; only when SMTP env is configured).
+let smtpTransport: Transporter | null = null;
+let smtpAttempted = false;
+function getSmtp(): Transporter | null {
+  if (smtpAttempted) return smtpTransport;
+  smtpAttempted = true;
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  smtpTransport = nodemailer.createTransport({
+    host,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === "true", // true = port 465 implicit TLS; false = 587 STARTTLS
+    auth: { user, pass },
+  });
+  return smtpTransport;
+}
 
 export interface EmailInput {
   to: string;
@@ -70,13 +91,32 @@ export const emailTemplates = {
 
 export async function sendEmail(input: EmailInput): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
+  const smtp = getSmtp();
+  const provider: "smtp" | "resend" | null = smtp ? "smtp" : apiKey ? "resend" : null;
   let status = "failed";
   let providerId: string | null = null;
   let error: string | null = null;
 
-  if (!apiKey) {
-    error = "RESEND_API_KEY not configured";
-  } else {
+  if (smtp) {
+    try {
+      const info = await smtp.sendMail({
+        from: FROM,
+        to: input.to,
+        subject: input.subject,
+        html: input.html,
+      });
+      status = "sent";
+      providerId = info.messageId || null;
+    } catch (e: any) {
+      error = e?.message || "SMTP send failed";
+    }
+  }
+
+  if (!smtp && !apiKey) {
+    error = "No email provider configured (SMTP_HOST/RESEND_API_KEY)";
+  }
+
+  if (provider === "resend") {
     try {
       const res = await fetch(RESEND_API, {
         method: "POST",
@@ -102,7 +142,7 @@ export async function sendEmail(input: EmailInput): Promise<void> {
         subject: input.subject,
         template: input.template,
         status,
-        provider: apiKey ? "resend" : null,
+        provider,
         providerId,
         error,
         userId: input.userId ?? null,
