@@ -292,7 +292,7 @@ function DashboardContent() {
         <PaymentResultModal
           type={paymentModal.type}
           reference={paymentModal.reference}
-          amount={trialData?.subscription?.amount || 150000}
+          amount={trialData?.subscription?.amount || null}
           planName={trialData?.subscription?.plan_name || "Wangari Plan"}
           userEmail={user?.email}
           onClose={() => setPaymentModal(null)}

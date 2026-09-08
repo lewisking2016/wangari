@@ -47,7 +47,9 @@ function LoginForm() {
   const [googleLoaded, setGoogleLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1068800164805-4g9b55vg23a9d9g030b4j4g1v0n2s4.apps.googleusercontent.com";
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (!clientId) return; // No client ID configured — skip Google button
 
     const setupGoogle = () => {
       if (window.google?.accounts?.id) {
@@ -406,7 +408,8 @@ function LoginForm() {
                       s.async = true;
                       s.onload = () => {
                         if (window.google?.accounts?.id) {
-                          const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1068800164805-4g9b55vg23a9d9g030b4j4g1v0n2s4.apps.googleusercontent.com";
+                          const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+                          if (!clientId) return;
                           window.google.accounts.id.initialize({ client_id: clientId, callback: async (r: any) => { try { await googleLogin(r.credential); router.push(callbackUrl); } catch (e: any) { setError(e?.message || "Google sign-in failed"); } } });
                           if (googleButtonRef.current) window.google.accounts.id.renderButton(googleButtonRef.current, { theme: "outline", size: "large", width: "100%" });
                           setGoogleLoaded(true);

@@ -55,6 +55,20 @@ model VerificationCode {
   @@map("verification_codes")
 }
 
+// Pricing source of truth — seeded from code once, editable in DB afterwards.
+// amount is in Pesewas (Paystack minor unit) to avoid float money.
+model Plan {
+  id          String   @id
+  name        String
+  description String?
+  amount      Int
+  days        Int
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  @@map("plans")
+}
+
 model Subscription {
   id            Int      @id @default(autoincrement())
   userId        Int      @map("user_id")

@@ -1,3 +1,4 @@
+import { TRIAL_DAYS, trialEndDate } from "../lib/config.js";
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
@@ -42,7 +43,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const now = new Date();
-    const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const trialEndsAt = trialEndDate(now);
 
     const user = await prisma.user.create({
       data: {
@@ -291,7 +292,7 @@ router.post("/google", async (req: Request, res: Response) => {
     } else {
       // New user — create account
       const now = new Date();
-      const trialEndsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const trialEndsAt = trialEndDate(now);
 
       user = await prisma.user.create({
         data: {

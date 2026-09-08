@@ -13,17 +13,27 @@ import { useSearchParams } from "next/navigation";
 
 const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const PLANS = [
-  { key: "starter_monthly", name: "Starter", price: "KES 1,500/mo", hubs: "1 hub + Inventory", features: ["1 hub of choice", "Inventory (always)", "Dashboard", "Feed Calculator", "Weather"] },
-  { key: "growth_monthly", name: "Growth", price: "KES 4,500/mo", hubs: "3 hubs + Inventory", features: ["3 hubs of choice", "Inventory (always)", "AI Assistant", "PDF Reports", "Priority support"] },
-  { key: "starter_annual", name: "Starter Annual", price: "KES 12,000/yr", hubs: "1 hub + Inventory", features: ["Same as Starter monthly", "2 months free"] },
-  { key: "growth_annual", name: "Growth Annual", price: "KES 36,000/yr", hubs: "3 hubs + Inventory", features: ["Same as Growth monthly", "2 months free"] },
-];
+// Plan cards render from GET /api/plans (DB-backed) — description carries the
+// marketing copy, name/amount come from the pricing source of truth.
+interface ApiPlan {
+  id: string;
+  name: string;
+  description: string | null;
+  amount: number; // pesewas
+  amountKes: number;
+  days: number;
+}
+
+function formatPrice(plan: ApiPlan): string {
+  const kes = plan.amountKes.toLocaleString("en-KE");
+  return plan.days >= 365 ? `KES ${kes}/yr` : `KES ${kes}/mo`;
+}
 
 // ── Inner component — uses useSearchParams, must be inside <Suspense> ──────────
 function SubscriptionContent() {
   const [sub, setSub] = React.useState<any>(null);
   const [trial, setTrial] = React.useState<any>(null);
+  const [plans, setPlans] = React.useState<ApiPlan[]>([]);
   const [userEmail, setUserEmail] = React.useState<string>("");
   const [loading, setLoading] = React.useState(true);
   const [purchasing, setPurchasing] = React.useState<string | null>(null);
@@ -56,6 +66,10 @@ function SubscriptionContent() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    api.get<ApiPlan[]>("/api/plans")
+      .then((d) => setPlans(Array.isArray(d) ? d : []))
+      .catch(() => {});
 
     api.get("/api/auth/me").then((d: any) => {
       if (d?.email) setUserEmail(d.email);
@@ -166,27 +180,22 @@ function SubscriptionContent() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <h3 className="text-sm font-bold text-[#0F172A] mb-3">Available Plans</h3>
         <div className="grid gap-4">
-          {PLANS.map(plan => (
-            <Card key={plan.key} className="border border-[#E5E7EB] hover:border-[#166534] transition-colors">
+          {plans.map(plan => (
+            <Card key={plan.id} className="border border-[#E5E7EB] hover:border-[#166534] transition-colors">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-bold text-[#0F172A]">{plan.name}</p>
-                    <p className="text-lg font-extrabold text-[#166534] mt-1">{plan.price}</p>
-                    <p className="text-xs text-[#64748B] mt-0.5">{plan.hubs}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {plan.features.map(f => (
-                        <span key={f} className="text-[10px] bg-[#F0FDF4] text-[#166534] px-2 py-0.5 rounded-full">{f}</span>
-                      ))}
-                    </div>
+                    <p className="text-lg font-extrabold text-[#166534] mt-1">{formatPrice(plan)}</p>
+                    {plan.description && <p className="text-xs text-[#64748B] mt-0.5">{plan.description}</p>}
                   </div>
                   <Button
-                    onClick={() => handleSubscribe(plan.key)}
-                    disabled={purchasing === plan.key || (isActive && sub?.plan_name?.toLowerCase().includes(plan.name.toLowerCase()))}
+                    onClick={() => handleSubscribe(plan.id)}
+                    disabled={purchasing === plan.id || (isActive && sub?.plan_name === plan.name)}
                     className="bg-[#166534] hover:bg-[#14532D] cursor-pointer shrink-0"
                     size="sm"
                   >
-                    {purchasing === plan.key ? "Loading..." : "Subscribe"}
+                    {purchasing === plan.id ? "Loading..." : "Subscribe"}
                   </Button>
                 </div>
               </CardContent>
@@ -212,7 +221,7 @@ function SubscriptionContent() {
         <PaymentResultModal
           type={modalState.type}
           reference={modalState.reference}
-          amount={sub?.amount || 150000}
+          amount={sub?.amount || null}
           planName={sub?.plan_name || "Starter Plan"}
           userEmail={userEmail}
           reason={modalState.reason}

@@ -2,14 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_API = "https://api.paystack.co";
+// Plan config (name/amount) lives in the backend DB — no price literals here.
+const BACKEND_URL = process.env.BACKEND_URL || "https://api.wangari.imeantech.com";
 
-// Plan amounts in KES (Paystack uses pesewas = amount * 100)
-const PLANS = {
-  starter_monthly: { name: "Starter Monthly", amount: 150000, description: "Starter plan - KES 1,500/month" },
-  starter_annual: { name: "Starter Annual", amount: 1200000, description: "Starter plan - KES 12,000/year" },
-  growth_monthly: { name: "Growth Monthly", amount: 450000, description: "Growth plan - KES 4,500/month" },
-  growth_annual: { name: "Growth Annual", amount: 3600000, description: "Growth plan - KES 36,000/year" },
-};
+interface PlanConfig {
+  id: string;
+  name: string;
+  amount: number; // pesewas
+}
+
+async function fetchPlan(planId: string): Promise<PlanConfig | null> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/plans`, { next: { revalidate: 60 } });
+    if (!res.ok) return null;
+    const plans: PlanConfig[] = await res.json();
+    return plans.find((p) => p.id === planId) || null;
+  } catch {
+    return null;
+  }
+}
 
 // POST /api/paystack - Initialize a payment
 export async function POST(req: NextRequest) {
@@ -20,7 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email and plan are required" }, { status: 400 });
     }
 
-    const planConfig = PLANS[plan as keyof typeof PLANS];
+    const planConfig = await fetchPlan(plan);
     if (!planConfig) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
@@ -37,8 +48,9 @@ export async function POST(req: NextRequest) {
         amount: planConfig.amount,
         currency: "KES",
         channels: ["card", "mobile_money"],
-        callback_url: callback_url || `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
+        callback_url: callback_url || `${process.env.NEXTAUTH_URL || "https://wangari.imeantech.com"}/dashboard?payment=success`,
         metadata: {
+          purpose: "subscription",
           plan,
           plan_name: planConfig.name,
         },

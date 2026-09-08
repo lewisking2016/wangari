@@ -3,23 +3,11 @@ import crypto from "crypto";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { auditMoneyMutation } from "../lib/audit.js";
+import { getPlan } from "../lib/plans.js";
 
 const router = Router();
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
 const PAYSTACK_API = "https://api.paystack.co";
-
-const PLANS = {
-  starter_monthly: { name: "Starter Monthly", amount: 150000, description: "Starter plan - KES 1,500/month", days: 30 },
-  starter_annual: { name: "Starter Annual", amount: 1200000, description: "Starter plan - KES 12,000/year", days: 365 },
-  growth_monthly: { name: "Growth Monthly", amount: 450000, description: "Growth plan - KES 4,500/month", days: 30 },
-  growth_annual: { name: "Growth Annual", amount: 3600000, description: "Growth plan - KES 36,000/year", days: 365 },
-};
-
-// Sorted by amount so annual is matched before monthly when both equal is impossible,
-// but we match exact amount to the plan the user was initialized with.
-function planFromAmount(amount: number) {
-  return Object.values(PLANS).find((p) => p.amount === amount);
-}
 
 // POST /api/paystack - Initialize transaction
 router.post("/", authMiddleware, async (req: Request, res: Response) => {
@@ -39,7 +27,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Email and plan are required" });
     }
 
-    const planConfig = PLANS[plan as keyof typeof PLANS];
+    const planConfig = await getPlan(plan);
     if (!planConfig) {
       return res.status(400).json({ error: "Invalid plan" });
     }
@@ -120,16 +108,17 @@ router.post("/webhook", async (req: Request, res: Response) => {
         const email = String(data?.customer?.email || "").toLowerCase();
         const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
         if (user) {
+          const planConfig = plan ? await getPlan(plan) : null;
           // Activate now (Express flow has no trial-start deferral)
           const startsAt = new Date();
-          const expiresAt = new Date(startsAt.getTime() + (PLANS[plan as keyof typeof PLANS]?.days || 30) * 24 * 60 * 60 * 1000);
+          const expiresAt = new Date(startsAt.getTime() + (planConfig?.days || 30) * 24 * 60 * 60 * 1000);
           const existing = reference ? await prisma.subscription.findFirst({ where: { reference } }) : null;
           if (!existing) {
             await prisma.subscription.create({
               data: {
                 userId: user.id,
                 plan: plan || "starter_monthly",
-                planName: PLANS[plan as keyof typeof PLANS]?.name || plan || "Starter",
+                planName: planConfig?.name || plan || "Starter",
                 amount: paidAmount / 100,
                 status: "active",
                 reference,
@@ -146,7 +135,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
         return res.json({ received: true }); // no-op, can't activate without metadata
       }
 
-      const planConfig = PLANS[plan as keyof typeof PLANS];
+      const planConfig = await getPlan(plan);
       if (!planConfig) {
         return res.json({ received: true });
       }

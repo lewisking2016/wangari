@@ -4,6 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { X, Lock, ArrowRight, ArrowLeft } from "lucide-react";
+import api from "@/lib/api-client";
 
 interface UpgradePopupProps {
   open: boolean;
@@ -11,34 +12,29 @@ interface UpgradePopupProps {
   moduleName?: string;
 }
 
-const plans = [
-  {
-    name: "Starter",
-    price: "KES 1,500",
-    period: "/month",
-    features: ["1 hub of choice", "Inventory tracking", "WhatsApp bot", "Basic reports"],
-  },
-  {
-    name: "Growth",
-    price: "KES 4,500",
-    period: "/month",
-    popular: true,
-    features: ["3 hubs of choice", "Inventory tracking", "AI assistant", "Advanced reports + PDF"],
-  },
-  {
-    name: "Enterprise",
-    price: "KES 12,000",
-    period: "/month",
-    features: ["All 6 hubs", "Individual hosting", "Priority support", "Custom integrations"],
-  },
-];
+interface ApiPlan {
+  id: string;
+  name: string;
+  description: string | null;
+  amountKes: number;
+  days: number;
+}
 
 export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
   const [mounted, setMounted] = React.useState(false);
+  const [plans, setPlans] = React.useState<ApiPlan[]>([]);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Plans come from the pricing source of truth (backend DB) — no literals here.
+  React.useEffect(() => {
+    if (!open || plans.length > 0) return;
+    api.get<ApiPlan[]>("/api/plans")
+      .then((d) => setPlans(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, [open, plans.length]);
 
   if (!open) return null;
 
@@ -80,40 +76,39 @@ export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
 
         {/* Plans */}
         <div className="p-6 space-y-3">
-          {plans.map((plan) => (
+          {plans.map((plan, idx) => {
+            const popular = idx === 1; // second plan highlighted as popular
+            const period = plan.days >= 365 ? "/yr" : "/mo";
+            return (
             <div
-              key={plan.name}
+              key={plan.id}
               className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                plan.popular
+                popular
                   ? "border-[#166534] bg-[#F0FDF4]"
                   : "border-[#E5E7EB] hover:border-[#BBF7D0]"
               }`}
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-[#0F172A]">{plan.name}</p>
-                  {plan.popular && (
+                  <p className="text-sm font-bold text-[#0F172A]">{plan.name.replace(/ (Monthly|Annual)$/, "")}</p>
+                  {popular && (
                     <span className="text-[9px] font-bold text-[#166534] bg-[#F0FDF4] px-2 py-0.5 rounded-full border border-[#BBF7D0]">
                       Popular
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-[#64748B] mt-0.5">
-                  {plan.price}{plan.period}
+                  KES {plan.amountKes.toLocaleString("en-KE")}{period}
                 </p>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {plan.features.slice(0, 3).map((f) => (
-                    <span key={f} className="text-[10px] text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded-full">
-                      {f}
-                    </span>
-                  ))}
-                </div>
+                {plan.description && (
+                  <p className="text-[10px] text-[#64748B] mt-1">{plan.description}</p>
+                )}
               </div>
               <Link
                 href="/subscription"
                 onClick={onClose}
                 className={`flex items-center gap-1 px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
-                  plan.popular
+                  popular
                     ? "bg-[#166534] text-white hover:bg-[#14532D]"
                     : "border border-[#E5E7EB] text-[#0F172A] hover:border-[#166534] hover:text-[#166534]"
                 }`}
@@ -121,7 +116,11 @@ export function UpgradePopup({ open, onClose, moduleName }: UpgradePopupProps) {
                 Choose <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
-          ))}
+            );
+          })}
+          {plans.length === 0 && (
+            <p className="text-xs text-[#64748B] text-center py-4">Loading plans…</p>
+          )}
         </div>
 
         {/* Footer Actions */}

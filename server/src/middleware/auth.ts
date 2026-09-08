@@ -1,3 +1,4 @@
+import { trialEndDate } from "../lib/config.js";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../db.js";
@@ -62,7 +63,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     if (user.trialEndsAt) {
       trialActive = now < user.trialEndsAt;
     } else if (user.createdAt) {
-      const fourteenDays = new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const fourteenDays = trialEndDate(user.createdAt);
       trialActive = now < fourteenDays;
     }
 

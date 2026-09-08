@@ -5,7 +5,7 @@
 
 import { getToken, logout } from "./auth-client";
 
-const API_BASE = "https://api.wangari.imeantech.com";
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.wangari.imeantech.com";
 
 interface RequestOptions extends RequestInit {
   json?: unknown;

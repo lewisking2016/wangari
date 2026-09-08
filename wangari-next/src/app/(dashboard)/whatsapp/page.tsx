@@ -21,10 +21,13 @@ const COMMANDS = [
   { cmd: "help", desc: "Show all commands" },
 ];
 
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.wangari.imeantech.com";
+
 export default function WhatsAppPage() {
   const [data, setData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [copied, setCopied] = React.useState(false);
+  const webhookUrl = `${API_BASE}/api/whatsapp/webhook`;
 
   React.useEffect(() => {
     api.get("/api/whatsapp")
@@ -139,8 +142,8 @@ export default function WhatsAppPage() {
               <p className="text-[11px] text-[#64748B] mt-0.5">Meta Cloud API Webhook URL</p>
             </div>
             <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E5E7EB] px-3 py-1.5 rounded-xl text-xs font-mono text-[#0F172A] max-w-full">
-              <span className="break-all">https://api.wangari.imeantech.com/api/whatsapp/webhook</span>
-              <button onClick={() => handleCopy("https://api.wangari.imeantech.com/api/whatsapp/webhook")} className="text-[#166534] hover:text-emerald-800 cursor-pointer">
+              <span className="break-all">{webhookUrl}</span>
+              <button onClick={() => handleCopy(webhookUrl)} className="text-[#166534] hover:text-emerald-800 cursor-pointer">
                 <Copy className="h-3.5 w-3.5" />
               </button>
             </div>

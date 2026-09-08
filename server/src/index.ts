@@ -32,6 +32,8 @@ import flocksUploadRoutes from "./routes/flocks-upload.js";
 import uploadRoutes from "./routes/upload.js";
 import paystackRoutes from "./routes/paystack.js";
 import trialRoutes from "./routes/trial.js";
+import plansRoutes from "./routes/plans.js";
+import { seedPlans } from "./lib/seed-plans.js";
 
 // ─── Process-Level Crash Safety ────────────────────────────
 // One bad async call must not kill the PM2 process silently.
@@ -140,6 +142,7 @@ app.use("/api/zkteco", zktecoRoutes);
 app.use("/api/worker", workerApiRoutes);
 app.use("/api/paystack", paystackRoutes);
 app.use("/api/trial", trialRoutes);
+app.use("/api/plans", plansRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((_req, res) => {
@@ -154,6 +157,8 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // ─── Start Server ─────────────────────────────────────────
 app.listen(PORT, () => {
+  // Seed pricing plans once at boot (create-if-missing; DB rows win afterwards)
+  seedPlans();
   console.log(`🌱 Wangari API server running on port ${PORT}`);
   console.log(`   Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`   Frontend URL: ${process.env.FRONTEND_URL || "https://wangari.imeantech.com"}`);

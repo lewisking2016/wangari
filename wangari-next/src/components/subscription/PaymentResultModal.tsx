@@ -158,13 +158,13 @@ export function PaymentResultModal({
                 <p className="text-[10px] text-gray-400">Full platform access • Unlimited records & reports</p>
               </div>
               <div className="col-span-4 text-right font-bold text-gray-900">
-                KES {amount ? (amount / 100).toLocaleString() : "1,500"}
+                KES {amount ? (amount / 100).toLocaleString() : "—"}
               </div>
             </div>
             <div className="grid grid-cols-12 p-3 text-xs bg-emerald-50/50 border-t border-gray-200">
               <div className="col-span-8 font-extrabold text-[#0F172A]">TOTAL PAID</div>
               <div className="col-span-4 text-right font-black text-lg text-[#166534]">
-                KES {amount ? (amount / 100).toLocaleString() : "1,500"}
+                KES {amount ? (amount / 100).toLocaleString() : "—"}
               </div>
             </div>
           </div>

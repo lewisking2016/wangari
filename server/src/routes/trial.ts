@@ -1,3 +1,4 @@
+import { TRIAL_DAYS, trialEndDate } from "../lib/config.js";
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -74,7 +75,7 @@ router.get("/status", authMiddleware, async (req: Request, res: Response) => {
 
     // If trialEndsAt was never persisted, calculate from createdAt and LOCK it in the DB
     if (!resolvedTrialEndsAt && user.createdAt) {
-      resolvedTrialEndsAt = new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+      resolvedTrialEndsAt = trialEndDate(user.createdAt);
       // Persist so subsequent calls return a stable, unchanging end date
       await prisma.user.update({
         where: { id: user.id },
