@@ -1,0 +1,430 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Wangari \u2014 Farm Management SaaS Platform",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1240,
+      560
+    ]
+  },
+  "components": [
+    {
+      "id": "owner",
+      "type": "external",
+      "label": "Farm Owner",
+      "sublabel": "farm dashboard",
+      "pos": [
+        40,
+        80
+      ],
+      "size": [
+        140,
+        62
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "external",
+      "label": "Farm Worker",
+      "sublabel": "/worker portal",
+      "pos": [
+        40,
+        210
+      ],
+      "size": [
+        140,
+        62
+      ]
+    },
+    {
+      "id": "superadmin",
+      "type": "external",
+      "label": "Super Admin",
+      "sublabel": "/waadmin console",
+      "pos": [
+        40,
+        340
+      ],
+      "size": [
+        140,
+        62
+      ]
+    },
+    {
+      "id": "vercel",
+      "type": "cloud",
+      "label": "Next.js 16 App Router",
+      "sublabel": "Vercel \u00b7 farm dashboard",
+      "pos": [
+        290,
+        80
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "workerportal",
+      "type": "frontend",
+      "label": "Worker Portal",
+      "sublabel": "isolated shell",
+      "pos": [
+        290,
+        210
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "adminui",
+      "type": "frontend",
+      "label": "Admin Console",
+      "sublabel": "/waadmin \u00b7 13 modules",
+      "pos": [
+        290,
+        340
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Express API",
+      "sublabel": "PM2 \u00b7 api.wangari.imeantech.com",
+      "pos": [
+        600,
+        210
+      ],
+      "size": [
+        170,
+        62
+      ]
+    },
+    {
+      "id": "ownerroutes",
+      "type": "backend",
+      "label": "Owner APIs \u00d717",
+      "sublabel": "trial-gated",
+      "pos": [
+        880,
+        80
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "workerroutes",
+      "type": "backend",
+      "label": "Worker APIs",
+      "sublabel": "token-bound workerId",
+      "pos": [
+        880,
+        210
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "adminroutes",
+      "type": "backend",
+      "label": "Admin APIs",
+      "sublabel": "RBAC \u00b7 MFA-gated",
+      "pos": [
+        880,
+        340
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Prisma ORM",
+      "pos": [
+        1120,
+        210
+      ],
+      "size": [
+        120,
+        62
+      ]
+    },
+    {
+      "id": "paystack",
+      "type": "external",
+      "label": "Paystack",
+      "sublabel": "checkout + signed webhooks",
+      "pos": [
+        480,
+        470
+      ],
+      "size": [
+        150,
+        62
+      ]
+    },
+    {
+      "id": "weather",
+      "type": "external",
+      "label": "Weather API",
+      "sublabel": "forecast + sunrise/sunset",
+      "pos": [
+        800,
+        470
+      ],
+      "size": [
+        150,
+        62
+      ]
+    },
+    {
+      "id": "resend",
+      "type": "external",
+      "label": "Resend",
+      "sublabel": "email ESP \u00b7 logged sends",
+      "pos": [
+        990,
+        470
+      ],
+      "size": [
+        150,
+        62
+      ]
+    },
+    {
+      "id": "contactform",
+      "type": "external",
+      "label": "Prospect",
+      "sublabel": "/contact page",
+      "pos": [
+        40,
+        470
+      ],
+      "size": [
+        140,
+        62
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Vercel edge (frontend)",
+      "wraps": [
+        "vercel",
+        "workerportal",
+        "adminui"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Azure VPS \u2014 PM2 process",
+      "wraps": [
+        "api",
+        "ownerroutes",
+        "workerroutes",
+        "adminroutes"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "owner-fe",
+      "from": "owner",
+      "to": "vercel",
+      "label": "farm app JWT"
+    },
+    {
+      "id": "worker-fe",
+      "from": "worker",
+      "to": "workerportal",
+      "label": "farm code + PIN"
+    },
+    {
+      "id": "admin-fe",
+      "from": "superadmin",
+      "to": "adminui",
+      "label": "admin login + TOTP MFA",
+      "labelDy": -25
+    },
+    {
+      "id": "fe-api",
+      "from": "vercel",
+      "to": "api",
+      "label": "REST /api/*",
+      "labelDy": -28
+    },
+    {
+      "id": "wp-api",
+      "from": "workerportal",
+      "to": "api"
+    },
+    {
+      "id": "au-api",
+      "from": "adminui",
+      "to": "api",
+      "label": "REST /api/admin/*"
+    },
+    {
+      "id": "gate-owner",
+      "from": "api",
+      "to": "ownerroutes",
+      "label": "farm-scoped",
+      "labelDy": -22
+    },
+    {
+      "id": "gate-worker",
+      "from": "api",
+      "to": "workerroutes"
+    },
+    {
+      "id": "gate-admin",
+      "from": "api",
+      "to": "adminroutes",
+      "label": "platform-wide",
+      "labelDy": 22
+    },
+    {
+      "id": "owner-db",
+      "from": "ownerroutes",
+      "to": "db"
+    },
+    {
+      "id": "worker-db",
+      "from": "workerroutes",
+      "to": "db"
+    },
+    {
+      "id": "admin-db",
+      "from": "adminroutes",
+      "to": "db",
+      "label": "+ audit"
+    },
+    {
+      "id": "pay-init",
+      "from": "api",
+      "to": "paystack",
+      "label": "init / verify",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pay-hook",
+      "from": "paystack",
+      "to": "api",
+      "label": "HMAC webhook",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          660,
+          501
+        ],
+        [
+          685,
+          501
+        ],
+        [
+          685,
+          460
+        ]
+      ]
+    },
+    {
+      "id": "wx",
+      "from": "api",
+      "to": "weather",
+      "label": "forecast",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "email-send",
+      "from": "adminroutes",
+      "to": "resend",
+      "label": "email",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "contact-lead",
+      "from": "contactform",
+      "to": "adminroutes",
+      "label": "CRM lead",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [
+        [
+          110,
+          548
+        ],
+        [
+          960,
+          548
+        ],
+        [
+          960,
+          430
+        ]
+      ],
+      "labelDy": 12
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Farm Owner dashboard",
+      "items": [
+        "Full farm ops: flocks, crops, sales, income & expenses, inventory, invoices",
+        "Workers & attendance management, ZKTeco device sync",
+        "Subscription gated: 14-day trial then Paystack plan"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Worker portal (isolated)",
+      "items": [
+        "Separate login: farm code + 4-digit PIN \u2014 no email, no password",
+        "Sees only own tasks, attendance, output logs; workerId from token",
+        "Self-service profile + PIN change; server-enforced 403s on owner APIs"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Super Admin \u2014 /waadmin (13 modules)",
+      "items": [
+        "Platform: overview, farms, users, billing, plans (DB-driven pricing)",
+        "Growth: promo/partner codes, CRM pipeline, announcements",
+        "Support: tickets, email ops (Resend), audit log, health \u00b7 RBAC + TOTP MFA"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Money path",
+      "items": [
+        "Checkout \u2192 promo code \u2192 Paystack \u2192 HMAC webhook \u2192 activation",
+        "Webhook validates paid amount against DB Plan, records redemption",
+        "Every money mutation logged to audit_log; receipt emailed"
+      ]
+    }
+  ]
+}

@@ -5163,7 +5163,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <!-- Connection paths (before components for correct z-order) -->
         <path data-edge-from="owner" data-edge-to="vercel" data-edge-label="farm app JWT" data-edge-key="0" data-edge-id="owner-fe" data-composition-points="180,111;290,111" d="M 180 111 L 290 111" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="worker" data-edge-to="workerportal" data-edge-label="farm code + PIN" data-edge-key="1" data-edge-id="worker-fe" data-composition-points="180,241;290,241" d="M 180 241 L 290 241" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="superadmin" data-edge-to="adminui" data-edge-label="admin login (4h JWT)" data-edge-key="2" data-edge-id="admin-fe" data-composition-points="180,371;290,371" d="M 180 371 L 290 371" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="superadmin" data-edge-to="adminui" data-edge-label="admin login + TOTP MFA" data-edge-key="2" data-edge-id="admin-fe" data-composition-points="180,371;290,371" d="M 180 371 L 290 371" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="vercel" data-edge-to="api" data-edge-label="REST /api/*" data-edge-key="3" data-edge-id="fe-api" data-composition-points="450,111;525,111;525,227;600,227" d="M 450 111 L 517 111 Q 525 111 525 119 L 525 219 Q 525 227 533 227 L 600 227" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="workerportal" data-edge-to="api" data-edge-key="4" data-edge-id="wp-api" data-composition-points="450,241;600,241" d="M 450 241 L 600 241" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="adminui" data-edge-to="api" data-edge-label="REST /api/admin/*" data-edge-key="5" data-edge-id="au-api" data-composition-points="450,371;525,371;525,255;600,255" d="M 450 371 L 517 371 Q 525 371 525 363 L 525 263 Q 525 255 533 255 L 600 255" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
@@ -5176,6 +5176,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <path data-edge-from="api" data-edge-to="paystack" data-edge-label="init / verify" data-edge-key="12" data-edge-id="pay-init" data-composition-points="678,272;678,371;555,371;555,470" d="M 678 272 L 678 363 Q 678 371 670 371 L 563 371 Q 555 371 555 379 L 555 470" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="paystack" data-edge-to="api" data-edge-label="HMAC webhook" data-edge-key="13" data-edge-id="pay-hook" data-composition-points="630,501;660,501;685,501;685,460;685,272" d="M 630 501 L 652 501 Q 660 501 668 501 L 677 501 Q 685 501 685 493 L 685 468 Q 685 460 685 452 L 685 272" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         <path data-edge-from="api" data-edge-to="weather" data-edge-label="forecast" data-edge-key="14" data-edge-id="wx" data-composition-points="692,272;692,371;875,371;875,470" d="M 692 272 L 692 363 Q 692 371 700 371 L 867 371 Q 875 371 875 379 L 875 470" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="adminroutes" data-edge-to="resend" data-edge-label="email" data-edge-key="15" data-edge-id="email-send" data-composition-points="960,402;960,436;1065,436;1065,470" d="M 960 402 L 960 428 Q 960 436 968 436 L 1057 436 Q 1065 436 1065 444 L 1065 470" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="contactform" data-edge-to="adminroutes" data-edge-label="CRM lead" data-edge-key="16" data-edge-id="contact-lead" data-composition-points="110,532;110,548;960,548;960,430;960,402" d="M 110 532 L 110 540 Q 110 548 118 548 L 952 548 Q 960 548 960 540 L 960 438 Q 960 430 960 422 L 960 402" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
 
         <!-- Components -->
         <g id="node-owner" data-node-id="owner" data-node-label="Farm Owner" tabindex="0" role="button" aria-label="Focus Farm Owner, farm dashboard, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="farm dashboard" data-node-context="Architecture component">
@@ -5239,8 +5241,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="370" y="255" class="t-muted" font-size="9" text-anchor="middle">isolated shell</text>
         </g>
 
-        <g id="node-adminui" data-node-id="adminui" data-node-label="Admin Console" tabindex="0" role="button" aria-label="Focus Admin Console, /waadmin group, Vercel edge (frontend)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="/waadmin group" data-node-context="Vercel edge (frontend)">
-          <title>Admin Console · /waadmin group · Vercel edge (frontend)</title>
+        <g id="node-adminui" data-node-id="adminui" data-node-label="Admin Console" tabindex="0" role="button" aria-label="Focus Admin Console, /waadmin · 13 modules, Vercel edge (frontend)" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="/waadmin · 13 modules" data-node-context="Vercel edge (frontend)">
+          <title>Admin Console · /waadmin · 13 modules · Vercel edge (frontend)</title>
           <rect x="290" y="340" width="160" height="62" rx="6" class="c-mask"/>
           <rect x="290" y="340" width="160" height="62" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(296 346) scale(0.6875)">
@@ -5250,7 +5252,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="370" y="369" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Admin Console</text>
-        <text data-detail="context" x="370" y="385" class="t-muted" font-size="9" text-anchor="middle">/waadmin group</text>
+        <text data-detail="context" x="370" y="385" class="t-muted" font-size="9" text-anchor="middle">/waadmin · 13 modules</text>
         </g>
 
         <g id="node-api" data-node-id="api" data-node-label="Express API" tabindex="0" role="button" aria-label="Focus Express API, PM2 · api.wangari.imeantech.com, Azure VPS — PM2 process" aria-pressed="false" data-node-kind="backend" data-node-sublabel="PM2 · api.wangari.imeantech.com" data-node-context="Azure VPS — PM2 process">
@@ -5286,15 +5288,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="960" y="255" class="t-muted" font-size="9" text-anchor="middle">token-bound workerId</text>
         </g>
 
-        <g id="node-adminroutes" data-node-id="adminroutes" data-node-label="Admin APIs" tabindex="0" role="button" aria-label="Focus Admin APIs, RBAC roles, Azure VPS — PM2 process" aria-pressed="false" data-node-kind="backend" data-node-sublabel="RBAC roles" data-node-context="Azure VPS — PM2 process">
-          <title>Admin APIs · RBAC roles · Azure VPS — PM2 process</title>
+        <g id="node-adminroutes" data-node-id="adminroutes" data-node-label="Admin APIs" tabindex="0" role="button" aria-label="Focus Admin APIs, RBAC · MFA-gated, Azure VPS — PM2 process" aria-pressed="false" data-node-kind="backend" data-node-sublabel="RBAC · MFA-gated" data-node-context="Azure VPS — PM2 process">
+          <title>Admin APIs · RBAC · MFA-gated · Azure VPS — PM2 process</title>
           <rect x="880" y="340" width="160" height="62" rx="6" class="c-mask"/>
           <rect x="880" y="340" width="160" height="62" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(886 346) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="960" y="369" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Admin APIs</text>
-        <text data-detail="context" x="960" y="385" class="t-muted" font-size="9" text-anchor="middle">RBAC roles</text>
+        <text data-detail="context" x="960" y="385" class="t-muted" font-size="9" text-anchor="middle">RBAC · MFA-gated</text>
         </g>
 
         <g id="node-db" data-node-id="db" data-node-label="PostgreSQL" tabindex="0" role="button" aria-label="Focus PostgreSQL, Prisma ORM, Architecture component" aria-pressed="false" data-node-kind="database" data-node-sublabel="Prisma ORM" data-node-context="Architecture component">
@@ -5333,6 +5335,30 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="875" y="515" class="t-muted" font-size="9" text-anchor="middle">forecast + sunrise/sunset</text>
         </g>
 
+        <g id="node-resend" data-node-id="resend" data-node-label="Resend" tabindex="0" role="button" aria-label="Focus Resend, email ESP · logged sends, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="email ESP · logged sends" data-node-context="Architecture component">
+          <title>Resend · email ESP · logged sends · Architecture component</title>
+          <rect x="990" y="470" width="150" height="62" rx="6" class="c-mask"/>
+          <rect x="990" y="470" width="150" height="62" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(996 476) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1065" y="499" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Resend</text>
+        <text data-detail="context" x="1065" y="515" class="t-muted" font-size="9" text-anchor="middle">email ESP · logged sends</text>
+        </g>
+
+        <g id="node-contactform" data-node-id="contactform" data-node-label="Prospect" tabindex="0" role="button" aria-label="Focus Prospect, /contact page, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="/contact page" data-node-context="Architecture component">
+          <title>Prospect · /contact page · Architecture component</title>
+          <rect x="40" y="470" width="140" height="62" rx="6" class="c-mask"/>
+          <rect x="40" y="470" width="140" height="62" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(46 476) scale(0.6875)">
+            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
+            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="110" y="499" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Prospect</text>
+        <text data-detail="context" x="110" y="515" class="t-muted" font-size="9" text-anchor="middle">/contact page</text>
+        </g>
+
         <!-- Connection labels -->
         <g data-detail="context" data-edge-from="owner" data-edge-to="vercel" data-edge-label="farm app JWT" data-edge-key="0" data-edge-id="owner-fe">
           <rect x="201.2" y="91" width="67.6" height="14" rx="3" class="c-mask"/>
@@ -5342,9 +5368,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="194" y="221" width="82" height="14" rx="3" class="c-mask"/>
           <text x="235" y="231" class="t-muted" font-size="8" text-anchor="middle">farm code + PIN</text>
         </g>
-        <g data-detail="context" data-edge-from="superadmin" data-edge-to="adminui" data-edge-label="admin login (4h JWT)" data-edge-key="2" data-edge-id="admin-fe">
-          <rect x="182" y="351" width="106" height="14" rx="3" class="c-mask"/>
-          <text x="235" y="361" class="t-muted" font-size="8" text-anchor="middle">admin login (4h JWT)</text>
+        <g data-detail="context" data-edge-from="superadmin" data-edge-to="adminui" data-edge-label="admin login + TOTP MFA" data-edge-key="2" data-edge-id="admin-fe">
+          <rect x="177.2" y="326" width="115.6" height="14" rx="3" class="c-mask"/>
+          <text x="235" y="336" class="t-muted" font-size="8" text-anchor="middle">admin login + TOTP MFA</text>
         </g>
         <g data-detail="context" data-edge-from="vercel" data-edge-to="api" data-edge-label="REST /api/*" data-edge-key="3" data-edge-id="fe-api">
           <rect x="493.6" y="121" width="62.8" height="14" rx="3" class="c-mask"/>
@@ -5381,6 +5407,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g data-detail="context" data-edge-from="api" data-edge-to="weather" data-edge-label="forecast" data-edge-key="14" data-edge-id="wx">
           <rect x="759.3" y="351" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="783.5" y="361" class="t-messagebus" font-size="8" text-anchor="middle">forecast</text>
+        </g>
+        <g data-detail="context" data-edge-from="adminroutes" data-edge-to="resend" data-edge-label="email" data-edge-key="15" data-edge-id="email-send">
+          <rect x="995.5" y="416" width="34" height="14" rx="3" class="c-mask"/>
+          <text x="1012.5" y="426" class="t-messagebus" font-size="8" text-anchor="middle">email</text>
+        </g>
+        <g data-detail="context" data-edge-from="contactform" data-edge-to="adminroutes" data-edge-label="CRM lead" data-edge-key="16" data-edge-id="contact-lead">
+          <rect x="510.8" y="540" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="535" y="550" class="t-messagebus" font-size="8" text-anchor="middle">CRM lead</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
@@ -5609,12 +5643,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <div class="card">
         <div class="card-header">
           <div class="card-dot violet"></div>
-          <h3>Super Admin (waadmin)</h3>
+          <h3>Super Admin — /waadmin (13 modules)</h3>
         </div>
         <ul>
-          <li>&bull; Platform KPIs, plan/pricing CRUD (DB-driven, live on checkout)</li>
-          <li>&bull; Billing overrides + cancellations, immutable audit trail</li>
-          <li>&bull; Separate JWT type + RBAC roles; staff bootstrapped via CLI only</li>
+          <li>&bull; Platform: overview, farms, users, billing, plans (DB-driven pricing)</li>
+          <li>&bull; Growth: promo/partner codes, CRM pipeline, announcements</li>
+          <li>&bull; Support: tickets, email ops (Resend), audit log, health · RBAC + TOTP MFA</li>
         </ul>
       </div>
 
@@ -5624,9 +5658,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>Money path</h3>
         </div>
         <ul>
-          <li>&bull; Checkout → Paystack → HMAC webhook → subscription activation</li>
-          <li>&bull; Webhook validates paid amount against DB Plan</li>
-          <li>&bull; Every money mutation logged to audit_log</li>
+          <li>&bull; Checkout → promo code → Paystack → HMAC webhook → activation</li>
+          <li>&bull; Webhook validates paid amount against DB Plan, records redemption</li>
+          <li>&bull; Every money mutation logged to audit_log; receipt emailed</li>
         </ul>
       </div>
     </div>
