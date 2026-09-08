@@ -15,10 +15,17 @@ import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from 
 const NAV = [
   { section: "Platform", items: [
     { href: "/waadmin", label: "Overview", icon: "📊", end: true },
+    { href: "/waadmin/farms", label: "Farms", icon: "🏡" },
+    { href: "/waadmin/users", label: "Users", icon: "👥" },
     { href: "/waadmin/billing", label: "Billing", icon: "💳" },
     { href: "/waadmin/plans", label: "Plans & Pricing", icon: "🏷️" },
   ]},
-  { section: "Trust", items: [
+  { section: "Growth", items: [
+    { href: "/waadmin/promos", label: "Promo Codes", icon: "🎟️" },
+    { href: "/waadmin/announcements", label: "Announcements", icon: "📢" },
+  ]},
+  { section: "Support", items: [
+    { href: "/waadmin/tickets", label: "Tickets", icon: "🎫" },
     { href: "/waadmin/audit", label: "Audit Log", icon: "🛡️" },
     { href: "/waadmin/system", label: "System Health", icon: "🖥️" },
   ]},

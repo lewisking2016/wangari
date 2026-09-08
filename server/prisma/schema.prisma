@@ -34,6 +34,7 @@ model User {
   sales        Sale[]
   workers      Worker[]
   auditLogs    AuditLog[]
+  tickets      Ticket[]
   crops        Crop[]
   verifications VerificationCode[]
   subscriptions Subscription[]
@@ -622,6 +623,81 @@ model ZKTecoLog {
 
   @@unique([deviceId, attendanceId])
   @@map("zkteco_logs")
+}
+
+model Ticket {
+  id         Int             @id @default(autoincrement())
+  subject    String
+  status     String          @default("open") // open | pending | solved | closed
+  priority   String          @default("normal") // low | normal | high
+  userId     Int?            @map("user_id")
+  farmId     Int?            @map("farm_id")
+  assigneeId Int?            @map("assignee_id")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  user      User?           @relation(fields: [userId], references: [id])
+  messages  TicketMessage[]
+
+  @@index([status])
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int      @map("ticket_id")
+  authorType String   @map("author_type") // user | admin
+  authorId   Int?     @map("author_id")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+model PromoCode {
+  id             String            @id @default(cuid())
+  code           String            @unique
+  type           String            @default("discount") // discount | partnership | credit
+  discountType   String?           @map("discount_type") // percent | fixed
+  value          Int?              // percent (1-100) or fixed KES
+  maxRedemptions Int?              @map("max_redemptions")
+  timesRedeemed  Int               @default(0) @map("times_redeemed")
+  partnerName    String?           @map("partner_name")
+  expiresAt      DateTime?         @map("expires_at")
+  active         Boolean           @default(true)
+  createdBy      Int?              @map("created_by")
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  redemptions PromoRedemption[]
+
+  @@map("promo_codes")
+}
+
+model PromoRedemption {
+  id          Int       @id @default(autoincrement())
+  promoCodeId String    @map("promo_code_id")
+  userId      Int       @map("user_id")
+  reference   String?   // paystack reference when tied to a payment
+  discountKes Decimal   @default(0) @map("discount_kes") @db.Decimal(10, 2)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
+
+  @@index([promoCodeId])
+  @@map("promo_redemptions")
+}
+
+model Announcement {
+  id        Int       @id @default(autoincrement())
+  message   String
+  link      String?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("announcements")
 }
 
 model AuditLog {

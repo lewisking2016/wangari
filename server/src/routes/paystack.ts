@@ -32,6 +32,19 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid plan" });
     }
 
+    // Optional promo code: validate now so the user sees errors early; the
+    // actual redemption + attribution happens in the webhook on payment.
+    const promoInput = String(req.body?.promoCode || "").trim().toUpperCase();
+    let promo: any = null;
+    if (promoInput) {
+      promo = await prisma.promoCode.findUnique({ where: { code: promoInput } });
+      if (!promo || !promo.active) return res.status(400).json({ error: "Invalid or expired promo code" });
+      if (promo.expiresAt && promo.expiresAt < new Date()) return res.status(400).json({ error: "This promo code has expired" });
+      if (promo.maxRedemptions && promo.timesRedeemed >= promo.maxRedemptions) {
+        return res.status(400).json({ error: "This promo code has been fully redeemed" });
+      }
+    }
+
     const payload: any = {
       email,
       amount: planConfig.amount,
@@ -43,6 +56,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
         userId,
         plan,
         plan_name: planConfig.name,
+        ...(promo ? { promoCode: promo.code } : {}),
       },
     };
 
@@ -181,6 +195,25 @@ router.post("/webhook", async (req: Request, res: Response) => {
         entityId: existing?.id || null,
         details: { plan, reference, amountKes: planConfig.amount / 100, expiresAt: expiresAt.toISOString() },
       });
+
+      // Promo attribution: record the redemption and bump the counter.
+      const promoCode = data?.metadata?.promoCode;
+      if (promoCode) {
+        const promo = await prisma.promoCode.findUnique({ where: { code: String(promoCode).toUpperCase() } });
+        if (promo && promo.active && (!promo.maxRedemptions || promo.timesRedeemed < promo.maxRedemptions)) {
+          const discountKes =
+            promo.discountType === "percent"
+              ? Math.round((planConfig.amount / 100) * ((promo.value ?? 0) / 100))
+              : Math.min(promo.value ?? 0, planConfig.amount / 100);
+          await prisma.promoRedemption.create({
+            data: { promoCodeId: promo.id, userId: Number(userId), reference, discountKes },
+          });
+          await prisma.promoCode.update({
+            where: { id: promo.id },
+            data: { timesRedeemed: { increment: 1 } },
+          });
+        }
+      }
     }
 
     res.json({ received: true });
