@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware, generateToken } from "../middleware/auth.js";
+import { ensureFarmCode } from "../lib/farm-code.js";
 import bcrypt from "bcryptjs";
 
 const router = Router();
@@ -18,7 +19,10 @@ router.get("/", async (req: Request, res: Response) => {
     const farm = await prisma.farm.findUnique({ where: { id: farmId } });
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { name: true, email: true, phone: true } });
 
-    res.json({ settings: map, farm, user });
+    // Backfill farm connection code for older farms
+    const code = await ensureFarmCode(farmId);
+
+    res.json({ settings: map, farm: { ...farm, code }, user });
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }

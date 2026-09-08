@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, DollarSign, TrendingUp, X, Trash2, Phone, Briefcase, UserCheck, UserX, Edit3, Clock, Calendar, CheckCircle2, Save, Building2, KeyRound } from "lucide-react";
+import { Users, Plus, DollarSign, TrendingUp, X, Trash2, Phone, Briefcase, UserCheck, UserX, Edit3, Clock, Calendar, CheckCircle2, Save, Building2, KeyRound, Copy, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,24 +27,44 @@ export default function WorkersPage() {
   const [filter, setFilter] = React.useState<"all" | "active" | "inactive">("all");
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [selectedWorker, setSelectedWorker] = React.useState<any>(null);
+  const [farmCode, setFarmCode] = React.useState("");
   const { showToast, ToastComponent } = useToast();
 
-  const [form, setForm] = React.useState({ name: "", role: "Farmhand", phone: "", dailyWage: "" });
+  const [form, setForm] = React.useState({ name: "", role: "Farmhand", phone: "", dailyWage: "", pin: "" });
 
   const load = () => {
-    Promise.all([api.get("/api/workers"), api.get("/api/attendance")])
-      .then(([w, a]) => {
+    Promise.all([api.get("/api/workers"), api.get("/api/attendance"), api.get("/api/settings")])
+      .then(([w, a, s]) => {
         setWorkers(Array.isArray(w) ? w : []);
         setAttendance(Array.isArray(a) ? a : []);
+        setFarmCode(s?.farm?.code || "");
         setLoading(false);
       }).catch(() => setLoading(false));
   };
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(farmCode);
+      showToast("Farm code copied!");
+    } catch {
+      showToast("Could not copy code.");
+    }
+  };
+
+  const regeneratePin = async (w: any) => {
+    const pin = String(Math.floor(1000 + Math.random() * 9000));
+    const updated: any = await api.patch(`/api/workers/${w.id}`, { pin });
+    setWorkers((prev) => prev.map((x) => (x.id === w.id ? { ...x, pin: updated.pin } : x)));
+    if (selectedWorker?.id === w.id) setSelectedWorker((prev: any) => ({ ...prev, pin: updated.pin }));
+    showToast(`New PIN: ${updated.pin}`);
+  };
   React.useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setForm({ name: "", role: "Farmhand", phone: "", dailyWage: "" }); setEditingId(null); };
+  const resetForm = () => { setForm({ name: "", role: "Farmhand", phone: "", dailyWage: "", pin: "" }); setEditingId(null); };
 
   const handleSubmit = async () => {
-    const payload = { ...form, dailyWage: Number(form.dailyWage), status: "active" };
+    const payload: any = { name: form.name, role: form.role, phone: form.phone, dailyWage: Number(form.dailyWage), status: "active" };
+    if (form.pin) payload.pin = form.pin;
     if (editingId) {
       await api.patch(`/api/workers/${editingId}`, payload);
       showToast("Worker updated!");
@@ -57,7 +77,7 @@ export default function WorkersPage() {
 
   const openEdit = (w: any) => {
     setEditingId(w.id);
-    setForm({ name: w.name || "", role: w.role || "Farmhand", phone: w.phone || "", dailyWage: String(w.dailyWage || "") });
+    setForm({ name: w.name || "", role: w.role || "Farmhand", phone: w.phone || "", dailyWage: String(w.dailyWage || ""), pin: "" });
     setShowForm(true); setStep(1);
   };
 
@@ -115,6 +135,32 @@ export default function WorkersPage() {
             <Badge className={w.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500"}>{w.status}</Badge>
             <Button onClick={() => openEdit(w)} variant="ghost" size="sm" className="gap-1 cursor-pointer"><Edit3 className="h-4 w-4" />Edit</Button>
           </div>
+        </motion.div>
+
+        {/* Worker login PIN */}
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-[#166534]/20 bg-[#F0FDF4]">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#166534] text-white"><KeyRound className="h-5 w-5" /></div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#166534]">Login PIN</p>
+                    <p className="text-sm text-[#334155]">Worker logs in with <span className="font-bold">{farmCode || "Farm Code"}</span> + this PIN</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="bg-white border-2 border-[#166534] px-4 py-1.5 rounded-xl text-center">
+                    <p className="text-xl font-black text-[#166534] tracking-[0.3em]">{w.pin ? `${w.pin}` : "—"}</p>
+                  </div>
+                  {w.pin && (
+                    <Button onClick={() => navigator.clipboard.writeText(w.pin).then(() => showToast("PIN copied!"))} variant="ghost" size="sm" className="gap-1 text-[#166534] cursor-pointer"><Copy className="h-4 w-4" /></Button>
+                  )}
+                  <Button onClick={() => regeneratePin(w)} variant="outline" size="sm" className="gap-1 text-[#166534] cursor-pointer"><RefreshCw className="h-4 w-4" />{w.pin ? "Regenerate" : "Generate"}</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Worker stats */}
@@ -229,6 +275,7 @@ export default function WorkersPage() {
                 {step === 2 && (
                   <div className="space-y-3">
                     <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Daily wage (KES) *</Label><Input type="number" placeholder="e.g. 500" value={form.dailyWage} onChange={e => setForm({ ...form, dailyWage: e.target.value })} className="h-12 rounded-xl text-lg font-bold text-center" /></div>
+                    <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Login PIN (4 digits)</Label><div className="flex gap-2"><Input type="number" inputMode="numeric" placeholder="Leave blank to auto-generate" value={form.pin} onChange={e => setForm({ ...form, pin: e.target.value.replace(/\D/g, "").slice(0, 4) })} className="h-12 rounded-xl text-base" /></div><p className="text-[10px] text-[#94A3B8]">Worker uses this PIN + your Farm Code to log in from their phone.</p></div>
                     {form.dailyWage && (
                       <div className="rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] p-3 text-center">
                         <p className="text-xs text-[#64748B]">Monthly estimate (30 days)</p>
@@ -262,7 +309,10 @@ export default function WorkersPage() {
             </div>
             <div className="bg-white border-2 border-emerald-400 px-4 py-2 rounded-xl text-center shadow-xs shrink-0">
               <p className="text-xs text-gray-400 font-bold uppercase">Farm Code</p>
-              <p className="text-xl font-black text-[#166534] tracking-widest">WANGARI-482</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xl font-black text-[#166534] tracking-widest">{farmCode || "…"}</p>
+                <button onClick={copyCode} className="text-[#166534] hover:text-[#14532D] cursor-pointer" title="Copy farm code"><Copy className="h-4 w-4" /></button>
+              </div>
             </div>
           </div>
         </Card>

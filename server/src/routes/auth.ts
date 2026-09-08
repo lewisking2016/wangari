@@ -2,8 +2,9 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { createUniqueFarmCode } from "../lib/farm-code.js";
 import jwt from "jsonwebtoken";
-import { generateToken } from "../middleware/auth.js";
+import { generateToken, JWT_SECRET } from "../middleware/auth.js";
 
 // Allowed email domains for manual registration/login
 const ALLOWED_DOMAINS = ["gmail.com", "outlook.com", "hotmail.com", "live.com", "yahoo.com"];
@@ -59,6 +60,7 @@ router.post("/register", async (req: Request, res: Response) => {
       data: {
         name: `${name}'s Farm`,
         ownerId: user.id,
+        code: await createUniqueFarmCode(),
       },
     });
 
@@ -139,7 +141,7 @@ router.post("/switch-farm", async (req: Request, res: Response) => {
     // Verify user is a member of this farm
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) return res.status(401).json({ error: "Unauthorized" });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "wangari-dev-secret-change-in-production") as { userId: number };
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
 
     const member = await prisma.farmMember.findFirst({ where: { userId: decoded.userId, farmId: Number(farmId) } });
     if (!member) return res.status(403).json({ error: "Not a member of this farm" });
@@ -238,7 +240,7 @@ router.post("/google", async (req: Request, res: Response) => {
     }
 
     // Verify the Google ID token by calling Google's tokeninfo endpoint
-    let googleUser: { sub: string; email: string; name: string; picture: string; email_verified: string };
+    let googleUser: { sub: string; email: string; name: string; picture: string; email_verified: string | boolean; aud?: string };
     try {
       const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
       if (!googleRes.ok) {
@@ -250,7 +252,16 @@ router.post("/google", async (req: Request, res: Response) => {
     }
 
     if (!googleUser.email || !googleUser.sub) {
-      return res.status(400).json({ error: "Invalid Google token data" });
+      return res.status(400).json({ error: "Invalid Google token data" } as any);
+    }
+
+    // Token must be issued for OUR client ID and the email must be verified by Google.
+    const expectedAud = process.env.GOOGLE_CLIENT_ID;
+    if (expectedAud && googleUser.aud !== expectedAud) {
+      return res.status(401).json({ error: "Google token was not issued for this app" } as any);
+    }
+    if (googleUser.email_verified === "false" || googleUser.email_verified === false) {
+      return res.status(401).json({ error: "Google account email is not verified" } as any);
     }
 
     const normalizedGoogleEmail = googleUser.email.toLowerCase().trim();
@@ -295,6 +306,7 @@ router.post("/google", async (req: Request, res: Response) => {
         data: {
           name: `${googleUser.name || "My"} Farm`,
           ownerId: user.id,
+          code: await createUniqueFarmCode(),
         },
       });
 

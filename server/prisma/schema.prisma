@@ -574,6 +574,7 @@ model ZKTecoDevice {
   id           Int      @id @default(autoincrement())
   farmId       Int      @map("farm_id")
   serialNumber String   @map("serial_number")
+  deviceSecret String   @map("device_secret") // shared secret required in push payload — prevents forged attendance
   name         String?
   model        String?
   status       String   @default("active") // active, inactive

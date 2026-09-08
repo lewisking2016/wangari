@@ -77,8 +77,16 @@ router.post("/multiple", upload.array("files", 10), async (req: Request, res: Re
 // DELETE /api/upload/:filename — delete an uploaded file
 router.delete("/:filename", async (req: Request, res: Response) => {
   try {
-    const filename = String(req.params.filename || "");
+    // Path traversal guard: strip any directory components and verify the result
+    // stays inside uploadsDir (see GHSA-w372-w6cr-45jp-style arbitrary-file-delete).
+    const filename = path.basename(String(req.params.filename || ""));
+    if (!filename) return res.status(400).json({ error: "Invalid filename" });
+
     const filePath = path.join(uploadsDir, filename);
+    if (!filePath.startsWith(path.resolve(uploadsDir))) {
+      return res.status(400).json({ error: "Invalid filename" });
+    }
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       res.json({ success: true });

@@ -1,8 +1,10 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { authMiddleware } from "../middleware/auth.js";
 import { AI_PROVIDERS, getProvider, type AIProviderConfig } from "../ai-providers.js";
 
 const router = Router();
+router.use(authMiddleware);
 
 // ─── Provider Configuration ───────────────────────────────
 const AI_PROVIDER = process.env.AI_PROVIDER || "gemini";
@@ -90,24 +92,24 @@ async function executeTool(toolName: string, args: Record<string, any>, farmId: 
   switch (toolName) {
     case "list_flocks": return prisma.flock.findMany({ where: { farmId } });
     case "create_flock": return prisma.flock.create({ data: { name: args.name, breed: args.breed, currentCount: args.initialCount, initialCount: args.initialCount, type: args.type || "layer", farmId, status: "active" } });
-    case "delete_flock": return prisma.flock.delete({ where: { id: args.id } });
+    case "delete_flock": return prisma.flock.deleteMany({ where: { id: args.id, farmId } });
     case "list_production": { const d = (args.days as number) || 7; const s = new Date(); s.setDate(s.getDate() - d); return prisma.dailyProduction.findMany({ where: { farmId, date: { gte: s } }, orderBy: { date: "desc" } }); }
     case "record_production": return prisma.dailyProduction.create({ data: { flockId: args.flockId, date: new Date().toISOString().split("T")[0], eggsCollected: args.eggsCollected || 0, mortality: args.mortality || 0, feedUsed: args.feedUsed || 0, farmId } });
     case "list_transactions": { const now = new Date(); let s = new Date(); const p = (args.period as string) || "month"; if (p === "week") s.setDate(now.getDate() - 7); else if (p === "month") s.setMonth(now.getMonth() - 1); else s.setFullYear(now.getFullYear() - 1); return prisma.transaction.findMany({ where: { farmId, date: { gte: s } }, orderBy: { date: "desc" } }); }
     case "create_transaction": return prisma.transaction.create({ data: { type: args.type, amount: args.amount, category: args.category, description: args.description, date: new Date().toISOString().split("T")[0], farmId } });
-    case "delete_transaction": return prisma.transaction.delete({ where: { id: args.id } });
+    case "delete_transaction": return prisma.transaction.deleteMany({ where: { id: args.id, farmId } });
     case "list_sales": { const d = (args.days as number) || 30; const s = new Date(); s.setDate(s.getDate() - d); return prisma.sale.findMany({ where: { farmId, saleDate: { gte: s } }, orderBy: { saleDate: "desc" } }); }
     case "create_sale": return prisma.sale.create({ data: { totalAmount: args.totalAmount, paymentStatus: args.paymentStatus || "paid", amountPaid: args.amountPaid || args.totalAmount || 0, items: [], farmId } });
-    case "delete_sale": return prisma.sale.delete({ where: { id: args.id } });
+    case "delete_sale": return prisma.sale.deleteMany({ where: { id: args.id, farmId } });
     case "list_inventory": return prisma.inventory.findMany({ where: { farmId } });
     case "create_inventory_item": return prisma.inventory.create({ data: { itemName: args.itemName, category: args.category, quantity: args.quantity, unit: args.unit, unitCost: args.unitCost, reorderLevel: args.reorderLevel, farmId } });
-    case "delete_inventory_item": return prisma.inventory.delete({ where: { id: args.id } });
+    case "delete_inventory_item": return prisma.inventory.deleteMany({ where: { id: args.id, farmId } });
     case "list_workers": return prisma.worker.findMany({ where: { farmId } });
     case "create_worker": return prisma.worker.create({ data: { name: args.name, role: args.role, dailyWage: args.dailyWage, phone: args.phone, farmId } });
-    case "delete_worker": return prisma.worker.delete({ where: { id: args.id } });
+    case "delete_worker": return prisma.worker.deleteMany({ where: { id: args.id, farmId } });
     case "list_customers": return prisma.customer.findMany({ where: { farmId } });
     case "create_customer": return prisma.customer.create({ data: { name: args.name, phone: args.phone, email: args.email, address: args.address, farmId } });
-    case "delete_customer": return prisma.customer.delete({ where: { id: args.id } });
+    case "delete_customer": return prisma.customer.deleteMany({ where: { id: args.id, farmId } });
     case "list_vaccinations": { const w: any = { flock: { farmId } }; if (args.flockId) w.flockId = args.flockId; return prisma.vaccination.findMany({ where: w, orderBy: { scheduledDate: "desc" } }); }
     case "create_vaccination": return prisma.vaccination.create({ data: { flockId: args.flockId, vaccineName: args.vaccineName, scheduledDate: new Date().toISOString(), notes: args.notes || null } });
     case "list_attendance": return prisma.attendance.findMany({ where: { farmId }, orderBy: { date: "desc" } });
@@ -230,19 +232,27 @@ async function callOllama(messages: any[], tools: any[], _config: ReturnType<typ
 // ─── Chat Endpoint ────────────────────────────────────────
 router.post("/chat", async (req: Request, res: Response) => {
   try {
-    const { messages, farmId } = req.body;
+    const { messages } = req.body;
     if (!messages || !Array.isArray(messages)) return res.status(400).json({ error: "Messages array required" });
     if (!AI_API_KEY && AI_PROVIDER !== "ollama") return res.status(500).json({ error: `Set AI_API_KEY for ${AI_PROVIDER}. Get a free key at ${getProvider(AI_PROVIDER)?.setupUrl || ""}` });
+
+    // farmId comes from the verified token — never trust the request body.
+    const farmId = req.user!.farmId;
+    if (!farmId) return res.status(400).json({ error: "No farm associated with account" });
 
     const fullMessages = [{ role: "system", content: SYSTEM_PROMPT }, ...messages];
     const response = await callAI(fullMessages, mcpTools);
 
     const toolResults: any[] = [];
-    if (response.tool_calls.length > 0 && farmId) {
+    if (response.tool_calls.length > 0) {
       for (const tc of response.tool_calls) {
-        const args = typeof tc.function.arguments === "string" ? JSON.parse(tc.function.arguments) : tc.function.arguments;
-        const result = await executeTool(tc.function.name, args, farmId);
-        toolResults.push({ tool_call_id: tc.id, name: tc.function.name, content: JSON.stringify(result) });
+        try {
+          const args = typeof tc.function.arguments === "string" ? JSON.parse(tc.function.arguments) : tc.function.arguments;
+          const result = await executeTool(tc.function.name, args, farmId);
+          toolResults.push({ tool_call_id: tc.id, name: tc.function.name, content: JSON.stringify(result) });
+        } catch (e: any) {
+          toolResults.push({ tool_call_id: tc.id, name: tc.function.name, content: JSON.stringify({ error: e.message }) });
+        }
       }
       const followUp = [...fullMessages, { role: "assistant", content: response.content, tool_calls: response.tool_calls }, ...toolResults.map((tr: any) => ({ role: "tool", content: `Tool ${tr.name}: ${tr.content}` }))];
       const final = await callAI(followUp, mcpTools);

@@ -28,14 +28,15 @@ export async function POST(req: NextRequest) {
     const body = await req.text();
     const signature = req.headers.get("x-paystack-signature");
 
-    // Verify webhook signature
-    if (PAYSTACK_SECRET && signature) {
-      const hash = createHmac("sha512", PAYSTACK_SECRET)
-        .update(body)
-        .digest("hex");
-      if (hash !== signature) {
-        return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
-      }
+    // Verify webhook signature — REQUIRED, never skip (a missing header must not bypass)
+    if (!PAYSTACK_SECRET || !signature) {
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+    const hash = createHmac("sha512", PAYSTACK_SECRET)
+      .update(body)
+      .digest("hex");
+    if (hash !== signature) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const event = JSON.parse(body);
@@ -77,19 +78,22 @@ export async function POST(req: NextRequest) {
       }
       const expiresAt = new Date(startsAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-      // Save subscription
-      await prisma.subscription.create({
-        data: {
-          userId: user.id,
-          plan: planKey,
-          planName,
-          amount: amountKes,
-          status: startsAt > now ? "pending" : "active",
-          reference,
-          startsAt,
-          expiresAt,
-        },
-      });
+      // Save subscription — idempotent: skip if this reference was already processed
+      const existing = await prisma.subscription.findFirst({ where: { reference } });
+      if (!existing) {
+        await prisma.subscription.create({
+          data: {
+            userId: user.id,
+            plan: planKey,
+            planName,
+            amount: amountKes,
+            status: startsAt > now ? "pending" : "active",
+            reference,
+            startsAt,
+            expiresAt,
+          },
+        });
+      }
 
       console.log(`✅ Webhook: Subscription saved — ${planName} for user ${user.id}, starts ${startsAt.toISOString()}, expires ${expiresAt.toISOString()}`);
 

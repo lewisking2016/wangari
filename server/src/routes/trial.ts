@@ -104,9 +104,6 @@ router.get("/status", authMiddleware, async (req: Request, res: Response) => {
     } else if (trialStatus === "active") {
       hasAccess = true;
       accessReason = "trial";
-    } else if (pendingSub) {
-      hasAccess = true;
-      accessReason = "trial";
     }
 
     const selectedHubs: string[] = user.selectedHubs

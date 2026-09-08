@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { auditMoneyMutation } from "../lib/audit.js";
 
 const router = Router();
 router.use(authMiddleware);
@@ -22,17 +23,33 @@ router.get("/", async (req: Request, res: Response) => {
 // POST /api/transactions
 router.post("/", async (req: Request, res: Response) => {
   try {
+    const amount = Number(req.body.amount);
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ error: "Amount must be a positive number" });
+    }
+    if (!req.body.type || !req.body.date) {
+      return res.status(400).json({ error: "Type and date are required" });
+    }
+
     const result = await prisma.transaction.create({
       data: {
         farmId: req.user!.farmId!,
         type: req.body.type,
         category: req.body.category || null,
-        amount: Number(req.body.amount),
+        amount,
         description: req.body.description || null,
         date: new Date(req.body.date),
         paymentMethod: req.body.paymentMethod || "cash",
         createdBy: req.user!.userId,
       },
+    });
+    auditMoneyMutation({
+      userId: req.user!.userId,
+      farmId: req.user!.farmId,
+      action: "transaction.create",
+      entityType: "Transaction",
+      entityId: result.id,
+      details: { type: result.type, amount: Number(result.amount), category: result.category },
     });
     res.status(201).json(result);
   } catch (error) {
@@ -43,15 +60,32 @@ router.post("/", async (req: Request, res: Response) => {
 // PATCH /api/transactions/:id
 router.patch("/:id", async (req: Request, res: Response) => {
   try {
+    const id = Number(req.params.id);
+    const existing = await prisma.transaction.findFirst({ where: { id, farmId: req.user!.farmId! } });
+    if (!existing) return res.status(404).json({ error: "Not found" });
+
+    const amount = Number(req.body.amount);
+    if (req.body.amount !== undefined && (isNaN(amount) || amount <= 0)) {
+      return res.status(400).json({ error: "Amount must be a positive number" });
+    }
+
     const result = await prisma.transaction.update({
-      where: { id: Number(req.params.id) },
+      where: { id: existing.id },
       data: {
-        type: req.body.type,
-        category: req.body.category,
-        amount: Number(req.body.amount),
-        description: req.body.description,
-        paymentMethod: req.body.paymentMethod,
+        type: req.body.type ?? existing.type,
+        category: req.body.category ?? existing.category,
+        amount: req.body.amount !== undefined ? amount : existing.amount,
+        description: req.body.description ?? existing.description,
+        paymentMethod: req.body.paymentMethod ?? existing.paymentMethod,
       },
+    });
+    auditMoneyMutation({
+      userId: req.user!.userId,
+      farmId: req.user!.farmId,
+      action: "transaction.update",
+      entityType: "Transaction",
+      entityId: result.id,
+      details: { before: { amount: Number(existing.amount), type: existing.type }, after: { amount: Number(result.amount), type: result.type } },
     });
     res.json(result);
   } catch (error) {
@@ -62,8 +96,17 @@ router.patch("/:id", async (req: Request, res: Response) => {
 // DELETE /api/transactions/:id
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
-    await prisma.transaction.deleteMany({
-      where: { id: Number(req.params.id), farmId: req.user!.farmId! },
+    const id = Number(req.params.id);
+    const existing = await prisma.transaction.findFirst({ where: { id, farmId: req.user!.farmId! } });
+    if (!existing) return res.status(404).json({ error: "Not found" });
+    await prisma.transaction.deleteMany({ where: { id, farmId: req.user!.farmId! } });
+    auditMoneyMutation({
+      userId: req.user!.userId,
+      farmId: req.user!.farmId,
+      action: "transaction.delete",
+      entityType: "Transaction",
+      entityId: id,
+      details: { deleted: { amount: Number(existing.amount), type: existing.type, description: existing.description } },
     });
     res.json({ success: true });
   } catch (error) {

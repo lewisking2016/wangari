@@ -33,6 +33,18 @@ import uploadRoutes from "./routes/upload.js";
 import paystackRoutes from "./routes/paystack.js";
 import trialRoutes from "./routes/trial.js";
 
+// ─── Process-Level Crash Safety ────────────────────────────
+// One bad async call must not kill the PM2 process silently.
+process.on("unhandledRejection", (reason) => {
+  console.error("[unhandledRejection]", reason);
+  // Log and keep serving — rejections are recoverable.
+});
+process.on("uncaughtException", (err) => {
+  console.error("[uncaughtException]", err);
+  // Unknown state — exit and let PM2 restart us cleanly.
+  process.exit(1);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -60,7 +72,22 @@ const limiter = rateLimit({
 });
 app.use("/api/", limiter);
 
+// ─── Stricter Brute-Force Limiter for Auth ─────────────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts, please try again later" },
+});
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/forgot-password", authLimiter);
+app.use("/api/worker/login", authLimiter);
+
 // ─── Body Parsing ─────────────────────────────────────────
+// Paystack webhook needs the RAW body to verify the HMAC signature — mount before express.json.
+app.use("/api/paystack/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "10mb" }));
 app.use("/uploads", express.static("uploads"));
 

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { createUniqueFarmCode, ensureFarmCode } from "../lib/farm-code.js";
 
 const router = Router();
 router.use(authMiddleware);
@@ -47,18 +48,20 @@ router.get("/:id", async (req: Request, res: Response) => {
 // POST /api/farms — create a new farm
 router.post("/", async (req: Request, res: Response) => {
   try {
+    const ownerId = req.user!.userId!;
     const farm = await prisma.farm.create({
       data: {
         name: req.body.name,
         location: req.body.location || null,
         county: req.body.county || null,
         farmType: req.body.farmType || null,
-        ownerId: req.user!.userId,
+        ownerId,
+        code: await createUniqueFarmCode(),
       },
     });
     // Add user as owner
     await prisma.farmMember.create({
-      data: { userId: req.user!.userId, farmId: farm.id, role: "farm_owner" },
+      data: { userId: ownerId, farmId: farm.id, role: "farm_owner" },
     });
     res.status(201).json(farm);
   } catch (error) {

@@ -2,10 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../db.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "wangari-dev-secret-change-in-production";
+// Fail hard without a real secret in production (CVE-2026-49352-style bypass)
+export const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? (() => { throw new Error("JWT_SECRET must be set in production"); })() : "wangari-dev-secret-change-in-production");
 
 export interface AuthUser {
-  userId: number;
+  userId?: number;
+  workerId?: number;
   farmId: number | null;
 }
 
@@ -25,8 +27,14 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; farmId: number | null };
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser & { role?: string };
     req.user = decoded;
+
+    // A worker token carries workerId + role "worker", never userId.
+    // Skip the subscription gate for workers (owner-gated endpoints already reject non-owners elsewhere).
+    if (decoded.role === "worker" || decoded.workerId) {
+      return next();
+    }
 
     // Exempt endpoints: auth, trial status, paystack, subscriptions
     const url = req.originalUrl || req.url || "";
@@ -42,7 +50,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
     const now = new Date();
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: decoded.userId! },
       select: { trialEndsAt: true, createdAt: true },
     });
 
@@ -64,7 +72,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
     const activeSub = await prisma.subscription.findFirst({
       where: {
-        userId: decoded.userId,
+        userId: decoded.userId!,
         status: "active",
         expiresAt: { gt: now },
       },

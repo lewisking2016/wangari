@@ -1,10 +1,9 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
-import { authMiddleware } from "../middleware/auth.js";
+import { authMiddleware, JWT_SECRET } from "../middleware/auth.js";
 import jwt from "jsonwebtoken";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "wangari-secret-key-2025";
 
 const db = prisma as any;
 
@@ -55,17 +54,6 @@ router.post("/login", async (req: Request, res: Response) => {
           status: "active",
           phone: { contains: cleanPhone.slice(-9) },
           pin: String(pin).trim(),
-        },
-        include: { farm: true },
-      });
-    }
-
-    // Final fallback: if only 1 worker exists with this PIN on the farm
-    if (!worker) {
-      worker = await db.worker.findFirst({
-        where: {
-          pin: String(pin).trim(),
-          status: "active",
         },
         include: { farm: true },
       });

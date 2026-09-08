@@ -311,7 +311,7 @@ function LoginForm() {
               <Input
                 id="farmCode"
                 type="text"
-                placeholder="e.g. WANGARI-482"
+                placeholder="e.g. WANGARI-K7Q"
                 value={farmCode}
                 onChange={(e) => setFarmCode(e.target.value.toUpperCase())}
                 onFocus={() => setAvatarState("typing-farm")}

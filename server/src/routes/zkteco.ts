@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import crypto from "crypto";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 
@@ -6,20 +7,33 @@ const router = Router();
 
 // ─── PUBLIC: Device Push Endpoint ─────────────────────────
 // ZKTeco devices POST attendance data here
-// No auth required — authenticated by device serial + password
+// No user auth required — authenticated by serial + per-device secret.
 router.post("/push", async (req: Request, res: Response) => {
   try {
     // ZKTeco ADMS push format: JSON with device info + attendance records
-    const { sn, record } = req.body;
+    const { sn, secret, record } = req.body;
 
     if (!sn) {
       return res.status(400).json({ error: "Missing device serial number" });
     }
+    if (!secret) {
+      return res.status(401).json({ error: "Missing device secret" });
+    }
 
-    // Find the device
+    // Find the device — serial AND secret must match (timing-safe compare)
     const device = await prisma.zKTecoDevice.findFirst({
       where: { serialNumber: sn, status: "active" },
     });
+
+    if (!device) {
+      return res.status(404).json({ error: "Device not registered" });
+    }
+
+    const a = Buffer.from(String(device.deviceSecret || ""));
+    const b = Buffer.from(String(secret));
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      return res.status(401).json({ error: "Invalid device secret" });
+    }
 
     if (!device) {
       return res.status(404).json({ error: "Device not registered" });
@@ -150,10 +164,14 @@ router.post("/devices", async (req: Request, res: Response) => {
     const { serialNumber, name, model } = req.body;
     if (!serialNumber) return res.status(400).json({ error: "Serial number required" });
 
+    // Generate a per-device secret the farm must configure on the device.
+    const deviceSecret = crypto.randomBytes(24).toString("hex");
+
     const device = await prisma.zKTecoDevice.create({
       data: {
         farmId: req.user!.farmId!,
         serialNumber,
+        deviceSecret,
         name: name || null,
         model: model || null,
       },

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { auditMoneyMutation } from "../lib/audit.js";
 
 const router = Router();
 router.use(authMiddleware);
@@ -45,6 +46,14 @@ router.post("/", async (req: Request, res: Response) => {
         dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
         notes: req.body.notes || null,
       },
+    });
+    auditMoneyMutation({
+      userId: req.user!.userId,
+      farmId: req.user!.farmId,
+      action: "invoice.create",
+      entityType: "Invoice",
+      entityId: result.id,
+      details: { invoiceNumber: result.invoiceNumber, totalAmount: Number(result.totalAmount), amountPaid: Number(result.amountPaid) },
     });
     res.status(201).json(result);
   } catch (error) {
@@ -103,6 +112,16 @@ router.patch("/:id", async (req: Request, res: Response) => {
     if (req.body.dueDate !== undefined) updateData.dueDate = req.body.dueDate ? new Date(req.body.dueDate) : null;
 
     const updated = await prisma.invoice.update({ where: { id: invoice.id }, data: updateData });
+    if (updateData.amountPaid !== undefined) {
+      auditMoneyMutation({
+        userId: req.user!.userId,
+        farmId: req.user!.farmId,
+        action: "invoice.payment",
+        entityType: "Invoice",
+        entityId: invoice.id,
+        details: { before: Number(invoice.amountPaid), after: Number(updated.amountPaid), status: updated.paymentStatus },
+      });
+    }
     res.json(updated);
   } catch (error) {
     res.status(500).json({ error: "Failed" });
@@ -112,7 +131,18 @@ router.patch("/:id", async (req: Request, res: Response) => {
 // DELETE /api/invoices/:id
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
-    await prisma.invoice.deleteMany({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
+    const id = Number(req.params.id);
+    const existing = await prisma.invoice.findFirst({ where: { id, farmId: req.user!.farmId! } });
+    if (!existing) return res.status(404).json({ error: "Not found" });
+    await prisma.invoice.deleteMany({ where: { id, farmId: req.user!.farmId! } });
+    auditMoneyMutation({
+      userId: req.user!.userId,
+      farmId: req.user!.farmId,
+      action: "invoice.delete",
+      entityType: "Invoice",
+      entityId: id,
+      details: { deleted: { invoiceNumber: existing.invoiceNumber, totalAmount: Number(existing.totalAmount), amountPaid: Number(existing.amountPaid) } },
+    });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: "Failed" });
