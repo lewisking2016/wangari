@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../db.js";
 import { JWT_SECRET } from "../middleware/auth.js";
 import { auditMoneyMutation } from "./audit.js";
+import { verifyTotp, hashCode } from "./totp.js";
 
 /**
  * Admin authentication — SEPARATE identity system from customers (per
@@ -49,8 +50,21 @@ export function signAdminToken(payload: AdminTokenPayload): string {
   return jwt.sign({ ...payload, type: "admin" }, ADMIN_JWT_SECRET, { expiresIn: "4h" });
 }
 
-/** Login with email + password. Only users with an admin role may log in here. */
-export async function adminLogin(email: string, password: string) {
+export { verifyTotp };
+
+/**
+ * Login with email + password (+ TOTP token when MFA is enabled).
+ * Only users with an admin role may log in here.
+ *
+ * MFA flow: correct password + MFA enabled + no code → returns
+ * { mfaRequired: true } with NO token. Client re-posts with totpCode.
+ * A valid recovery code is accepted once and consumed.
+ */
+export async function adminLogin(
+  email: string,
+  password: string,
+  totpCode?: string
+): Promise<null | { token: string; admin: { id: number; name: string; email: string; role: string } } | { mfaRequired: true }> {
   const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase().trim() } });
   if (!user || !user.password) return null;
 
@@ -59,6 +73,24 @@ export async function adminLogin(email: string, password: string) {
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return null;
+
+  const mfaEnabled = !!(user.totpEnabledAt && user.totpSecret);
+  if (mfaEnabled) {
+    const code = String(totpCode || "").trim();
+    if (!code) return { mfaRequired: true };
+
+    if (verifyTotp(user.totpSecret!, code)) {
+      // TOTP OK — fall through to token issuance.
+    } else {
+      // Try a recovery code (single-use). Compare hashed.
+      const hashes: string[] = user.recoveryCodes ? JSON.parse(user.recoveryCodes) : [];
+      const h = hashCode(code);
+      const idx = hashes.indexOf(h);
+      if (idx === -1) return { mfaRequired: true }; // wrong code — same response, no oracle
+      hashes.splice(idx, 1);
+      await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
+    }
+  }
 
   return {
     token: signAdminToken({ adminId: user.id, role: user.role as AdminRole, name: user.name }),

@@ -31,6 +31,9 @@ const NAV = [
     { href: "/waadmin/audit", label: "Audit Log", icon: "🛡️" },
     { href: "/waadmin/system", label: "System Health", icon: "🖥️" },
   ]},
+  { section: "Account", items: [
+    { href: "/waadmin/security", label: "Security & MFA", icon: "🔐" },
+  ]},
 ];
 
 export default function WaAdminLayout({ children }: { children: React.ReactNode }) {

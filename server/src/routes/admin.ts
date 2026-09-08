@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../db.js";
 import { adminLogin, requireAdmin, auditAdminAction, AdminRole } from "../lib/admin-auth.js";
+import { generateSecret, otpauthUri, verifyTotp, generateRecoveryCodes } from "../lib/totp.js";
 
 /**
  * Super-admin API (Phase 1 of docs/ADMIN-BLUEPRINT.md).
@@ -19,9 +20,13 @@ router.post("/login", async (req: Request, res: Response) => {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password required" });
     }
-    const result = await adminLogin(email, password);
+    const result = await adminLogin(email, password, req.body?.totpCode);
     if (!result) {
       return res.status(401).json({ error: "Invalid credentials" });
+    }
+    if ("mfaRequired" in result) {
+      // Correct password but MFA challenge outstanding — never reveal whether the account exists.
+      return res.status(200).json({ mfaRequired: true });
     }
     auditAdminAction(undefined, "admin.login", "admin", result.admin.id, { email: result.admin.email });
     res.json(result);
@@ -34,6 +39,87 @@ router.post("/login", async (req: Request, res: Response) => {
 // GET /api/admin/me — session check for the admin shell.
 router.get("/me", requireAdmin(), (req: Request, res: Response) => {
   res.json({ admin: (req as any).admin });
+});
+
+// ─── MFA (TOTP) — Phase 4 ────────────────────────────────
+// GET /api/admin/mfa/status — whether MFA is enabled for the current admin.
+router.get("/mfa/status", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const adminId = (req as any).admin.adminId as number;
+    const user = await prisma.user.findUnique({ where: { id: adminId }, select: { totpEnabledAt: true } });
+    res.json({ enabled: !!user?.totpEnabledAt });
+  } catch (error) {
+    console.error("Admin MFA status error:", error);
+    res.status(500).json({ error: "Failed to check MFA status" });
+  }
+});
+
+// POST /api/admin/mfa/setup — generate a pending secret + otpauth URI.
+// Does NOT enable MFA until /mfa/verify confirms a live code.
+router.post("/mfa/setup", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const admin = (req as any).admin;
+    const user = await prisma.user.findUnique({ where: { id: admin.adminId }, select: { email: true, totpEnabledAt: true } });
+    if (!user) return res.status(404).json({ error: "Admin not found" });
+    if (user.totpEnabledAt) return res.status(409).json({ error: "MFA is already enabled — disable it first to re-enroll" });
+
+    const secret = generateSecret();
+    await prisma.user.update({ where: { id: admin.adminId }, data: { totpSecret: secret } });
+    auditAdminAction(admin, "admin.mfa.setup", "admin", admin.adminId, {});
+    res.json({ secret, otpauthUri: otpauthUri(secret, user.email) });
+  } catch (error) {
+    console.error("Admin MFA setup error:", error);
+    res.status(500).json({ error: "Failed to start MFA setup" });
+  }
+});
+
+// POST /api/admin/mfa/verify — confirm a live code, enable MFA, return recovery codes ONCE.
+router.post("/mfa/verify", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const admin = (req as any).admin;
+    const code = String(req.body?.code || "").trim();
+    const user = await prisma.user.findUnique({ where: { id: admin.adminId }, select: { totpSecret: true, totpEnabledAt: true } });
+    if (!user?.totpSecret) return res.status(400).json({ error: "Start MFA setup first" });
+    if (user.totpEnabledAt) return res.status(409).json({ error: "MFA already enabled" });
+    if (!verifyTotp(user.totpSecret, code)) {
+      return res.status(401).json({ error: "Invalid code — check your authenticator and try again" });
+    }
+    const { plain, hashed } = generateRecoveryCodes();
+    await prisma.user.update({
+      where: { id: admin.adminId },
+      data: { totpEnabledAt: new Date(), recoveryCodes: JSON.stringify(hashed) },
+    });
+    auditAdminAction(admin, "admin.mfa.enable", "admin", admin.adminId, {});
+    res.json({ enabled: true, recoveryCodes: plain }); // plaintext shown exactly once
+  } catch (error) {
+    console.error("Admin MFA verify error:", error);
+    res.status(500).json({ error: "Failed to enable MFA" });
+  }
+});
+
+// POST /api/admin/mfa/disable — requires password + a valid current TOTP code.
+router.post("/mfa/disable", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const admin = (req as any).admin;
+    const { password, code } = req.body || {};
+    const user = await prisma.user.findUnique({ where: { id: admin.adminId }, select: { password: true, totpSecret: true, totpEnabledAt: true } });
+    if (!user?.totpEnabledAt) return res.status(400).json({ error: "MFA is not enabled" });
+    if (!password || !(await bcrypt.compare(String(password), user.password!))) {
+      return res.status(401).json({ error: "Password confirmation failed" });
+    }
+    if (!user.totpSecret || !verifyTotp(user.totpSecret, String(code || ""))) {
+      return res.status(401).json({ error: "Valid authenticator code required to disable MFA" });
+    }
+    await prisma.user.update({
+      where: { id: admin.adminId },
+      data: { totpSecret: null, totpEnabledAt: null, recoveryCodes: null },
+    });
+    auditAdminAction(admin, "admin.mfa.disable", "admin", admin.adminId, {});
+    res.json({ enabled: false });
+  } catch (error) {
+    console.error("Admin MFA disable error:", error);
+    res.status(500).json({ error: "Failed to disable MFA" });
+  }
 });
 
 // ─── M0: Overview ─────────────────────────────────────────
