@@ -46,6 +46,10 @@ process.on("uncaughtException", (err) => {
 });
 
 const app = express();
+
+// Behind nginx on the VPS — required for express-rate-limit to identify
+// clients correctly from X-Forwarded-For (silences ERR_ERL_UNEXPECTED_X_FORWARDED_FOR).
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3001;
 
 // ─── Performance & Compression ──────────────────────────────

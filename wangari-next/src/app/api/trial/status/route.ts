@@ -95,16 +95,18 @@ export async function GET(req: Request) {
     } else if (trialStatus === "active") {
       hasAccess = true;
       accessReason = "trial";
-    } else if (pendingSub) {
-      // Subscribed during trial, plan starts after trial
-      hasAccess = true;
-      accessReason = "trial"; // Still in trial, subscription pending
     }
+    // NOTE: a "pending" subscription means payment is not confirmed yet —
+    // it must not grant access by itself (matches the hardened Express route).
 
-    // Parse selected hubs
-    const selectedHubs: string[] = user.selectedHubs
-      ? JSON.parse(user.selectedHubs)
-      : [];
+    // Parse selected hubs (corrupted value must not 500 every request)
+    let selectedHubs: string[] = [];
+    try {
+      selectedHubs = user.selectedHubs ? JSON.parse(user.selectedHubs) : [];
+      if (!Array.isArray(selectedHubs)) selectedHubs = [];
+    } catch {
+      selectedHubs = [];
+    }
 
     // Build module access map
     const moduleAccess: Record<string, boolean> = {};
