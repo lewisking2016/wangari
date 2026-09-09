@@ -35,7 +35,24 @@ router.get("/crm/contacts", requireAdmin(["support", "support_read"]), async (re
       orderBy: { updatedAt: "desc" },
       take: 200,
     });
-    res.json(rows.map((c) => ({ ...c, noteCount: c._count.notes, _count: undefined })));
+
+    // Funnel summary across ALL contacts (independent of filters)
+    const all = await prisma.crmContact.groupBy({ by: ["stage"], _count: true });
+    const stageMap = Object.fromEntries(all.map((g) => [g.stage, g._count]));
+    const won = stageMap.customer ?? 0;
+    const lost = stageMap.churned ?? 0;
+    const totalAll = Object.values(stageMap).reduce((s, n) => s + n, 0);
+    const openPipeline = (stageMap.lead ?? 0) + (stageMap.contacted ?? 0) + (stageMap.demo ?? 0) + (stageMap.trial ?? 0);
+    const fullSummary = {
+      total: totalAll,
+      openPipeline,
+      won,
+      lost,
+      conversionPct: won + lost > 0 ? Math.round((won / (won + lost)) * 100) : 0,
+      byStage: stageMap,
+    };
+
+    res.json(rows.map((c) => ({ ...c, noteCount: c._count.notes, _count: undefined, summary: fullSummary })));
   } catch (error) {
     console.error("Admin CRM list error:", error);
     res.status(500).json({ error: "Failed to load contacts" });
