@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../db.js";
-import { adminLogin, requireAdmin, auditAdminAction, AdminRole } from "../lib/admin-auth.js";
-import { generateSecret, otpauthUri, verifyTotp, generateRecoveryCodes } from "../lib/totp.js";
+import { adminLogin, requireAdmin, auditAdminAction, AdminRole, signAdminToken } from "../lib/admin-auth.js";
+import { generateSecret, otpauthUri, verifyTotp, generateRecoveryCodes, hashCode } from "../lib/totp.js";
 
 /**
  * Super-admin API (Phase 1 of docs/ADMIN-BLUEPRINT.md).
@@ -122,6 +122,112 @@ router.post("/mfa/disable", requireAdmin(), async (req: Request, res: Response) 
   } catch (error) {
     console.error("Admin MFA disable error:", error);
     res.status(500).json({ error: "Failed to disable MFA" });
+  }
+});
+
+// ─── Security center ─────────────────────────────────────────
+// GET /api/admin/security/summary — account security posture + recent events.
+router.get("/security/summary", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const adminId = (req as any).admin.adminId as number;
+    const user = await prisma.user.findUnique({
+      where: { id: adminId },
+      select: { email: true, totpEnabledAt: true, recoveryCodes: true, tokenVersion: true, password: true },
+    });
+    if (!user) return res.status(404).json({ error: "Admin not found" });
+    const events = await prisma.auditLog.findMany({
+      where: { userId: adminId, action: { startsWith: "admin." } },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+    });
+    const lastLogin = await prisma.auditLog.findFirst({
+      where: { userId: adminId, action: "admin.login" },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true, details: true },
+    });
+    res.json({
+      email: user.email,
+      mfaEnabled: !!user.totpEnabledAt,
+      mfaEnabledAt: user.totpEnabledAt,
+      recoveryCodesRemaining: user.recoveryCodes ? (JSON.parse(user.recoveryCodes) as string[]).length : 0,
+      lastLogin: lastLogin?.createdAt ?? null,
+      events,
+      hasGoogleOnly: !user.password,
+    });
+  } catch (error) {
+    console.error("Admin security summary error:", error);
+    res.status(500).json({ error: "Failed to load security summary" });
+  }
+});
+
+// POST /api/admin/security/change-password — requires current password + MFA code when enabled.
+router.post("/security/change-password", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const admin = (req as any).admin;
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: "Current and new password required" });
+    if (String(newPassword).length < 12) return res.status(400).json({ error: "New password must be at least 12 characters" });
+    const user = await prisma.user.findUnique({ where: { id: admin.adminId }, select: { password: true, totpSecret: true, totpEnabledAt: true } });
+    if (!user) return res.status(404).json({ error: "Admin not found" });
+    if (!user.password || !(await bcrypt.compare(String(currentPassword), user.password))) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+    if (user.totpEnabledAt) {
+      if (!user.totpSecret || !verifyTotp(user.totpSecret, String(req.body?.totpCode || ""))) {
+        return res.status(401).json({ error: "Valid authenticator code required" });
+      }
+    }
+    const hashed = await bcrypt.hash(String(newPassword), 12);
+    // Bump tokenVersion → revokes all admin sessions (incl. current). New
+    // password = new credential, old sessions cannot be trusted.
+    const updated = await prisma.user.update({ where: { id: admin.adminId }, data: { password: hashed, tokenVersion: { increment: 1 } } });
+    auditAdminAction({ ...admin, tv: updated.tokenVersion }, "admin.security.password_change", "admin", admin.adminId, {});
+    const token = signAdminToken({ adminId: admin.adminId, role: admin.role, name: admin.name }, updated.tokenVersion);
+    res.json({ ok: true, token }); // fresh token so the current tab stays signed in
+  } catch (error) {
+    console.error("Admin password change error:", error);
+    res.status(500).json({ error: "Failed to change password" });
+  }
+});
+
+// POST /api/admin/security/recovery-codes/rotate — password + code required, returns new codes ONCE.
+router.post("/security/recovery-codes/rotate", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const admin = (req as any).admin;
+    const { password, code } = req.body || {};
+    const user = await prisma.user.findUnique({ where: { id: admin.adminId }, select: { password: true, totpSecret: true, totpEnabledAt: true, recoveryCodes: true } });
+    if (!user?.totpEnabledAt) return res.status(400).json({ error: "MFA is not enabled" });
+    if (!password || !(await bcrypt.compare(String(password), user.password!))) {
+      return res.status(401).json({ error: "Password confirmation failed" });
+    }
+    const validCode = verifyTotp(user.totpSecret!, String(code || "")) ||
+      (JSON.parse(user.recoveryCodes || "[]") as string[]).includes(hashCode(String(code || "")));
+    if (!validCode) return res.status(401).json({ error: "Valid authenticator code required" });
+    const { plain, hashed } = generateRecoveryCodes();
+    await prisma.user.update({ where: { id: admin.adminId }, data: { recoveryCodes: JSON.stringify(hashed) } });
+    auditAdminAction(admin, "admin.security.recovery_rotate", "admin", admin.adminId, {});
+    res.json({ recoveryCodes: plain });
+  } catch (error) {
+    console.error("Admin recovery rotate error:", error);
+    res.status(500).json({ error: "Failed to rotate recovery codes" });
+  }
+});
+
+// POST /api/admin/security/signout-everywhere — bump tokenVersion, revoke all admin sessions.
+router.post("/security/signout-everywhere", requireAdmin(), async (req: Request, res: Response) => {
+  try {
+    const admin = (req as any).admin;
+    const { password } = req.body || {};
+    const user = await prisma.user.findUnique({ where: { id: admin.adminId }, select: { password: true } });
+    if (!user?.password || !password || !(await bcrypt.compare(String(password), user.password))) {
+      return res.status(401).json({ error: "Password confirmation failed" });
+    }
+    await prisma.user.update({ where: { id: admin.adminId }, data: { tokenVersion: { increment: 1 } } });
+    auditAdminAction(admin, "admin.security.signout_all", "admin", admin.adminId, {});
+    res.json({ ok: true }); // current token is now dead too — client clears session
+  } catch (error) {
+    console.error("Admin signout-everywhere error:", error);
+    res.status(500).json({ error: "Failed to revoke sessions" });
   }
 });
 

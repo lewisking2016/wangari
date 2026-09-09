@@ -46,8 +46,10 @@ export interface AdminTokenPayload {
 // development; production must set ADMIN_JWT_SECRET.
 export const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || (process.env.NODE_ENV === "production" ? (() => { throw new Error("ADMIN_JWT_SECRET must be set in production"); })() : JWT_SECRET);
 
-export function signAdminToken(payload: AdminTokenPayload): string {
-  return jwt.sign({ ...payload, type: "admin" }, ADMIN_JWT_SECRET, { expiresIn: "4h" });
+export function signAdminToken(payload: AdminTokenPayload, tokenVersion = 0): string {
+  // tv = tokenVersion. Bumping the user's tokenVersion instantly revokes every
+  // issued admin token (password change, sign-out-everywhere).
+  return jwt.sign({ ...payload, type: "admin", tv: tokenVersion }, ADMIN_JWT_SECRET, { expiresIn: "4h" });
 }
 
 export { verifyTotp };
@@ -81,6 +83,8 @@ export async function adminLogin(
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return null;
 
+  const full = await prisma.user.findUnique({ where: { id: user.id }, select: { tokenVersion: true } });
+
   const mfaEnabled = !!(user.totpEnabledAt && user.totpSecret);
   if (mfaEnabled) {
     const code = String(totpCode || "").trim();
@@ -100,20 +104,26 @@ export async function adminLogin(
   }
 
   return {
-    token: signAdminToken({ adminId: user.id, role: user.role as AdminRole, name: user.name }),
+    token: signAdminToken({ adminId: user.id, role: user.role as AdminRole, name: user.name }, full?.tokenVersion ?? 0),
     admin: { id: user.id, name: user.name, email: user.email, role: user.role },
   };
 }
 
 export function requireAdmin(roles?: AdminRole[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
     try {
-      const decoded = jwt.verify(token, ADMIN_JWT_SECRET) as AdminTokenPayload & { type?: string };
+      const decoded = jwt.verify(token, ADMIN_JWT_SECRET) as AdminTokenPayload & { type?: string; tv?: number };
       if (decoded.type !== "admin" || !decoded.adminId) {
         return res.status(403).json({ error: "Admin token required" });
+      }
+      // Revocation check: token carries the tokenVersion at sign time; a bump
+      // (password change / sign-out-everywhere) invalidates every old token.
+      const current = await prisma.user.findUnique({ where: { id: decoded.adminId }, select: { tokenVersion: true } });
+      if (!current || (decoded.tv ?? 0) !== (current.tokenVersion || 0)) {
+        return res.status(401).json({ error: "Session revoked — sign in again" });
       }
       if (roles && !roles.includes(decoded.role) && decoded.role !== "super_admin") {
         return res.status(403).json({ error: "Insufficient admin role" });
