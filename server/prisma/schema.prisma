@@ -8,37 +8,37 @@ datasource db {
 }
 
 model User {
-  id              Int       @id @default(autoincrement())
-  name            String
-  email           String    @unique
-  phone           String?   @unique
-  password        String?
-  googleId        String?   @unique @map("google_id")
-  avatar          String?
-  role            String    @default("farm_owner")
-  profileComplete Boolean   @default(false) @map("profile_complete")
-  emailVerified   DateTime? @map("email_verified")
-  trialStartsAt   DateTime? @map("trial_starts_at")
-  trialEndsAt     DateTime? @map("trial_ends_at")
-  selectedHubs    String?   @map("selected_hubs")
-  resetToken      String?   @map("reset_token")
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  phone            String?   @unique
+  password         String?
+  googleId         String?   @unique @map("google_id")
+  avatar           String?
+  role             String    @default("farm_owner")
+  profileComplete  Boolean   @default(false) @map("profile_complete")
+  emailVerified    DateTime? @map("email_verified")
+  trialStartsAt    DateTime? @map("trial_starts_at")
+  trialEndsAt      DateTime? @map("trial_ends_at")
+  selectedHubs     String?   @map("selected_hubs")
+  resetToken       String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
-  tokenVersion    Int       @default(0) @map("token_version")
-  totpSecret      String?   @map("totp_secret")
-  totpEnabledAt   DateTime? @map("totp_enabled_at")
-  recoveryCodes   String?   @map("recovery_codes") // JSON array of bcrypt-hashed codes
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  tokenVersion     Int       @default(0) @map("token_version")
+  totpSecret       String?   @map("totp_secret")
+  totpEnabledAt    DateTime? @map("totp_enabled_at")
+  recoveryCodes    String?   @map("recovery_codes") // JSON array of bcrypt-hashed codes
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  farms        FarmMember[]
-  ownedFarms   Farm[]
-  flocks       Flock[]
-  transactions Transaction[]
-  sales        Sale[]
-  workers      Worker[]
-  auditLogs    AuditLog[]
-  tickets      Ticket[]
-  crops        Crop[]
+  farms         FarmMember[]
+  ownedFarms    Farm[]
+  flocks        Flock[]
+  transactions  Transaction[]
+  sales         Sale[]
+  workers       Worker[]
+  auditLogs     AuditLog[]
+  tickets       Ticket[]
+  crops         Crop[]
   verifications VerificationCode[]
   subscriptions Subscription[]
 
@@ -46,13 +46,13 @@ model User {
 }
 
 model VerificationCode {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
   code      String
-  purpose   String   @default("email_verification")
-  expiresAt DateTime @map("expires_at")
+  purpose   String    @default("email_verification")
+  expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -63,13 +63,13 @@ model VerificationCode {
 // Pricing source of truth — seeded from code once, editable in DB afterwards.
 // amount is in Pesewas (Paystack minor unit) to avoid float money.
 model Plan {
-  id          String   @id
+  id          String  @id
   name        String
   description String?
   amount      Int
   days        Int
-  active      Boolean  @default(true)
-  sortOrder   Int      @default(0)
+  active      Boolean @default(true)
+  sortOrder   Int     @default(0)
 
   @@map("plans")
 }
@@ -80,24 +80,24 @@ model Plan {
 model SiteContent {
   page      String   @id
   data      Json
-  updatedBy Int?
+  updatedBy Int?     @map("updated_by")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("site_content")
 }
 
 model Subscription {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @map("user_id")
-  plan          String
-  planName      String   @map("plan_name")
-  amount        Decimal  @db.Decimal(12, 2)
-  status        String   @default("active")
-  reference     String?
-  startsAt      DateTime @default(now()) @map("starts_at")
-  expiresAt     DateTime @map("expires_at")
-  renewedAt     DateTime? @map("renewed_at")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  plan      String
+  planName  String    @map("plan_name")
+  amount    Decimal   @db.Decimal(12, 2)
+  status    String    @default("active")
+  reference String?
+  startsAt  DateTime  @default(now()) @map("starts_at")
+  expiresAt DateTime  @map("expires_at")
+  renewedAt DateTime? @map("renewed_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -115,40 +115,40 @@ model Farm {
   ownerId   Int      @map("owner_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  owner        User           @relation(fields: [ownerId], references: [id])
-  members      FarmMember[]
-  flocks       Flock[]
-  transactions Transaction[]
-  inventory    Inventory[]
-  customers    Customer[]
-  sales        Sale[]
-  workers      Worker[]
-  feedRecipes  FeedRecipe[]
-  weatherCache WeatherCache[]
+  owner            User              @relation(fields: [ownerId], references: [id])
+  members          FarmMember[]
+  flocks           Flock[]
+  transactions     Transaction[]
+  inventory        Inventory[]
+  customers        Customer[]
+  sales            Sale[]
+  workers          Worker[]
+  feedRecipes      FeedRecipe[]
+  weatherCache     WeatherCache[]
   dailyProductions DailyProduction[]
-  credits Credit[]
-  attendances Attendance[]
-  auditLogs AuditLog[]
-  settings     FarmSetting[]
-  workerTasks   WorkerTask[]
-  workerLogs    WorkerLog[]
-  zktecoDevices ZKTecoDevice[]
-  zktecoLogs    ZKTecoLog[]
-  breeding Breeding[]
-  crops Crop[]
+  credits          Credit[]
+  attendances      Attendance[]
+  auditLogs        AuditLog[]
+  settings         FarmSetting[]
+  workerTasks      WorkerTask[]
+  workerLogs       WorkerLog[]
+  zktecoDevices    ZKTecoDevice[]
+  zktecoLogs       ZKTecoLog[]
+  breeding         Breeding[]
+  crops            Crop[]
   cropHarvests     CropHarvest[]
   cropHealth       CropHealth[]
   cropApplications CropApplication[]
-  invoices Invoice[]
+  invoices         Invoice[]
 
   @@map("farms")
 }
 
 model FarmMember {
-  id       Int    @id @default(autoincrement())
-  userId   Int    @map("user_id")
-  farmId   Int    @map("farm_id")
-  role     String @default("member")
+  id       Int      @id @default(autoincrement())
+  userId   Int      @map("user_id")
+  farmId   Int      @map("farm_id")
+  role     String   @default("member")
   joinedAt DateTime @default(now()) @map("joined_at")
 
   user User @relation(fields: [userId], references: [id])
@@ -171,32 +171,32 @@ model Flock {
   type         String?   @default("layers")
 
   // ─── Extended fields (multi-species livestock) ───
-  category         String?   @default("poultry")
-  purpose          String?   // production, breeding, dual_purpose
-  gender           String?   // male, female, mixed
-  genderRatio      String?   @map("gender_ratio")
-  location         String?   // pen, barn, pond, coop designation
-  source           String?   // supplier name
-  supplierContact  String?   @map("supplier_contact")
-  costPerAnimal    Decimal?  @map("cost_per_animal") @db.Decimal(10, 2)
-  totalInvestment  Decimal?  @map("total_investment") @db.Decimal(12, 2)
-  targetMarket     String?   @map("target_market")
-  feedType         String?   @map("feed_type")
-  feedSupplier     String?   @map("feed_supplier")
-  feedCostPerMonth Decimal?  @map("feed_cost_per_month") @db.Decimal(10, 2)
-  vetName          String?   @map("vet_name")
-  vetPhone         String?   @map("vet_phone")
-  healthOnArrival  String?   @map("health_on_arrival")
-  insurancePolicy  String?   @map("insurance_policy")
-  photoUrl         String?   @map("photo_url")
-  expectedYield    String?   @map("expected_yield")
-  expectedRevenue  Decimal?  @map("expected_revenue") @db.Decimal(12, 2)
-  expectedWeight   String?   @map("expected_weight")
+  category         String?  @default("poultry")
+  purpose          String? // production, breeding, dual_purpose
+  gender           String? // male, female, mixed
+  genderRatio      String?  @map("gender_ratio")
+  location         String? // pen, barn, pond, coop designation
+  source           String? // supplier name
+  supplierContact  String?  @map("supplier_contact")
+  costPerAnimal    Decimal? @map("cost_per_animal") @db.Decimal(10, 2)
+  totalInvestment  Decimal? @map("total_investment") @db.Decimal(12, 2)
+  targetMarket     String?  @map("target_market")
+  feedType         String?  @map("feed_type")
+  feedSupplier     String?  @map("feed_supplier")
+  feedCostPerMonth Decimal? @map("feed_cost_per_month") @db.Decimal(10, 2)
+  vetName          String?  @map("vet_name")
+  vetPhone         String?  @map("vet_phone")
+  healthOnArrival  String?  @map("health_on_arrival")
+  insurancePolicy  String?  @map("insurance_policy")
+  photoUrl         String?  @map("photo_url")
+  expectedYield    String?  @map("expected_yield")
+  expectedRevenue  Decimal? @map("expected_revenue") @db.Decimal(12, 2)
+  expectedWeight   String?  @map("expected_weight")
   notes            String?
 
-  createdBy    Int?      @map("created_by")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  createdBy Int?     @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   farm         Farm              @relation(fields: [farmId], references: [id])
   creator      User?             @relation(fields: [createdBy], references: [id])
@@ -205,20 +205,21 @@ model Flock {
   breeding     Breeding[]
 
   @@map("flocks")
-}model DailyProduction {
-  id              Int      @id @default(autoincrement())
-  flockId         Int      @map("flock_id")
-  farmId          Int      @map("farm_id")
-  date            DateTime @db.Date
-  eggsCollected   Int      @default(0) @map("eggs_collected")
-  milkCollected   Decimal  @default(0) @map("milk_collected") @db.Decimal(10, 2)
-  mortality       Int      @default(0)
-  feedUsed        Decimal  @default(0) @map("feed_used") @db.Decimal(10, 2)
-  avgWeight       Decimal? @map("avg_weight") @db.Decimal(10, 2)
-  weightGain      Decimal? @map("weight_gain") @db.Decimal(10, 2)
-  waterUsed       Decimal? @map("water_used") @db.Decimal(10, 2)
-  notes           String?
-  createdAt       DateTime @default(now()) @map("created_at")
+}
+model DailyProduction {
+  id            Int      @id @default(autoincrement())
+  flockId       Int      @map("flock_id")
+  farmId        Int      @map("farm_id")
+  date          DateTime @db.Date
+  eggsCollected Int      @default(0) @map("eggs_collected")
+  milkCollected Decimal  @default(0) @map("milk_collected") @db.Decimal(10, 2)
+  mortality     Int      @default(0)
+  feedUsed      Decimal  @default(0) @map("feed_used") @db.Decimal(10, 2)
+  avgWeight     Decimal? @map("avg_weight") @db.Decimal(10, 2)
+  weightGain    Decimal? @map("weight_gain") @db.Decimal(10, 2)
+  waterUsed     Decimal? @map("water_used") @db.Decimal(10, 2)
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
 
   flock Flock @relation(fields: [flockId], references: [id])
   farm  Farm  @relation(fields: [farmId], references: [id])
@@ -228,22 +229,22 @@ model Flock {
 }
 
 model Breeding {
-  id            Int       @id @default(autoincrement())
-  flockId       Int       @map("flock_id")
-  farmId        Int       @map("farm_id")
-  sireName      String?   @map("sire_name")
-  sireBreed     String?   @map("sire_breed")
-  damName       String?   @map("dam_name")
-  damBreed      String?   @map("dam_breed")
-  matingDate    DateTime  @map("mating_date")
-  expectedBirth DateTime? @map("expected_birth")
-  actualBirth   DateTime? @map("actual_birth")
-  offspringCount Int?     @map("offspring_count")
-  offspringAlive Int?     @map("offspring_alive")
-  method        String?   // natural, ai, ivf
-  status        String    @default("pending") // pending, confirmed, born, failed
-  notes         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
+  id             Int       @id @default(autoincrement())
+  flockId        Int       @map("flock_id")
+  farmId         Int       @map("farm_id")
+  sireName       String?   @map("sire_name")
+  sireBreed      String?   @map("sire_breed")
+  damName        String?   @map("dam_name")
+  damBreed       String?   @map("dam_breed")
+  matingDate     DateTime  @map("mating_date")
+  expectedBirth  DateTime? @map("expected_birth")
+  actualBirth    DateTime? @map("actual_birth")
+  offspringCount Int?      @map("offspring_count")
+  offspringAlive Int?      @map("offspring_alive")
+  method         String? // natural, ai, ivf
+  status         String    @default("pending") // pending, confirmed, born, failed
+  notes          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
 
   flock Flock @relation(fields: [flockId], references: [id])
   farm  Farm  @relation(fields: [farmId], references: [id])
@@ -252,25 +253,25 @@ model Breeding {
 }
 
 model Crop {
-  id            Int       @id @default(autoincrement())
-  farmId        Int       @map("farm_id")
-  name          String    // e.g. "Maize Field A"
-  cropType      String    @map("crop_type") // maize, beans, tomatoes, kale, etc.
-  variety       String?   // e.g. "H614" for maize
-  areaAcres     Decimal?  @map("area_acres") @db.Decimal(10, 2)
-  plantingDate  DateTime? @map("planting_date")
+  id              Int       @id @default(autoincrement())
+  farmId          Int       @map("farm_id")
+  name            String // e.g. "Maize Field A"
+  cropType        String    @map("crop_type") // maize, beans, tomatoes, kale, etc.
+  variety         String? // e.g. "H614" for maize
+  areaAcres       Decimal?  @map("area_acres") @db.Decimal(10, 2)
+  plantingDate    DateTime? @map("planting_date")
   expectedHarvest DateTime? @map("expected_harvest")
-  status        String    @default("active") // active, harvested, failed
-  location      String?   // field/plot designation
-  soilType      String?   @map("soil_type")
-  irrigation    String?   // rainfed, drip, sprinkler, flood
-  notes         String?
-  createdBy     Int?      @map("created_by")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  status          String    @default("active") // active, harvested, failed
+  location        String? // field/plot designation
+  soilType        String?   @map("soil_type")
+  irrigation      String? // rainfed, drip, sprinkler, flood
+  notes           String?
+  createdBy       Int?      @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  farm      Farm          @relation(fields: [farmId], references: [id])
-  creator   User?         @relation(fields: [createdBy], references: [id])
+  farm         Farm              @relation(fields: [farmId], references: [id])
+  creator      User?             @relation(fields: [createdBy], references: [id])
   harvests     CropHarvest[]
   health       CropHealth[]
   applications CropApplication[]
@@ -279,16 +280,16 @@ model Crop {
 }
 
 model CropHarvest {
-  id            Int       @id @default(autoincrement())
-  cropId        Int       @map("crop_id")
-  farmId        Int       @map("farm_id")
-  date          DateTime  @db.Date
-  quantityKg    Decimal   @map("quantity_kg") @db.Decimal(10, 2)
-  quality       String?   // grade A, B, C
-  soldQuantity  Decimal?  @map("sold_quantity") @db.Decimal(10, 2)
-  salePrice     Decimal?  @map("sale_price") @db.Decimal(12, 2)
-  notes         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  cropId       Int      @map("crop_id")
+  farmId       Int      @map("farm_id")
+  date         DateTime @db.Date
+  quantityKg   Decimal  @map("quantity_kg") @db.Decimal(10, 2)
+  quality      String? // grade A, B, C
+  soldQuantity Decimal? @map("sold_quantity") @db.Decimal(10, 2)
+  salePrice    Decimal? @map("sale_price") @db.Decimal(12, 2)
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
 
   crop Crop @relation(fields: [cropId], references: [id])
   farm Farm @relation(fields: [farmId], references: [id])
@@ -297,18 +298,18 @@ model CropHarvest {
 }
 
 model CropHealth {
-  id            Int       @id @default(autoincrement())
-  cropId        Int       @map("crop_id")
-  farmId        Int       @map("farm_id")
-  date          DateTime  @db.Date
-  issueType     String    @map("issue_type") // pest, disease, weed, nutrient
-  description   String
-  severity      String    @default("low") // low, medium, high
-  treatment     String?
-  treatedDate   DateTime? @map("treated_date")
-  outcome       String?   // resolved, ongoing, failed
-  notes         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
+  id          Int       @id @default(autoincrement())
+  cropId      Int       @map("crop_id")
+  farmId      Int       @map("farm_id")
+  date        DateTime  @db.Date
+  issueType   String    @map("issue_type") // pest, disease, weed, nutrient
+  description String
+  severity    String    @default("low") // low, medium, high
+  treatment   String?
+  treatedDate DateTime? @map("treated_date")
+  outcome     String? // resolved, ongoing, failed
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   crop Crop @relation(fields: [cropId], references: [id])
   farm Farm @relation(fields: [farmId], references: [id])
@@ -317,17 +318,17 @@ model CropHealth {
 }
 
 model CropApplication {
-  id            Int       @id @default(autoincrement())
-  cropId        Int       @map("crop_id")
-  farmId        Int       @map("farm_id")
-  date          DateTime  @db.Date
-  type          String    // fertilizer, pesticide, herbicide, irrigation
-  productName   String    @map("product_name")
-  quantity      Decimal   @db.Decimal(10, 2)
-  unit          String    // kg, litres, bags
-  cost          Decimal?  @db.Decimal(12, 2)
-  notes         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  cropId      Int      @map("crop_id")
+  farmId      Int      @map("farm_id")
+  date        DateTime @db.Date
+  type        String // fertilizer, pesticide, herbicide, irrigation
+  productName String   @map("product_name")
+  quantity    Decimal  @db.Decimal(10, 2)
+  unit        String // kg, litres, bags
+  cost        Decimal? @db.Decimal(12, 2)
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   crop Crop @relation(fields: [cropId], references: [id])
   farm Farm @relation(fields: [farmId], references: [id])
@@ -370,21 +371,21 @@ model Transaction {
 }
 
 model Inventory {
-  id          Int      @id @default(autoincrement())
-  farmId      Int      @map("farm_id")
-  itemName    String   @map("item_name")
-  category    String?
-  quantity    Decimal  @db.Decimal(10, 2)
-  unit        String   @default("bags")
-  unitCost    Decimal  @map("unit_cost") @db.Decimal(10, 2)
-  reorderLevel Int     @default(0) @map("reorder_level")
-  supplier    String?
-  expiryDate  DateTime? @map("expiry_date")
-  notes       String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           Int       @id @default(autoincrement())
+  farmId       Int       @map("farm_id")
+  itemName     String    @map("item_name")
+  category     String?
+  quantity     Decimal   @db.Decimal(10, 2)
+  unit         String    @default("bags")
+  unitCost     Decimal   @map("unit_cost") @db.Decimal(10, 2)
+  reorderLevel Int       @default(0) @map("reorder_level")
+  supplier     String?
+  expiryDate   DateTime? @map("expiry_date")
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
 
-  farm  Farm           @relation(fields: [farmId], references: [id])
-  logs  InventoryLog[]
+  farm Farm           @relation(fields: [farmId], references: [id])
+  logs InventoryLog[]
 
   @@map("inventory")
 }
@@ -413,9 +414,9 @@ model Customer {
   totalCredit Decimal  @default(0) @map("total_credit") @db.Decimal(12, 2)
   createdAt   DateTime @default(now()) @map("created_at")
 
-  farm    Farm      @relation(fields: [farmId], references: [id])
-  sales   Sale[]
-  credits Credit[]
+  farm     Farm      @relation(fields: [farmId], references: [id])
+  sales    Sale[]
+  credits  Credit[]
   invoices Invoice[]
 
   @@map("customers")
@@ -433,9 +434,9 @@ model Sale {
   createdBy     Int?     @map("created_by")
   createdAt     DateTime @default(now()) @map("created_at")
 
-  farm     Farm       @relation(fields: [farmId], references: [id])
-  customer Customer?  @relation(fields: [customerId], references: [id])
-  user     User?      @relation(fields: [createdBy], references: [id])
+  farm     Farm      @relation(fields: [farmId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  user     User?     @relation(fields: [createdBy], references: [id])
   credits  Credit[]
   invoices Invoice[]
 
@@ -443,15 +444,15 @@ model Sale {
 }
 
 model Credit {
-  id         Int      @id @default(autoincrement())
-  saleId     Int?     @map("sale_id")
-  customerId Int      @map("customer_id")
-  farmId     Int      @map("farm_id")
-  amountOwed Decimal  @map("amount_owed") @db.Decimal(12, 2)
-  amountPaid Decimal  @default(0) @map("amount_paid") @db.Decimal(12, 2)
+  id         Int       @id @default(autoincrement())
+  saleId     Int?      @map("sale_id")
+  customerId Int       @map("customer_id")
+  farmId     Int       @map("farm_id")
+  amountOwed Decimal   @map("amount_owed") @db.Decimal(12, 2)
+  amountPaid Decimal   @default(0) @map("amount_paid") @db.Decimal(12, 2)
   dueDate    DateTime? @map("due_date")
-  status     String   @default("pending")
-  createdAt  DateTime @default(now()) @map("created_at")
+  status     String    @default("pending")
+  createdAt  DateTime  @default(now()) @map("created_at")
 
   sale     Sale?    @relation(fields: [saleId], references: [id])
   customer Customer @relation(fields: [customerId], references: [id])
@@ -461,18 +462,18 @@ model Credit {
 }
 
 model Invoice {
-  id             Int      @id @default(autoincrement())
-  farmId         Int      @map("farm_id")
-  saleId         Int?     @map("sale_id")
-  customerId     Int?     @map("customer_id")
-  invoiceNumber  String   @map("invoice_number")
-  items          Json
-  totalAmount    Decimal  @map("total_amount") @db.Decimal(12, 2)
-  amountPaid     Decimal  @default(0) @map("amount_paid") @db.Decimal(12, 2)
-  paymentStatus  String   @default("pending") @map("payment_status")
-  dueDate        DateTime? @map("due_date")
-  notes          String?
-  createdAt      DateTime @default(now()) @map("created_at")
+  id            Int       @id @default(autoincrement())
+  farmId        Int       @map("farm_id")
+  saleId        Int?      @map("sale_id")
+  customerId    Int?      @map("customer_id")
+  invoiceNumber String    @map("invoice_number")
+  items         Json
+  totalAmount   Decimal   @map("total_amount") @db.Decimal(12, 2)
+  amountPaid    Decimal   @default(0) @map("amount_paid") @db.Decimal(12, 2)
+  paymentStatus String    @default("pending") @map("payment_status")
+  dueDate       DateTime? @map("due_date")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
 
   farm     Farm      @relation(fields: [farmId], references: [id])
   sale     Sale?     @relation(fields: [saleId], references: [id])
@@ -482,18 +483,18 @@ model Invoice {
 }
 
 model Worker {
-  id        Int       @id @default(autoincrement())
-  farmId    Int       @map("farm_id")
-  name      String
-  phone     String?
-  role      String?
-  pin       String?
-  tokenVersion Int    @default(0) @map("token_version")
-  dailyWage Decimal?  @map("daily_wage") @db.Decimal(10, 2)
-  status    String    @default("active")
-  hiredDate DateTime? @map("hired_date")
-  createdBy Int?      @map("created_by")
-  createdAt DateTime  @default(now()) @map("created_at")
+  id           Int       @id @default(autoincrement())
+  farmId       Int       @map("farm_id")
+  name         String
+  phone        String?
+  role         String?
+  pin          String?
+  tokenVersion Int       @default(0) @map("token_version")
+  dailyWage    Decimal?  @map("daily_wage") @db.Decimal(10, 2)
+  status       String    @default("active")
+  hiredDate    DateTime? @map("hired_date")
+  createdBy    Int?      @map("created_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
   farm       Farm         @relation(fields: [farmId], references: [id])
   creator    User?        @relation(fields: [createdBy], references: [id])
@@ -527,9 +528,9 @@ model WorkerLog {
   id        Int      @id @default(autoincrement())
   farmId    Int      @map("farm_id")
   workerId  Int      @map("worker_id")
-  type      String   // eggs, milk, feed, mortality, task_done
+  type      String // eggs, milk, feed, mortality, task_done
   quantity  Decimal  @default(0) @db.Decimal(10, 2)
-  unit      String?  // pieces, litres, kg, count
+  unit      String? // pieces, litres, kg, count
   notes     String?
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -538,7 +539,6 @@ model WorkerLog {
 
   @@map("worker_logs")
 }
-
 
 model Attendance {
   id        Int      @id @default(autoincrement())
@@ -558,13 +558,13 @@ model Attendance {
 }
 
 model FeedRecipe {
-  id         Int      @id @default(autoincrement())
-  farmId     Int      @map("farm_id")
-  name       String
+  id          Int      @id @default(autoincrement())
+  farmId      Int      @map("farm_id")
+  name        String
   ingredients Json?
-  costPerBag Decimal? @map("cost_per_bag") @db.Decimal(10, 2)
-  notes      String?
-  createdAt  DateTime @default(now()) @map("created_at")
+  costPerBag  Decimal? @map("cost_per_bag") @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   farm Farm @relation(fields: [farmId], references: [id])
 
@@ -603,17 +603,17 @@ model FarmSetting {
 }
 
 model ZKTecoDevice {
-  id           Int      @id @default(autoincrement())
-  farmId       Int      @map("farm_id")
-  serialNumber String   @map("serial_number")
-  deviceSecret String   @map("device_secret") // shared secret required in push payload — prevents forged attendance
+  id           Int       @id @default(autoincrement())
+  farmId       Int       @map("farm_id")
+  serialNumber String    @map("serial_number")
+  deviceSecret String    @map("device_secret") // shared secret required in push payload — prevents forged attendance
   name         String?
   model        String?
-  status       String   @default("active") // active, inactive
+  status       String    @default("active") // active, inactive
   lastSyncAt   DateTime? @map("last_sync_at")
-  createdAt    DateTime @default(now()) @map("created_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
-  farm Farm @relation(fields: [farmId], references: [id])
+  farm Farm        @relation(fields: [farmId], references: [id])
   logs ZKTecoLog[]
 
   @@unique([farmId, serialNumber])
@@ -641,18 +641,18 @@ model ZKTecoLog {
 }
 
 model Ticket {
-  id         Int             @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   subject    String
-  status     String          @default("open") // open | pending | solved | closed
-  priority   String          @default("normal") // low | normal | high
-  userId     Int?            @map("user_id")
-  farmId     Int?            @map("farm_id")
-  assigneeId Int?            @map("assignee_id")
-  createdAt  DateTime        @default(now()) @map("created_at")
-  updatedAt  DateTime        @updatedAt @map("updated_at")
+  status     String   @default("open") // open | pending | solved | closed
+  priority   String   @default("normal") // low | normal | high
+  userId     Int?     @map("user_id")
+  farmId     Int?     @map("farm_id")
+  assigneeId Int?     @map("assignee_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  user      User?           @relation(fields: [userId], references: [id])
-  messages  TicketMessage[]
+  user     User?           @relation(fields: [userId], references: [id])
+  messages TicketMessage[]
 
   @@index([status])
   @@map("tickets")
@@ -673,18 +673,18 @@ model TicketMessage {
 }
 
 model PromoCode {
-  id             String            @id @default(cuid())
-  code           String            @unique
-  type           String            @default("discount") // discount | partnership | credit
-  discountType   String?           @map("discount_type") // percent | fixed
-  value          Int?              // percent (1-100) or fixed KES
-  maxRedemptions Int?              @map("max_redemptions")
-  timesRedeemed  Int               @default(0) @map("times_redeemed")
-  partnerName    String?           @map("partner_name")
-  expiresAt      DateTime?         @map("expires_at")
-  active         Boolean           @default(true)
-  createdBy      Int?              @map("created_by")
-  createdAt      DateTime          @default(now()) @map("created_at")
+  id             String    @id @default(cuid())
+  code           String    @unique
+  type           String    @default("discount") // discount | partnership | credit
+  discountType   String?   @map("discount_type") // percent | fixed
+  value          Int? // percent (1-100) or fixed KES
+  maxRedemptions Int?      @map("max_redemptions")
+  timesRedeemed  Int       @default(0) @map("times_redeemed")
+  partnerName    String?   @map("partner_name")
+  expiresAt      DateTime? @map("expires_at")
+  active         Boolean   @default(true)
+  createdBy      Int?      @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
   redemptions PromoRedemption[]
 
@@ -692,12 +692,12 @@ model PromoCode {
 }
 
 model PromoRedemption {
-  id          Int       @id @default(autoincrement())
-  promoCodeId String    @map("promo_code_id")
-  userId      Int       @map("user_id")
-  reference   String?   // paystack reference when tied to a payment
-  discountKes Decimal   @default(0) @map("discount_kes") @db.Decimal(10, 2)
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  promoCodeId String   @map("promo_code_id")
+  userId      Int      @map("user_id")
+  reference   String? // paystack reference when tied to a payment
+  discountKes Decimal  @default(0) @map("discount_kes") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
 
   promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
 
@@ -706,27 +706,27 @@ model PromoRedemption {
 }
 
 model Announcement {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   message   String
   link      String?
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now()) @map("created_at")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("announcements")
 }
 
 model CrmContact {
-  id        Int             @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   email     String?
   phone     String?
   company   String? // farm / organization
-  type      String          @default("lead") // lead | partner | customer
-  stage     String          @default("lead") // lead | contacted | demo | trial | customer | churned
+  type      String   @default("lead") // lead | partner | customer
+  stage     String   @default("lead") // lead | contacted | demo | trial | customer | churned
   source    String? // contact_form | manual | referral
-  ownerId   Int?            @map("owner_id") // admin responsible
-  createdAt DateTime        @default(now()) @map("created_at")
-  updatedAt DateTime        @updatedAt @map("updated_at")
+  ownerId   Int?     @map("owner_id") // admin responsible
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   notes CrmContactNote[]
 
