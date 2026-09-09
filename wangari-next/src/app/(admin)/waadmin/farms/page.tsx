@@ -156,7 +156,7 @@ export default function AdminFarmsPage() {
         )}
       </Panel>
 
-      <Modal title={`Extend subscription — ${extending?.name ?? ""}`} onClose={() => setExtending(null)}>
+      <Modal title={`Extend subscription — ${extending?.name ?? ""}`} onClose={() => setExtending(null)} open={!!extending}>
         {extending && (
           <div className="space-y-4">
             <Field label="Days to extend" hint="Extends from the current expiry date. Logged to the audit trail.">

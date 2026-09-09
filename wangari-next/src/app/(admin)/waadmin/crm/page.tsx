@@ -170,7 +170,7 @@ export default function AdminCrmPage() {
       )}
 
       {/* Add contact modal */}
-      <Modal title="Add contact" onClose={() => setShowAdd(false)}>
+      <Modal title="Add contact" onClose={() => setShowAdd(false)} open={showAdd}>
         <form onSubmit={addContact} className="space-y-3">
           <Field label="Name">
             <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
@@ -201,7 +201,7 @@ export default function AdminCrmPage() {
       </Modal>
 
       {/* Notes modal */}
-      <Modal title={selected?.name ?? ""} onClose={() => setSelected(null)}>
+      <Modal title={selected?.name ?? ""} onClose={() => setSelected(null)} open={!!selected}>
         {selected && (
           <div>
             <div className="mb-4 text-xs text-wangari-subtle">

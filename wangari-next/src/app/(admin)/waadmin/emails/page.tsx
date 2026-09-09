@@ -144,7 +144,7 @@ export default function AdminEmailsPage() {
         )}
       </Panel>
 
-      <Modal title="Compose email" onClose={() => setCompose(false)} width="max-w-lg">
+      <Modal title="Compose email" onClose={() => setCompose(false)} width="max-w-lg" open={compose}>
         <form onSubmit={sendOne} className="space-y-3">
           <Field label="To">
             <input required type="email" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} className={inputClass} />

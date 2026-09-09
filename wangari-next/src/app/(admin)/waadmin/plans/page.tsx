@@ -141,7 +141,7 @@ export default function AdminPlansPage() {
         )}
       </Panel>
 
-      <Modal title={editing?.isNew ? "Create plan" : `Edit plan — ${editing?.id ?? ""}`} onClose={() => setEditing(null)}>
+      <Modal title={editing?.isNew ? "Create plan" : `Edit plan — ${editing?.id ?? ""}`} onClose={() => setEditing(null)} open={!!editing}>
         {editing && (
           <div className="space-y-4">
             <Field label="Plan ID" hint={editing.isNew ? "Lowercase key, e.g. starter, pro — used by checkout" : "Cannot be changed after creation"}>

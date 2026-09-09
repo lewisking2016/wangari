@@ -286,12 +286,15 @@ export function Modal({
   onClose,
   children,
   width = "max-w-md",
+  open = true,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   width?: string;
+  open?: boolean;
 }) {
+  if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
       <div
