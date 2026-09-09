@@ -196,6 +196,51 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
       if (row) row.revenue += Number(s.amount);
     }
 
+    // ── Mission-control extras ──
+    // 1. KPI deltas: new owners this week vs last week
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const [ownersThisWeek, ownersLastWeek] = await Promise.all([
+      prisma.user.count({ where: { role: "farm_owner", createdAt: { gte: sevenDaysAgo } } }),
+      prisma.user.count({ where: { role: "farm_owner", createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+    ]);
+
+    // 2. Subscriptions expiring within 7 days (churn/conversion window) + farms with no active sub
+    const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const anyPrisma2 = prisma as any;
+    let expiringSubs: { id: number; planName: string; expiresAt: Date; user: { name: string; email: string } | null }[] = [];
+    let trialFarms = 0;
+    if (anyPrisma2.subscription) {
+      expiringSubs = await prisma.subscription.findMany({
+        where: { status: "active", expiresAt: { gt: now, lte: weekAhead } },
+        select: { id: true, planName: true, expiresAt: true, user: { select: { name: true, email: true } } },
+        orderBy: { expiresAt: "asc" },
+        take: 10,
+      });
+      trialFarms = await anyPrisma2.farm.count({ where: { subscriptions: { none: { status: "active" } } } }).catch(() => 0);
+    }
+
+    // 3. Email ops health (last 24h)
+    let emailsLast24h = { sent: 0, failed: 0 };
+    if (anyPrisma2.emailLog) {
+      const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const [sent, failed] = await Promise.all([
+        anyPrisma2.emailLog.count({ where: { status: "sent", createdAt: { gte: dayAgo } } }),
+        anyPrisma2.emailLog.count({ where: { status: "failed", createdAt: { gte: dayAgo } } }),
+      ]);
+      emailsLast24h = { sent, failed };
+    }
+
+    // 4. Recent admin actions (audit feed)
+    let recentAdminActions: { id: number; action: string; details: unknown; createdAt: Date }[] = [];
+    if (anyPrisma2.auditLog) {
+      recentAdminActions = await anyPrisma2.auditLog.findMany({
+        where: { action: { startsWith: "admin." } },
+        select: { id: true, action: true, details: true, createdAt: true },
+        orderBy: { id: "desc" },
+        take: 6,
+      });
+    }
+
     res.json({
       totals: {
         farms: totalFarms,
@@ -210,6 +255,15 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
       revenueTrend,
       recentUsers,
       recentPayments,
+      deltas: {
+        ownersThisWeek,
+        ownersLastWeek,
+        signupChangePct: ownersLastWeek === 0 ? (ownersThisWeek > 0 ? 100 : 0) : Math.round(((ownersThisWeek - ownersLastWeek) / ownersLastWeek) * 100),
+      },
+      expiringSubs: expiringSubs.map((s) => ({ ...s, expiresAt: s.expiresAt.toISOString() })),
+      trialFarms,
+      emailHealth: emailsLast24h,
+      recentAdminActions,
     });
   } catch (error) {
     console.error("Admin overview error:", error);
