@@ -149,12 +149,12 @@ export default function AdminCrmPage() {
       {!contacts ? (
         <Panel><Loading label="Loading pipeline…" /></Panel>
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {STAGES.map((col) => {
             const items = contacts.filter((c) => c.stage === col.key);
             const stageCount = summary?.byStage?.[col.key] ?? items.length;
             return (
-              <div key={col.key} className="rounded-2xl border border-wangari-border bg-white p-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div key={col.key} className="min-h-[220px] rounded-2xl border border-wangari-border bg-white p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="mb-2 flex items-center justify-between px-1">
                   <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
                     <span className={`h-2 w-2 rounded-full ${col.dot}`} />
