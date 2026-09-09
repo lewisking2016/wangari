@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { ShieldCheck, ArrowLeft } from "lucide-react";
 import { adminApi, setAdminSession } from "@/lib/admin-client";
 
 type LoginResult = { token: string; admin: { id: number; name: string; email: string; role: string } };
@@ -44,7 +45,7 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-wangari-cream px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-wangari-green-50 text-2xl shadow-sm">🛡️</div>
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-wangari-green-50 shadow-sm"><ShieldCheck className="h-6 w-6 text-wangari-green-700" /></div>
           <h1 className="text-xl font-bold text-wangari-heading">Wangari Admin</h1>
           <p className="mt-1 text-sm text-wangari-muted">
             {mfaStep ? "Two-factor verification" : "Platform mission control — staff only"}
@@ -76,7 +77,7 @@ export default function AdminLoginPage() {
                 }}
                 className="text-xs font-medium text-wangari-muted hover:text-wangari-heading"
               >
-                ← Back
+                <ArrowLeft className="h-3.5 w-3.5" /> Back
               </button>
             </>
           ) : (

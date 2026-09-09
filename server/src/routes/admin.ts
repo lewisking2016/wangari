@@ -177,6 +177,25 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
       signups.push({ date: start.toISOString().slice(0, 10), count });
     }
 
+    // 30-day revenue trend (payments activated per day, KES)
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const paidSubs = await prisma.subscription.findMany({
+      where: { status: "active", startsAt: { gte: thirtyDaysAgo } },
+      select: { amount: true, startsAt: true },
+    });
+    const revenueTrend: { date: string; revenue: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const day = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const key = new Date(day.getFullYear(), day.getMonth(), day.getDate()).toISOString().slice(0, 10);
+      revenueTrend.push({ date: key, revenue: 0 });
+    }
+    const revIndex = new Map(revenueTrend.map((r) => [r.date, r]));
+    for (const s of paidSubs) {
+      const key = new Date(s.startsAt).toISOString().slice(0, 10);
+      const row = revIndex.get(key);
+      if (row) row.revenue += Number(s.amount);
+    }
+
     res.json({
       totals: {
         farms: totalFarms,
@@ -188,6 +207,7 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
       },
       byPlan,
       signups,
+      revenueTrend,
       recentUsers,
       recentPayments,
     });

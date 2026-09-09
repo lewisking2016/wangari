@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { TicketPercent, Plus, Power } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, TableShell, Th, Td, Field, inputClass, Loading, ErrorState, Flash,
+  EmptyState, PrimaryButton, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface PromoRow {
   id: string;
@@ -25,6 +31,7 @@ export default function AdminPromosPage() {
   const [flash, setFlash] = React.useState("");
   const [form, setForm] = React.useState({ ...EMPTY });
   const [busy, setBusy] = React.useState(false);
+  const [showCreate, setShowCreate] = React.useState(false);
 
   const load = React.useCallback(() => {
     adminApi.get<PromoRow[]>("/promos").then(setRows).catch((e) => setError(e.message));
@@ -46,7 +53,8 @@ export default function AdminPromosPage() {
         expiresAt: form.expiresAt || null,
       });
       setForm({ ...EMPTY });
-      setFlash("Promo code created.");
+      setShowCreate(false);
+      setFlash("Promo code created — it's live at checkout immediately.");
       setTimeout(() => setFlash(""), 4000);
       load();
     } catch (e: any) {
@@ -67,106 +75,112 @@ export default function AdminPromosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Promo & Partnership Codes</h1>
-        <p className="mt-1 text-sm text-wangari-muted">
-          Codes are redeemed at checkout — the payment webhook records attribution and discount. Percent codes apply to the plan price; fixed codes cap at it.
-        </p>
-      </div>
+      <PageHeader
+        icon={<TicketPercent className="h-5 w-5" />}
+        title="Promo & Partnership Codes"
+        description="Codes are redeemed at checkout — the payment webhook records attribution and discount."
+        actions={
+          <PrimaryButton onClick={() => setShowCreate((v) => !v)}>
+            <Plus className="h-4 w-4" /> New code
+          </PrimaryButton>
+        }
+      />
 
-      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
+      {flash && <Flash message={flash} />}
+      {error && <ErrorState message={error} />}
 
-      <form onSubmit={create} className="grid grid-cols-2 gap-3 rounded-xl border border-wangari-border bg-white p-5 lg:grid-cols-7">
-        <div className="col-span-2 lg:col-span-1">
-          <label className="mb-1 block text-[11px] text-wangari-muted">Code *</label>
-          <input required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="LAUNCH25"
-            className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-wangari-muted">Type</label>
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className="h-10 w-full rounded-lg border border-wangari-border bg-white px-2 text-sm text-wangari-heading focus:border-wangari-green-500 focus:outline-none">
-            <option value="discount">Discount</option>
-            <option value="partnership">Partnership</option>
-            <option value="credit">Credit</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-wangari-muted">Discount</label>
-          <select value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })}
-            className="h-10 w-full rounded-lg border border-wangari-border bg-white px-2 text-sm text-wangari-heading focus:border-wangari-green-500 focus:outline-none">
-            <option value="percent">% off</option>
-            <option value="fixed">KES off</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-wangari-muted">Value *</label>
-          <input required type="number" min="1" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="25"
-            className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-wangari-muted">Max uses</label>
-          <input type="number" min="1" value={form.maxRedemptions} onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })} placeholder="∞"
-            className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-wangari-muted">Partner</label>
-          <input value={form.partnerName} onChange={(e) => setForm({ ...form, partnerName: e.target.value })} placeholder="optional"
-            className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-        </div>
-        <div className="flex items-end">
-          <button type="submit" disabled={busy} className="h-10 w-full rounded-lg bg-wangari-green-800 text-sm font-semibold text-wangari-heading shadow-md hover:bg-wangari-green-900 disabled:opacity-60">
-            {busy ? "Creating…" : "Create code"}
-          </button>
-        </div>
-      </form>
+      {showCreate && (
+        <Panel title="Create promo code" description="Live at checkout as soon as it's saved. Every action is audited.">
+          <form onSubmit={create} className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+            <Field label="Code">
+              <input required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="LAUNCH25" className={inputClass} />
+            </Field>
+            <Field label="Type">
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={inputClass}>
+                <option value="discount">Discount</option>
+                <option value="partnership">Partnership</option>
+                <option value="credit">Credit</option>
+              </select>
+            </Field>
+            <Field label="Discount">
+              <select value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })} className={inputClass}>
+                <option value="percent">% off</option>
+                <option value="fixed">KES off</option>
+              </select>
+            </Field>
+            <Field label="Value">
+              <input required type="number" min="1" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="25" className={inputClass} />
+            </Field>
+            <Field label="Max uses" hint="Empty = unlimited">
+              <input type="number" min="1" value={form.maxRedemptions} onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })} className={inputClass} />
+            </Field>
+            <Field label="Expires" hint="Empty = never">
+              <input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className={inputClass} />
+            </Field>
+            <div className="col-span-2 lg:col-span-4">
+              <Field label="Partner name" hint="Optional — attribution for partnership codes">
+                <input value={form.partnerName} onChange={(e) => setForm({ ...form, partnerName: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <div className="col-span-2 flex items-end gap-2 lg:col-span-2">
+              <GhostButton onClick={() => setShowCreate(false)} className="flex-1">Cancel</GhostButton>
+              <PrimaryButton type="submit" disabled={busy} className="flex-1">
+                {busy ? "Creating…" : "Create code"}
+              </PrimaryButton>
+            </div>
+          </form>
+        </Panel>
+      )}
 
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading codes…</div>
-      ) : rows.length === 0 ? (
-        <div className="rounded-xl border border-wangari-border bg-white px-4 py-8 text-center text-sm text-wangari-subtle">No promo codes yet — create the first one above.</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-wangari-border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
+      <Panel bodyClassName="p-0">
+        {!rows ? (
+          <Loading label="Loading codes…" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No promo codes yet" hint="Create the first one with the New code button." icon={<TicketPercent className="h-5 w-5" />} />
+        ) : (
+          <TableShell minWidth={780}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Discount</th>
-                <th className="px-4 py-3">Redeemed</th>
-                <th className="px-4 py-3">Partner</th>
-                <th className="px-4 py-3">Expires</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <Th>Code</Th>
+                <Th>Discount</Th>
+                <Th>Redeemed</Th>
+                <Th>Partner</Th>
+                <Th>Expires</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-wangari-border bg-white">
+            <tbody>
               {rows.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3 font-mono font-semibold text-emerald-700">{p.code}</td>
-                  <td className="px-4 py-3 text-wangari-text">
+                <tr key={p.id} className="transition-colors hover:bg-wangari-green-50/40">
+                  <Td>
+                    <code className="rounded bg-wangari-green-50 px-2 py-0.5 font-mono text-xs font-bold text-wangari-green-800">{p.code}</code>
+                    <div className="mt-0.5 text-[11px] capitalize text-wangari-subtle">{p.type}</div>
+                  </Td>
+                  <Td className="text-wangari-text">
                     {p.discountType === "percent" ? `${p.value}%` : `KES ${p.value?.toLocaleString()}`}
-                    <span className="ml-1.5 text-xs text-wangari-subtle">({p.type})</span>
-                  </td>
-                  <td className="px-4 py-3 text-wangari-text">{p.timesRedeemed}{p.maxRedemptions ? ` / ${p.maxRedemptions}` : ""}</td>
-                  <td className="px-4 py-3 text-wangari-muted">{p.partnerName || "—"}</td>
-                  <td className="px-4 py-3 text-xs text-wangari-muted">{p.expiresAt ? new Date(p.expiresAt).toLocaleDateString() : "never"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${p.active ? "bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200" : "bg-wangari-cream text-wangari-muted"}`}>
-                      {p.active ? "Active" : "Off"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button onClick={() => toggle(p)} className="rounded-lg px-2.5 py-1 text-xs text-wangari-text hover:bg-wangari-cream hover:text-wangari-heading">
-                      {p.active ? "Disable" : "Enable"}
-                    </button>
-                  </td>
+                  </Td>
+                  <Td className="text-wangari-text">
+                    {p.timesRedeemed}{p.maxRedemptions ? ` / ${p.maxRedemptions}` : ""}
+                  </Td>
+                  <Td className="text-wangari-muted">{p.partnerName || "—"}</Td>
+                  <Td className="whitespace-nowrap text-xs text-wangari-muted">
+                    {p.expiresAt ? new Date(p.expiresAt).toLocaleDateString() : "never"}
+                  </Td>
+                  <Td>
+                    {p.active ? <Badge variant="success">active</Badge> : <Badge variant="outline">disabled</Badge>}
+                  </Td>
+                  <Td className="text-right">
+                    <GhostButton onClick={() => toggle(p)} className="h-7 px-2 text-xs">
+                      <Power className="h-3 w-3" /> {p.active ? "Disable" : "Enable"}
+                    </GhostButton>
+                  </Td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      )}
+          </TableShell>
+        )}
+      </Panel>
     </div>
   );
 }

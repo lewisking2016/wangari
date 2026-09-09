@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { Users, Search, ChevronLeft, ChevronRight, LogOut, MailCheck } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, TableShell, Th, Td, Toolbar, SearchInput, Loading, ErrorState, Flash,
+  EmptyState, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface UserRow {
   id: number;
@@ -52,75 +58,104 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Users</h1>
-        <p className="mt-1 text-sm text-wangari-muted">All accounts with controlled support actions — every action audited.</p>
-      </div>
-
-      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
-
-      <input
-        value={q}
-        onChange={(e) => { setQ(e.target.value); setPage(1); }}
-        placeholder="Search name, email, or phone…"
-        className="h-10 w-72 rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none"
+      <PageHeader
+        icon={<Users className="h-5 w-5" />}
+        title="Users"
+        description="All accounts with controlled support actions — every action audited."
       />
 
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading users…</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-wangari-border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
+      {flash && <Flash message={flash} />}
+      {error && <ErrorState message={error} />}
+
+      <Panel bodyClassName="p-0">
+        <div className="border-b border-wangari-border px-5 py-3">
+          <Toolbar>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-wangari-subtle" />
+              <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search name, email, or phone…" className="pl-8" />
+            </div>
+            <span className="ml-auto text-xs text-wangari-muted">{total} users</span>
+          </Toolbar>
+        </div>
+
+        {!rows ? (
+          <Loading label="Loading users…" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No users match" hint="Try a different search term." icon={<Users className="h-5 w-5" />} />
+        ) : (
+          <TableShell minWidth={720}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">User</th>
-                <th className="px-4 py-3">Farms</th>
-                <th className="px-4 py-3">Verified</th>
-                <th className="px-4 py-3">Joined</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <Th>User</Th>
+                <Th>Farms</Th>
+                <Th>Verified</Th>
+                <Th>Joined</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-wangari-border bg-white">
+            <tbody>
               {rows.map((u) => (
-                <tr key={u.id}>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-wangari-heading">{u.name} {u.role !== "farm_owner" && <span className="ml-1 rounded bg-badge-blue-bg px-1.5 py-0.5 text-[10px] text-badge-blue-text">{u.role}</span>}</div>
-                    <div className="text-xs text-wangari-subtle">{u.email}{u.phone ? ` · ${u.phone}` : ""}</div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-wangari-muted">
+                <tr key={u.id} className="transition-colors hover:bg-wangari-green-50/40">
+                  <Td>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wangari-green-100 text-[11px] font-bold text-wangari-green-800">
+                        {u.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate font-medium text-wangari-heading">{u.name}</span>
+                          {u.role !== "farm_owner" && <Badge variant="info">{u.role.replace("_", " ")}</Badge>}
+                        </div>
+                        <div className="truncate text-xs text-wangari-subtle">{u.email}{u.phone ? ` · ${u.phone}` : ""}</div>
+                      </div>
+                    </div>
+                  </Td>
+                  <Td className="text-xs text-wangari-muted">
                     {u.ownedFarms.length ? u.ownedFarms.map((f) => f.name).join(", ") : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {u.emailVerified ? <span className="text-emerald-700 text-xs">✓ yes</span> : <span className="text-badge-yellow-text text-xs">no</span>}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-wangari-muted">{new Date(u.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => act(u.id, "force-logout", `Force-logout ${u.email} from all devices?`)}
-                      className="rounded-lg px-2.5 py-1 text-xs text-badge-yellow-text hover:bg-badge-yellow-bg"
-                    >Force logout</button>
-                    {!u.emailVerified && (
-                      <button onClick={() => act(u.id, "verify-email")} className="rounded-lg px-2.5 py-1 text-xs text-wangari-text hover:bg-wangari-cream hover:text-wangari-heading">Verify email</button>
+                  </Td>
+                  <Td>
+                    {u.emailVerified ? (
+                      <Badge variant="success">verified</Badge>
+                    ) : (
+                      <Badge variant="warning">unverified</Badge>
                     )}
-                  </td>
+                  </Td>
+                  <Td className="whitespace-nowrap text-xs text-wangari-muted">{new Date(u.createdAt).toLocaleDateString()}</Td>
+                  <Td className="text-right">
+                    <div className="inline-flex gap-1.5">
+                      <GhostButton
+                        onClick={() => act(u.id, "force-logout", `Force-logout ${u.email} from all devices?`)}
+                        className="h-7 px-2 text-xs text-badge-yellow-text hover:bg-badge-yellow-bg hover:text-badge-yellow-text"
+                      >
+                        <LogOut className="h-3 w-3" /> Force logout
+                      </GhostButton>
+                      {!u.emailVerified && (
+                        <GhostButton onClick={() => act(u.id, "verify-email")} className="h-7 px-2 text-xs">
+                          <MailCheck className="h-3 w-3" /> Verify email
+                        </GhostButton>
+                      )}
+                    </div>
+                  </Td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-wangari-subtle">No users match.</td></tr>}
             </tbody>
-          </table>
-        </div>
-      )}
+          </TableShell>
+        )}
 
-      {pages > 1 && (
-        <div className="flex items-center justify-between text-sm text-wangari-muted">
-          <span>Page {page} of {pages} · {total} users</span>
-          <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">← Prev</button>
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">Next →</button>
+        {pages > 1 && (
+          <div className="flex items-center justify-between border-t border-wangari-border px-5 py-3 text-sm text-wangari-muted">
+            <span>Page {page} of {pages} · {total} users</span>
+            <div className="flex gap-2">
+              <GhostButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="h-8 px-2.5 text-xs">
+                <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              </GhostButton>
+              <GhostButton onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="h-8 px-2.5 text-xs">
+                Next <ChevronRight className="h-3.5 w-3.5" />
+              </GhostButton>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Panel>
     </div>
   );
 }

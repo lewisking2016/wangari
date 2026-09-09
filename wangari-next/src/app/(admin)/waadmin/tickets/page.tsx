@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { Ticket as TicketIcon, Send, MessageSquare, UserRound, Headset } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, FilterPill, Loading, ErrorState, EmptyState, PrimaryButton, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface TicketRow {
   id: number;
@@ -18,11 +23,11 @@ interface TicketDetail extends TicketRow {
   messages: { id: number; authorType: string; authorId: number | null; body: string; createdAt: string }[];
 }
 
-const STATUS_STYLE: Record<string, string> = {
-  open: "bg-badge-yellow-bg text-badge-yellow-text",
-  pending: "bg-badge-blue-bg text-badge-blue-text",
-  solved: "bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200",
-  closed: "bg-wangari-cream text-wangari-muted",
+const STATUS_VARIANT: Record<string, "warning" | "info" | "success" | "outline"> = {
+  open: "warning",
+  pending: "info",
+  solved: "success",
+  closed: "outline",
 };
 
 export default function AdminTicketsPage() {
@@ -67,18 +72,17 @@ export default function AdminTicketsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Support Tickets</h1>
-        <p className="mt-1 text-sm text-wangari-muted">Customer conversations. Replying moves the ticket and is audited.</p>
-      </div>
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
+      <PageHeader
+        icon={<TicketIcon className="h-5 w-5" />}
+        title="Support Tickets"
+        description="Customer conversations. Replying moves the ticket and is audited."
+      />
 
-      <div className="flex gap-2">
+      {error && <ErrorState message={error} />}
+
+      <div className="flex flex-wrap gap-1.5">
         {["all", "open", "pending", "solved", "closed"].map((s) => (
-          <button key={s} onClick={() => setStatus(s)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium ${status === s ? "bg-wangari-green-100 text-wangari-green-800" : "text-wangari-muted hover:bg-wangari-cream"}`}>
-            {s}
-          </button>
+          <FilterPill key={s} active={status === s} onClick={() => setStatus(s)}>{s}</FilterPill>
         ))}
       </div>
 
@@ -86,19 +90,28 @@ export default function AdminTicketsPage() {
         {/* List */}
         <div className="lg:col-span-2">
           {!rows ? (
-            <div className="animate-pulse text-sm text-wangari-muted">Loading tickets…</div>
+            <Panel><Loading label="Loading tickets…" /></Panel>
           ) : rows.length === 0 ? (
-            <div className="rounded-xl border border-wangari-border bg-white px-4 py-8 text-center text-sm text-wangari-subtle">No tickets.</div>
+            <Panel>
+              <EmptyState title="No tickets" hint="Customer submissions from the in-app help form appear here." icon={<TicketIcon className="h-5 w-5" />} />
+            </Panel>
           ) : (
             <div className="space-y-2">
               {rows.map((t) => (
-                <button key={t.id} onClick={() => open(t.id)}
-                  className={`w-full rounded-xl border p-4 text-left transition-colors ${selected?.id === t.id ? "border-wangari-green-300 bg-wangari-green-50" : "border-wangari-border bg-white hover:border-wangari-green-300"}`}>
+                <button
+                  key={t.id}
+                  onClick={() => open(t.id)}
+                  className={`w-full rounded-2xl border p-4 text-left transition-all ${selected?.id === t.id
+                    ? "border-wangari-green-300 bg-wangari-green-50 shadow-sm"
+                    : "border-wangari-border bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-wangari-green-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"}`}
+                >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-wangari-heading">{t.subject}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLE[t.status] || ""}`}>{t.status}</span>
+                    <span className="truncate text-sm font-semibold text-wangari-heading">{t.subject}</span>
+                    <Badge variant={STATUS_VARIANT[t.status] || "outline"}>{t.status}</Badge>
                   </div>
-                  <div className="mt-1 text-xs text-wangari-subtle">{t.user?.name || t.user?.email || "unknown"} · {t.messageCount} msg · {new Date(t.updatedAt).toLocaleDateString()}</div>
+                  <div className="mt-1 text-xs text-wangari-subtle">
+                    {t.user?.name || t.user?.email || "unknown"} · {t.messageCount} messages · {new Date(t.updatedAt).toLocaleDateString()}
+                  </div>
                 </button>
               ))}
             </div>
@@ -108,26 +121,38 @@ export default function AdminTicketsPage() {
         {/* Thread */}
         <div className="lg:col-span-3">
           {!selected ? (
-            <div className="rounded-xl border border-wangari-border bg-white px-4 py-12 text-center text-sm text-wangari-subtle">Select a ticket to view the conversation.</div>
+            <Panel className="h-full">
+              <EmptyState title="Select a ticket" hint="Pick a conversation on the left to view and reply." icon={<MessageSquare className="h-5 w-5" />} />
+            </Panel>
           ) : (
-            <div className="space-y-4 rounded-xl border border-wangari-border bg-white p-5">
-              <div>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-wangari-heading">{selected.subject}</h2>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_STYLE[selected.status] || ""}`}>{selected.status}</span>
+            <Panel>
+              <div className="flex items-start justify-between gap-3 border-b border-wangari-border pb-4">
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-bold text-wangari-heading">{selected.subject}</h2>
+                  <div className="mt-0.5 text-xs text-wangari-subtle">
+                    {selected.user?.name} · {selected.user?.email} · #{selected.id}
+                  </div>
                 </div>
-                <div className="text-xs text-wangari-subtle">{selected.user?.name} · {selected.user?.email} · #{selected.id}</div>
+                <Badge variant={STATUS_VARIANT[selected.status] || "outline"}>{selected.status}</Badge>
               </div>
 
-              <div className="max-h-96 space-y-3 overflow-y-auto">
-                {selected.messages.map((m) => (
-                  <div key={m.id} className={`rounded-xl px-4 py-3 text-sm ${m.authorType === "admin" ? "ml-8 bg-emerald-50 text-wangari-heading" : "mr-8 bg-wangari-cream text-wangari-heading"}`}>
-                    <div className="mb-1 text-[11px] text-wangari-subtle">
-                      {m.authorType === "admin" ? "Support" : selected.user?.name || "Customer"} · {new Date(m.createdAt).toLocaleString()}
+              <div className="max-h-[420px] space-y-3 overflow-y-auto py-4">
+                {selected.messages.map((m) => {
+                  const isAdmin = m.authorType === "admin";
+                  return (
+                    <div key={m.id} className={`flex gap-2.5 ${isAdmin ? "flex-row-reverse" : ""}`}>
+                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isAdmin ? "bg-wangari-green-100 text-wangari-green-800" : "bg-wangari-cream text-wangari-muted"}`}>
+                        {isAdmin ? <Headset className="h-3.5 w-3.5" /> : <UserRound className="h-3.5 w-3.5" />}
+                      </div>
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm text-wangari-heading ${isAdmin ? "bg-wangari-green-50" : "bg-wangari-cream"}`}>
+                        <div className="mb-1 text-[11px] font-medium text-wangari-subtle">
+                          {isAdmin ? "Support" : selected.user?.name || "Customer"} · {new Date(m.createdAt).toLocaleString()}
+                        </div>
+                        {m.body}
+                      </div>
                     </div>
-                    {m.body}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <form onSubmit={sendReply} className="space-y-3 border-t border-wangari-border pt-4">
@@ -136,21 +161,28 @@ export default function AdminTicketsPage() {
                   rows={3}
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
-                  placeholder="Write a reply…"
-                  className="w-full rounded-xl border border-wangari-border bg-white px-4 py-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none"
+                  placeholder="Write a reply… (an email notification is sent to the customer)"
+                  className="w-full rounded-xl border border-wangari-border bg-white px-4 py-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
                 />
-                <div className="flex items-center justify-between">
-                  <select value={nextStatus} onChange={(e) => setNextStatus(e.target.value)}
-                    className="h-9 rounded-lg border border-wangari-border bg-wangari-cream px-2 text-xs text-wangari-heading focus:border-emerald-500 focus:outline-none">
-                    {["pending", "solved", "closed", "open"].map((s) => <option key={s} value={s}>mark as {s}</option>)}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <select
+                    value={nextStatus}
+                    onChange={(e) => setNextStatus(e.target.value)}
+                    className="h-9 rounded-lg border border-wangari-border bg-white px-2 text-xs font-medium text-wangari-heading focus:border-wangari-green-500 focus:outline-none"
+                  >
+                    {["pending", "solved", "closed", "open"].map((s) => (
+                      <option key={s} value={s}>mark as {s}</option>
+                    ))}
                   </select>
-                  <button type="submit" disabled={busy || !reply.trim()}
-                    className="rounded-lg bg-wangari-green-800 px-4 py-2 text-sm font-semibold text-wangari-heading shadow-md hover:bg-wangari-green-900 disabled:opacity-60">
-                    {busy ? "Sending…" : "Send reply"}
-                  </button>
+                  <div className="flex gap-2">
+                    <GhostButton onClick={() => { setReply(""); setSelected(null); }}>Close</GhostButton>
+                    <PrimaryButton type="submit" disabled={busy || !reply.trim()}>
+                      <Send className="h-3.5 w-3.5" /> {busy ? "Sending…" : "Send reply"}
+                    </PrimaryButton>
+                  </div>
                 </div>
               </form>
-            </div>
+            </Panel>
           )}
         </div>
       </div>

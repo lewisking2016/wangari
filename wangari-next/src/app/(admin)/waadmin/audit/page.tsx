@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, TableShell, Th, Td, FilterPill, Loading, ErrorState, EmptyState, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface AuditRow {
   id: number;
@@ -15,10 +20,13 @@ interface AuditRow {
   user: { name: string; email: string } | null;
 }
 
+const FILTERS = ["all", "admin", "money"];
+
 export default function AdminAuditPage() {
   const [rows, setRows] = React.useState<AuditRow[] | null>(null);
   const [total, setTotal] = React.useState(0);
   const [page, setPage] = React.useState(1);
+  const [filter, setFilter] = React.useState("all");
   const [error, setError] = React.useState("");
   const pageSize = 30;
 
@@ -28,58 +36,96 @@ export default function AdminAuditPage() {
       .catch((e) => setError(e.message));
   }, [page]);
 
+  const visible = React.useMemo(() => {
+    if (!rows) return [];
+    if (filter === "admin") return rows.filter((r) => r.action.startsWith("admin."));
+    if (filter === "money") return rows.filter((r) => /transaction|payment|subscription|billing|extend|comp|promo/.test(r.action));
+    return rows;
+  }, [rows, filter]);
+
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Audit Log</h1>
-        <p className="mt-1 text-sm text-wangari-muted">Immutable trail of admin actions and money-path mutations. Append-only.</p>
-      </div>
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading audit trail…</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-wangari-border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
+      <PageHeader
+        icon={<ShieldCheck className="h-5 w-5" />}
+        title="Audit Log"
+        description="Immutable trail of admin actions and money-path mutations. Append-only."
+      />
+
+      {error && <ErrorState message={error} />}
+
+      <Panel bodyClassName="p-0">
+        <div className="border-b border-wangari-border px-5 py-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {FILTERS.map((f) => (
+              <FilterPill key={f} active={filter === f} onClick={() => setFilter(f)}>{f}</FilterPill>
+            ))}
+            <span className="ml-auto text-xs text-wangari-muted">{total} entries</span>
+          </div>
+        </div>
+
+        {!rows ? (
+          <Loading label="Loading audit trail…" />
+        ) : visible.length === 0 ? (
+          <EmptyState title="Nothing here" hint="No entries match this filter on this page." icon={<ShieldCheck className="h-5 w-5" />} />
+        ) : (
+          <TableShell minWidth={760}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">When</th>
-                <th className="px-4 py-3">Actor</th>
-                <th className="px-4 py-3">Action</th>
-                <th className="px-4 py-3">Entity</th>
-                <th className="px-4 py-3">Details</th>
+                <Th>When</Th>
+                <Th>Actor</Th>
+                <Th>Action</Th>
+                <Th>Entity</Th>
+                <Th>Details</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-wangari-border bg-white">
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-wangari-muted">{new Date(r.createdAt).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-xs text-wangari-text">
-                    {r.details?._actor ? <span className="text-emerald-700">{String(r.details._actor)}</span> : r.user ? `${r.user.name}` : `user #${r.userId ?? "?"}`}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-wangari-heading">{r.action}</td>
-                  <td className="px-4 py-3 text-xs text-wangari-muted">
-                    {r.entityType ? `${r.entityType}${r.details?._entityIdStr != null ? `#${r.details._entityIdStr}` : r.entityId != null ? `#${r.entityId}` : ""}` : "—"}
-                  </td>
-                  <td className="max-w-xs truncate px-4 py-3 font-mono text-[11px] text-wangari-subtle" title={JSON.stringify(r.details)}>
-                    {r.details ? JSON.stringify(r.details) : "—"}
-                  </td>
+            <tbody>
+              {visible.map((r) => (
+                <tr key={r.id} className="transition-colors hover:bg-wangari-green-50/40">
+                  <Td className="whitespace-nowrap text-xs text-wangari-muted">{new Date(r.createdAt).toLocaleString()}</Td>
+                  <Td className="text-xs">
+                    {r.details?._actor ? (
+                      <Badge variant="default">{String(r.details._actor)}</Badge>
+                    ) : r.user ? (
+                      <span className="text-wangari-text">{r.user.name}</span>
+                    ) : (
+                      <span className="text-wangari-subtle">user #{r.userId ?? "?"}</span>
+                    )}
+                  </Td>
+                  <Td>
+                    <code className="rounded bg-wangari-cream px-1.5 py-0.5 font-mono text-[11px] font-medium text-wangari-heading">{r.action}</code>
+                  </Td>
+                  <Td className="text-xs text-wangari-muted">
+                    {r.entityType
+                      ? `${r.entityType}${r.details?._entityIdStr != null ? `#${r.details._entityIdStr}` : r.entityId != null ? `#${r.entityId}` : ""}`
+                      : "—"}
+                  </Td>
+                  <Td className="max-w-[260px]">
+                    <div className="truncate font-mono text-[11px] text-wangari-subtle" title={JSON.stringify(r.details)}>
+                      {r.details ? JSON.stringify(r.details) : "—"}
+                    </div>
+                  </Td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      )}
-      {pages > 1 && (
-        <div className="flex items-center justify-between text-sm text-wangari-muted">
-          <span>Page {page} of {pages} · {total} entries</span>
-          <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">← Prev</button>
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">Next →</button>
+          </TableShell>
+        )}
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between border-t border-wangari-border px-5 py-3 text-sm text-wangari-muted">
+            <span>Page {page} of {pages} · {total} entries</span>
+            <div className="flex gap-2">
+              <GhostButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="h-8 px-2.5 text-xs">
+                <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              </GhostButton>
+              <GhostButton onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="h-8 px-2.5 text-xs">
+                Next <ChevronRight className="h-3.5 w-3.5" />
+              </GhostButton>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Panel>
     </div>
   );
 }

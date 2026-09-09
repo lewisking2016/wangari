@@ -3,6 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard, Building2, Users, CreditCard, Tags, Ticket, TicketPercent,
+  Megaphone, Handshake, Mail, ShieldCheck, Activity, Lock, ChevronDown, LogOut, X, Menu,
+} from "lucide-react";
 import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from "@/lib/admin-client";
 
 /**
@@ -14,25 +18,25 @@ import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from 
 
 const NAV = [
   { section: "Platform", items: [
-    { href: "/waadmin", label: "Overview", icon: "📊", end: true },
-    { href: "/waadmin/farms", label: "Farms", icon: "🏡" },
-    { href: "/waadmin/users", label: "Users", icon: "👥" },
-    { href: "/waadmin/billing", label: "Billing", icon: "💳" },
-    { href: "/waadmin/plans", label: "Plans & Pricing", icon: "🏷️" },
+    { href: "/waadmin", label: "Overview", icon: LayoutDashboard, end: true },
+    { href: "/waadmin/farms", label: "Farms", icon: Building2 },
+    { href: "/waadmin/users", label: "Users", icon: Users },
+    { href: "/waadmin/billing", label: "Billing", icon: CreditCard },
+    { href: "/waadmin/plans", label: "Plans & Pricing", icon: Tags },
   ]},
   { section: "Growth", items: [
-    { href: "/waadmin/promos", label: "Promo Codes", icon: "🎟️" },
-    { href: "/waadmin/crm", label: "CRM Pipeline", icon: "🤝" },
-    { href: "/waadmin/announcements", label: "Announcements", icon: "📢" },
+    { href: "/waadmin/promos", label: "Promo Codes", icon: TicketPercent },
+    { href: "/waadmin/crm", label: "CRM Pipeline", icon: Handshake },
+    { href: "/waadmin/announcements", label: "Announcements", icon: Megaphone },
   ]},
   { section: "Support", items: [
-    { href: "/waadmin/tickets", label: "Tickets", icon: "🎫" },
-    { href: "/waadmin/emails", label: "Email Ops", icon: "📧" },
-    { href: "/waadmin/audit", label: "Audit Log", icon: "🛡️" },
-    { href: "/waadmin/system", label: "System Health", icon: "🖥️" },
+    { href: "/waadmin/tickets", label: "Tickets", icon: Ticket },
+    { href: "/waadmin/emails", label: "Email Ops", icon: Mail },
+    { href: "/waadmin/audit", label: "Audit Log", icon: ShieldCheck },
+    { href: "/waadmin/system", label: "System Health", icon: Activity },
   ]},
   { section: "Account", items: [
-    { href: "/waadmin/security", label: "Security & MFA", icon: "🔐" },
+    { href: "/waadmin/security", label: "Security & MFA", icon: Lock },
   ]},
 ];
 
@@ -41,6 +45,8 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const [ready, setReady] = React.useState(false);
   const [admin, setAdmin] = React.useState<AdminSession | null>(null);
+  const [menuOpen, setMenuOpen] = React.useState(false); // user dropdown
+  const [drawerOpen, setDrawerOpen] = React.useState(false); // mobile nav
 
   const isLoginPage = pathname === "/waadmin/login";
 
@@ -56,12 +62,21 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
     setReady(true);
   }, [router, isLoginPage]);
 
+  // Close overlays on navigation.
+  React.useEffect(() => {
+    setMenuOpen(false);
+    setDrawerOpen(false);
+  }, [pathname]);
+
   if (isLoginPage) return <>{children}</>;
 
   if (!ready || !admin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-wangari-cream">
-        <div className="animate-pulse text-sm text-wangari-muted">Checking admin session…</div>
+        <div className="flex items-center gap-2 text-sm text-wangari-muted">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-wangari-green-200 border-t-wangari-green-600" />
+          Checking admin session…
+        </div>
       </div>
     );
   }
@@ -69,67 +84,134 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
   const isActive = (href: string, end?: boolean) =>
     end ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
+  const signOut = () => {
+    clearAdminSession();
+    router.replace("/waadmin/login");
+  };
+
+  const navContent = (
+    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
+      {NAV.map((group) => (
+        <div key={group.section}>
+          <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-widest text-wangari-subtle">{group.section}</div>
+          <div className="space-y-1">
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href, item.end);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-wangari-green-800 text-white shadow-sm"
+                      : "text-wangari-text hover:bg-wangari-green-50 hover:text-wangari-green-800"
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 shrink-0 ${active ? "text-wangari-green-200" : "text-wangari-muted"}`} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+
   return (
     <div className="flex min-h-screen bg-wangari-cream text-wangari-text">
-      {/* Sidebar — same structure as the farm app's */}
+      {/* Sidebar — desktop */}
       <aside className="hidden w-[260px] shrink-0 flex-col border-r border-wangari-border bg-white md:sticky md:top-0 md:flex md:h-screen">
         <div className="flex items-center gap-2.5 px-5 py-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-50 text-lg">🛡️</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-800">
+            <ShieldCheck className="h-5 w-5 text-white" />
+          </div>
           <div>
             <div className="text-sm font-bold tracking-tight text-wangari-heading">Wangari Admin</div>
             <div className="text-[11px] uppercase tracking-widest text-wangari-muted">Mission Control</div>
           </div>
         </div>
-        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
-          {NAV.map((group) => (
-            <div key={group.section}>
-              <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-widest text-wangari-subtle">{group.section}</div>
-              <div className="space-y-1">
-                {group.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive(item.href, item.end)
-                        ? "bg-wangari-green-800 text-white shadow-md"
-                        : "text-wangari-text hover:bg-wangari-green-50 hover:text-wangari-green-800"
-                    }`}
-                  >
-                    <span className="text-base leading-none">{item.icon}</span>
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
+        {navContent}
         <div className="border-t border-wangari-border px-4 py-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-wangari-heading">{admin.name}</div>
-              <div className="truncate text-[11px] font-medium capitalize text-wangari-green-700">{admin.role.replace("_", " ")}</div>
-            </div>
+          <div className="relative">
             <button
-              onClick={() => { clearAdminSession(); router.replace("/waadmin/login"); }}
-              className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-wangari-muted hover:bg-wangari-green-50 hover:text-wangari-green-800"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-2 hover:bg-wangari-cream"
             >
-              Sign out
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wangari-green-100 text-xs font-bold text-wangari-green-800">
+                  {admin.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 text-left">
+                  <div className="truncate text-sm font-semibold text-wangari-heading">{admin.name}</div>
+                  <div className="truncate text-[11px] font-medium capitalize text-wangari-green-700">{admin.role.replace("_", " ")}</div>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 shrink-0 text-wangari-muted" />
             </button>
+            {menuOpen && (
+              <div className="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-xl border border-wangari-border bg-white shadow-lg">
+                <Link
+                  href="/waadmin/security"
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm text-wangari-text hover:bg-wangari-green-50"
+                >
+                  <Lock className="h-4 w-4 text-wangari-muted" /> Security & MFA
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="flex w-full items-center gap-2 border-t border-wangari-border px-3 py-2.5 text-sm text-badge-red-text hover:bg-badge-red-bg"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
 
+      {/* Sidebar — mobile drawer */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setDrawerOpen(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute left-0 top-0 flex h-full w-[280px] flex-col bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-wangari-green-800">
+                  <ShieldCheck className="h-4.5 w-4.5 text-white" />
+                </div>
+                <div className="text-sm font-bold text-wangari-heading">Wangari Admin</div>
+              </div>
+              <button onClick={() => setDrawerOpen(false)} className="rounded-lg p-1.5 text-wangari-muted hover:bg-wangari-cream">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            {navContent}
+            <div className="border-t border-wangari-border p-4">
+              <button
+                onClick={signOut}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-badge-red-text hover:bg-badge-red-bg"
+              >
+                <LogOut className="h-4 w-4" /> Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile topbar */}
-        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-wangari-border bg-white/80 px-4 py-3 backdrop-blur-xl md:hidden">
-          <div className="text-sm font-bold text-wangari-heading">Wangari Admin</div>
-          <button
-            onClick={() => { clearAdminSession(); router.replace("/waadmin/login"); }}
-            className="text-xs font-medium text-wangari-muted hover:text-wangari-green-800"
-          >
-            Sign out
-          </button>
+        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-wangari-border bg-white/85 px-4 py-3 backdrop-blur-xl md:hidden">
+          <div className="flex items-center gap-2.5">
+            <button onClick={() => setDrawerOpen(true)} className="rounded-lg p-1.5 text-wangari-text hover:bg-wangari-cream">
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="text-sm font-bold text-wangari-heading">Wangari Admin</div>
+          </div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-wangari-green-100 text-xs font-bold text-wangari-green-800">
+            {admin.name.slice(0, 2).toUpperCase()}
+          </div>
         </div>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>

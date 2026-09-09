@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { Mail, Send, RotateCcw, PenLine } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, TableShell, Th, Td, FilterPill, Field, inputClass, Loading, ErrorState,
+  Flash, EmptyState, PrimaryButton, GhostButton, Modal,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface EmailRow {
   id: number;
@@ -14,10 +20,10 @@ interface EmailRow {
   createdAt: string;
 }
 
-const STATUS_STYLE: Record<string, string> = {
-  sent: "bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200",
-  failed: "bg-badge-red-bg text-badge-red-text",
-  queued: "bg-badge-yellow-bg text-badge-yellow-text",
+const STATUS_VARIANT: Record<string, "success" | "danger" | "warning"> = {
+  sent: "success",
+  failed: "danger",
+  queued: "warning",
 };
 
 export default function AdminEmailsPage() {
@@ -65,86 +71,104 @@ export default function AdminEmailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Email Ops</h1>
-          <p className="mt-1 text-sm text-wangari-muted">Every transactional send is logged here — receipts, ticket replies, one-offs.</p>
-        </div>
-        <button onClick={() => setCompose(!compose)} className="rounded-lg bg-wangari-green-800 px-4 py-2 text-sm font-semibold text-wangari-heading hover:bg-wangari-green-900">
-          {compose ? "Close" : "Compose"}
-        </button>
-      </div>
+      <PageHeader
+        icon={<Mail className="h-5 w-5" />}
+        title="Email Ops"
+        description="Every transactional send is logged here — receipts, ticket replies, one-offs."
+        actions={
+          <PrimaryButton onClick={() => setCompose(true)}>
+            <PenLine className="h-4 w-4" /> Compose
+          </PrimaryButton>
+        }
+      />
 
       {allFailed && (
         <div className="rounded-xl border border-amber-200 bg-badge-yellow-bg px-4 py-3 text-sm font-medium text-badge-yellow-text">
-          Every send is failing with "RESEND_API_KEY not configured" — add <code className="rounded bg-black/30 px-1">RESEND_API_KEY</code> to the server .env (free account at resend.com, verify your domain) and restart the API. Nothing is lost: failed sends stay in this log and can be re-sent.
+          Every send is failing with &quot;not configured&quot; — add <code className="rounded bg-black/10 px-1">SMTP_HOST / RESEND_API_KEY</code> to the server .env and restart the API. Nothing is lost: failed sends stay in this log and can be re-sent.
         </div>
       )}
-      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
+      {flash && <Flash message={flash} />}
+      {error && <ErrorState message={error} />}
 
-      {compose && (
-        <form onSubmit={sendOne} className="space-y-3 rounded-xl border border-wangari-border bg-white p-5">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input required type="email" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} placeholder="To (email)"
-              className="h-10 rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-            <input required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="Subject"
-              className="h-10 rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
+      <Panel bodyClassName="p-0">
+        <div className="border-b border-wangari-border px-5 py-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {["all", "sent", "failed"].map((s) => (
+              <FilterPill key={s} active={status === s} onClick={() => setStatus(s)}>
+                {s}{s === "failed" && failed > 0 ? ` (${failed})` : ""}
+              </FilterPill>
+            ))}
           </div>
-          <textarea required rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Message"
-            className="w-full rounded-xl border border-wangari-border bg-white px-4 py-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-          <button type="submit" className="rounded-lg bg-wangari-green-800 px-4 py-2 text-sm font-semibold text-wangari-heading hover:bg-wangari-green-900">Send</button>
-        </form>
-      )}
+        </div>
 
-      <div className="flex gap-2">
-        {["all", "sent", "failed"].map((s) => (
-          <button key={s} onClick={() => setStatus(s)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium ${status === s ? "bg-wangari-green-100 text-wangari-green-800" : "text-wangari-muted hover:bg-wangari-cream"}`}>
-            {s}{s === "failed" && failed > 0 ? ` (${failed})` : ""}
-          </button>
-        ))}
-      </div>
-
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading email log…</div>
-      ) : rows.length === 0 ? (
-        <div className="rounded-xl border border-wangari-border bg-white px-4 py-8 text-center text-sm text-wangari-subtle">No emails yet — receipts and ticket replies will appear here.</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-wangari-border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
+        {!rows ? (
+          <Loading label="Loading email log…" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No emails yet" hint="Receipts, ticket replies, and one-offs will appear here." icon={<Mail className="h-5 w-5" />} />
+        ) : (
+          <TableShell minWidth={760}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">When</th>
-                <th className="px-4 py-3">To</th>
-                <th className="px-4 py-3">Subject</th>
-                <th className="px-4 py-3">Template</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <Th>When</Th>
+                <Th>To</Th>
+                <Th>Subject</Th>
+                <Th>Template</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-wangari-border bg-white">
+            <tbody>
               {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-wangari-muted">{new Date(r.createdAt).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-wangari-heading">{r.to}</td>
-                  <td className="max-w-xs truncate px-4 py-3 text-wangari-text" title={r.subject}>{r.subject}</td>
-                  <td className="px-4 py-3 text-xs text-wangari-subtle">{r.template || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLE[r.status] || ""}`}>{r.status}</span>
-                    {r.error && <div className="mt-0.5 max-w-[200px] truncate text-[10px] text-red-500" title={r.error}>{r.error}</div>}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {r.status === "failed" && (
-                      <button onClick={() => resend(r.id)} className="rounded-lg px-2.5 py-1 text-xs text-badge-yellow-text hover:bg-badge-yellow-bg">Resend</button>
+                <tr key={r.id} className="transition-colors hover:bg-wangari-green-50/40">
+                  <Td className="whitespace-nowrap text-xs text-wangari-muted">{new Date(r.createdAt).toLocaleString()}</Td>
+                  <Td className="font-medium text-wangari-heading">{r.to}</Td>
+                  <Td className="max-w-[240px]"><div className="truncate" title={r.subject}>{r.subject}</div></Td>
+                  <Td className="text-xs text-wangari-subtle">{r.template || "—"}</Td>
+                  <Td>
+                    <Badge variant={STATUS_VARIANT[r.status] || "outline"}>{r.status}</Badge>
+                    {r.error && (
+                      <div className="mt-1 max-w-[200px] truncate text-[10px] text-badge-red-text" title={r.error}>{r.error}</div>
                     )}
-                  </td>
+                  </Td>
+                  <Td className="text-right">
+                    {r.status === "failed" && (
+                      <GhostButton onClick={() => resend(r.id)} className="h-7 px-2 text-xs">
+                        <RotateCcw className="h-3 w-3" /> Resend
+                      </GhostButton>
+                    )}
+                  </Td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      )}
+          </TableShell>
+        )}
+      </Panel>
+
+      <Modal title="Compose email" onClose={() => setCompose(false)} width="max-w-lg">
+        <form onSubmit={sendOne} className="space-y-3">
+          <Field label="To">
+            <input required type="email" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} className={inputClass} />
+          </Field>
+          <Field label="Subject">
+            <input required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className={inputClass} />
+          </Field>
+          <Field label="Message">
+            <textarea
+              required
+              rows={5}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+              className="w-full rounded-lg border border-wangari-border bg-white px-3 py-2 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            <GhostButton onClick={() => setCompose(false)}>Cancel</GhostButton>
+            <PrimaryButton type="submit">
+              <Send className="h-3.5 w-3.5" /> Send
+            </PrimaryButton>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

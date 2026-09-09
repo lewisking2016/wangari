@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { Megaphone, Send, Undo2 } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, Field, inputClass, Loading, ErrorState, Flash, EmptyState,
+  PrimaryButton, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface Announcement {
   id: number;
@@ -53,58 +59,74 @@ export default function AdminAnnouncementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Announcements</h1>
-        <p className="mt-1 text-sm text-wangari-muted">One active banner at a time, shown inside the farm dashboard.</p>
-      </div>
+      <PageHeader
+        icon={<Megaphone className="h-5 w-5" />}
+        title="Announcements"
+        description="One active banner at a time, shown inside the farm dashboard."
+      />
 
-      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
+      {flash && <Flash message={flash} />}
+      {error && <ErrorState message={error} />}
 
-      <form onSubmit={publish} className="space-y-3 rounded-xl border border-wangari-border bg-white p-5">
-        <div>
-          <label className="mb-1 block text-[11px] text-wangari-muted">Banner message *</label>
-          <textarea required rows={2} value={message} onChange={(e) => setMessage(e.target.value)}
-            placeholder="e.g. New: daily egg production reports — try it from your dashboard!"
-            className="w-full rounded-xl border border-wangari-border bg-white px-4 py-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="flex-1">
-            <label className="mb-1 block text-[11px] text-wangari-muted">Optional link</label>
-            <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/whatsapp"
-              className="h-10 w-full rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none" />
+      <Panel title="Publish a banner" description="Appears at the top of every farm-dashboard page until taken down or replaced.">
+        <form onSubmit={publish} className="space-y-4">
+          <Field label="Banner message">
+            <textarea
+              required
+              rows={2}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="e.g. New: daily egg production reports — try it from your dashboard!"
+              className="w-full rounded-lg border border-wangari-border bg-white px-3 py-2 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
+            />
+          </Field>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex-1">
+              <Field label="Optional link" hint="Path like /subscription or a full URL">
+                <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/whatsapp" className={inputClass} />
+              </Field>
+            </div>
+            <div className="flex items-end">
+              <PrimaryButton type="submit" disabled={busy}>
+                <Send className="h-3.5 w-3.5" /> {busy ? "Publishing…" : "Publish"}
+              </PrimaryButton>
+            </div>
           </div>
-          <div className="flex items-end">
-            <button type="submit" disabled={busy} className="h-10 rounded-lg bg-wangari-green-800 px-6 text-sm font-semibold text-wangari-heading hover:bg-wangari-green-900 disabled:opacity-60">
-              {busy ? "Publishing…" : "Publish"}
-            </button>
-          </div>
-        </div>
-      </form>
+        </form>
+      </Panel>
 
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading…</div>
-      ) : rows.length === 0 ? (
-        <div className="rounded-xl border border-wangari-border bg-white px-4 py-8 text-center text-sm text-wangari-subtle">No announcements yet.</div>
-      ) : (
-        <div className="space-y-2">
-          {rows.map((a) => (
-            <div key={a.id} className={`flex items-center justify-between gap-4 rounded-xl border p-4 ${a.active ? "border-emerald-300 bg-emerald-50" : "border-wangari-border bg-white"}`}>
-              <div className="min-w-0">
-                <div className="truncate text-sm text-wangari-heading">{a.message}</div>
-                <div className="text-[11px] text-wangari-subtle">
-                  {new Date(a.createdAt).toLocaleString()}{a.link ? ` · links to ${a.link}` : ""}
+      <Panel title="History" bodyClassName="p-0">
+        {!rows ? (
+          <Loading label="Loading announcements…" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No announcements yet" hint="Publish the first banner above." icon={<Megaphone className="h-5 w-5" />} />
+        ) : (
+          <div className="divide-y divide-wangari-border">
+            {rows.map((a) => (
+              <div key={a.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
+                <div className="min-w-0">
+                  <div className="truncate text-sm text-wangari-heading">{a.message}</div>
+                  <div className="text-[11px] text-wangari-subtle">
+                    {new Date(a.createdAt).toLocaleString()}{a.link ? ` · links to ${a.link}` : ""}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {a.active ? (
+                    <>
+                      <Badge variant="success">live</Badge>
+                      <GhostButton onClick={() => deactivate(a.id)} className="h-7 px-2 text-xs">
+                        <Undo2 className="h-3 w-3" /> Take down
+                      </GhostButton>
+                    </>
+                  ) : (
+                    <Badge variant="outline">retired</Badge>
+                  )}
                 </div>
               </div>
-              {a.active && (
-                <button onClick={() => deactivate(a.id)} className="shrink-0 rounded-lg px-2.5 py-1 text-xs text-badge-yellow-text hover:bg-badge-yellow-bg">
-                  Take down
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

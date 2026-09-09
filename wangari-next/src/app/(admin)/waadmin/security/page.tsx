@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Lock } from "lucide-react";
 
 /**
  * Admin security settings — TOTP MFA enrollment & management (Phase 4).
@@ -121,7 +122,7 @@ export default function AdminSecurityPage() {
                 : "Add a second factor to admin sign-in. Works with Google Authenticator, Authy, 1Password, or any TOTP app."}
             </p>
           </div>
-          <div className="text-3xl">{enabled ? "🔐" : "🔓"}</div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-wangari-green-50 text-wangari-green-700"><Lock className="h-5 w-5" /></div>
         </div>
 
         {!enabled && !setup && (

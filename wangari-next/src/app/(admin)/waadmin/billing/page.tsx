@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { CreditCard, Search, ChevronLeft, ChevronRight, Ban } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, TableShell, Th, Td, Toolbar, SearchInput, FilterPill, Loading, ErrorState,
+  Flash, EmptyState, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface SubRow {
   id: number;
@@ -15,6 +21,8 @@ interface SubRow {
   expiresAt: string;
   user: { id: number; name: string; email: string } | null;
 }
+
+const STATUSES = ["all", "active", "cancelled", "expired"];
 
 export default function AdminBillingPage() {
   const [rows, setRows] = React.useState<SubRow[] | null>(null);
@@ -55,94 +63,102 @@ export default function AdminBillingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Billing & Payments</h1>
-        <p className="mt-1 text-sm text-wangari-muted">All subscriptions across the platform with Paystack references.</p>
-      </div>
+      <PageHeader
+        icon={<CreditCard className="h-5 w-5" />}
+        title="Billing & Payments"
+        description="All subscriptions across the platform with Paystack references."
+      />
 
-      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
+      {flash && <Flash message={flash} />}
+      {error && <ErrorState message={error} />}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          value={q}
-          onChange={(e) => { setQ(e.target.value); setPage(1); }}
-          placeholder="Search farm owner name or email…"
-          className="h-10 w-72 rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none"
-        />
-        <select
-          value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-          className="h-10 rounded-lg border border-wangari-border bg-wangari-cream px-3 text-sm text-wangari-heading focus:border-emerald-500 focus:outline-none"
-        >
-          {["all", "active", "cancelled", "expired"].map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
+      <Panel bodyClassName="p-0">
+        <div className="border-b border-wangari-border px-5 py-3">
+          <Toolbar>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-wangari-subtle" />
+              <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search owner name or email…" className="pl-8" />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {STATUSES.map((s) => (
+                <FilterPill key={s} active={status === s} onClick={() => { setStatus(s); setPage(1); }}>
+                  {s}
+                </FilterPill>
+              ))}
+            </div>
+            <span className="ml-auto text-xs text-wangari-muted">{total} total</span>
+          </Toolbar>
+        </div>
 
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading subscriptions…</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-wangari-border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
+        {!rows ? (
+          <Loading label="Loading subscriptions…" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No subscriptions match" hint="Adjust the search or status filter." icon={<CreditCard className="h-5 w-5" />} />
+        ) : (
+          <TableShell minWidth={860}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Reference</th>
-                <th className="px-4 py-3">Period</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <Th>Customer</Th>
+                <Th>Plan</Th>
+                <Th>Amount</Th>
+                <Th>Reference</Th>
+                <Th>Period</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-wangari-border bg-white">
+            <tbody>
               {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-3">
-                    <div className="text-wangari-heading">{r.user?.name || `User #${r.userId}`}</div>
+                <tr key={r.id} className="transition-colors hover:bg-wangari-green-50/40">
+                  <Td>
+                    <div className="font-medium text-wangari-heading">{r.user?.name || `User #${r.userId}`}</div>
                     <div className="text-xs text-wangari-subtle">{r.user?.email}</div>
-                  </td>
-                  <td className="px-4 py-3 text-wangari-text">{r.planName}</td>
-                  <td className="px-4 py-3 font-medium text-wangari-heading">KES {Number(r.amount).toLocaleString()}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-wangari-subtle">{r.reference || "—"}</td>
-                  <td className="px-4 py-3 text-xs text-wangari-muted">
+                  </Td>
+                  <Td>{r.planName}</Td>
+                  <Td className="font-semibold text-wangari-heading">KES {Number(r.amount).toLocaleString()}</Td>
+                  <Td className="font-mono text-xs text-wangari-subtle">{r.reference || "—"}</Td>
+                  <Td className="whitespace-nowrap text-xs text-wangari-muted">
                     {new Date(r.startsAt).toLocaleDateString()} → {new Date(r.expiresAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      r.status === "active" ? "bg-wangari-green-50 text-wangari-green-800 border border-wangari-green-200" : "bg-wangari-cream text-wangari-muted"
-                    }`}>
-                      {r.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {r.status === "active" && (
-                      <button onClick={() => cancel(r.id)} className="rounded-lg px-2.5 py-1 text-xs text-badge-red-text hover:bg-badge-red-bg">
-                        Cancel
-                      </button>
+                  </Td>
+                  <Td>
+                    {r.status === "active" ? (
+                      <Badge variant="success">active</Badge>
+                    ) : r.status === "cancelled" ? (
+                      <Badge variant="danger">cancelled</Badge>
+                    ) : (
+                      <Badge variant="outline">{r.status}</Badge>
                     )}
-                  </td>
+                  </Td>
+                  <Td className="text-right">
+                    {r.status === "active" && (
+                      <GhostButton
+                        onClick={() => cancel(r.id)}
+                        className="h-7 px-2 text-xs text-badge-red-text hover:bg-badge-red-bg hover:text-badge-red-text"
+                      >
+                        <Ban className="h-3 w-3" /> Cancel
+                      </GhostButton>
+                    )}
+                  </Td>
                 </tr>
               ))}
-              {rows.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-wangari-subtle">No subscriptions match.</td></tr>
-              )}
             </tbody>
-          </table>
-        </div>
-      )}
+          </TableShell>
+        )}
 
-      {pages > 1 && (
-        <div className="flex items-center justify-between text-sm text-wangari-muted">
-          <span>Page {page} of {pages} · {total} total</span>
-          <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">← Prev</button>
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">Next →</button>
+        {pages > 1 && (
+          <div className="flex items-center justify-between border-t border-wangari-border px-5 py-3 text-sm text-wangari-muted">
+            <span>Page {page} of {pages} · {total} total</span>
+            <div className="flex gap-2">
+              <GhostButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="h-8 px-2.5 text-xs">
+                <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              </GhostButton>
+              <GhostButton onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="h-8 px-2.5 text-xs">
+                Next <ChevronRight className="h-3.5 w-3.5" />
+              </GhostButton>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Panel>
     </div>
   );
 }

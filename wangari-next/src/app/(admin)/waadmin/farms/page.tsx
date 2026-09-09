@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { Building2, Search, ChevronLeft, ChevronRight, CalendarPlus } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
+import {
+  PageHeader, Panel, TableShell, Th, Td, Toolbar, SearchInput, Loading, ErrorState, Flash,
+  EmptyState, Modal, Field, inputClass, PrimaryButton, GhostButton,
+} from "@/components/admin/ui";
+import { Badge } from "@/components/ui/badge";
 
 interface FarmRow {
   id: number;
@@ -23,6 +29,9 @@ export default function AdminFarmsPage() {
   const [q, setQ] = React.useState("");
   const [error, setError] = React.useState("");
   const [flash, setFlash] = React.useState("");
+  const [extending, setExtending] = React.useState<FarmRow | null>(null);
+  const [days, setDays] = React.useState("30");
+  const [busy, setBusy] = React.useState(false);
   const pageSize = 20;
 
   const load = React.useCallback(async () => {
@@ -38,16 +47,20 @@ export default function AdminFarmsPage() {
   }, [q, page]);
   React.useEffect(() => { load(); }, [load]);
 
-  async function extend(farm: FarmRow) {
-    const days = prompt(`Extend "${farm.name}" subscription by how many days?`);
-    if (!days) return;
+  async function doExtend() {
+    if (!extending) return;
+    setBusy(true);
+    setError("");
     try {
-      await adminApi.post(`/farms/${farm.id}/extend`, { days: Number(days) });
-      setFlash(`"${farm.name}" extended by ${days} days.`);
+      await adminApi.post(`/farms/${extending.id}/extend`, { days: Number(days) });
+      setFlash(`"${extending.name}" subscription extended by ${days} days.`);
       setTimeout(() => setFlash(""), 4000);
+      setExtending(null);
       load();
     } catch (e: any) {
       setError(e.message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -55,79 +68,109 @@ export default function AdminFarmsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-wangari-heading">Farms</h1>
-        <p className="mt-1 text-sm text-wangari-muted">All tenant farms with owner, plan state, and workforce size.</p>
-      </div>
-
-      {flash && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash}</div>}
-      {error && <div className="rounded-xl border border-red-200 bg-badge-red-bg px-4 py-3 text-sm font-medium text-badge-red-text">{error}</div>}
-
-      <input
-        value={q}
-        onChange={(e) => { setQ(e.target.value); setPage(1); }}
-        placeholder="Search farm name or code…"
-        className="h-10 w-72 rounded-lg border border-wangari-border bg-white px-3 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none"
+      <PageHeader
+        icon={<Building2 className="h-5 w-5" />}
+        title="Farms"
+        description="All tenant farms with owner, plan state, and workforce size."
       />
 
-      {!rows ? (
-        <div className="animate-pulse text-sm text-wangari-muted">Loading farms…</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-wangari-border">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-wangari-green-50/60 text-left text-[11px] font-bold uppercase tracking-wider text-wangari-muted">
+      {flash && <Flash message={flash} />}
+      {error && <ErrorState message={error} />}
+
+      <Panel bodyClassName="p-0">
+        <div className="border-b border-wangari-border px-5 py-3">
+          <Toolbar>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-wangari-subtle" />
+              <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search farm name or code…" className="pl-8" />
+            </div>
+            <span className="ml-auto text-xs text-wangari-muted">{total} farms</span>
+          </Toolbar>
+        </div>
+
+        {!rows ? (
+          <Loading label="Loading farms…" />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No farms match" hint="Try a different search term." icon={<Building2 className="h-5 w-5" />} />
+        ) : (
+          <TableShell minWidth={760}>
+            <thead>
               <tr>
-                <th className="px-4 py-3">Farm</th>
-                <th className="px-4 py-3">Owner</th>
-                <th className="px-4 py-3">Workers</th>
-                <th className="px-4 py-3">Flocks</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <Th>Farm</Th>
+                <Th>Owner</Th>
+                <Th>Workforce</Th>
+                <Th>Plan</Th>
+                <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-wangari-border bg-white">
+            <tbody>
               {rows.map((f) => (
-                <tr key={f.id}>
-                  <td className="px-4 py-3">
+                <tr key={f.id} className="transition-colors hover:bg-wangari-green-50/40">
+                  <Td>
                     <div className="font-medium text-wangari-heading">{f.name}</div>
-                    <div className="text-xs text-wangari-subtle">{f.code || "no code"}{f.county ? ` · ${f.county}` : ""}</div>
-                  </td>
-                  <td className="px-4 py-3">
+                    <div className="text-xs text-wangari-subtle">
+                      {f.code || "no code"}{f.county ? ` · ${f.county}` : ""}
+                    </div>
+                  </Td>
+                  <Td>
                     <div className="text-wangari-text">{f.owner?.name || "—"}</div>
                     <div className="text-xs text-wangari-subtle">{f.owner?.email}</div>
-                  </td>
-                  <td className="px-4 py-3 text-wangari-text">{f.workers}</td>
-                  <td className="px-4 py-3 text-wangari-text">{f.flocks}</td>
-                  <td className="px-4 py-3">
+                  </Td>
+                  <Td>
+                    <span className="text-wangari-text">{f.workers} workers</span>
+                    <span className="text-wangari-subtle"> · {f.flocks} flocks</span>
+                  </Td>
+                  <Td>
                     {f.plan ? (
                       <div>
-                        <span className="inline-flex rounded-full bg-wangari-green-50 px-2 py-0.5 text-[11px] font-medium text-wangari-green-800 border border-wangari-green-200">{f.plan.name}</span>
-                        <div className="mt-0.5 text-[11px] text-wangari-subtle">till {new Date(f.plan.expiresAt).toLocaleDateString()}</div>
+                        <Badge variant="default">{f.plan.name}</Badge>
+                        <div className="mt-1 text-[11px] text-wangari-subtle">till {new Date(f.plan.expiresAt).toLocaleDateString()}</div>
                       </div>
                     ) : (
-                      <span className="text-xs text-wangari-subtle">trial / none</span>
+                      <Badge variant="outline">trial / none</Badge>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button onClick={() => extend(f)} className="rounded-lg px-2.5 py-1 text-xs text-wangari-text hover:bg-wangari-cream hover:text-wangari-heading">Extend…</button>
-                  </td>
+                  </Td>
+                  <Td className="text-right">
+                    <GhostButton onClick={() => { setExtending(f); setDays("30"); }} className="h-8 px-2.5 text-xs">
+                      <CalendarPlus className="h-3.5 w-3.5" /> Extend
+                    </GhostButton>
+                  </Td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-wangari-subtle">No farms match.</td></tr>}
             </tbody>
-          </table>
-        </div>
-      )}
+          </TableShell>
+        )}
 
-      {pages > 1 && (
-        <div className="flex items-center justify-between text-sm text-wangari-muted">
-          <span>Page {page} of {pages} · {total} farms</span>
-          <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">← Prev</button>
-            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-wangari-border px-3 py-1.5 disabled:opacity-40">Next →</button>
+        {pages > 1 && (
+          <div className="flex items-center justify-between border-t border-wangari-border px-5 py-3 text-sm text-wangari-muted">
+            <span>Page {page} of {pages} · {total} farms</span>
+            <div className="flex gap-2">
+              <GhostButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="h-8 px-2.5 text-xs">
+                <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              </GhostButton>
+              <GhostButton onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="h-8 px-2.5 text-xs">
+                Next <ChevronRight className="h-3.5 w-3.5" />
+              </GhostButton>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Panel>
+
+      <Modal title={`Extend subscription — ${extending?.name ?? ""}`} onClose={() => setExtending(null)}>
+        {extending && (
+          <div className="space-y-4">
+            <Field label="Days to extend" hint="Extends from the current expiry date. Logged to the audit trail.">
+              <input type="number" min={1} value={days} onChange={(e) => setDays(e.target.value)} className={inputClass} />
+            </Field>
+            <div className="flex justify-end gap-2">
+              <GhostButton onClick={() => setExtending(null)}>Cancel</GhostButton>
+              <PrimaryButton onClick={doExtend} disabled={busy || !(Number(days) > 0)}>
+                {busy ? "Extending…" : "Extend subscription"}
+              </PrimaryButton>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
