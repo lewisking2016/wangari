@@ -432,14 +432,40 @@ router.patch("/promos/:id", requireAdmin(["billing"]), async (req: Request, res:
 router.get("/tickets", requireAdmin(["support", "support_read"]), async (req: Request, res: Response) => {
   try {
     const status = String(req.query.status || "all");
+    const priority = String(req.query.priority || "all");
     const where: any = status === "all" ? {} : { status };
+    if (["low", "normal", "high"].includes(priority)) where.priority = priority;
     const rows = await prisma.ticket.findMany({
       where,
       include: { user: { select: { name: true, email: true } }, _count: { select: { messages: true } } },
       orderBy: { updatedAt: "desc" },
       take: 100,
     });
-    res.json(rows.map((t) => ({ ...t, messageCount: t._count.messages, _count: undefined })));
+
+    // Support-desk summary across ALL tickets
+    const all = await prisma.ticket.findMany({
+      select: { status: true, priority: true, createdAt: true, updatedAt: true },
+    });
+    const now = Date.now();
+    const solvedOrClosed = all.filter((t) => t.status === "solved" || t.status === "closed");
+    const avgResolutionH = solvedOrClosed.length
+      ? Math.round(solvedOrClosed.reduce((s, t) => s + (new Date(t.updatedAt).getTime() - new Date(t.createdAt).getTime()), 0) / solvedOrClosed.length / 3_600_000)
+      : 0;
+    const summary = {
+      total: all.length,
+      open: all.filter((t) => t.status === "open").length,
+      pending: all.filter((t) => t.status === "pending").length,
+      solved: all.filter((t) => t.status === "solved").length,
+      closed: all.filter((t) => t.status === "closed").length,
+      high: all.filter((t) => t.priority === "high" && t.status !== "solved" && t.status !== "closed").length,
+      avgResolutionH,
+      unresolvedOver24h: all.filter((t) =>
+        t.status !== "solved" && t.status !== "closed" &&
+        now - new Date(t.createdAt).getTime() > 24 * 3_600_000
+      ).length,
+    };
+
+    res.json(rows.map((t) => ({ ...t, messageCount: t._count.messages, _count: undefined, summary })));
   } catch (error) {
     console.error("Admin tickets list error:", error);
     res.status(500).json({ error: "Failed to load tickets" });
