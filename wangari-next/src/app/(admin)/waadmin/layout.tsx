@@ -90,11 +90,11 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
   };
 
   const navContent = (
-    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
+    <nav className="admin-nav-scroll flex-1 space-y-4 overflow-y-auto px-3 py-3">
       {NAV.map((group) => (
         <div key={group.section}>
-          <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-widest text-wangari-subtle">{group.section}</div>
-          <div className="space-y-1">
+          <div className="px-2 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-wangari-subtle">{group.section}</div>
+          <div className="space-y-0.5">
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href, item.end);
@@ -123,7 +123,7 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
     <div className="flex min-h-screen bg-wangari-cream text-wangari-text">
       {/* Sidebar — desktop */}
       <aside className="hidden w-[260px] shrink-0 flex-col border-r border-wangari-border bg-white md:sticky md:top-0 md:flex md:h-screen">
-        <div className="flex items-center gap-2.5 px-5 py-5">
+        <div className="flex shrink-0 items-center gap-2.5 px-5 py-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-800">
             <ShieldCheck className="h-5 w-5 text-white" />
           </div>
@@ -133,8 +133,8 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
           </div>
         </div>
         {navContent}
-        <div className="border-t border-wangari-border px-4 py-4">
-          <div className="relative">
+        <div className="shrink-0 border-t border-wangari-border px-4 py-3">
+          <div className="relative z-10">
             <button
               onClick={() => setMenuOpen((v) => !v)}
               className="flex w-full items-center justify-between gap-2 rounded-xl px-2 py-2 hover:bg-wangari-cream"
@@ -178,7 +178,7 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
             <div className="flex items-center justify-between px-5 py-4">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-wangari-green-800">
-                  <ShieldCheck className="h-4.5 w-4.5 text-white" />
+                  <ShieldCheck className="h-4 w-4 text-white" />
                 </div>
                 <div className="text-sm font-bold text-wangari-heading">Wangari Admin</div>
               </div>
