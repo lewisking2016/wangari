@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Check, ArrowRight, Zap, Shield, Sparkles } from "lucide-react";
 import { isLoggedIn } from "@/lib/auth-client";
+import { useSiteContent } from "@/lib/site-content";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -15,75 +16,117 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
 };
 
-const plans = [
-  {
-    name: "Starter",
-    paystackKey: "starter_monthly",
-    price: 1500,
-    annualPrice: 12000,
-    period: "/month",
-    description: "Perfect for small farms just getting started with digital records.",
-    icon: Zap,
-    popular: false,
-    features: [
-      "1 hub of your choice",
-      "Inventory tracking (always included)",
-      "WhatsApp bot for data entry",
-      "Daily profit summary",
-      "Basic reports",
-      "Mobile access",
-    ],
-    cta: "Subscribe Now",
-    ctaHref: "/register",
-  },
-  {
-    name: "Growth",
-    paystackKey: "growth_monthly",
-    price: 4500,
-    annualPrice: 36000,
-    period: "/month",
-    description: "For serious farmers who want real profit visibility across their operation.",
-    icon: Shield,
-    popular: true,
-    features: [
-      "3 hubs of your choice",
-      "Inventory tracking (always included)",
-      "AI assistant (ask questions in plain language)",
-      "Advanced reports + PDF export",
-      "Vaccination & low-stock reminders",
-      "Daily profit reports",
-      "WhatsApp bot for data entry",
-    ],
-    cta: "Subscribe Now",
-    ctaHref: "/register",
-  },
-  {
-    name: "Enterprise",
-    paystackKey: null,
-    price: 12000,
-    annualPrice: null,
-    period: "/month",
-    description: "Custom hosting, installation, and dedicated support for large operations.",
-    icon: Sparkles,
-    popular: false,
-    features: [
-      "All 6 hubs unlocked",
-      "Inventory tracking (always included)",
-      "Individual hosting & installation",
-      "Full AI + priority support",
-      "Unlimited team members",
-      "Advanced reports + PDF export",
-      "Dedicated account manager",
-      "Custom integrations",
-    ],
-    cta: "Contact Sales",
-    ctaHref: "mailto:sales@imeantech.com",
-  },
-];
+// Editable content shape (managed in /waadmin/website).
+interface PlanContent {
+  name: string;
+  paystackKey: string | null;
+  price: number;
+  annualPrice: number | null;
+  period: string;
+  description: string;
+  icon: "zap" | "shield" | "sparkles";
+  popular: boolean;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+}
+interface PricingContent {
+  heroKicker: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  annualBadge: string;
+  plans: PlanContent[];
+  faqs: { q: string; a: string }[];
+}
+
+// Fallbacks = today's hardcoded content. Shown while loading or if the CMS
+// blob is missing — the page can never render empty.
+const FALLBACK: PricingContent = {
+  heroKicker: "Pricing",
+  heroTitle: "Start free. Upgrade when you see results.",
+  heroSubtitle:
+    "Choose the plan that fits your farm. Every plan includes mobile access and daily profit reports. Start with a 14-day free trial — no credit card required.",
+  annualBadge: "Save 17%",
+  plans: [
+    {
+      name: "Starter",
+      paystackKey: "starter_monthly",
+      price: 1500,
+      annualPrice: 12000,
+      period: "/month",
+      description: "Perfect for small farms just getting started with digital records.",
+      icon: "zap",
+      popular: false,
+      features: [
+        "1 hub of your choice",
+        "Inventory tracking (always included)",
+        "WhatsApp bot for data entry",
+        "Daily profit summary",
+        "Basic reports",
+        "Mobile access",
+      ],
+      cta: "Subscribe Now",
+      ctaHref: "/register",
+    },
+    {
+      name: "Growth",
+      paystackKey: "growth_monthly",
+      price: 4500,
+      annualPrice: 36000,
+      period: "/month",
+      description: "For serious farmers who want real profit visibility across their operation.",
+      icon: "shield",
+      popular: true,
+      features: [
+        "3 hubs of your choice",
+        "Inventory tracking (always included)",
+        "AI assistant (ask questions in plain language)",
+        "Advanced reports + PDF export",
+        "Vaccination & low-stock reminders",
+        "Daily profit reports",
+        "WhatsApp bot for data entry",
+      ],
+      cta: "Subscribe Now",
+      ctaHref: "/register",
+    },
+    {
+      name: "Enterprise",
+      paystackKey: null,
+      price: 12000,
+      annualPrice: null,
+      period: "/month",
+      description: "Custom hosting, installation, and dedicated support for large operations.",
+      icon: "sparkles",
+      popular: false,
+      features: [
+        "All 6 hubs unlocked",
+        "Inventory tracking (always included)",
+        "Individual hosting & installation",
+        "Full AI + priority support",
+        "Unlimited team members",
+        "Advanced reports + PDF export",
+        "Dedicated account manager",
+        "Custom integrations",
+      ],
+      cta: "Contact Sales",
+      ctaHref: "mailto:sales@imeantech.com",
+    },
+  ],
+  faqs: [
+    { q: "Is there a free trial?", a: "Yes! Every plan starts with a 14-day free trial. All features included. No credit card required. Cancel anytime." },
+    { q: "Can I switch plans later?", a: "Absolutely. Upgrade or downgrade anytime. Your data is always preserved." },
+    { q: "What payment methods do you accept?", a: "We accept M-Pesa, Visa, Mastercard, and bank transfers through Paystack." },
+    { q: "What happens to my data if I cancel?", a: "We never delete your data. If you cancel, you get read-only access. Come back anytime and your data is there." },
+  ],
+};
+
+const ICONS = { zap: Zap, shield: Shield, sparkles: Sparkles } as const;
 
 export default function PricingPage() {
   const [annual, setAnnual] = React.useState(false);
   const [loggedIn, setLoggedIn] = React.useState(false);
+  const { data } = useSiteContent<PricingContent>("pricing");
+  const content = data ?? FALLBACK;
 
   React.useEffect(() => {
     setLoggedIn(isLoggedIn());
@@ -94,12 +137,12 @@ export default function PricingPage() {
       {/* Hero */}
       <section className="pt-24 pb-16 px-6">
         <motion.div initial="hidden" animate="visible" variants={stagger} className="mx-auto max-w-4xl text-center">
-          <motion.p variants={fadeUp} className="text-sm font-bold uppercase tracking-widest text-wangari-green-800 mb-3">Pricing</motion.p>
+          <motion.p variants={fadeUp} className="text-sm font-bold uppercase tracking-widest text-wangari-green-800 mb-3">{content.heroKicker}</motion.p>
           <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl font-extrabold text-[#0F172A] tracking-tight">
-            Start free. Upgrade when<br />you see results.
+            {content.heroTitle}
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-5 text-lg text-[#64748B] max-w-2xl mx-auto">
-            Choose the plan that fits your farm. Every plan includes mobile access and daily profit reports. Start with a 14-day free trial — no credit card required.
+            {content.heroSubtitle}
           </motion.p>
 
           {/* Toggle */}
@@ -114,7 +157,7 @@ export default function PricingPage() {
               onClick={() => setAnnual(true)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all cursor-pointer ${annual ? "bg-[#166534] text-white shadow-md" : "text-[#64748B] hover:text-[#0F172A]"}`}
             >
-              Annual <span className="text-[#22C55E] font-bold">Save 17%</span>
+              Annual <span className="text-[#22C55E] font-bold">{content.annualBadge}</span>
             </button>
           </motion.div>
         </motion.div>
@@ -123,8 +166,9 @@ export default function PricingPage() {
       {/* Plans */}
       <section className="pb-24 px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mx-auto max-w-6xl grid md:grid-cols-3 gap-8">
-          {plans.map((plan) => {
+          {content.plans.map((plan) => {
             const monthlyPrice = annual ? Math.round(plan.price * 0.83) : plan.price;
+            const Icon = ICONS[plan.icon] ?? Zap;
             return (
               <motion.div
                 key={plan.name}
@@ -146,7 +190,7 @@ export default function PricingPage() {
 
                 <div className="mb-6">
                   <div className={`flex h-12 w-12 items-center justify-center rounded-xl mb-4 ${plan.popular ? "bg-[#166534] text-white" : "bg-[#F0FDF4] text-[#166534]"}`}>
-                    <plan.icon className="h-6 w-6" />
+                    <Icon className="h-6 w-6" />
                   </div>
                   <h3 className="text-xl font-bold text-[#0F172A]">{plan.name}</h3>
                   <div className="mt-3 flex items-baseline gap-1">
@@ -203,12 +247,7 @@ export default function PricingPage() {
             Frequently Asked Questions
           </motion.h2>
           <div className="space-y-6">
-            {[
-              { q: "Is there a free trial?", a: "Yes! Every plan starts with a 14-day free trial. All features included. No credit card required. Cancel anytime." },
-              { q: "Can I switch plans later?", a: "Absolutely. Upgrade or downgrade anytime. Your data is always preserved." },
-              { q: "What payment methods do you accept?", a: "We accept M-Pesa, Visa, Mastercard, and bank transfers through Paystack." },
-              { q: "What happens to my data if I cancel?", a: "We never delete your data. If you cancel, you get read-only access. Come back anytime and your data is there." },
-            ].map((faq) => (
+            {content.faqs.map((faq) => (
               <motion.div key={faq.q} variants={fadeUp} className="rounded-xl border border-[#E5E7EB] bg-white p-6">
                 <h3 className="font-bold text-[#0F172A] mb-2">{faq.q}</h3>
                 <p className="text-sm text-[#64748B] leading-relaxed">{faq.a}</p>

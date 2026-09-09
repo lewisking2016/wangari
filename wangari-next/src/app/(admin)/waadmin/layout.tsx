@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, CreditCard, Tags, Ticket, TicketPercent,
-  Megaphone, Handshake, Mail, ShieldCheck, Activity, Lock, ChevronDown, LogOut, X, Menu,
+  Megaphone, Handshake, Mail, ShieldCheck, Activity, Lock, ChevronDown, LogOut, X, Menu, Globe,
 } from "lucide-react";
 import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from "@/lib/admin-client";
 
@@ -28,6 +28,7 @@ const NAV = [
     { href: "/waadmin/promos", label: "Promo Codes", icon: TicketPercent },
     { href: "/waadmin/crm", label: "CRM Pipeline", icon: Handshake },
     { href: "/waadmin/announcements", label: "Announcements", icon: Megaphone },
+    { href: "/waadmin/website", label: "Website", icon: Globe },
   ]},
   { section: "Support", items: [
     { href: "/waadmin/tickets", label: "Tickets", icon: Ticket },

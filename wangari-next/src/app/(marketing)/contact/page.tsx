@@ -1,9 +1,33 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Mail, Phone, MapPin, Clock } from "lucide-react";
+import { useSiteContent } from "@/lib/site-content";
+
+// Editable content shape (managed in /waadmin/website).
+interface ContactContent {
+  title: string;
+  subtitle: string;
+  successMessage: string;
+  contactEmail: string;
+  contactPhone: string;
+  location: string;
+  hours: string;
+}
+
+const FALLBACK: ContactContent = {
+  title: "Talk to us",
+  subtitle: "Questions about Wangari, partnership opportunities, or enterprise hosting — we read every message.",
+  successMessage: "Message received — we'll get back to you within one business day.",
+  contactEmail: "sales@imeantech.com",
+  contactPhone: "",
+  location: "",
+  hours: "",
+};
 
 export default function ContactPage() {
+  const { data } = useSiteContent<ContactContent>("contact");
+  const content = { ...FALLBACK, ...(data ?? {}) };
   const [form, setForm] = React.useState({ name: "", email: "", phone: "", company: "", message: "" });
   const [busy, setBusy] = React.useState(false);
   const [done, setDone] = React.useState(false);
@@ -30,17 +54,42 @@ export default function ContactPage() {
     }
   }
 
+  const infoItems = [
+    content.contactEmail && { icon: Mail, label: "Email", value: content.contactEmail, href: `mailto:${content.contactEmail}` },
+    content.contactPhone && { icon: Phone, label: "Phone", value: content.contactPhone, href: `tel:${content.contactPhone.replace(/\s/g, "")}` },
+    content.location && { icon: MapPin, label: "Location", value: content.location, href: null },
+    content.hours && { icon: Clock, label: "Hours", value: content.hours, href: null },
+  ].filter(Boolean) as { icon: typeof Mail; label: string; value: string; href: string | null }[];
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="text-3xl font-extrabold tracking-tight text-[#0F172A]">Talk to us</h1>
-      <p className="mt-2 text-sm text-[#64748B]">
-        Questions about Wangari, partnership opportunities, or enterprise hosting — we read every message.
-      </p>
+      <h1 className="text-3xl font-extrabold tracking-tight text-[#0F172A]">{content.title}</h1>
+      <p className="mt-2 text-sm text-[#64748B]">{content.subtitle}</p>
+
+      {infoItems.length > 0 && (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {infoItems.map((item) => (
+            <div key={item.label} className="flex items-center gap-3 rounded-xl border border-[#E5E7EB] bg-white px-4 py-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F0FDF4] text-[#166534]">
+                <item.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]">{item.label}</div>
+                {item.href ? (
+                  <a href={item.href} className="truncate text-sm font-medium text-[#0F172A] hover:text-[#166534]">{item.value}</a>
+                ) : (
+                  <div className="truncate text-sm font-medium text-[#0F172A]">{item.value}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {done ? (
         <div className="mt-8 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
           <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
-          <p className="text-sm font-semibold text-emerald-800">Message received — we'll get back to you within one business day.</p>
+          <p className="text-sm font-semibold text-emerald-800">{content.successMessage}</p>
         </div>
       ) : (
         <form onSubmit={submit} className="mt-8 space-y-4 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">

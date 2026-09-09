@@ -80,4 +80,5 @@ export const adminApi = {
   get: <T = any>(path: string) => request<T>(path),
   post: <T = any>(path: string, json?: unknown) => request<T>(path, { method: "POST", json }),
   patch: <T = any>(path: string, json?: unknown) => request<T>(path, { method: "PATCH", json }),
+  put: <T = any>(path: string, json?: unknown) => request<T>(path, { method: "PUT", json }),
 };

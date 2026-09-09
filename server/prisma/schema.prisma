@@ -74,6 +74,18 @@ model Plan {
   @@map("plans")
 }
 
+// Editable website content (pricing page copy, contact page details, FAQs).
+// JSON blob per page — the admin Website module writes it, public pages read
+// it. Never delete rows: history is the audit trail via admin audit log.
+model SiteContent {
+  page      String   @id
+  data      Json
+  updatedBy Int?
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("site_content")
+}
+
 model Subscription {
   id            Int      @id @default(autoincrement())
   userId        Int      @map("user_id")
