@@ -540,13 +540,45 @@ router.get("/system", requireAdmin(["billing", "support", "support_read"]), asyn
     const start = Date.now();
     await prisma.$queryRaw`SELECT 1`;
     const dbLatencyMs = Date.now() - start;
-    const [farms, users, subs] = await Promise.all([prisma.farm.count(), prisma.user.count(), prisma.subscription.count()]);
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 3_600_000);
+
+    const anyPrisma = prisma as any;
+    const [farms, users, subs, workers, mem, auditCount, emailStats, smtpConfigured, paystackConfigured] = await Promise.all([
+      prisma.farm.count(),
+      prisma.user.count(),
+      prisma.subscription.count(),
+      anyPrisma.worker ? anyPrisma.worker.count() : Promise.resolve(0),
+      Promise.resolve(process.memoryUsage()),
+      anyPrisma.auditLog ? anyPrisma.auditLog.count({ where: { createdAt: { gte: dayAgo } } }).catch(() => 0) : Promise.resolve(0),
+      anyPrisma.emailLog
+        ? Promise.all([
+            anyPrisma.emailLog.count({ where: { status: "sent", createdAt: { gte: dayAgo } } }),
+            anyPrisma.emailLog.count({ where: { status: "failed", createdAt: { gte: dayAgo } } }),
+          ]).then(([sent, failed]) => ({ sent, failed })).catch(() => ({ sent: 0, failed: 0 }))
+        : Promise.resolve({ sent: 0, failed: 0 }),
+      Promise.resolve(!!process.env.SMTP_HOST),
+      Promise.resolve(!!process.env.PAYSTACK_SECRET_KEY),
+    ]);
+
     res.json({
       status: "ok",
       dbLatencyMs,
-      counts: { farms, users, subs },
+      counts: { farms, users, subs, workers, audit24h: auditCount },
+      email: emailStats,
+      services: {
+        database: dbLatencyMs < 500 ? "ok" : dbLatencyMs < 2000 ? "slow" : "down",
+        smtp: smtpConfigured ? "configured" : "not_configured",
+        paystack: paystackConfigured ? "configured" : "not_configured",
+      },
+      memory: {
+        heapUsedMb: Math.round(mem.heapUsed / 1_048_576),
+        heapTotalMb: Math.round(mem.heapTotal / 1_048_576),
+        rssMb: Math.round(mem.rss / 1_048_576),
+      },
       uptimeSec: Math.round(process.uptime()),
       nodeVersion: process.version,
+      checkedAt: now.toISOString(),
     });
   } catch (error) {
     console.error("Admin system error:", error);
