@@ -41,8 +41,8 @@ router.get("/farms", requireAdmin(["support", "support_read"]), async (req: Requ
       }),
       prisma.farm.count({ where }),
       prisma.farm.findMany({
-        select: { ownerId: true, subscriptions: { where: { status: "active" }, select: { expiresAt: true } } },
-      }) as unknown as Promise<{ ownerId: number; subscriptions: { expiresAt: Date }[] }[]>,
+        select: { ownerId: true, owner: { select: { subscriptions: { where: { status: "active" }, select: { expiresAt: true } } } } },
+      }) as unknown as Promise<{ ownerId: number; owner: { subscriptions: { expiresAt: Date }[] } }[]>,
     ]);
 
     // Latest subscription per farm (via owner) for the plan column.
@@ -72,9 +72,9 @@ router.get("/farms", requireAdmin(["support", "support_read"]), async (req: Requ
     // Platform-wide summary (independent of search/filter)
     const summary = {
       total: allFarms.length,
-      active: allFarms.filter((f) => f.subscriptions.some((s) => s.expiresAt > now)).length,
-      expiring: allFarms.filter((f) => f.subscriptions.some((s) => s.expiresAt > now && s.expiresAt <= weekAhead)).length,
-      trial: allFarms.filter((f) => !f.subscriptions.some((s) => s.expiresAt > now)).length,
+      active: allFarms.filter((f) => (f.owner?.subscriptions ?? []).some((s) => s.expiresAt > now)).length,
+      expiring: allFarms.filter((f) => (f.owner?.subscriptions ?? []).some((s) => s.expiresAt > now && s.expiresAt <= weekAhead)).length,
+      trial: allFarms.filter((f) => !(f.owner?.subscriptions ?? []).some((s) => s.expiresAt > now)).length,
     };
 
     // Status filter applied after enrichment
