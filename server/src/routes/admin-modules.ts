@@ -206,29 +206,94 @@ router.get("/users", requireAdmin(["support", "support_read"]), async (req: Requ
   try {
     const q = String(req.query.q || "").trim();
     const page = Math.max(1, Number(req.query.page) || 1);
+    const role = String(req.query.role || "all");
+    const verified = String(req.query.verified || "all");
     const pageSize = 20;
+
     const where: any = q
       ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }, { phone: { contains: q } }] }
       : {};
+    if (role !== "all") where.role = role;
+    if (verified === "yes") where.emailVerified = { not: null };
+    if (verified === "no") where.emailVerified = null;
 
-    const [rows, total] = await Promise.all([
+    const [rows, total, allUsers] = await Promise.all([
       prisma.user.findMany({
         where,
         select: {
           id: true, name: true, email: true, phone: true, role: true,
           emailVerified: true, createdAt: true, tokenVersion: true,
           ownedFarms: { select: { id: true, name: true } },
+          googleId: true,
         },
         orderBy: { id: "desc" },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
       }),
       prisma.user.count({ where }),
+      prisma.user.findMany({
+        select: { role: true, emailVerified: true, googleId: true, createdAt: true },
+      }),
     ]);
-    res.json({ rows, total, page, pageSize });
+
+    // Platform-wide summary (independent of filters)
+    const now = Date.now();
+    const summary = {
+      total: allUsers.length,
+      owners: allUsers.filter((u) => u.role === "farm_owner").length,
+      verified: allUsers.filter((u) => u.emailVerified).length,
+      unverified: allUsers.filter((u) => !u.emailVerified).length,
+      googleAccounts: allUsers.filter((u) => u.googleId).length,
+      newThisWeek: allUsers.filter((u) => now - new Date(u.createdAt).getTime() < 7 * 86_400_000).length,
+    };
+
+    const paged = rows.slice((page - 1) * pageSize, page * pageSize);
+    res.json({ rows: paged, total, page, pageSize, summary });
   } catch (error) {
     console.error("Admin users list error:", error);
     res.status(500).json({ error: "Failed to load users" });
+  }
+});
+
+// User detail: one screen — farms, subscription history, tickets, recent activity.
+router.get("/users/:id", requireAdmin(["support", "support_read"]), async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true, name: true, email: true, phone: true, role: true, avatar: true,
+        emailVerified: true, trialStartsAt: true, trialEndsAt: true, googleId: true,
+        createdAt: true, tokenVersion: true,
+        ownedFarms: { select: { id: true, name: true, code: true, _count: { select: { workers: true, flocks: true } } } },
+      },
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const anyPrisma = prisma as any;
+    const [subs, tickets, recentActions] = await Promise.all([
+      prisma.subscription.findMany({
+        where: { userId: id },
+        orderBy: { startsAt: "desc" },
+        take: 10,
+        select: { id: true, planName: true, amount: true, status: true, reference: true, startsAt: true, expiresAt: true },
+      }),
+      anyPrisma.ticket.findMany({
+        where: { userId: id },
+        select: { id: true, subject: true, status: true, createdAt: true },
+        orderBy: { id: "desc" },
+        take: 5,
+      }).catch(() => []),
+      anyPrisma.auditLog.findMany({
+        where: { userId: id },
+        select: { id: true, action: true, createdAt: true },
+        orderBy: { id: "desc" },
+        take: 6,
+      }).catch(() => []),
+    ]);
+
+    res.json({ user, subscriptions: subs, tickets, recentActions });
+  } catch (error) {
+    console.error("Admin user detail error:", error);
+    res.status(500).json({ error: "Failed to load user" });
   }
 });
 
