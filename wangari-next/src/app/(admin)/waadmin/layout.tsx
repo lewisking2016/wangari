@@ -120,9 +120,9 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
   );
 
   return (
-    <div className="flex min-h-screen bg-wangari-cream text-wangari-text">
-      {/* Sidebar — desktop */}
-      <aside className="hidden w-[260px] shrink-0 flex-col border-r border-wangari-border bg-white md:sticky md:top-0 md:flex md:h-screen">
+    <div className="min-h-screen bg-wangari-cream text-wangari-text">
+      {/* Sidebar — desktop, fixed so it never scrolls with the page */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-wangari-border bg-white md:flex">
         <div className="flex shrink-0 items-center gap-2.5 px-5 py-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-wangari-green-800">
             <ShieldCheck className="h-5 w-5 text-white" />
@@ -200,7 +200,7 @@ export default function WaAdminLayout({ children }: { children: React.ReactNode 
       )}
 
       {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col md:pl-[260px]">
         {/* Mobile topbar */}
         <div className="sticky top-0 z-30 flex items-center justify-between border-b border-wangari-border bg-white/85 px-4 py-3 backdrop-blur-xl md:hidden">
           <div className="flex items-center gap-2.5">
