@@ -466,17 +466,68 @@ router.post("/billing/:id/cancel", requireAdmin(["billing"]), async (req: Reques
 router.get("/audit", requireAdmin(["billing", "support", "support_read"]), async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
+    const action = String(req.query.action || "all"); // all | admin | money | auth
+    const q = String(req.query.q || "").trim(); // search action / entity / actor name
     const pageSize = 30;
-    const [rows, total] = await Promise.all([
+
+    const where: any = {};
+    if (action === "admin") where.action = { startsWith: "admin." };
+    if (action === "money") where.action = { contains: "." }; // refined below in JS for money patterns
+    if (q) {
+      where.OR = [
+        { action: { contains: q, mode: "insensitive" } },
+        { entityType: { contains: q, mode: "insensitive" } },
+        { user: { name: { contains: q, mode: "insensitive" } } },
+        { user: { email: { contains: q, mode: "insensitive" } } },
+      ];
+    }
+
+    const [allRows, total, stats] = await Promise.all([
       prisma.auditLog.findMany({
+        where,
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
-      prisma.auditLog.count(),
+      prisma.auditLog.count({ where }),
+      prisma.auditLog.findMany({
+        select: { action: true, createdAt: true, userId: true, details: true },
+        orderBy: { id: "desc" },
+        take: 2000,
+      }),
     ]);
-    res.json({ rows, total, page, pageSize });
+
+    // Activity stats (across the recent 2000 entries)
+    const now = Date.now();
+    const inLast = (h: number) => now - h * 3_600_000;
+    const isMoney = (a: string) => /transaction|payment|subscription|billing|extend|comp|promo/.test(a);
+    const adminRows = stats.filter((r) => r.action.startsWith("admin."));
+    const actorCounts = new Map<string, number>();
+    for (const r of adminRows) {
+      const actor = (r.details as any)?._actor || `user#${r.userId ?? "?"}`;
+      actorCounts.set(actor, (actorCounts.get(actor) || 0) + 1);
+    }
+    const topActors = [...actorCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([name, count]) => ({ name, count }));
+    const summary = {
+      totalAllTime: await prisma.auditLog.count(),
+      last24h: stats.filter((r) => new Date(r.createdAt).getTime() > inLast(24)).length,
+      admin24h: adminRows.filter((r) => new Date(r.createdAt).getTime() > inLast(24)).length,
+      money24h: stats.filter((r) => isMoney(r.action) && new Date(r.createdAt).getTime() > inLast(24)).length,
+      adminAll: adminRows.length,
+      moneyAll: stats.filter((r) => isMoney(r.action)).length,
+      topActors,
+    };
+
+    // JS-refine money filter (regex on action)
+    const filteredRows = action === "money" ? allRows.filter((r) => isMoney(r.action)) : allRows;
+    const totalFiltered = action === "money" ? filteredRows.length : total;
+    const paged = action === "money"
+      ? filteredRows.slice((page - 1) * pageSize, page * pageSize)
+      : allRows;
+
+    res.json({ rows: paged, total: totalFiltered, page, pageSize, summary });
   } catch (error) {
     console.error("Admin audit list error:", error);
     res.status(500).json({ error: "Failed to load audit log" });
