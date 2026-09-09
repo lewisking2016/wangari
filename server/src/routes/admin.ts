@@ -274,14 +274,37 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
 // ─── M3: Plans CRUD ───────────────────────────────────────
 router.get("/plans", requireAdmin(["billing", "support", "support_read"]), async (_req: Request, res: Response) => {
   try {
+    const now = new Date();
     const plans = await prisma.plan.findMany({ orderBy: { sortOrder: "asc" } });
-    const counts = await prisma.subscription.groupBy({
-      by: ["plan"],
-      where: { status: "active", expiresAt: { gt: new Date() } },
-      _count: true,
-    });
+    const [counts, allTime, everPaid] = await Promise.all([
+      prisma.subscription.groupBy({
+        by: ["plan"],
+        where: { status: "active", expiresAt: { gt: now } },
+        _count: true,
+      }),
+      prisma.subscription.groupBy({
+        by: ["plan"],
+        where: { status: "active" },
+        _sum: { amount: true },
+      }),
+      prisma.subscription.groupBy({
+        by: ["plan"],
+        where: { amount: { gt: 0 } },
+        _count: true,
+        _sum: { amount: true },
+      }),
+    ]);
     const countMap = Object.fromEntries(counts.map((c) => [c.plan, c._count]));
-    res.json(plans.map((p) => ({ ...p, activeSubscriptions: countMap[p.id] || 0 })));
+    const mrrMap = Object.fromEntries(allTime.map((c) => [c.plan, Number(c._sum.amount ?? 0)]));
+    const lifetimeMap = Object.fromEntries(everPaid.map((c) => [c.plan, { count: c._count, revenue: Number(c._sum.amount ?? 0) }]));
+
+    res.json(plans.map((p) => ({
+      ...p,
+      activeSubscriptions: countMap[p.id] || 0,
+      mrr: mrrMap[p.id] || 0,
+      lifetimeSubscribers: lifetimeMap[p.id]?.count || 0,
+      lifetimeRevenue: lifetimeMap[p.id]?.revenue || 0,
+    })));
   } catch (error) {
     console.error("Admin plans list error:", error);
     res.status(500).json({ error: "Failed to load plans" });
