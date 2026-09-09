@@ -158,13 +158,43 @@ router.get("/crm/contacts/:id/notes", requireAdmin(["support", "support_read"]),
 router.get("/emails", requireAdmin(["support", "support_read"]), async (req: Request, res: Response) => {
   try {
     const status = String(req.query.status || "all");
-    const where: any = status === "all" ? {} : { status };
+    const template = String(req.query.template || "all");
+    const where: any = {};
+    if (status !== "all") where.status = status;
+    if (template !== "all") where.template = template;
     const [rows, total] = await Promise.all([
       prisma.emailLog.findMany({ where, orderBy: { createdAt: "desc" }, take: 100 }),
       prisma.emailLog.count({ where }),
     ]);
     const failed = await prisma.emailLog.count({ where: { status: "failed" } });
-    res.json({ rows, total, failed });
+
+    // Delivery-health summary across ALL sends
+    const all = await prisma.emailLog.findMany({
+      select: { status: true, template: true, createdAt: true, error: true },
+    });
+    const now = Date.now();
+    const inLast = (h: number) => now - h * 3_600_000;
+    const sentAll = all.filter((e) => e.status === "sent");
+    const failedAll = all.filter((e) => e.status === "failed");
+    const byTemplate: Record<string, { sent: number; failed: number }> = {};
+    for (const e of all) {
+      const k = e.template || "other";
+      byTemplate[k] = byTemplate[k] || { sent: 0, failed: 0 };
+      if (e.status === "sent") byTemplate[k].sent += 1;
+      if (e.status === "failed") byTemplate[k].failed += 1;
+    }
+    const attempted = sentAll.length + failedAll.length;
+    const summary = {
+      total: all.length,
+      sent24h: sentAll.filter((e) => new Date(e.createdAt).getTime() > inLast(24)).length,
+      failed24h: failedAll.filter((e) => new Date(e.createdAt).getTime() > inLast(24)).length,
+      sent7d: sentAll.filter((e) => new Date(e.createdAt).getTime() > inLast(24 * 7)).length,
+      failed7d: failedAll.filter((e) => new Date(e.createdAt).getTime() > inLast(24 * 7)).length,
+      successRatePct: attempted > 0 ? Math.round((sentAll.length / attempted) * 100) : 100,
+      byTemplate,
+    };
+
+    res.json({ rows, total, failed, summary });
   } catch (error) {
     console.error("Admin email log error:", error);
     res.status(500).json({ error: "Failed to load email log" });
