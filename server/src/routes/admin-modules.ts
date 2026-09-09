@@ -14,12 +14,23 @@ router.get("/farms", requireAdmin(["support", "support_read"]), async (req: Requ
   try {
     const q = String(req.query.q || "").trim();
     const page = Math.max(1, Number(req.query.page) || 1);
+    const status = String(req.query.status || "all");
     const pageSize = 20;
+    const now = new Date();
+    const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
     const where: any = q
-      ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { code: { contains: q, mode: "insensitive" } }] }
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { code: { contains: q, mode: "insensitive" } },
+            { owner: { email: { contains: q, mode: "insensitive" } } },
+            { owner: { name: { contains: q, mode: "insensitive" } } },
+          ],
+        }
       : {};
 
-    const [rows, total] = await Promise.all([
+    const [rows, total, allFarms] = await Promise.all([
       prisma.farm.findMany({
         where,
         include: {
@@ -27,10 +38,11 @@ router.get("/farms", requireAdmin(["support", "support_read"]), async (req: Requ
           _count: { select: { workers: true, flocks: true } },
         },
         orderBy: { id: "desc" },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
       }),
       prisma.farm.count({ where }),
+      prisma.farm.findMany({
+        select: { ownerId: true, subscriptions: { where: { status: "active" }, select: { expiresAt: true } } },
+      }) as unknown as Promise<{ ownerId: number; subscriptions: { expiresAt: Date }[] }[]>,
     ]);
 
     // Latest subscription per farm (via owner) for the plan column.
@@ -41,29 +53,109 @@ router.get("/farms", requireAdmin(["support", "support_read"]), async (req: Requ
     });
     const subByUser = new Map(subs.map((s) => [s.userId, s]));
 
+    const enrich = (f: (typeof rows)[number]) => {
+      const sub = subByUser.get(f.ownerId);
+      return {
+        id: f.id,
+        name: f.name,
+        code: f.code,
+        location: f.location,
+        county: f.county,
+        owner: f.owner,
+        workers: f._count.workers,
+        flocks: f._count.flocks,
+        plan: sub ? { name: sub.planName, status: sub.status, expiresAt: sub.expiresAt } : null,
+        createdAt: f.createdAt,
+      };
+    };
+
+    // Platform-wide summary (independent of search/filter)
+    const summary = {
+      total: allFarms.length,
+      active: allFarms.filter((f) => f.subscriptions.some((s) => s.expiresAt > now)).length,
+      expiring: allFarms.filter((f) => f.subscriptions.some((s) => s.expiresAt > now && s.expiresAt <= weekAhead)).length,
+      trial: allFarms.filter((f) => !f.subscriptions.some((s) => s.expiresAt > now)).length,
+    };
+
+    // Status filter applied after enrichment
+    const statusOf = (f: (typeof rows)[number]) => {
+      const sub = subByUser.get(f.ownerId);
+      if (!sub) return "trial";
+      if (sub.expiresAt <= weekAhead) return "expiring";
+      return "active";
+    };
+    const filtered = status === "all" ? rows : rows.filter((f) => statusOf(f) === status);
+    const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
+
     res.json({
-      rows: rows.map((f) => {
-        const sub = subByUser.get(f.ownerId);
-        return {
-          id: f.id,
-          name: f.name,
-          code: f.code,
-          location: f.location,
-          county: f.county,
-          owner: f.owner,
-          workers: f._count.workers,
-          flocks: f._count.flocks,
-          plan: sub ? { name: sub.planName, status: sub.status, expiresAt: sub.expiresAt } : null,
-          createdAt: f.createdAt,
-        };
-      }),
-      total,
+      rows: paged.map(enrich),
+      total: filtered.length,
       page,
       pageSize,
+      summary,
     });
   } catch (error) {
     console.error("Admin farms list error:", error);
     res.status(500).json({ error: "Failed to load farms" });
+  }
+});
+
+// Farm detail: one screen with plan, workforce, flocks, subscription history, tickets.
+router.get("/farms/:id", requireAdmin(["support", "support_read"]), async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const farm = await prisma.farm.findUnique({
+      where: { id },
+      include: {
+        owner: { select: { id: true, name: true, email: true, phone: true, createdAt: true, emailVerified: true } },
+        _count: { select: { workers: true, flocks: true } },
+      },
+    });
+    if (!farm) return res.status(404).json({ error: "Farm not found" });
+
+    const anyPrisma = prisma as any;
+    const [workers, flocks, subs, tickets] = await Promise.all([
+      anyPrisma.worker.findMany({
+        where: { farmId: id },
+        select: { id: true, name: true, role: true, status: true, createdAt: true },
+        orderBy: { id: "desc" },
+        take: 20,
+      }).catch(() => []),
+      anyPrisma.flock.findMany({
+        where: { farmId: id },
+        select: { id: true, name: true, species: true, birdCount: true, status: true },
+        orderBy: { id: "desc" },
+        take: 20,
+      }).catch(() => []),
+      prisma.subscription.findMany({
+        where: { userId: farm.ownerId },
+        orderBy: { startsAt: "desc" },
+        take: 10,
+        select: { id: true, planName: true, amount: true, status: true, reference: true, startsAt: true, expiresAt: true },
+      }),
+      anyPrisma.ticket.findMany({
+        where: { userId: farm.ownerId },
+        select: { id: true, subject: true, status: true, createdAt: true },
+        orderBy: { id: "desc" },
+        take: 5,
+      }).catch(() => []),
+    ]);
+
+    res.json({
+      farm: {
+        id: farm.id, name: farm.name, code: farm.code, location: farm.location, county: farm.county, createdAt: farm.createdAt,
+      },
+      owner: farm.owner,
+      workers: farm._count.workers,
+      flocks: farm._count.flocks,
+      workerList: workers,
+      flockList: flocks,
+      subscriptions: subs,
+      tickets,
+    });
+  } catch (error) {
+    console.error("Admin farm detail error:", error);
+    res.status(500).json({ error: "Failed to load farm" });
   }
 });
 

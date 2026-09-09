@@ -262,7 +262,7 @@ export function GhostButton({
   className,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   className?: string;
 }) {
