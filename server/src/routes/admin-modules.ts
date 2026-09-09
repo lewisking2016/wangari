@@ -332,11 +332,39 @@ router.post("/users/:id/verify-email", requireAdmin(["support"]), async (req: Re
 // ─── M4: Promo codes ──────────────────────────────────────
 router.get("/promos", requireAdmin(["billing", "support", "support_read"]), async (_req: Request, res: Response) => {
   try {
+    const now = new Date();
     const rows = await prisma.promoCode.findMany({
-      include: { _count: { select: { redemptions: true } } },
+      include: {
+        _count: { select: { redemptions: true } },
+        redemptions: {
+          orderBy: { id: "desc" },
+          take: 5,
+          select: { id: true, reference: true, discountKes: true, createdAt: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
-    res.json(rows.map((p) => ({ ...p, redemptions: p._count.redemptions, _count: undefined })));
+
+    // Summary: usage and discount cost across all codes
+    const allRedemptions = await prisma.promoRedemption.aggregate({
+      _count: true,
+      _sum: { discountKes: true },
+    });
+    const summary = {
+      totalCodes: rows.length,
+      active: rows.filter((p) => p.active && (!p.expiresAt || p.expiresAt > now)).length,
+      totalRedemptions: allRedemptions._count,
+      totalDiscountKes: Math.round(Number(allRedemptions._sum.discountKes ?? 0)),
+      partnerCodes: rows.filter((p) => p.type === "partnership").length,
+    };
+
+    res.json(rows.map((p) => ({
+      ...p,
+      redemptions: p._count.redemptions,
+      recentRedemptions: p.redemptions,
+      _count: undefined,
+      summary, // attached to each row; the client reads it from the first
+    })));
   } catch (error) {
     console.error("Admin promos list error:", error);
     res.status(500).json({ error: "Failed to load promo codes" });
