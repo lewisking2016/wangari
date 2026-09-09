@@ -500,7 +500,22 @@ router.post("/tickets/:id/reply", requireAdmin(["support"]), async (req: Request
 // ─── M8: Announcements ────────────────────────────────────
 router.get("/announcements", requireAdmin(["support", "support_read"]), async (_req: Request, res: Response) => {
   try {
-    res.json(await prisma.announcement.findMany({ orderBy: { createdAt: "desc" }, take: 50 }));
+    const [rows, farmCount, userCount] = await Promise.all([
+      prisma.announcement.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
+      prisma.farm.count(),
+      prisma.user.count({ where: { role: "farm_owner" } }),
+    ]);
+    const now = Date.now();
+    const summary = {
+      total: rows.length,
+      live: rows.filter((a) => a.active).length ? 1 : 0,
+      liveMessage: rows.find((a) => a.active)?.message || null,
+      farmReach: farmCount,
+      ownerReach: userCount,
+      lastPublishedAt: rows[0]?.createdAt ?? null,
+      retiredLast7d: rows.filter((a) => !a.active && now - new Date(a.createdAt).getTime() < 7 * 86_400_000).length,
+    };
+    res.json({ rows, summary });
   } catch (error) {
     console.error("Admin announcements list error:", error);
     res.status(500).json({ error: "Failed to load announcements" });
