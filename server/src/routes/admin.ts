@@ -359,17 +359,39 @@ router.get("/billing", requireAdmin(["billing", "support", "support_read"]), asy
     if (status !== "all") where.status = status;
     if (q) where.user = { OR: [{ name: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }] };
 
-    const [rows, total] = await Promise.all([
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000);
+    const weekAhead = new Date(now.getTime() + 7 * 86_400_000);
+
+    const [rows, total, allSubs] = await Promise.all([
       prisma.subscription.findMany({
         where,
         include: { user: { select: { id: true, name: true, email: true, role: true } } },
         orderBy: { startsAt: "desc" },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
       }),
       prisma.subscription.count({ where }),
+      prisma.subscription.findMany({
+        select: { amount: true, status: true, startsAt: true, expiresAt: true, planName: true },
+      }),
     ]);
-    res.json({ rows, total, page, pageSize });
+
+    // Money summary (platform-wide, independent of filters)
+    const paid = (s: (typeof allSubs)[number]) => Number(s.amount) > 0;
+    const isActive = (s: (typeof allSubs)[number]) => s.status === "active" && s.expiresAt > now;
+    const summary = {
+      mrr: Math.round(allSubs.filter(isActive).reduce((sum, s) => sum + Number(s.amount), 0)),
+      activeCount: allSubs.filter(isActive).length,
+      collected30d: Math.round(allSubs.filter((s) => paid(s) && s.startsAt >= thirtyDaysAgo).reduce((sum, s) => sum + Number(s.amount), 0)),
+      collectedMtd: Math.round(allSubs.filter((s) => paid(s) && s.startsAt >= monthStart).reduce((sum, s) => sum + Number(s.amount), 0)),
+      lifetimeRevenue: Math.round(allSubs.filter(paid).reduce((sum, s) => sum + Number(s.amount), 0)),
+      expiringSoon: allSubs.filter((s) => isActive(s) && s.expiresAt <= weekAhead).length,
+      comps: allSubs.filter((s) => !paid(s) && s.status === "active").length,
+    };
+    const aru = summary.activeCount > 0 ? Math.round(summary.mrr / summary.activeCount) : 0;
+
+    const paged = rows.slice((page - 1) * pageSize, page * pageSize);
+    res.json({ rows: paged, total, page, pageSize, summary: { ...summary, aru } });
   } catch (error) {
     console.error("Admin billing list error:", error);
     res.status(500).json({ error: "Failed to load billing" });
