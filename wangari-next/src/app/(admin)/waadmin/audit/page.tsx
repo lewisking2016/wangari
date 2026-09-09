@@ -40,6 +40,16 @@ const FILTERS = [
   { key: "money", label: "Money path" },
 ];
 
+/** Turn internal actor formats into readable names. */
+function actorLabel(raw: string): string {
+  const m = raw.match(/^admin:(\d+):(\w+)$/);
+  if (m) {
+    const role = m[2].replace(/_/g, " ");
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  }
+  return raw;
+}
+
 export default function AdminAuditPage() {
   const [rows, setRows] = React.useState<AuditRow[] | null>(null);
   const [summary, setSummary] = React.useState<AuditSummary | null>(null);
@@ -81,7 +91,7 @@ export default function AdminAuditPage() {
           <StatCard label="Admin all-time" value={summary.adminAll} icon={<ShieldCheck className="h-5 w-5" />} accent="violet" />
           <StatCard
             label="Top actor"
-            value={summary.topActors[0]?.name || "—"}
+            value={summary.topActors[0] ? actorLabel(summary.topActors[0].name) : "—"}
             icon={<Flame className="h-5 w-5" />}
             accent="amber"
             hint={summary.topActors[0] ? `${summary.topActors[0].count} actions` : undefined}
@@ -134,9 +144,9 @@ export default function AdminAuditPage() {
                       {r.details?._actor ? (
                         <span className="inline-flex items-center gap-1.5">
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-wangari-green-100 text-[9px] font-bold text-wangari-green-800">
-                            {String(r.details._actor).slice(0, 2).toUpperCase()}
+                            {actorLabel(String(r.details._actor)).slice(0, 2).toUpperCase()}
                           </span>
-                          <span className="text-xs font-medium text-wangari-heading">{String(r.details._actor)}</span>
+                          <span className="text-xs font-medium text-wangari-heading">{actorLabel(String(r.details._actor))}</span>
                         </span>
                       ) : r.user ? (
                         <span className="text-xs text-wangari-text">{r.user.name}</span>
@@ -203,7 +213,7 @@ export default function AdminAuditPage() {
                 <div className="rounded-2xl border border-wangari-border p-3.5">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-wangari-subtle">Actor</div>
                   <div className="mt-1 text-sm font-medium text-wangari-heading">
-                    {detail.details?._actor || detail.user?.name || `user #${detail.userId ?? "?"}`}
+                    {detail.details?._actor ? actorLabel(String(detail.details._actor)) : detail.user?.name || `user #${detail.userId ?? "?"}`}
                   </div>
                   {detail.user?.email && <div className="text-xs text-wangari-subtle">{detail.user.email}</div>}
                 </div>
