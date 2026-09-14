@@ -33,6 +33,7 @@ import uploadRoutes from "./routes/upload.js";
 import paystackRoutes from "./routes/paystack.js";
 import trialRoutes from "./routes/trial.js";
 import plansRoutes from "./routes/plans.js";
+import deliveriesRoutes from "./routes/deliveries.js";
 import adminRoutes from "./routes/admin.js";
 import adminModulesRoutes from "./routes/admin-modules.js";
 import supportRoutes from "./routes/support.js";
@@ -151,6 +152,7 @@ app.use("/api/worker", workerApiRoutes);
 app.use("/api/paystack", paystackRoutes);
 app.use("/api/trial", trialRoutes);
 app.use("/api/plans", plansRoutes);
+app.use("/api/deliveries", deliveriesRoutes);
 
 // ─── Super-Admin API ──────────────────────────────────────
 // Stricter limiter: admin login is a high-value brute-force target.

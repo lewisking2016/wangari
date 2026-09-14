@@ -209,7 +209,7 @@ router.post("/:id/apply", async (req: Request, res: Response) => {
     const crop = await prisma.crop.findFirst({ where: { id: cropId, farmId: req.user!.farmId! } });
     if (!crop) return res.status(404).json({ error: "Crop not found" });
 
-    const { date, type, productName, quantity, unit, cost, notes } = req.body;
+    const { date, type, productName, quantity, unit, cost, notes, inventoryItemId } = req.body;
     const application = await prisma.cropApplication.create({
       data: {
         cropId,
@@ -224,8 +224,38 @@ router.post("/:id/apply", async (req: Request, res: Response) => {
       },
     });
 
+    // Inventory link: drawing fertilizer/pesticide from stock decrements it
+    // and books the expense at the item's unit cost (unless a cost was given).
+    let bookedCost = cost ? Number(cost) : null;
+    if (inventoryItemId) {
+      const item = await prisma.inventory.findFirst({
+        where: { id: Number(inventoryItemId), farmId: req.user!.farmId! },
+      });
+      if (item) {
+        const used = Number(quantity);
+        const newQty = Math.max(0, Number(item.quantity) - used);
+        if (bookedCost == null && Number(item.unitCost) > 0) bookedCost = used * Number(item.unitCost);
+        try {
+          await prisma.$transaction([
+            prisma.inventory.update({ where: { id: item.id }, data: { quantity: newQty } }),
+            prisma.inventoryLog.create({
+              data: {
+                inventoryId: item.id,
+                changeType: "consumption",
+                quantityChange: -used,
+                reason: `Applied to crop: ${type} — ${productName} (${crop.name})`,
+                createdBy: req.user!.userId ?? null,
+              },
+            }),
+          ]);
+        } catch (e) {
+          console.error("Inventory drawdown failed:", e);
+        }
+      }
+    }
+
     // Auto-create finance transaction for input cost
-    if (cost && Number(cost) > 0) {
+    if (bookedCost && Number(bookedCost) > 0) {
       try {
         const catMap: Record<string, string> = {
           Fertilizer: "fertilizer",
@@ -240,7 +270,7 @@ router.post("/:id/apply", async (req: Request, res: Response) => {
             type: "expense",
             category: catMap[type] || "other",
             description: `${type}: ${productName} (${quantity} ${unit}) — ${crop.name}`,
-            amount: Number(cost),
+            amount: Number(bookedCost),
             date: date ? new Date(date) : new Date(),
             paymentMethod: "cash",
             createdBy: req.user!.userId,

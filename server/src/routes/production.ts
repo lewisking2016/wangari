@@ -47,6 +47,45 @@ router.post("/", async (req: Request, res: Response) => {
         notes: req.body.notes || null,
       },
     });
+
+    // Inventory link: feed used pulls from stock and books the expense.
+    const feedUsed = Number(req.body.feedUsed || 0);
+    if (feedUsed > 0 && req.body.inventoryItemId) {
+      const item = await prisma.inventory.findFirst({
+        where: { id: Number(req.body.inventoryItemId), farmId: req.user!.farmId! },
+      });
+      if (item) {
+        const newQty = Math.max(0, Number(item.quantity) - feedUsed);
+        await prisma.$transaction([
+          prisma.inventory.update({ where: { id: item.id }, data: { quantity: newQty } }),
+          prisma.inventoryLog.create({
+            data: {
+              inventoryId: item.id,
+              changeType: "consumption",
+              quantityChange: -feedUsed,
+              reason: `Feed used by flock (production record #${result.id})`,
+              createdBy: req.user!.userId ?? null,
+            },
+          }),
+          // Feed consumption is a real cost — book it at the item's unit cost.
+          ...(Number(item.unitCost) > 0
+            ? [prisma.transaction.create({
+                data: {
+                  farmId: req.user!.farmId!,
+                  type: "expense",
+                  category: "feed",
+                  description: `Feed: ${feedUsed} ${item.unit} ${item.itemName}`,
+                  amount: feedUsed * Number(item.unitCost),
+                  date: new Date(req.body.date),
+                  paymentMethod: "inventory",
+                  createdBy: req.user!.userId,
+                },
+              })]
+            : []),
+        ]);
+      }
+    }
+
     res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed" });

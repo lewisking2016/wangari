@@ -17,6 +17,7 @@ import {
   Settings,
   Sparkles,
   MessageCircle,
+  Truck,
   ChevronDown,
   LogOut,
   Syringe,
@@ -79,6 +80,7 @@ const navGroups: NavGroup[] = [
   {
     title: "Money & Workers",
     items: [
+      { label: "Deliveries", href: "/deliveries", icon: <Truck className="h-5 w-5" /> },
       { label: "Income & Expenses", href: "/finances", icon: <DollarSign className="h-5 w-5" /> },
       { label: "Sales", href: "/sales", icon: <ShoppingCart className="h-5 w-5" /> },
       { label: "Store / Inventory", href: "/inventory", icon: <Package className="h-5 w-5" /> },
