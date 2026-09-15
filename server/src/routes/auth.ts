@@ -132,6 +132,7 @@ router.post("/login", async (req: Request, res: Response) => {
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
       farmId,
+      emailVerified: user.emailVerified,
     });
   } catch (error) {
     console.error("Login error:", error);

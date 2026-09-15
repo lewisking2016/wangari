@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { proxyToBackend } from "@/lib/api-proxy";
-import { prisma } from "@/lib/db";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
@@ -12,23 +11,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Too many login attempts. Please try again later." }, { status: 429 });
     }
 
-    const body = await req.json();
-
     const res = await proxyToBackend("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(await req.json()),
     });
 
-    const data = await res.json();
-
-    // After successful login, check email verification status
-    if (res.ok && data.user?.email) {
-      const user = await prisma.user.findUnique({
-        where: { email: data.user.email.toLowerCase() },
-        select: { emailVerified: true },
-      });
-      data.emailVerified = user?.emailVerified ?? null;
-    }
+    // The backend includes emailVerified in its response, so no direct DB
+    // access is needed here (Vercel can't reach Postgres).
+    const data = await res.json().catch(() => ({}));
 
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
