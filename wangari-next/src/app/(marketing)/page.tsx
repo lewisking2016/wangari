@@ -22,6 +22,7 @@ import {
   Quote,
 } from "lucide-react";
 import { TestimonialsSlider } from "@/components/landing/TestimonialsSlider";
+import { DemoVideoShowcase } from "@/components/landing/DemoVideoShowcase";
 import { TextRoll } from "@/components/ui/text-roll";
 import { WaveGridBackground } from "@/components/ui/wave-grid-background";
 
@@ -109,7 +110,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* ═══════ HERO ═══════ */}
-      <section className="relative overflow-hidden text-white min-h-[90vh] -mt-16 pt-16">
+      <section className="relative overflow-hidden text-white -mt-16 pt-16">
         <WaveGridBackground
           colorBase="#0B1220"
           colorHigh="#22C55E"
@@ -121,7 +122,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-[#0B1220]/80 via-[#0B1220]/40 to-[#0B1220]/90" />
         </WaveGridBackground>
 
-        <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-28 md:pt-48 md:pb-36 text-center">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-24 md:pt-32 md:pb-32 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeDown} className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
               <img src="/images/wangari-real-logo.png" alt="" className="h-5 w-5 rounded-full object-cover" />
@@ -139,7 +140,7 @@ export default function LandingPage() {
               every shilling — from your phone or via WhatsApp.
             </motion.p>
 
-            <motion.div variants={fadeUp} className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.div variants={fadeUp} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/register"
                 className="group inline-flex items-center gap-3 rounded-full bg-white text-[#166534] px-8 py-4 text-base font-bold hover:bg-[#F0FDF4] transition-all duration-300 shadow-2xl shadow-black/20 hover:shadow-3xl hover:-translate-y-1"
@@ -155,27 +156,6 @@ export default function LandingPage() {
               </Link>
             </motion.div>
           </motion.div>
-
-          {/* Stats row */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto"
-          >
-            {stats.map((s) => (
-              <motion.div
-                key={s.label}
-                variants={scaleIn}
-                whileHover={{ scale: 1.05, y: -4 }}
-                className="text-center p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors"
-              >
-                <s.icon className="h-6 w-6 text-white mx-auto mb-3" />
-                <p className="text-2xl md:text-3xl font-extrabold text-white">{s.value}</p>
-                <p className="text-xs text-white/50 font-medium mt-1.5">{s.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
         </div>
 
         {/* Wave divider */}
@@ -186,7 +166,32 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════ FEATURES ═══════ */}
+      {/* ═══════ DEMO VIDEO — scroll-to-reveal panel with annotation callouts ═══════ */}
+      <DemoVideoShowcase />
+
+      {/* Stats — kept from the old hero, now living under the video */}
+      <section className="pb-24 px-6">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={stagger}
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+        >
+          {stats.map((s) => (
+            <motion.div
+              key={s.label}
+              variants={scaleIn}
+              whileHover={{ scale: 1.05, y: -4 }}
+              className="text-center p-5 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#BBF7D0] hover:shadow-lg transition-all"
+            >
+              <s.icon className="h-6 w-6 text-[#166534] mx-auto mb-3" />
+              <p className="text-2xl md:text-3xl font-extrabold text-[#0F172A]">{s.value}</p>
+              <p className="text-xs text-[#64748B] font-medium mt-1.5">{s.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
       <section className="py-28 px-6">
         <div className="mx-auto max-w-7xl">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} className="text-center mb-16">

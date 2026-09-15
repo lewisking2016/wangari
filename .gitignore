@@ -49,3 +49,6 @@ error_log
 credentials.json
 .vercel
 .env*
+
+# Raw demo video source (large, not for git)
+wangari-next/public/www.mp4

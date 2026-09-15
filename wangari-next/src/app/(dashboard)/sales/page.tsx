@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { DollarSign, CheckCircle, Clock, Plus, X, Trash2, Search, Users, TrendingUp, AlertCircle } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Plus, X, Trash2, Search, Users, TrendingUp, AlertCircle, Printer } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { INVOICE_TEMPLATES, generateReceiptHtml, resolveReceiptTemplate, getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -35,9 +36,34 @@ export default function SalesPage() {
     productType: "general",
   });
 
+  const [farmProfile, setFarmProfile] = React.useState<FarmProfile>(getDefaultFarmProfile());
+  const [invoiceTemplate, setInvoiceTemplate] = React.useState("professional");
+  const [receiptTemplate, setReceiptTemplate] = React.useState("same");
+
   const load = () => {
-    Promise.all([api.get("/api/sales"), api.get("/api/customers")])
-      .then(([s, c]) => { setSales(Array.isArray(s) ? s : []); setCustomers(Array.isArray(c) ? c : []); setLoading(false); })
+    Promise.all([api.get("/api/sales"), api.get("/api/customers"), api.get("/api/settings")])
+      .then(([s, c, settingsData]) => {
+        setSales(Array.isArray(s) ? s : []); setCustomers(Array.isArray(c) ? c : []);
+        const st = (settingsData as any).settings || {};
+        setInvoiceTemplate(st.farm_invoice_template || "professional");
+        setReceiptTemplate(st.farm_receipt_template || "same");
+        setFarmProfile({
+          businessName: st.farm_business_name || "",
+          logoUrl: st.farm_logo_url || "",
+          phone: st.farm_phone || "",
+          email: st.farm_email || "",
+          address: st.farm_address || "",
+          tinNumber: st.farm_tin_number || "",
+          slogan: st.farm_slogan || "",
+          bankName: st.farm_bank_name || "",
+          bankAccount: st.farm_bank_account || "",
+          bankBranch: st.farm_bank_branch || "",
+          invoiceNotes: st.farm_invoice_notes || "",
+          invoiceTerms: st.farm_invoice_terms || "",
+          accentColor: st.farm_invoice_accent_color || "",
+        });
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   };
   React.useEffect(() => { load(); }, []);
@@ -106,6 +132,17 @@ export default function SalesPage() {
   const totalRevenue = sales.reduce((s, sale) => s + Number(sale.totalAmount), 0);
   const totalPaid = sales.reduce((s, sale) => s + Number(sale.amountPaid), 0);
   const pending = totalRevenue - totalPaid;
+
+  const handlePrintReceipt = (sale: any) => {
+    const effective = resolveReceiptTemplate(receiptTemplate, invoiceTemplate);
+    const html = generateReceiptHtml(sale, effective, farmProfile);
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 300);
+    }
+  };
 
   const filtered = sales.filter(s => {
     if (filter === "paid" && s.paymentStatus !== "paid") return false;
@@ -360,6 +397,8 @@ export default function SalesPage() {
                         <button onClick={() => { setShowPayModal(s.id); setPayAmount(String(balance)); }}
                           className="flex-1 py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 hover:bg-amber-100 cursor-pointer">Record Payment</button>
                       )}
+                      <button onClick={() => handlePrintReceipt(s)} title={`Print receipt (${INVOICE_TEMPLATES.find(t => t.id === (receiptTemplate === "same" ? invoiceTemplate : receiptTemplate))?.name || "Professional"})`}
+                        className="py-2 px-3 rounded-xl bg-[#F1F5F9] text-[#64748B] text-xs font-bold hover:bg-[#E2E8F0] cursor-pointer"><Printer className="h-3.5 w-3.5" /></button>
                       <button onClick={() => handleDelete(s.id)} className="py-2 px-3 rounded-xl bg-red-50 text-red-500 text-xs font-bold border border-red-200 hover:bg-red-100 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>
                   </CardContent>

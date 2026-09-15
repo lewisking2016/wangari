@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
-import { INVOICE_TEMPLATES, generateInvoiceHtml, getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
+import { INVOICE_TEMPLATES, generateInvoiceHtml, generateReceiptHtml, resolveAccent, getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -27,6 +27,9 @@ export default function InvoicesPage() {
   const [showPayModal, setShowPayModal] = React.useState<number | null>(null);
   const [payAmount, setPayAmount] = React.useState("");
   const [selectedTemplate, setSelectedTemplate] = React.useState("professional");
+  const [receiptTemplate, setReceiptTemplate] = React.useState("same");
+  const [accentColor, setAccentColor] = React.useState("");
+  const [savingTemplate, setSavingTemplate] = React.useState(false);
   const [farmProfile, setFarmProfile] = React.useState<FarmProfile>(getDefaultFarmProfile());
   const [showTemplatePicker, setShowTemplatePicker] = React.useState(false);
   const { showToast, ToastComponent } = useToast();
@@ -39,6 +42,8 @@ export default function InvoicesPage() {
         setCustomers(Array.isArray(c) ? c : []);
         const st = (settingsData as any).settings || {};
         setSelectedTemplate(st.farm_invoice_template || "professional");
+        setReceiptTemplate(st.farm_receipt_template || "same");
+        setAccentColor(st.farm_invoice_accent_color || "");
         setFarmProfile({
           businessName: st.farm_business_name || "",
           logoUrl: st.farm_logo_url || "",
@@ -52,6 +57,7 @@ export default function InvoicesPage() {
           bankBranch: st.farm_bank_branch || "",
           invoiceNotes: st.farm_invoice_notes || "",
           invoiceTerms: st.farm_invoice_terms || "",
+          accentColor: st.farm_invoice_accent_color || "",
         });
         setLoading(false);
       })
@@ -104,10 +110,35 @@ export default function InvoicesPage() {
     }
   };
 
+  const handlePrintReceipt = (sale: any) => {
+    const effective = receiptTemplate === "same" ? selectedTemplate : receiptTemplate;
+    const html = generateReceiptHtml(sale, effective, farmProfile);
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 300);
+    }
+  };
+
   const handleSaveTemplate = async () => {
-    await api.put("/api/settings", { settings: { farm_invoice_template: selectedTemplate } });
-    showToast("Template saved!");
-    setShowTemplatePicker(false);
+    setSavingTemplate(true);
+    try {
+      await api.put("/api/settings", {
+        settings: {
+          farm_invoice_template: selectedTemplate,
+          farm_receipt_template: receiptTemplate,
+          farm_invoice_accent_color: accentColor,
+        },
+      });
+      setFarmProfile((p) => ({ ...p, accentColor }));
+      showToast(receiptTemplate === "same" ? "Template saved — applies to invoices & receipts" : "Templates saved!");
+      setShowTemplatePicker(false);
+    } catch {
+      showToast("Failed to save template. Please try again.");
+    } finally {
+      setSavingTemplate(false);
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
@@ -152,14 +183,19 @@ export default function InvoicesPage() {
       )}
 
       {/* Template Picker */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <button onClick={() => setShowTemplatePicker(!showTemplatePicker)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] hover:border-[#166534] hover:bg-[#F0FDF4] transition-all cursor-pointer">
           <Palette className="h-4 w-4 text-[#166534]" />
-          <span className="text-xs font-bold text-[#0F172A]">Invoice Template</span>
+          <span className="text-xs font-bold text-[#0F172A]">Templates</span>
           <span className="text-[10px] font-bold text-[#166534] bg-[#F0FDF4] px-2 py-0.5 rounded-full border border-[#BBF7D0]">
             {INVOICE_TEMPLATES.find(t => t.id === selectedTemplate)?.name || "Professional"}
           </span>
+          {receiptTemplate !== "same" && (
+            <span className="text-[10px] font-bold text-[#1E3A5F] bg-[#EFF6FF] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
+              receipts: {INVOICE_TEMPLATES.find(t => t.id === receiptTemplate)?.name}
+            </span>
+          )}
         </button>
         {!farmProfile.businessName && (
           <a href="/settings" className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold hover:bg-amber-100 cursor-pointer">
@@ -175,8 +211,8 @@ export default function InvoicesPage() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Choose Invoice Template</h3>
-                  <p className="text-xs text-[#94A3B8] mt-1">Select a template that matches your farm&apos;s style. All templates include your farm branding.</p>
+                  <h3 className="text-sm font-bold text-[#0F172A]">Choose Template</h3>
+                  <p className="text-xs text-[#94A3B8] mt-1">One setting styles all invoices and receipts — new and existing.</p>
                 </div>
                 <button onClick={() => setShowTemplatePicker(false)} className="text-[#94A3B8] hover:text-[#64748B] cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
@@ -207,15 +243,69 @@ export default function InvoicesPage() {
                     <p className="text-[10px] text-[#94A3B8] mt-1">{template.preview}</p>
                     {selectedTemplate === template.id && (
                       <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-[#166534]">
-                        <CheckCircle2 className="h-3 w-3" /> Selected
+                        <CheckCircle2 className="h-3 w-3" /> Invoice template
                       </div>
                     )}
                   </button>
                 ))}
               </div>
-              <div className="mt-4 flex justify-end">
-                <Button onClick={handleSaveTemplate} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">
-                  <Save className="h-4 w-4 mr-2" />Save Template
+
+              {/* Receipt template — defaults to following the invoice template */}
+              <div className="mt-6 pt-5 border-t border-[#E5E7EB]">
+                <p className="text-xs font-bold text-[#0F172A] mb-1">Sale receipts</p>
+                <p className="text-[11px] text-[#94A3B8] mb-3">Receipts printed from the Sales page. By default they match the invoice template.</p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setReceiptTemplate("same")}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      receiptTemplate === "same" ? "bg-[#166534] text-white border-[#166534]" : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"
+                    }`}>
+                    Same as invoices
+                  </button>
+                  {INVOICE_TEMPLATES.map(t => (
+                    <button key={t.id} onClick={() => setReceiptTemplate(t.id)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        receiptTemplate === t.id ? "bg-[#166534] text-white border-[#166534]" : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"
+                      }`}>
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Accent color — Manta-style brand override */}
+              <div className="mt-6 pt-5 border-t border-[#E5E7EB]">
+                <p className="text-xs font-bold text-[#0F172A] mb-1">Brand accent</p>
+                <p className="text-[11px] text-[#94A3B8] mb-3">Optional color override applied to headers, totals and tables across every template.</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {["", "#166534", "#1E3A5F", "#B45309", "#7C2D12", "#4C1D95", "#0F172A"].map(c => (
+                    <button key={c || "default"} onClick={() => setAccentColor(c)}
+                      title={c || "Template default"}
+                      className={`h-8 w-8 rounded-full border-2 transition-all cursor-pointer flex items-center justify-center ${
+                        accentColor === c ? "border-[#0F172A] scale-110" : "border-[#E5E7EB] hover:scale-105"
+                      }`}
+                      style={{ background: c || "linear-gradient(135deg,#E5E7EB 50%,#F8FAFC 50%)" }}>
+                      {accentColor === c && <CheckCircle2 className="h-3.5 w-3.5 text-white drop-shadow" />}
+                    </button>
+                  ))}
+                  <input
+                    type="color"
+                    value={accentColor || "#166534"}
+                    onChange={e => setAccentColor(e.target.value)}
+                    className="h-8 w-10 rounded cursor-pointer border border-[#E5E7EB] bg-white"
+                    title="Custom color"
+                  />
+                  {accentColor && (
+                    <button onClick={() => setAccentColor("")} className="text-[11px] font-bold text-[#94A3B8] hover:text-[#64748B] cursor-pointer">Reset</button>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between">
+                <p className="text-[11px] text-[#94A3B8]">
+                  Preview any invoice with the Print button — the saved template is used automatically.
+                </p>
+                <Button onClick={handleSaveTemplate} disabled={savingTemplate} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">
+                  <Save className="h-4 w-4 mr-2" />{savingTemplate ? "Saving..." : "Save — Applies Everywhere"}
                 </Button>
               </div>
             </CardContent>
