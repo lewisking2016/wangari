@@ -42,6 +42,12 @@ export interface EmailInput {
   userId?: number | null;
 }
 
+export interface EmailResult {
+  ok: boolean;
+  provider: "smtp" | "resend" | null;
+  error: string | null;
+}
+
 function wrapHtml(title: string, bodyHtml: string): string {
   return `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f6;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
   <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
@@ -89,7 +95,7 @@ export const emailTemplates = {
   },
 };
 
-export async function sendEmail(input: EmailInput): Promise<void> {
+export async function sendEmail(input: EmailInput): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const smtp = getSmtp();
   const provider: "smtp" | "resend" | null = smtp ? "smtp" : apiKey ? "resend" : null;
@@ -152,4 +158,5 @@ export async function sendEmail(input: EmailInput): Promise<void> {
     console.error("[email] failed to log:", e);
   }
   if (status === "failed") console.warn(`[email] ${input.template} to ${input.to} failed: ${error}`);
+  return { ok: status === "sent", provider, error };
 }

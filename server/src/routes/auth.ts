@@ -461,7 +461,7 @@ router.post("/send-verification", async (req: Request, res: Response) => {
 
     const { sendEmail } = await import("../lib/email.js");
     const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f6;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;padding:28px;"><h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Your verification code</h2><p style="margin:0 0 24px;font-size:15px;color:#64748b;">Use the code below to complete your email verification. It expires in <strong>15 minutes</strong>.</p><div style="background:#f0fdf4;border-radius:8px;padding:20px;text-align:center;margin-bottom:24px;"><span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#166534;font-family:monospace;">${code}</span></div><p style="margin:0;font-size:13px;color:#64748b;">If you didn't request this, you can safely ignore this email.</p></div></body></html>`;
-    await sendEmail({
+    const result = await sendEmail({
       to: user.email,
       subject: "Verify your email — Wangari",
       html,
@@ -469,7 +469,17 @@ router.post("/send-verification", async (req: Request, res: Response) => {
       userId: user.id,
     });
 
-    res.json({ message: "Verification code sent to your email." });
+    // Fallback: when email delivery can't be trusted (SMTP down/unconfigured,
+    // or EMAIL_FALLBACK_SHOW_CODE=true because the provider silently junk mail),
+    // return the code so the UI can show it on screen instead of blocking signup.
+    const showCode =
+      process.env.EMAIL_FALLBACK_SHOW_CODE === "true" || !result.ok;
+    res.json({
+      message: result.ok
+        ? "Verification code sent to your email."
+        : "Email delivery failed — use the code shown below.",
+      ...(showCode ? { devCode: code } : {}),
+    });
   } catch (error) {
     console.error("Send verification error:", error);
     res.status(500).json({ error: "Something went wrong. Please try again." });

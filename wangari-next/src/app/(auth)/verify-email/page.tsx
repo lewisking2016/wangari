@@ -29,6 +29,8 @@ function VerifyEmailForm() {
   const [verified, setVerified] = React.useState(false);
   const [resending, setResending] = React.useState(false);
   const [cooldown, setCooldown] = React.useState(0);
+  const [devCode, setDevCode] = React.useState<string | null>(null);
+  const [devNotice, setDevNotice] = React.useState<string | null>(null);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
   // Auto-send code on mount if coming from registration
@@ -58,6 +60,15 @@ function VerifyEmailForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to send code");
+      if (data.devCode) {
+        setDevCode(String(data.devCode));
+        setDevNotice(
+          data.message || "Email delivery is unavailable — use the code below."
+        );
+      } else {
+        setDevCode(null);
+        setDevNotice(null);
+      }
       if (!silent) setCooldown(60); // 60s cooldown
     } catch (err) {
       if (!silent) {
@@ -202,6 +213,23 @@ function VerifyEmailForm() {
           className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium"
         >
           {error}
+        </motion.div>
+      )}
+
+      {/* On-screen code fallback (shown when email delivery failed or is disabled) */}
+      {devCode && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-4 text-center"
+        >
+          <p className="text-xs font-semibold text-amber-800 mb-2">{devNotice}</p>
+          <p className="text-2xl font-bold tracking-[0.3em] text-amber-900 font-mono">
+            {devCode}
+          </p>
+          <p className="text-[11px] text-amber-700 mt-2">
+            Enter this code above to verify. It expires in 15 minutes.
+          </p>
         </motion.div>
       )}
 
