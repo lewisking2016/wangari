@@ -33,6 +33,7 @@ router.post("/", async (req: Request, res: Response) => {
       },
       update: {
         eggsCollected: Number(req.body.eggsCollected || 0),
+        milkCollected: Number(req.body.milkCollected || 0),
         mortality: Number(req.body.mortality || 0),
         feedUsed: Number(req.body.feedUsed || 0),
         notes: req.body.notes || null,
@@ -42,6 +43,7 @@ router.post("/", async (req: Request, res: Response) => {
         farmId: req.user!.farmId!,
         date: new Date(req.body.date),
         eggsCollected: Number(req.body.eggsCollected || 0),
+        milkCollected: Number(req.body.milkCollected || 0),
         mortality: Number(req.body.mortality || 0),
         feedUsed: Number(req.body.feedUsed || 0),
         notes: req.body.notes || null,

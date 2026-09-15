@@ -430,4 +430,87 @@ router.put("/profile", async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/send-verification
+// Generates a 6-digit code, stores it, emails it via the backend's SMTP.
+router.post("/send-verification", async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body || {};
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) {
+      // Don't reveal whether the email exists
+      return res.json({ message: "If that email is registered, a code has been sent." });
+    }
+    if (user.emailVerified) {
+      return res.json({ message: "Email is already verified." });
+    }
+
+    const code = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.verificationCode.deleteMany({
+      where: { userId: user.id, purpose: "email_verification" },
+    });
+    await prisma.verificationCode.create({
+      data: { userId: user.id, code, purpose: "email_verification", expiresAt },
+    });
+
+    const { sendEmail } = await import("../lib/email.js");
+    const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f6;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;padding:28px;"><h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Your verification code</h2><p style="margin:0 0 24px;font-size:15px;color:#64748b;">Use the code below to complete your email verification. It expires in <strong>15 minutes</strong>.</p><div style="background:#f0fdf4;border-radius:8px;padding:20px;text-align:center;margin-bottom:24px;"><span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#166534;font-family:monospace;">${code}</span></div><p style="margin:0;font-size:13px;color:#64748b;">If you didn't request this, you can safely ignore this email.</p></div></body></html>`;
+    await sendEmail({
+      to: user.email,
+      subject: "Verify your email — Wangari",
+      html,
+      template: "email_verification",
+      userId: user.id,
+    });
+
+    res.json({ message: "Verification code sent to your email." });
+  } catch (error) {
+    console.error("Send verification error:", error);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+});
+
+// POST /api/auth/verify-email
+router.post("/verify-email", async (req: Request, res: Response) => {
+  try {
+    const { email, code } = req.body || {};
+    if (!email || !code) {
+      return res.status(400).json({ error: "Email and code are required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) return res.status(400).json({ error: "Invalid code" });
+    if (user.emailVerified) return res.json({ message: "Email is already verified." });
+
+    const verification = await prisma.verificationCode.findFirst({
+      where: { userId: user.id, purpose: "email_verification", usedAt: null },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!verification) {
+      return res.status(400).json({ error: "No verification code found. Please request a new one." });
+    }
+    if (new Date() > verification.expiresAt) {
+      return res.status(400).json({ error: "Code has expired. Please request a new one." });
+    }
+    if (verification.code !== String(code)) {
+      return res.status(400).json({ error: "Invalid code. Please try again." });
+    }
+
+    await prisma.$transaction([
+      prisma.verificationCode.update({ where: { id: verification.id }, data: { usedAt: new Date() } }),
+      prisma.user.update({ where: { id: user.id }, data: { emailVerified: new Date() } }),
+    ]);
+
+    res.json({ message: "Email verified successfully!" });
+  } catch (error) {
+    console.error("Verify email error:", error);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+});
+
 export default router;
