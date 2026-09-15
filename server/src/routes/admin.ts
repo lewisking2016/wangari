@@ -31,7 +31,7 @@ router.post("/login", async (req: Request, res: Response) => {
     if ("mfaInvalid" in result) {
       return res.status(401).json({ error: "Invalid authenticator or recovery code" });
     }
-    auditAdminAction(undefined, "admin.login", "admin", result.admin.id, { email: result.admin.email });
+    auditAdminAction({ adminId: result.admin.id, role: result.admin.role as AdminRole, name: result.admin.name }, "admin.login", "admin", result.admin.id, { email: result.admin.email });
     res.json(result);
   } catch (error) {
     console.error("Admin login error:", error);
@@ -322,7 +322,7 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
         orderBy: { expiresAt: "asc" },
         take: 10,
       });
-      trialFarms = await anyPrisma2.farm.count({ where: { subscriptions: { none: { status: "active" } } } }).catch(() => 0);
+      trialFarms = await prisma.$queryRawUnsafe<number>(`SELECT COUNT(*)::int FROM farms f WHERE NOT EXISTS (SELECT 1 FROM subscriptions s WHERE s.user_id = f.owner_id AND s.status = 'active')`).then((r: any) => Number(r?.[0]?.count ?? 0)).catch(() => 0);
     }
 
     // 3. Email ops health (last 24h)

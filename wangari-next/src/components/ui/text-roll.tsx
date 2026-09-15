@@ -18,7 +18,7 @@ export const TextRoll: React.FC<{
       initial="initial"
       whileHover="hovered"
       className={cn("relative block overflow-hidden cursor-default", className)}
-      style={{ lineHeight: 0.85 }}
+      style={{ lineHeight: 1.15, paddingTop: "0.05em", paddingBottom: "0.05em" }}
     >
       {/* Top layer — slides up on hover */}
       <div>
