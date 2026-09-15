@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, ArrowRight, Mail, CheckCircle2, RefreshCw } from "lucide-react";
+import { Loader2, ArrowRight, Mail, CheckCircle2, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -279,6 +279,22 @@ function VerifyEmailForm() {
               ? "Sending..."
               : "Resend code"}
         </button>
+      </motion.div>
+
+      {/* Spam folder tip — also trains Gmail when the user marks us Not Spam */}
+      <motion.div
+        variants={fadeUp}
+        className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5"
+      >
+        <p className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-1">
+          <Search className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+          Not seeing the code? Check your spam folder
+        </p>
+        <p className="text-[11px] leading-relaxed text-slate-500">
+          If it&apos;s in Spam, open it and tap <strong>“Not spam”</strong> (or
+          <strong> “Report not spam”</strong>). That tells Gmail to deliver our
+          future emails straight to your inbox.
+        </p>
       </motion.div>
 
       {/* Back to login */}
