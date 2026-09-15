@@ -38,6 +38,7 @@ export interface EmailInput {
   to: string;
   subject: string;
   html: string;
+  text?: string; // plain-text alternative — improves deliverability
   template: string; // receipt | ticket_reply | announcement | oneoff
   userId?: number | null;
 }
@@ -110,6 +111,7 @@ export async function sendEmail(input: EmailInput): Promise<EmailResult> {
         to: input.to,
         subject: input.subject,
         html: input.html,
+        text: input.text,
       });
       status = "sent";
       providerId = info.messageId || null;
@@ -127,7 +129,7 @@ export async function sendEmail(input: EmailInput): Promise<EmailResult> {
       const res = await fetch(RESEND_API, {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: FROM, to: [input.to], subject: input.subject, html: input.html }),
+        body: JSON.stringify({ from: FROM, to: [input.to], subject: input.subject, html: input.html, text: input.text }),
       });
       const data: any = await res.json().catch(() => ({}));
       if (res.ok && data?.id) {

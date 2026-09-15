@@ -461,10 +461,12 @@ router.post("/send-verification", async (req: Request, res: Response) => {
 
     const { sendEmail } = await import("../lib/email.js");
     const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f6;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;padding:28px;"><h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Your verification code</h2><p style="margin:0 0 24px;font-size:15px;color:#64748b;">Use the code below to complete your email verification. It expires in <strong>15 minutes</strong>.</p><div style="background:#f0fdf4;border-radius:8px;padding:20px;text-align:center;margin-bottom:24px;"><span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#166534;font-family:monospace;">${code}</span></div><p style="margin:0;font-size:13px;color:#64748b;">If you didn't request this, you can safely ignore this email.</p></div></body></html>`;
+    const text = `Your Wangari verification code is ${code}. It expires in 15 minutes.\n\nIf you didn't request this, you can safely ignore this email.`;
     const result = await sendEmail({
       to: user.email,
       subject: "Verify your email — Wangari",
       html,
+      text,
       template: "email_verification",
       userId: user.id,
     });
