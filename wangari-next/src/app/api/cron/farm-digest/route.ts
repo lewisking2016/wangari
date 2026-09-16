@@ -20,15 +20,17 @@ export async function GET(req: Request) {
   }
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 120_000);
     const res = await fetch(`${BACKEND_URL}/api/cron/farm-digest`, {
       headers: { Authorization: `Bearer ${CRON_SECRET}` },
       // Digest can take a while with many farms (SMTP sends are serial)
-      signal: AbortSignal.timeout(120_000),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
     const data = await res.json().catch(() => ({}));
     return NextResponse.json(data, { status: res.status });
   } catch (e: any) {
-    console.error("Digest trigger error:", e?.message);
+    console.error("Digest trigger error:", e?.message, e?.cause?.message || "");
     return NextResponse.json({ error: "Failed to trigger digest", detail: e?.message }, { status: 502 });
   }
 }
