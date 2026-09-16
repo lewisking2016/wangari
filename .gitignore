@@ -51,4 +51,6 @@ credentials.json
 .env*
 
 # Raw demo video source (large, not for git)
-wangari-next/public/www.mp4
+media-master/www-master.mp4
+
+.env*
