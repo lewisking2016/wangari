@@ -6,6 +6,16 @@
 const TOKEN_KEY = "wangari_token";
 const USER_KEY = "wangari_user";
 
+// ─── Analytics (PostHog) ──────────────────────────────────
+// Dynamic import keeps this dependency-free at module scope; trackEvent is a
+// safe no-op when PostHog isn't configured.
+async function track(event: string, props?: Record<string, unknown>) {
+  try {
+    const { trackEvent } = await import("@/lib/posthog");
+    trackEvent(event, props);
+  } catch {}
+}
+
 export interface AuthUser {
   id: number;
   name: string;
@@ -94,6 +104,7 @@ export async function login(email: string, password: string): Promise<AuthRespon
 
   setToken(data.token);
   setUser(data.user);
+  track("user_logged_in", { method: "password", user_id: data.user?.id });
   return data;
 }
 
@@ -114,6 +125,7 @@ export async function register(
 
   setToken(data.token);
   setUser(data.user);
+  track("user_signed_up", { method: "password", user_id: data.user?.id });
   return data;
 }
 
@@ -153,6 +165,7 @@ export async function googleLogin(credential: string): Promise<AuthResponse> {
 
   setToken(data.token);
   setUser(data.user);
+  track("user_logged_in", { method: "google", user_id: data.user?.id, new_user: !!data.user?.googleId });
   return data;
 }
 
@@ -214,12 +227,17 @@ export async function verifyEmail(email: string, code: string): Promise<{ messag
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Verification failed");
+  track("email_verified", { email });
   return data;
 }
 
 export function logout(): void {
+  track("user_logged_out");
   removeToken();
   if (typeof window !== "undefined") {
+    try {
+      import("@/lib/posthog").then(({ resetPostHog }) => resetPostHog());
+    } catch {}
     window.location.href = "/login";
   }
 }

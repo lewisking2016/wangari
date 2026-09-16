@@ -105,11 +105,12 @@ export default function CropsPage() {
       isPerennial: PERENNIAL_CROPS.has(form.cropType),
       maturityYears: form.maturityYears || (PERENNIAL_CROPS.has(form.cropType) ? String(MATURITY_YEARS[form.cropType] ?? "") : ""),
     });
+    import("@/lib/posthog").then(({ trackEvent }) => trackEvent("crop_registered", { crop_type: form.cropType, perennial: PERENNIAL_CROPS.has(form.cropType) }));
     resetForm(); showToast("Crop registered!"); load();
   };
   const handleDelete = async (id: number) => { if (!confirm("Delete this crop?")) return; await api.delete("/api/crops/" + id); load(); };
 
-  const handleHarvest = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/harvest`, harvestForm); setHarvestForm({ date: new Date().toISOString().split("T")[0], quantityKg: "", quality: "A", salePrice: "" }); closeModal(); showToast("Harvest recorded!"); load(); };
+  const handleHarvest = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/harvest`, harvestForm); import("@/lib/posthog").then(({ trackEvent }) => trackEvent("harvest_recorded", { crop_type: modalCrop.cropType, quantity_kg: Number(harvestForm.quantityKg) || 0, has_sale: !!harvestForm.salePrice })); setHarvestForm({ date: new Date().toISOString().split("T")[0], quantityKg: "", quality: "A", salePrice: "" }); closeModal(); showToast("Harvest recorded!"); load(); };
   const handleHealth = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/health`, healthForm); setHealthForm({ date: new Date().toISOString().split("T")[0], issueType: "Pest", description: "", severity: "low", treatment: "" }); closeModal(); showToast("Health issue recorded!"); load(); };
   const handleApply = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/apply`, applyForm); setApplyForm({ date: new Date().toISOString().split("T")[0], type: "Fertilizer", productName: "", quantity: "", unit: "kg", cost: "", phiDays: "" }); closeModal(); showToast("Application recorded!"); load(); };
   const handlePostHarvest = async () => {

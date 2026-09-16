@@ -212,7 +212,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                     <Link
                       key={item.href}
                       href={locked ? "#" : item.href}
-                      onClick={locked ? (e) => { e.preventDefault(); setLockedModule(item.label); } : onClose}
+                      onClick={locked ? (e) => { e.preventDefault(); import("@/lib/posthog").then(({ trackEvent }) => trackEvent("locked_module_clicked", { module: item.label })); setLockedModule(item.label); } : onClose}
                       className={cn(
                         "flex items-center gap-3 rounded-xl px-3 min-h-[48px] text-sm font-medium transition-all duration-150",
                         locked

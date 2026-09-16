@@ -55,8 +55,14 @@ function SubscriptionContent() {
   React.useEffect(() => {
     if (paymentParam === "success" || trxrefParam) {
       setModalState({ show: true, type: "success", reference: trxrefParam });
+      import("@/lib/posthog").then(({ trackEvent }) =>
+        trackEvent("subscription_completed", { reference: trxrefParam })
+      );
     } else if (paymentParam === "failed") {
       setModalState({ show: true, type: "failed", reason: reasonParam || "Transaction was not completed or was cancelled." });
+      import("@/lib/posthog").then(({ trackEvent }) =>
+        trackEvent("checkout_failed", { reason: reasonParam })
+      );
     }
   }, [paymentParam, trxrefParam, reasonParam]);
 
@@ -88,6 +94,9 @@ function SubscriptionContent() {
         callback_url: `${window.location.origin}/subscription?payment=success`,
       });
       if (res.authorization_url) {
+        import("@/lib/posthog").then(({ trackEvent }) =>
+          trackEvent("checkout_started", { plan: planKey, has_promo: !!promoCode.trim() })
+        );
         window.location.href = res.authorization_url;
       }
     } catch (err: any) {
