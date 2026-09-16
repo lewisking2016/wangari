@@ -12,7 +12,11 @@ router.get("/", async (req: Request, res: Response) => {
     const data = await prisma.crop.findMany({
       where: { farmId: req.user!.farmId! },
       orderBy: { createdAt: "desc" },
-      include: { harvests: { orderBy: { date: "desc" }, take: 10 } },
+      include: {
+        harvests: { orderBy: { date: "desc" }, take: 10 },
+        postHarvestBatches: { orderBy: { harvestDate: "desc" } },
+        soilTests: { orderBy: { date: "desc" } },
+      },
     });
     res.json(data);
   } catch (error) {
@@ -24,7 +28,7 @@ router.get("/", async (req: Request, res: Response) => {
 // POST /api/crops — create a crop
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const { name, cropType, variety, areaAcres, plantingDate, expectedHarvest, location, soilType, irrigation, notes } = req.body;
+    const { name, cropType, variety, areaAcres, plantingDate, expectedHarvest, location, soilType, irrigation, notes, isPerennial, maturityYears, harvestSeason } = req.body;
     const crop = await prisma.crop.create({
       data: {
         farmId: req.user!.farmId!,
@@ -38,6 +42,9 @@ router.post("/", async (req: Request, res: Response) => {
         soilType: soilType || null,
         irrigation: irrigation || null,
         notes: notes || null,
+        isPerennial: Boolean(isPerennial),
+        maturityYears: maturityYears ? Number(maturityYears) : null,
+        harvestSeason: harvestSeason || null,
         createdBy: req.user!.userId,
       },
     });
@@ -51,11 +58,14 @@ router.post("/", async (req: Request, res: Response) => {
 // PATCH /api/crops/:id — update a crop
 router.patch("/:id", async (req: Request, res: Response) => {
   try {
-    const allowed = ["name", "cropType", "variety", "areaAcres", "plantingDate", "expectedHarvest", "status", "location", "soilType", "irrigation", "notes"];
+    const allowed = ["name", "cropType", "variety", "areaAcres", "plantingDate", "expectedHarvest", "status", "location", "soilType", "irrigation", "notes", "harvestSeason"];
     const data: Record<string, any> = {};
     for (const key of allowed) {
       if (req.body[key] !== undefined) data[key] = req.body[key] === "" ? null : req.body[key];
     }
+    if (req.body.isPerennial !== undefined) data.isPerennial = Boolean(req.body.isPerennial);
+    if (req.body.maturityYears !== undefined) data.maturityYears = req.body.maturityYears === "" || req.body.maturityYears === null ? null : Number(req.body.maturityYears);
+    if (req.body.yearsInProduction !== undefined) data.yearsInProduction = req.body.yearsInProduction === "" || req.body.yearsInProduction === null ? null : Number(req.body.yearsInProduction);
     if (data.areaAcres) data.areaAcres = Number(data.areaAcres);
     if (data.plantingDate) data.plantingDate = new Date(data.plantingDate);
     if (data.expectedHarvest) data.expectedHarvest = new Date(data.expectedHarvest);
@@ -74,6 +84,8 @@ router.patch("/:id", async (req: Request, res: Response) => {
 // DELETE /api/crops/:id
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
+    await prisma.postHarvestBatch.deleteMany({ where: { cropId: Number(req.params.id) } });
+    await prisma.soilTest.deleteMany({ where: { cropId: Number(req.params.id) } });
     await prisma.cropHarvest.deleteMany({ where: { cropId: Number(req.params.id) } });
     await prisma.crop.deleteMany({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
     res.json({ success: true });
@@ -145,6 +157,26 @@ router.get("/:id/harvests", async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/crops/:id/harvest/:harvestId — update a harvest (e.g. bump yearsInProduction on perennials after a season)
+router.patch("/:id/harvest/:harvestId", async (req: Request, res: Response) => {
+  try {
+    const { quality, soldQuantity, salePrice, notes } = req.body;
+    const data: Record<string, any> = {};
+    if (quality !== undefined) data.quality = quality || null;
+    if (soldQuantity !== undefined) data.soldQuantity = soldQuantity === "" ? null : Number(soldQuantity);
+    if (salePrice !== undefined) data.salePrice = salePrice === "" ? null : Number(salePrice);
+    if (notes !== undefined) data.notes = notes || null;
+    const harvest = await prisma.cropHarvest.updateMany({
+      where: { id: Number(req.params.harvestId), cropId: Number(req.params.id), farmId: req.user!.farmId! },
+      data,
+    });
+    res.json({ success: true, updated: harvest.count });
+  } catch (error) {
+    console.error("Update harvest error:", error);
+    res.status(500).json({ error: "Failed to update harvest" });
+  }
+});
+
 // POST /api/crops/:id/health — record a health issue
 router.post("/:id/health", async (req: Request, res: Response) => {
   try {
@@ -209,7 +241,7 @@ router.post("/:id/apply", async (req: Request, res: Response) => {
     const crop = await prisma.crop.findFirst({ where: { id: cropId, farmId: req.user!.farmId! } });
     if (!crop) return res.status(404).json({ error: "Crop not found" });
 
-    const { date, type, productName, quantity, unit, cost, notes, inventoryItemId } = req.body;
+    const { date, type, productName, quantity, unit, cost, notes, inventoryItemId, phiDays } = req.body;
     const application = await prisma.cropApplication.create({
       data: {
         cropId,
@@ -221,6 +253,7 @@ router.post("/:id/apply", async (req: Request, res: Response) => {
         unit: unit || "kg",
         cost: cost ? Number(cost) : null,
         notes: notes || null,
+        phiDays: phiDays ? Number(phiDays) : null,
       },
     });
 
@@ -299,6 +332,147 @@ router.get("/:id/applications", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("List applications error:", error);
     res.status(500).json({ error: "Failed to fetch applications" });
+  }
+});
+
+// ============ Post-harvest batches (export chain) ============
+
+// POST /api/crops/:id/post-harvest — create a batch (auto-codes it AV-2026-001 style)
+router.post("/:id/post-harvest", async (req: Request, res: Response) => {
+  try {
+    const cropId = Number(req.params.id);
+    const crop = await prisma.crop.findFirst({ where: { id: cropId, farmId: req.user!.farmId! } });
+    if (!crop) return res.status(404).json({ error: "Crop not found" });
+
+    const { harvestDate, quantityKg, grade, dryMatterPct, treatment, notes } = req.body;
+    const count = await prisma.postHarvestBatch.count({ where: { farmId: req.user!.farmId! } });
+    const prefix = crop.cropType.slice(0, 2).toUpperCase();
+    const year = new Date().getFullYear();
+
+    const batch = await prisma.postHarvestBatch.create({
+      data: {
+        cropId,
+        farmId: req.user!.farmId!,
+        batchCode: `${prefix}-${year}-${String(count + 1).padStart(3, "0")}`,
+        harvestDate: harvestDate ? new Date(harvestDate) : new Date(),
+        quantityKg: Number(quantityKg),
+        grade: grade || null,
+        dryMatterPct: dryMatterPct !== undefined && dryMatterPct !== "" && dryMatterPct !== null ? Number(dryMatterPct) : null,
+        treatment: treatment || null,
+        notes: notes || null,
+      },
+    });
+    res.status(201).json(batch);
+  } catch (error) {
+    console.error("Create post-harvest batch error:", error);
+    res.status(500).json({ error: "Failed to create post-harvest batch" });
+  }
+});
+
+// GET /api/crops/:id/post-harvest — list batches for a crop
+router.get("/:id/post-harvest", async (req: Request, res: Response) => {
+  try {
+    const batches = await prisma.postHarvestBatch.findMany({
+      where: { cropId: Number(req.params.id), farmId: req.user!.farmId! },
+      orderBy: { harvestDate: "desc" },
+    });
+    res.json(batches);
+  } catch (error) {
+    console.error("List post-harvest batches error:", error);
+    res.status(500).json({ error: "Failed to fetch post-harvest batches" });
+  }
+});
+
+// PATCH /api/post-harvest/:id — advance a batch through the chain
+// (grade → treat → cool → pack → dispatch). Validates the avocado dry-matter rule.
+router.patch("/post-harvest/:id", async (req: Request, res: Response) => {
+  try {
+    const existing = await prisma.postHarvestBatch.findFirst({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
+    if (!existing) return res.status(404).json({ error: "Batch not found" });
+
+    const { grade, dryMatterPct, treatment, treatmentDate, cooledAt, storageTempC, storageExitedAt, packedQtyKg, cartons, status, destination, phytoCertNo, notes } = req.body;
+    const data: Record<string, any> = {};
+
+    if (grade !== undefined) data.grade = grade || null;
+    if (dryMatterPct !== undefined) data.dryMatterPct = dryMatterPct === "" || dryMatterPct === null ? null : Number(dryMatterPct);
+    if (treatment !== undefined) data.treatment = treatment || null;
+    if (treatmentDate !== undefined) data.treatmentDate = treatmentDate ? new Date(treatmentDate) : null;
+    if (cooledAt !== undefined) data.cooledAt = cooledAt ? new Date(cooledAt) : null;
+    if (storageTempC !== undefined) data.storageTempC = storageTempC === "" || storageTempC === null ? null : Number(storageTempC);
+    if (storageExitedAt !== undefined) data.storageExitedAt = storageExitedAt ? new Date(storageExitedAt) : null;
+    if (packedQtyKg !== undefined) data.packedQtyKg = packedQtyKg === "" || packedQtyKg === null ? null : Number(packedQtyKg);
+    if (cartons !== undefined) data.cartons = cartons === "" || cartons === null ? null : Number(cartons);
+    if (status !== undefined) data.status = status;
+    if (destination !== undefined) data.destination = destination || null;
+    if (phytoCertNo !== undefined) data.phytoCertNo = phytoCertNo || null;
+    if (notes !== undefined) data.notes = notes || null;
+
+    // Export-grade guard: Hass below 21% dry matter will never ripen — reject it
+    // rather than let it reach an EU buyer (RASFF alert risk).
+    const dm = data.dryMatterPct ?? (existing.dryMatterPct ? Number(existing.dryMatterPct) : null);
+    const crop = await prisma.crop.findUnique({ where: { id: existing.cropId } });
+    const isAvocado = crop?.cropType?.toLowerCase().includes("avocado");
+    if (isAvocado && dm != null && dm < 21 && (data.grade ? data.grade.toLowerCase().includes("export") : existing.grade?.toLowerCase().includes("export"))) {
+      return res.status(400).json({ error: "Dry matter below 21% cannot be graded Export — immature fruit will not ripen. Grade as Domestic or leave on tree." });
+    }
+
+    const batch = await prisma.postHarvestBatch.update({ where: { id: existing.id }, data });
+    res.json(batch);
+  } catch (error) {
+    console.error("Update post-harvest batch error:", error);
+    res.status(500).json({ error: "Failed to update post-harvest batch" });
+  }
+});
+
+// DELETE /api/post-harvest/:id
+router.delete("/post-harvest/:id", async (req: Request, res: Response) => {
+  try {
+    await prisma.postHarvestBatch.deleteMany({ where: { id: Number(req.params.id), farmId: req.user!.farmId! } });
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Delete post-harvest batch error:", error);
+    res.status(500).json({ error: "Failed to delete post-harvest batch" });
+  }
+});
+
+// ============ Soil tests ============
+
+// POST /api/soil-tests — record a soil test (optionally tied to a crop)
+router.post("/soil-tests", async (req: Request, res: Response) => {
+  try {
+    const { cropId, date, labName, ph, nitrogen, phosphorus, potassium, organicMatterPct, recommendation, notes } = req.body;
+    const test = await prisma.soilTest.create({
+      data: {
+        farmId: req.user!.farmId!,
+        cropId: cropId ? Number(cropId) : null,
+        date: date ? new Date(date) : new Date(),
+        labName: labName || null,
+        ph: ph !== undefined && ph !== "" && ph !== null ? Number(ph) : null,
+        nitrogen: nitrogen || null,
+        phosphorus: phosphorus || null,
+        potassium: potassium || null,
+        organicMatterPct: organicMatterPct !== undefined && organicMatterPct !== "" && organicMatterPct !== null ? Number(organicMatterPct) : null,
+        recommendation: recommendation || null,
+        notes: notes || null,
+      },
+    });
+    res.status(201).json(test);
+  } catch (error) {
+    console.error("Create soil test error:", error);
+    res.status(500).json({ error: "Failed to create soil test" });
+  }
+});
+
+// GET /api/soil-tests — list soil tests (optionally filtered by crop)
+router.get("/soil-tests", async (req: Request, res: Response) => {
+  try {
+    const where: Record<string, any> = { farmId: req.user!.farmId! };
+    if (req.query.cropId) where.cropId = Number(req.query.cropId);
+    const tests = await prisma.soilTest.findMany({ where, orderBy: { date: "desc" } });
+    res.json(tests);
+  } catch (error) {
+    console.error("List soil tests error:", error);
+    res.status(500).json({ error: "Failed to fetch soil tests" });
   }
 });
 

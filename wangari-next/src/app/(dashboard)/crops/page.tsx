@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Leaf, Plus, X, Search, Droplets, TrendingUp, Trash2, Check, MapPin, ChevronRight, Bug, Pill, AlertTriangle, Sprout, Calendar, BarChart3 } from "lucide-react";
+import { Leaf, Plus, X, Search, Droplets, TrendingUp, Trash2, Check, MapPin, ChevronRight, Bug, Pill, AlertTriangle, Sprout, Calendar, BarChart3, Package, FlaskConical } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,14 @@ import api from "@/lib/api-client";
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 
-const CROP_TYPES = ["Maize", "Beans", "Tomatoes", "Kale", "Cabbage", "Onions", "Potatoes", "Sorghum", "Millet", "Wheat", "Sugarcane", "Bananas", "Avocado", "Mango", "Coffee", "Tea"];
+const CROP_TYPES = [
+  "Maize", "Beans", "Green Grams", "Cowpeas", "Pigeon Peas", "Groundnuts", "Tomatoes", "Kale", "Cabbage", "Onions", "Potatoes", "Sorghum", "Millet", "Wheat", "Sugarcane",
+  "Avocado", "Macadamia", "Mango", "Citrus", "Passion Fruit", "Bananas", "Papaya", "Coffee", "Tea",
+];
+// Perennial orchard crops: produce for years/decades — no single "harvested" end state.
+const PERENNIAL_CROPS = new Set(["Avocado", "Macadamia", "Mango", "Citrus", "Passion Fruit", "Bananas", "Papaya", "Coffee", "Tea"]);
+// Typical years from planting to first commercial harvest (Kenya smallholder guides).
+const MATURITY_YEARS: Record<string, number> = { Avocado: 3, Macadamia: 4, Mango: 4, Citrus: 4, "Passion Fruit": 1, Bananas: 1, Papaya: 1, Coffee: 3, Tea: 3 };
 const GROWTH_STAGES = ["Planted", "Germinating", "Vegetative", "Flowering", "Fruiting", "Ready"];
 const HEALTH_ISSUES = ["Pest", "Disease", "Weed", "Nutrient Deficiency", "Weather Damage"];
 const APPLICATION_TYPES = ["Fertilizer", "Pesticide", "Herbicide", "Irrigation", "Organic Manure"];
@@ -35,7 +42,7 @@ function getGrowthProgress(plantingDate: string | null, expectedHarvest: string 
   return { stage: "Ready", percent: pct };
 }
 
-type Modal = null | "harvest" | "health" | "apply";
+type Modal = null | "harvest" | "health" | "apply" | "postharvest" | "soiltest" | "batches";
 
 export default function CropsPage() {
   const [crops, setCrops] = React.useState<any[]>([]);
@@ -46,14 +53,18 @@ export default function CropsPage() {
   // Create form
   const [showForm, setShowForm] = React.useState(false);
   const [step, setStep] = React.useState(0);
-  const [form, setForm] = React.useState({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "", pricePerKg: "" });
+  const [form, setForm] = React.useState({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "", pricePerKg: "", harvestSeason: "", maturityYears: "" });
 
   // Action modals
   const [activeModal, setActiveModal] = React.useState<Modal>(null);
   const [modalCrop, setModalCrop] = React.useState<any>(null);
   const [harvestForm, setHarvestForm] = React.useState({ date: new Date().toISOString().split("T")[0], quantityKg: "", quality: "A", salePrice: "" });
   const [healthForm, setHealthForm] = React.useState({ date: new Date().toISOString().split("T")[0], issueType: "Pest", description: "", severity: "low", treatment: "" });
-  const [applyForm, setApplyForm] = React.useState({ date: new Date().toISOString().split("T")[0], type: "Fertilizer", productName: "", quantity: "", unit: "kg", cost: "" });
+  const [applyForm, setApplyForm] = React.useState({ date: new Date().toISOString().split("T")[0], type: "Fertilizer", productName: "", quantity: "", unit: "kg", cost: "", phiDays: "" });
+  const [phForm, setPhForm] = React.useState({ harvestDate: new Date().toISOString().split("T")[0], quantityKg: "", grade: "", dryMatterPct: "", treatment: "" });
+  const [soilForm, setSoilForm] = React.useState({ date: new Date().toISOString().split("T")[0], labName: "", ph: "", nitrogen: "", phosphorus: "", potassium: "", organicMatterPct: "", recommendation: "" });
+  const [phBatches, setPhBatches] = React.useState<any[]>([]);
+  const [soilTests, setSoilTests] = React.useState<any[]>([]);
 
   const load = () => {
     api.get("/api/crops").then(d => { setCrops(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
@@ -63,14 +74,43 @@ export default function CropsPage() {
   const openModal = (modal: Modal, crop: any) => { setActiveModal(modal); setModalCrop(crop); };
   const closeModal = () => { setActiveModal(null); setModalCrop(null); };
 
-  const resetForm = () => { setForm({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "", pricePerKg: "" }); setStep(0); setShowForm(false); };
+  const resetForm = () => { setForm({ name: "", cropType: "", variety: "", areaAcres: "", plantingDate: "", expectedHarvest: "", location: "", pricePerKg: "", harvestSeason: "", maturityYears: "" }); setStep(0); setShowForm(false); };
 
-  const handleCreate = async () => { await api.post("/api/crops", form); resetForm(); showToast("Crop registered!"); load(); };
+  const handleCreate = async () => {
+    await api.post("/api/crops", {
+      ...form,
+      isPerennial: PERENNIAL_CROPS.has(form.cropType),
+      maturityYears: form.maturityYears || (PERENNIAL_CROPS.has(form.cropType) ? String(MATURITY_YEARS[form.cropType] ?? "") : ""),
+    });
+    resetForm(); showToast("Crop registered!"); load();
+  };
   const handleDelete = async (id: number) => { if (!confirm("Delete this crop?")) return; await api.delete("/api/crops/" + id); load(); };
 
   const handleHarvest = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/harvest`, harvestForm); setHarvestForm({ date: new Date().toISOString().split("T")[0], quantityKg: "", quality: "A", salePrice: "" }); closeModal(); showToast("Harvest recorded!"); load(); };
   const handleHealth = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/health`, healthForm); setHealthForm({ date: new Date().toISOString().split("T")[0], issueType: "Pest", description: "", severity: "low", treatment: "" }); closeModal(); showToast("Health issue recorded!"); load(); };
-  const handleApply = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/apply`, applyForm); setApplyForm({ date: new Date().toISOString().split("T")[0], type: "Fertilizer", productName: "", quantity: "", unit: "kg", cost: "" }); closeModal(); showToast("Application recorded!"); load(); };
+  const handleApply = async () => { if (!modalCrop) return; await api.post(`/api/crops/${modalCrop.id}/apply`, applyForm); setApplyForm({ date: new Date().toISOString().split("T")[0], type: "Fertilizer", productName: "", quantity: "", unit: "kg", cost: "", phiDays: "" }); closeModal(); showToast("Application recorded!"); load(); };
+  const handlePostHarvest = async () => {
+    if (!modalCrop) return;
+    try {
+      await api.post(`/api/crops/${modalCrop.id}/post-harvest`, phForm);
+      setPhForm({ harvestDate: new Date().toISOString().split("T")[0], quantityKg: "", grade: "", dryMatterPct: "", treatment: "" });
+      closeModal(); showToast("Post-harvest batch created!"); load();
+    } catch (e: any) { showToast(e?.message || "Failed to create batch"); }
+  };
+  const handleSoilTest = async () => {
+    if (!modalCrop) return;
+    try {
+      await api.post("/api/soil-tests", { ...soilForm, cropId: modalCrop.id });
+      setSoilForm({ date: new Date().toISOString().split("T")[0], labName: "", ph: "", nitrogen: "", phosphorus: "", potassium: "", organicMatterPct: "", recommendation: "" });
+      closeModal(); showToast("Soil test recorded!"); load();
+    } catch (e: any) { showToast(e?.message || "Failed to record soil test"); }
+  };
+  const openBatches = async (crop: any) => {
+    setModalCrop(crop);
+    try { setPhBatches(await api.get(`/api/crops/${crop.id}/post-harvest`)); } catch { setPhBatches([]); }
+    try { setSoilTests(await api.get(`/api/soil-tests?cropId=${crop.id}`)); } catch { setSoilTests([]); }
+    setActiveModal("batches");
+  };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
 
@@ -129,6 +169,12 @@ export default function CropsPage() {
                       <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">🎯 Expected Harvest</Label><Input type="date" value={form.expectedHarvest} onChange={e => setForm({ ...form, expectedHarvest: e.target.value })} className="h-11 rounded-xl" /></div>
                       <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">📍 Location</Label><Input placeholder="e.g. Behind house" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} className="h-11 rounded-xl" /></div>
                       <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">💰 Price per kg (KES)</Label><Input type="number" placeholder="e.g. 50" value={form.pricePerKg} onChange={e => setForm({ ...form, pricePerKg: e.target.value })} className="h-11 rounded-xl" /></div>
+                      {PERENNIAL_CROPS.has(form.cropType) && (
+                        <>
+                          <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">🌳 Years to maturity</Label><Input type="number" placeholder={String(MATURITY_YEARS[form.cropType] ?? 3)} value={form.maturityYears} onChange={e => setForm({ ...form, maturityYears: e.target.value })} className="h-11 rounded-xl" /></div>
+                          <div className="space-y-1"><Label className="text-xs font-semibold text-gray-500">🗓️ Harvest season</Label><Input placeholder="e.g. Apr-Sep" value={form.harvestSeason} onChange={e => setForm({ ...form, harvestSeason: e.target.value })} className="h-11 rounded-xl" /></div>
+                        </>
+                      )}
                     </div>
                     <div className="mt-4 flex gap-2">
                       <Button onClick={() => setStep(2)} disabled={!form.name} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer disabled:opacity-50">Review <ChevronRight className="h-4 w-4 ml-1" /></Button>
@@ -146,6 +192,9 @@ export default function CropsPage() {
                       {form.areaAcres && <div className="flex justify-between"><span className="text-gray-500">Area:</span><span className="font-bold">{form.areaAcres} acres</span></div>}
                       {form.plantingDate && <div className="flex justify-between"><span className="text-gray-500">Planting:</span><span className="font-bold">{new Date(form.plantingDate).toLocaleDateString()}</span></div>}
                       {form.pricePerKg && <div className="flex justify-between"><span className="text-gray-500">Price/kg:</span><span className="font-bold">KES {form.pricePerKg}</span></div>}
+                      {PERENNIAL_CROPS.has(form.cropType) && <div className="flex justify-between"><span className="text-gray-500">Type:</span><span className="font-bold">Perennial orchard</span></div>}
+                      {form.maturityYears && <div className="flex justify-between"><span className="text-gray-500">Maturity:</span><span className="font-bold">{form.maturityYears} years</span></div>}
+                      {form.harvestSeason && <div className="flex justify-between"><span className="text-gray-500">Season:</span><span className="font-bold">{form.harvestSeason}</span></div>}
                     </div>
                     <div className="mt-4 flex gap-2">
                       <Button onClick={handleCreate} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer">✓ Save Crop</Button>
@@ -298,6 +347,11 @@ export default function CropsPage() {
                         <div>
                           <h3 className="text-base font-bold text-gray-900">{crop.name}</h3>
                           <p className="text-xs text-gray-400">{crop.cropType}{crop.variety ? ` (${crop.variety})` : ""}</p>
+                          {crop.isPerennial && (
+                            <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">
+                              🌳 Perennial{crop.maturityYears ? ` · ${crop.maturityYears}y to maturity` : ""}{crop.harvestSeason ? ` · ${crop.harvestSeason}` : ""}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-1">
@@ -344,7 +398,7 @@ export default function CropsPage() {
                         })}
                       </div>
                       {/* Action buttons */}
-                      <div className="grid grid-cols-3 gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5">
                         <button onClick={() => openModal("harvest", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-semibold hover:bg-emerald-100 transition-colors cursor-pointer">
                           <Check className="h-3.5 w-3.5" />Harvest
                         </button>
@@ -353,6 +407,15 @@ export default function CropsPage() {
                         </button>
                         <button onClick={() => openModal("apply", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-semibold hover:bg-blue-100 transition-colors cursor-pointer">
                           <Pill className="h-3.5 w-3.5" />Apply Input
+                        </button>
+                        <button onClick={() => openModal("postharvest", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-purple-50 text-purple-700 text-[10px] font-semibold hover:bg-purple-100 transition-colors cursor-pointer">
+                          <Package className="h-3.5 w-3.5" />Post-Harvest
+                        </button>
+                        <button onClick={() => openModal("soiltest", crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-teal-50 text-teal-700 text-[10px] font-semibold hover:bg-teal-100 transition-colors cursor-pointer">
+                          <FlaskConical className="h-3.5 w-3.5" />Soil Test
+                        </button>
+                        <button onClick={() => openBatches(crop)} className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-gray-50 text-gray-600 text-[10px] font-semibold hover:bg-gray-100 transition-colors cursor-pointer">
+                          <BarChart3 className="h-3.5 w-3.5" />Batches & Tests
                         </button>
                       </div>
                     </div>
@@ -374,6 +437,9 @@ export default function CropsPage() {
                 {activeModal === "harvest" && "Record Harvest"}
                 {activeModal === "health" && "Report Health Issue"}
                 {activeModal === "apply" && "Record Input Application"}
+                {activeModal === "postharvest" && "Post-Harvest Batch"}
+                {activeModal === "soiltest" && "Record Soil Test"}
+                {activeModal === "batches" && "Batches & Soil Tests"}
               </h3>
               <p className="text-xs text-gray-400 mb-4">{modalCrop.name} — {modalCrop.cropType}</p>
 
@@ -416,13 +482,109 @@ export default function CropsPage() {
                     <div><Label className="text-xs font-semibold text-gray-400">Unit</Label><select value={applyForm.unit} onChange={e => setApplyForm({ ...applyForm, unit: e.target.value })} className="w-full h-9 rounded-lg border border-gray-200 px-2 text-sm"><option>kg</option><option>litres</option><option>bags</option><option>ml</option></select></div>
                     <div><Label className="text-xs font-semibold text-gray-400">Cost (KES)</Label><Input type="number" placeholder="0" value={applyForm.cost} onChange={e => setApplyForm({ ...applyForm, cost: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
                   </div>
+                  {applyForm.type === "Pesticide" && (
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-400">Pre-Harvest Interval (days)</Label>
+                      <Input type="number" placeholder="e.g. 14" value={applyForm.phiDays} onChange={e => setApplyForm({ ...applyForm, phiDays: e.target.value })} className="h-9 rounded-lg text-sm" />
+                      <p className="text-[10px] text-gray-400 mt-1">Export compliance: minimum days between this spray and harvest.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeModal === "postharvest" && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs font-semibold text-gray-400">Harvest Date</Label><Input type="date" value={phForm.harvestDate} onChange={e => setPhForm({ ...phForm, harvestDate: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                    <div><Label className="text-xs font-semibold text-gray-400">Quantity (kg)</Label><Input type="number" placeholder="0" value={phForm.quantityKg} onChange={e => setPhForm({ ...phForm, quantityKg: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-400">Grade</Label>
+                      <select value={phForm.grade} onChange={e => setPhForm({ ...phForm, grade: e.target.value })} className="w-full h-9 rounded-lg border border-gray-200 px-2 text-sm">
+                        <option value="">— Select —</option>
+                        <option>Premium Export</option><option>Export</option><option>Domestic</option><option>Reject</option>
+                      </select>
+                    </div>
+                    <div><Label className="text-xs font-semibold text-gray-400">Dry Matter %</Label><Input type="number" step="0.1" placeholder="e.g. 26" value={phForm.dryMatterPct} onChange={e => setPhForm({ ...phForm, dryMatterPct: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                  </div>
+                  {Number(phForm.dryMatterPct) > 0 && Number(phForm.dryMatterPct) < 21 && phForm.grade.toLowerCase().includes("export") && (
+                    <div className="rounded-lg bg-red-50 border border-red-200 p-2 text-[11px] text-red-700">
+                      ⚠️ Below 21% dry matter the fruit will never ripen — cannot be graded Export. Grade as Domestic or leave on the tree.
+                    </div>
+                  )}
+                  <div>
+                    <Label className="text-xs font-semibold text-gray-400">Treatment</Label>
+                    <select value={phForm.treatment} onChange={e => setPhForm({ ...phForm, treatment: e.target.value })} className="w-full h-9 rounded-lg border border-gray-200 px-2 text-sm">
+                      <option value="">— Select —</option>
+                      <option>Hot Water Treatment (HWT)</option><option>Vapour Heat Treatment (VHT)</option><option>Fungicide dip</option><option>Waxing</option><option>None</option>
+                    </select>
+                  </div>
+                  <p className="text-[10px] text-gray-400">A traceability batch code is generated automatically. Cooling, packing and dispatch are tracked on the batch afterwards.</p>
+                </div>
+              )}
+
+              {activeModal === "soiltest" && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs font-semibold text-gray-400">Date</Label><Input type="date" value={soilForm.date} onChange={e => setSoilForm({ ...soilForm, date: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                    <div><Label className="text-xs font-semibold text-gray-400">Lab</Label><Input placeholder="e.g. KALRO lab" value={soilForm.labName} onChange={e => setSoilForm({ ...soilForm, labName: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs font-semibold text-gray-400">pH</Label><Input type="number" step="0.1" placeholder="e.g. 6.2" value={soilForm.ph} onChange={e => setSoilForm({ ...soilForm, ph: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                    <div><Label className="text-xs font-semibold text-gray-400">Organic Matter %</Label><Input type="number" step="0.1" placeholder="e.g. 3.5" value={soilForm.organicMatterPct} onChange={e => setSoilForm({ ...soilForm, organicMatterPct: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label className="text-xs font-semibold text-gray-400">N</Label><select value={soilForm.nitrogen} onChange={e => setSoilForm({ ...soilForm, nitrogen: e.target.value })} className="w-full h-9 rounded-lg border border-gray-200 px-2 text-sm"><option value="">—</option><option>low</option><option>medium</option><option>high</option></select></div>
+                    <div><Label className="text-xs font-semibold text-gray-400">P</Label><select value={soilForm.phosphorus} onChange={e => setSoilForm({ ...soilForm, phosphorus: e.target.value })} className="w-full h-9 rounded-lg border border-gray-200 px-2 text-sm"><option value="">—</option><option>low</option><option>medium</option><option>high</option></select></div>
+                    <div><Label className="text-xs font-semibold text-gray-400">K</Label><select value={soilForm.potassium} onChange={e => setSoilForm({ ...soilForm, potassium: e.target.value })} className="w-full h-9 rounded-lg border border-gray-200 px-2 text-sm"><option value="">—</option><option>low</option><option>medium</option><option>high</option></select></div>
+                  </div>
+                  <div><Label className="text-xs font-semibold text-gray-400">Recommendation</Label><Input placeholder="e.g. Apply lime 2t/ha before planting" value={soilForm.recommendation} onChange={e => setSoilForm({ ...soilForm, recommendation: e.target.value })} className="h-9 rounded-lg text-sm" /></div>
+                  {Number(soilForm.ph) > 0 && Number(soilForm.ph) < 5.2 && (
+                    <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-[11px] text-amber-700">⚠️ pH below 5.2 is too acidic for most crops (beans need 5.8–6.5) — lime recommended.</div>
+                  )}
+                </div>
+              )}
+
+              {activeModal === "batches" && (
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                  <div>
+                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">Post-Harvest Batches</p>
+                    {phBatches.length === 0 ? <p className="text-xs text-gray-400">No batches yet.</p> : (
+                      <div className="space-y-2">
+                        {phBatches.map((b: any) => (
+                          <div key={b.id} className="rounded-lg border border-gray-100 p-2.5 text-xs">
+                            <div className="flex justify-between font-bold text-gray-900"><span>{b.batchCode}</span><span>{Number(b.quantityKg).toFixed(0)} kg</span></div>
+                            <div className="text-gray-500 mt-0.5">{b.grade || "Ungraded"}{b.dryMatterPct ? ` · ${Number(b.dryMatterPct)}% DM` : ""}{b.treatment ? ` · ${b.treatment}` : ""} · {b.status}</div>
+                            {b.destination && <div className="text-gray-400">→ {b.destination}{b.phytoCertNo ? ` · Phyto ${b.phytoCertNo}` : ""}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">Soil Tests</p>
+                    {soilTests.length === 0 ? <p className="text-xs text-gray-400">No soil tests yet.</p> : (
+                      <div className="space-y-2">
+                        {soilTests.map((t: any) => (
+                          <div key={t.id} className="rounded-lg border border-gray-100 p-2.5 text-xs">
+                            <div className="flex justify-between font-bold text-gray-900"><span>{new Date(t.date).toLocaleDateString()}</span><span>{t.ph ? `pH ${Number(t.ph)}` : ""}</span></div>
+                            <div className="text-gray-500 mt-0.5">{[t.nitrogen && `N ${t.nitrogen}`, t.phosphorus && `P ${t.phosphorus}`, t.potassium && `K ${t.potassium}`].filter(Boolean).join(" · ") || "—"}</div>
+                            {t.recommendation && <div className="text-gray-400">💡 {t.recommendation}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
               <div className="flex gap-2 mt-4">
-                <Button onClick={activeModal === "harvest" ? handleHarvest : activeModal === "health" ? handleHealth : handleApply}
-                  className="flex-1 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
-                <Button variant="outline" onClick={closeModal} className="cursor-pointer">Cancel</Button>
+                {activeModal !== "batches" && (
+                  <Button onClick={activeModal === "harvest" ? handleHarvest : activeModal === "health" ? handleHealth : activeModal === "apply" ? handleApply : activeModal === "postharvest" ? handlePostHarvest : handleSoilTest}
+                    className="flex-1 bg-[#166534] hover:bg-[#14532D] cursor-pointer">Save</Button>
+                )}
+                <Button variant="outline" onClick={closeModal} className="cursor-pointer">{activeModal === "batches" ? "Close" : "Cancel"}</Button>
               </div>
             </motion.div>
           </motion.div>

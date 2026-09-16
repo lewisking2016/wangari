@@ -182,6 +182,8 @@ model Farm {
   cropHarvests     CropHarvest[]
   cropHealth       CropHealth[]
   cropApplications CropApplication[]
+  postHarvestBatches PostHarvestBatch[]
+  soilTests        SoilTest[]
   invoices         Invoice[]
 
   @@map("farms")
@@ -309,6 +311,10 @@ model Crop {
   location        String? // field/plot designation
   soilType        String?   @map("soil_type")
   irrigation      String? // rainfed, drip, sprinkler, flood
+  isPerennial     Boolean   @default(false) @map("is_perennial") // true for orchard crops (avocado, macadamia, mango, coffee...)
+  maturityYears   Int?      @map("maturity_years") // years from planting to first commercial harvest (macadamia 3-5, avocado 3-4)
+  yearsInProduction Int?    @map("years_in_production") // completed production seasons (perennial crops only)
+  harvestSeason   String?   @map("harvest_season") // e.g. "Apr-Sep" (avocado), "Mar-Jun" (mango main crop)
   notes           String?
   createdBy       Int?      @map("created_by")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -319,6 +325,8 @@ model Crop {
   harvests     CropHarvest[]
   health       CropHealth[]
   applications CropApplication[]
+  postHarvestBatches PostHarvestBatch[]
+  soilTests    SoilTest[]
 
   @@map("crops")
 }
@@ -377,7 +385,70 @@ model CropApplication {
   crop Crop @relation(fields: [cropId], references: [id])
   farm Farm @relation(fields: [farmId], references: [id])
 
+  phiDays         Int?      @map("phi_days") // pre-harvest interval (days) — export compliance: min days between pesticide application and harvest
+
   @@map("crop_applications")
+}
+
+// Post-harvest handling chain — for export-grade crops (avocado, mango, macadamia).
+// Tracks each batch from harvest through grading, treatment, cold storage and packing.
+model PostHarvestBatch {
+  id            Int      @id @default(autoincrement())
+  cropId        Int      @map("crop_id")
+  farmId        Int      @map("farm_id")
+  batchCode     String   @map("batch_code") // traceability code e.g. "AV-2026-001"
+  harvestDate   DateTime @map("harvest_date")
+  quantityKg    Decimal  @map("quantity_kg") @db.Decimal(10, 2)
+
+  // Grading (e.g. avocado dry matter: <21% reject, 24-28% export, >28% premium)
+  grade         String? // e.g. "Export", "Premium Export", "Domestic", "Reject"
+  dryMatterPct  Decimal? @map("dry_matter_pct") @db.Decimal(5, 2) // avocado/macadamia export criterion
+
+  // Post-harvest treatment (mango EU exports require HWT/VHT; avocado fungicide dip)
+  treatment     String? // HWT, VHT, fungicide dip, waxing...
+  treatmentDate DateTime? @map("treatment_date")
+
+  // Cold chain (avocado: cool to 5°C within 5h of harvest)
+  cooledAt      DateTime? @map("cooled_at") // when batch reached storage temperature
+  storageTempC  Decimal? @map("storage_temp_c") @db.Decimal(5, 2)
+  storageExitedAt DateTime? @map("storage_exited_at")
+
+  // Packing & dispatch
+  packedQtyKg   Decimal? @map("packed_qty_kg") @db.Decimal(10, 2)
+  cartons       Int? // e.g. avocado 4kg cartons
+  status        String   @default("harvested") // harvested, graded, treated, stored, packed, dispatched, rejected
+  destination   String? // e.g. "EU export", "Local market", "Processing"
+  phytoCertNo   String?  @map("phyto_cert_no") // KEPHIS phytosanitary certificate number
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  crop Crop @relation(fields: [cropId], references: [id])
+  farm Farm @relation(fields: [farmId], references: [id])
+
+  @@map("post_harvest_batches")
+}
+
+// Soil test records — KALRO/Farm Africa guidance: test before planting and before fertiliser recommendation.
+model SoilTest {
+  id          Int      @id @default(autoincrement())
+  cropId      Int?     @map("crop_id") // optional — a test may be for a field not yet planted
+  farmId      Int      @map("farm_id")
+  date        DateTime @db.Date
+  labName     String?  @map("lab_name")
+  ph          Decimal? @db.Decimal(4, 2) // e.g. beans need 5.8-6.5; <5.2 is too acidic
+  nitrogen    String? // e.g. "low", "medium", "high"
+  phosphorus  String? @map("phosphorus")
+  potassium   String? // KALRO style low/medium/high
+  organicMatterPct Decimal? @map("organic_matter_pct") @db.Decimal(5, 2)
+  recommendation String? // agronomist's advice e.g. "apply lime 2t/ha"
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  crop Crop? @relation(fields: [cropId], references: [id])
+  farm Farm  @relation(fields: [farmId], references: [id])
+
+  @@map("soil_tests")
 }
 
 model Vaccination {
