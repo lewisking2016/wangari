@@ -9,6 +9,9 @@ export interface JwtPayload {
   farmId?: number;
   email?: string;
   role?: string;
+  // Admin tokens (signAdminToken on the backend)
+  adminId?: number;
+  type?: string;
   iat?: number;
   exp?: number;
 }

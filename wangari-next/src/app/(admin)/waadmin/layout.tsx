@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, CreditCard, Tags, Ticket, TicketPercent,
   Megaphone, Handshake, Mail, ShieldCheck, Activity, Lock, ChevronDown, LogOut, X, Menu, Globe,
+  LineChart,
 } from "lucide-react";
 import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from "@/lib/admin-client";
 
@@ -19,6 +20,7 @@ import { getAdminToken, getAdminSession, clearAdminSession, AdminSession } from 
 const NAV = [
   { section: "Platform", items: [
     { href: "/waadmin", label: "Overview", icon: LayoutDashboard, end: true },
+    { href: "/waadmin/analytics", label: "PostHog Analytics", icon: LineChart },
     { href: "/waadmin/farms", label: "Farms", icon: Building2 },
     { href: "/waadmin/users", label: "Users", icon: Users },
     { href: "/waadmin/billing", label: "Billing", icon: CreditCard },
