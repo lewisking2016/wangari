@@ -32,6 +32,7 @@ import flocksUploadRoutes from "./routes/flocks-upload.js";
 import uploadRoutes from "./routes/upload.js";
 import paystackRoutes from "./routes/paystack.js";
 import trialRoutes from "./routes/trial.js";
+import cronRoutes from "./routes/cron.js";
 import plansRoutes from "./routes/plans.js";
 import deliveriesRoutes from "./routes/deliveries.js";
 import adminRoutes from "./routes/admin.js";
@@ -153,6 +154,7 @@ app.use("/api/paystack", paystackRoutes);
 app.use("/api/trial", trialRoutes);
 app.use("/api/plans", plansRoutes);
 app.use("/api/deliveries", deliveriesRoutes);
+app.use("/api/cron", cronRoutes);
 
 // ─── Super-Admin API ──────────────────────────────────────
 // Stricter limiter: admin login is a high-value brute-force target.
