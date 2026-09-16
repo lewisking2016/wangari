@@ -100,7 +100,7 @@ export default function CropsPage() {
   const handleSoilTest = async () => {
     if (!modalCrop) return;
     try {
-      await api.post("/api/soil-tests", { ...soilForm, cropId: modalCrop.id });
+      await api.post("/api/crops/soil-tests", { ...soilForm, cropId: modalCrop.id });
       setSoilForm({ date: new Date().toISOString().split("T")[0], labName: "", ph: "", nitrogen: "", phosphorus: "", potassium: "", organicMatterPct: "", recommendation: "" });
       closeModal(); showToast("Soil test recorded!"); load();
     } catch (e: any) { showToast(e?.message || "Failed to record soil test"); }
@@ -108,7 +108,7 @@ export default function CropsPage() {
   const openBatches = async (crop: any) => {
     setModalCrop(crop);
     try { setPhBatches(await api.get(`/api/crops/${crop.id}/post-harvest`)); } catch { setPhBatches([]); }
-    try { setSoilTests(await api.get(`/api/soil-tests?cropId=${crop.id}`)); } catch { setSoilTests([]); }
+    try { setSoilTests(await api.get(`/api/crops/soil-tests?cropId=${crop.id}`)); } catch { setSoilTests([]); }
     setActiveModal("batches");
   };
 

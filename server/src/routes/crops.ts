@@ -345,6 +345,13 @@ router.post("/:id/post-harvest", async (req: Request, res: Response) => {
     if (!crop) return res.status(404).json({ error: "Crop not found" });
 
     const { harvestDate, quantityKg, grade, dryMatterPct, treatment, notes } = req.body;
+
+    // Export-grade guard on creation too (see PATCH note below).
+    const dmCreate = dryMatterPct !== undefined && dryMatterPct !== "" && dryMatterPct !== null ? Number(dryMatterPct) : null;
+    if (crop.cropType?.toLowerCase().includes("avocado") && dmCreate != null && dmCreate < 21 && grade?.toLowerCase().includes("export")) {
+      return res.status(400).json({ error: "Dry matter below 21% cannot be graded Export — immature fruit will not ripen. Grade as Domestic or leave on tree." });
+    }
+
     const count = await prisma.postHarvestBatch.count({ where: { farmId: req.user!.farmId! } });
     const prefix = crop.cropType.slice(0, 2).toUpperCase();
     const year = new Date().getFullYear();
