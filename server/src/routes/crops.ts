@@ -442,6 +442,108 @@ router.delete("/post-harvest/:id", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/crops/insights — PHI alerts, harvest season reminders & per-crop profitability
+router.get("/insights", async (req: Request, res: Response) => {
+  try {
+    const farmId = req.user!.farmId!;
+    const crops = await prisma.crop.findMany({
+      where: { farmId },
+      include: {
+        applications: { orderBy: { date: "desc" } },
+        harvests: { orderBy: { date: "desc" } },
+      },
+    });
+
+    const now = new Date();
+
+    // ── PHI alerts: active pre-harvest-interval windows after pesticide sprays ──
+    const phiAlerts = crops.flatMap((crop) =>
+      crop.applications
+        .filter((a) => a.type === "Pesticide" && a.phiDays && Number(a.phiDays) > 0)
+        .map((a) => {
+          const safeDate = new Date(a.date);
+          safeDate.setDate(safeDate.getDate() + Number(a.phiDays));
+          const daysLeft = Math.ceil((safeDate.getTime() - now.getTime()) / 86400000);
+          return {
+            cropId: crop.id,
+            cropName: crop.name,
+            cropType: crop.cropType,
+            productName: a.productName,
+            sprayedOn: a.date,
+            phiDays: Number(a.phiDays),
+            safeDate,
+            daysLeft,
+            safe: daysLeft <= 0,
+          };
+        })
+        .filter((a) => a.daysLeft >= 0 && a.daysLeft <= 60) // only current windows
+    ).sort((a, b) => a.daysLeft - b.daysLeft);
+
+    // ── Harvest reminders: expected-harvest dates within 14 days + harvest season windows ──
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const parseSeason = (season: string): { startMonth: number; endMonth: number } | null => {
+      const m = season.match(/([A-Za-z]{3,})\s*[-–to]+\s*([A-Za-z]{3,})/);
+      if (!m) return null;
+      const start = MONTHS.findIndex((mo) => mo.toLowerCase() === m[1].slice(0, 3).toLowerCase());
+      const end = MONTHS.findIndex((mo) => mo.toLowerCase() === m[2].slice(0, 3).toLowerCase());
+      if (start < 0 || end < 0) return null;
+      return { startMonth: start, endMonth: end };
+    };
+
+    const reminders = crops.flatMap((crop) => {
+      const out: any[] = [];
+      if (crop.expectedHarvest && crop.status === "active") {
+        const daysLeft = Math.ceil((new Date(crop.expectedHarvest).getTime() - now.getTime()) / 86400000);
+        if (daysLeft >= 0 && daysLeft <= 14) {
+          out.push({ cropId: crop.id, cropName: crop.name, cropType: crop.cropType, kind: "expected-date", message: daysLeft === 0 ? "Expected harvest is today" : `Expected harvest in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`, date: crop.expectedHarvest });
+        }
+      }
+      if (crop.harvestSeason) {
+        const s = parseSeason(crop.harvestSeason);
+        if (s) {
+          const month = now.getMonth();
+          const inSeason = s.startMonth <= s.endMonth ? month >= s.startMonth && month <= s.endMonth : month >= s.startMonth || month <= s.endMonth;
+          const monthsToStart = (s.startMonth - month + 12) % 12;
+          if (inSeason) {
+            out.push({ cropId: crop.id, cropName: crop.name, cropType: crop.cropType, kind: "season-open", message: `Harvest season is open (${crop.harvestSeason}) — schedule picking labour`, date: null });
+          } else if (monthsToStart > 0 && monthsToStart <= 1) {
+            out.push({ cropId: crop.id, cropName: crop.name, cropType: crop.cropType, kind: "season-upcoming", message: `Harvest season (${crop.harvestSeason}) starts next month — prepare crates, cold room & buyers`, date: null });
+          }
+        }
+      }
+      return out;
+    });
+
+    // ── Profitability per crop block: input costs vs harvest revenue ──
+    const profitability = crops.map((crop) => {
+      const inputCost = crop.applications.reduce((sum, a) => sum + Number(a.cost || 0), 0);
+      // salePrice is booked as total income per harvest record (see harvest auto-transaction)
+      const revenue = crop.harvests.reduce((sum, h) => sum + Number(h.salePrice || 0), 0);
+      const totalKg = crop.harvests.reduce((sum, h) => sum + Number(h.quantityKg || 0), 0);
+      const profit = revenue - inputCost;
+      return {
+        cropId: crop.id,
+        cropName: crop.name,
+        cropType: crop.cropType,
+        areaAcres: crop.areaAcres ? Number(crop.areaAcres) : null,
+        inputCost,
+        revenue,
+        profit,
+        marginPct: revenue > 0 ? Number(((profit / revenue) * 100).toFixed(1)) : null,
+        totalKg,
+        costPerKg: totalKg > 0 ? Number((inputCost / totalKg).toFixed(2)) : null,
+        applicationCount: crop.applications.length,
+        harvestCount: crop.harvests.length,
+      };
+    });
+
+    res.json({ phiAlerts, reminders, profitability });
+  } catch (error) {
+    console.error("Crop insights error:", error);
+    res.status(500).json({ error: "Failed to compute crop insights" });
+  }
+});
+
 // ============ Soil tests ============
 
 // POST /api/soil-tests — record a soil test (optionally tied to a crop)

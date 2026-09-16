@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Leaf, Plus, X, Search, Droplets, TrendingUp, Trash2, Check, MapPin, ChevronRight, Bug, Pill, AlertTriangle, Sprout, Calendar, BarChart3, Package, FlaskConical } from "lucide-react";
+import { Leaf, Plus, X, Search, Droplets, TrendingUp, Trash2, Check, MapPin, ChevronRight, Bug, Pill, AlertTriangle, AlertOctagon, Sprout, Calendar, CalendarClock, BarChart3, Package, FlaskConical, ShieldAlert, Wallet, ArrowRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +44,27 @@ function getGrowthProgress(plantingDate: string | null, expectedHarvest: string 
 
 type Modal = null | "harvest" | "health" | "apply" | "postharvest" | "soiltest" | "batches";
 
+// Batch chain for the post-harvest status timeline (harvested → dispatched)
+const BATCH_STAGES = ["harvested", "graded", "treated", "stored", "packed", "dispatched"] as const;
+
+function BatchTimeline({ status }: { status: string }) {
+  const idx = BATCH_STAGES.indexOf(status as (typeof BATCH_STAGES)[number]);
+  const effIdx = status === "rejected" ? -2 : idx < 0 ? 0 : idx;
+  return (
+    <div className="flex items-center gap-0.5">
+      {BATCH_STAGES.map((s, i) => (
+        <React.Fragment key={s}>
+          <div className="flex flex-col items-center gap-0.5" title={s}>
+            <div className={`h-2.5 w-2.5 rounded-full ${i <= effIdx && effIdx >= 0 ? "bg-[#166534]" : effIdx === -2 ? (i === 0 ? "bg-red-500" : "bg-gray-200") : "bg-gray-200"}`} />
+            <span className={`text-[8px] capitalize ${i <= effIdx && effIdx >= 0 ? "text-[#166534] font-bold" : "text-gray-400"}`}>{s}</span>
+          </div>
+          {i < BATCH_STAGES.length - 1 && <div className={`h-0.5 w-3 -mt-3 ${i < effIdx && effIdx >= 0 ? "bg-[#166534]" : "bg-gray-200"}`} />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 export default function CropsPage() {
   const [crops, setCrops] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -65,9 +86,11 @@ export default function CropsPage() {
   const [soilForm, setSoilForm] = React.useState({ date: new Date().toISOString().split("T")[0], labName: "", ph: "", nitrogen: "", phosphorus: "", potassium: "", organicMatterPct: "", recommendation: "" });
   const [phBatches, setPhBatches] = React.useState<any[]>([]);
   const [soilTests, setSoilTests] = React.useState<any[]>([]);
+  const [insights, setInsights] = React.useState<any>({ phiAlerts: [], reminders: [], profitability: [] });
 
   const load = () => {
     api.get("/api/crops").then(d => { setCrops(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
+    api.get("/api/crops/insights").then(d => setInsights(d)).catch(() => {});
   };
   React.useEffect(() => { load(); }, []);
 
@@ -110,6 +133,24 @@ export default function CropsPage() {
     try { setPhBatches(await api.get(`/api/crops/${crop.id}/post-harvest`)); } catch { setPhBatches([]); }
     try { setSoilTests(await api.get(`/api/crops/soil-tests?cropId=${crop.id}`)); } catch { setSoilTests([]); }
     setActiveModal("batches");
+  };
+  const advanceBatch = async (batch: any) => {
+    const idx = BATCH_STAGES.indexOf(batch.status);
+    if (idx < 0 || idx >= BATCH_STAGES.length - 1) return;
+    const next = BATCH_STAGES[idx + 1];
+    if (!confirm(`Advance batch ${batch.batchCode} to "${next}"?`)) return;
+    try {
+      // Auto-fill sensible fields when advancing: treatment date, cooling time, packed qty
+      const patch: any = { status: next };
+      if (next === "treated" && !batch.treatment) patch.treatment = "Fungicide dip";
+      if (next === "treated" && !batch.treatmentDate) patch.treatmentDate = new Date().toISOString();
+      if (next === "stored") { if (!batch.cooledAt) patch.cooledAt = new Date().toISOString(); if (!batch.storageTempC) patch.storageTempC = 5; }
+      if (next === "packed") { if (!batch.packedQtyKg) patch.packedQtyKg = Number(batch.quantityKg); if (!batch.cartons) patch.cartons = Math.ceil(Number(batch.quantityKg) / 4); }
+      await api.patch(`/api/crops/post-harvest/${batch.id}`, patch);
+      setPhBatches((prev) => prev.map((b: any) => b.id === batch.id ? { ...b, ...patch } : b));
+      showToast(`Batch advanced to ${next}`);
+      load();
+    } catch (e: any) { showToast(e?.message || "Failed to advance batch"); }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#166534]" /></div>;
@@ -227,6 +268,79 @@ export default function CropsPage() {
           </motion.div>
         ))}
       </motion.div>
+
+      {/* PHI expiry + harvest season alerts */}
+      {(insights.phiAlerts?.length > 0 || insights.reminders?.length > 0) && (
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="space-y-2">
+          {insights.phiAlerts.map((a: any, i: number) => (
+            <div key={`phi-${i}`} className={`flex items-center gap-3 rounded-xl border p-3 ${a.safe ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
+              <ShieldAlert className={`h-5 w-5 shrink-0 ${a.safe ? "text-emerald-600" : "text-amber-600"}`} />
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-bold ${a.safe ? "text-emerald-800" : "text-amber-800"}`}>
+                  {a.safe ? "✅ Safe to harvest" : "⏳ PHI active"} — {a.cropName}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{a.productName} sprayed {new Date(a.sprayedOn).toLocaleDateString()} · {a.phiDays}-day PHI</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className={`text-xs font-bold ${a.safe ? "text-emerald-700" : "text-amber-700"}`}>{a.safe ? "Now" : `${a.daysLeft}d left`}</p>
+                <p className="text-[10px] text-gray-400">safe {new Date(a.safeDate).toLocaleDateString()}</p>
+              </div>
+            </div>
+          ))}
+          {insights.reminders.map((r: any, i: number) => (
+            <div key={`rem-${i}`} className="flex items-center gap-3 rounded-xl border p-3 bg-blue-50 border-blue-200">
+              <CalendarClock className="h-5 w-5 shrink-0 text-blue-600" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-blue-800">🗓️ {r.message} — {r.cropName}</p>
+                {r.date && <p className="text-xs text-gray-500">{new Date(r.date).toLocaleDateString()} · {r.cropType}</p>}
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Profitability: inputs vs revenue per crop block */}
+      {insights.profitability?.some((p: any) => p.inputCost > 0 || p.revenue > 0) && (
+        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+          <Card className="border border-[#E5E7EB]">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Wallet className="h-4 w-4 text-[#166534]" />
+                <p className="text-sm font-bold text-gray-900">Crop Profitability</p>
+                <p className="text-[10px] text-gray-400 ml-auto">input costs vs harvest revenue per block</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                      <th className="pb-2 pr-3">Crop Block</th>
+                      <th className="pb-2 pr-3 text-right">Inputs</th>
+                      <th className="pb-2 pr-3 text-right">Revenue</th>
+                      <th className="pb-2 pr-3 text-right">Profit</th>
+                      <th className="pb-2 pr-3 text-right">Margin</th>
+                      <th className="pb-2 pr-3 text-right">Cost/kg</th>
+                      <th className="pb-2 text-right">Yield</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {insights.profitability.filter((p: any) => p.inputCost > 0 || p.revenue > 0).map((p: any) => (
+                      <tr key={p.cropId} className="border-b border-gray-50 last:border-0">
+                        <td className="py-2 pr-3"><span className="font-bold text-gray-900">{p.cropName}</span><span className="text-gray-400 ml-1.5">{p.cropType}{p.areaAcres ? ` · ${p.areaAcres}ac` : ""}</span></td>
+                        <td className="py-2 pr-3 text-right text-red-600">−KES {p.inputCost.toLocaleString()}</td>
+                        <td className="py-2 pr-3 text-right text-emerald-700">+KES {p.revenue.toLocaleString()}</td>
+                        <td className={`py-2 pr-3 text-right font-bold ${p.profit >= 0 ? "text-emerald-700" : "text-red-600"}`}>KES {p.profit.toLocaleString()}</td>
+                        <td className={`py-2 pr-3 text-right ${p.marginPct == null ? "text-gray-300" : p.marginPct >= 0 ? "text-emerald-600" : "text-red-500"}`}>{p.marginPct == null ? "—" : `${p.marginPct}%`}</td>
+                        <td className="py-2 pr-3 text-right text-gray-500">{p.costPerKg == null ? "—" : `KES ${p.costPerKg}`}</td>
+                        <td className="py-2 text-right text-gray-500">{p.totalKg ? `${p.totalKg.toFixed(0)} kg` : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
@@ -547,30 +661,45 @@ export default function CropsPage() {
               )}
 
               {activeModal === "batches" && (
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                <div className="space-y-5 max-h-[65vh] overflow-y-auto -mx-2 px-2">
                   <div>
-                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">Post-Harvest Batches</p>
-                    {phBatches.length === 0 ? <p className="text-xs text-gray-400">No batches yet.</p> : (
-                      <div className="space-y-2">
+                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">📦 Post-Harvest Batches — {modalCrop.cropType} chain</p>
+                    {phBatches.length === 0 ? <p className="text-xs text-gray-400">No batches yet — create one with “Post-Harvest”.</p> : (
+                      <div className="space-y-3">
                         {phBatches.map((b: any) => (
-                          <div key={b.id} className="rounded-lg border border-gray-100 p-2.5 text-xs">
-                            <div className="flex justify-between font-bold text-gray-900"><span>{b.batchCode}</span><span>{Number(b.quantityKg).toFixed(0)} kg</span></div>
-                            <div className="text-gray-500 mt-0.5">{b.grade || "Ungraded"}{b.dryMatterPct ? ` · ${Number(b.dryMatterPct)}% DM` : ""}{b.treatment ? ` · ${b.treatment}` : ""} · {b.status}</div>
-                            {b.destination && <div className="text-gray-400">→ {b.destination}{b.phytoCertNo ? ` · Phyto ${b.phytoCertNo}` : ""}</div>}
+                          <div key={b.id} className={`rounded-xl border p-3 text-xs ${b.status === "rejected" ? "border-red-200 bg-red-50" : "border-gray-150 bg-gray-50/50"}`}>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-bold text-gray-900">{b.batchCode}</span>
+                              <span className="font-bold text-gray-700">{Number(b.quantityKg).toFixed(0)} kg{b.grade ? ` · ${b.grade}` : ""}</span>
+                            </div>
+                            <BatchTimeline status={b.status} />
+                            <div className="mt-2 text-gray-500 flex flex-wrap gap-x-3 gap-y-0.5">
+                              {b.dryMatterPct ? <span>💧 {Number(b.dryMatterPct)}% DM</span> : null}
+                              {b.treatment ? <span>🧪 {b.treatment}</span> : null}
+                              {b.cooledAt ? <span>❄️ {Number(b.storageTempC ?? "—")}°C</span> : null}
+                              {b.packedQtyKg ? <span>📦 {Number(b.packedQtyKg).toFixed(0)} kg{b.cartons ? ` · ${b.cartons} cartons` : ""}</span> : null}
+                              {b.destination ? <span>→ {b.destination}</span> : null}
+                              {b.phytoCertNo ? <span>🧾 Phyto {b.phytoCertNo}</span> : null}
+                            </div>
+                            {b.status !== "dispatched" && b.status !== "rejected" && (
+                              <button onClick={() => advanceBatch(b)} className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#166534] hover:underline cursor-pointer">
+                                Advance to next stage <ArrowRight className="h-3 w-3" />
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">Soil Tests</p>
+                    <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">🧪 Soil Tests — fertility history</p>
                     {soilTests.length === 0 ? <p className="text-xs text-gray-400">No soil tests yet.</p> : (
                       <div className="space-y-2">
                         {soilTests.map((t: any) => (
-                          <div key={t.id} className="rounded-lg border border-gray-100 p-2.5 text-xs">
-                            <div className="flex justify-between font-bold text-gray-900"><span>{new Date(t.date).toLocaleDateString()}</span><span>{t.ph ? `pH ${Number(t.ph)}` : ""}</span></div>
-                            <div className="text-gray-500 mt-0.5">{[t.nitrogen && `N ${t.nitrogen}`, t.phosphorus && `P ${t.phosphorus}`, t.potassium && `K ${t.potassium}`].filter(Boolean).join(" · ") || "—"}</div>
-                            {t.recommendation && <div className="text-gray-400">💡 {t.recommendation}</div>}
+                          <div key={t.id} className="rounded-xl border border-gray-100 p-3 text-xs">
+                            <div className="flex justify-between font-bold text-gray-900"><span>{new Date(t.date).toLocaleDateString()}</span><span>{t.ph ? `pH ${Number(t.ph)}` : ""}{t.organicMatterPct ? ` · OM ${Number(t.organicMatterPct)}%` : ""}</span></div>
+                            <div className="text-gray-500 mt-0.5">{[t.labName && `Lab: ${t.labName}`, t.nitrogen && `N ${t.nitrogen}`, t.phosphorus && `P ${t.phosphorus}`, t.potassium && `K ${t.potassium}`].filter(Boolean).join(" · ") || "—"}</div>
+                            {t.recommendation && <div className="text-gray-400 mt-0.5">💡 {t.recommendation}</div>}
                           </div>
                         ))}
                       </div>
