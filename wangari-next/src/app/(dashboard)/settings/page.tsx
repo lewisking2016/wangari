@@ -116,7 +116,13 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async () => {
     try {
-      await api.put("/api/settings/profile", { farmName, name: userName, email, phone, location, county });
+      const res = await api.put("/api/settings/profile", { farmName, name: userName, email, phone, location, county });
+      // Persist the fresh user (incl. profileComplete) so the dashboard banner clears immediately
+      if (res?.user) {
+        const { getUser, setUser } = await import("@/lib/auth-client");
+        const current = getUser();
+        if (current) setUser({ ...current, ...res.user });
+      }
       showToast("Profile updated!");
       setSaved(true); setTimeout(() => setSaved(false), 2000);
     } catch { showToast("Failed to update profile"); }

@@ -10,11 +10,11 @@ const MODULE_HUB_MAP: Record<string, string> = {
   production: "poultry",
   vaccinations: "poultry",
   crops: "crops",
-  finances: "finance",
+  finances: "_always", // money tracking is included in every plan
   sales: "sales",
   customers: "sales",
   invoices: "sales",
-  workers: "team",
+  workers: "team", // gated to Growth/Enterprise plans (see below)
   attendance: "team",
   inventory: "_always",
   dashboard: "_always",
@@ -111,9 +111,16 @@ router.get("/status", authMiddleware, async (req: Request, res: Response) => {
       ? JSON.parse(user.selectedHubs)
       : [];
 
+    // Plan-tier gating: Workers management is a Growth/Enterprise feature.
+    // Trial users keep full access; Starter subscriptions get everything else.
+    const planId = (activeSub?.plan || "").toLowerCase();
+    const isGrowthOrEnterprise = /growth|enterprise/.test(planId);
+
     const moduleAccess: Record<string, boolean> = {};
     for (const [module, hub] of Object.entries(MODULE_HUB_MAP)) {
-      if (hub === "_always" || hasAccess) {
+      if (module === "workers") {
+        moduleAccess[module] = trialStatus === "active" || (activeSub != null && isGrowthOrEnterprise);
+      } else if (hub === "_always" || hasAccess) {
         moduleAccess[module] = true;
       } else {
         moduleAccess[module] = false;

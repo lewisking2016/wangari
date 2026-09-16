@@ -68,14 +68,23 @@ router.put("/profile", async (req: Request, res: Response) => {
 
     // Update user
     if (req.body.name || req.body.email || req.body.phone) {
+      const existing = await prisma.user.findUnique({ where: { id: userId } });
+      const finalName = req.body.name || existing?.name;
+      const finalPhone = req.body.phone || existing?.phone;
       await prisma.user.update({ where: { id: userId }, data: {
         name: req.body.name || undefined,
         email: req.body.email || undefined,
         phone: req.body.phone || undefined,
+        // Profile is complete once the essentials are filled — this clears the
+        // dashboard "Complete your farm profile" banner.
+        profileComplete: Boolean(finalName && finalPhone) || undefined,
       }});
+    } else if (req.body.markProfileComplete) {
+      await prisma.user.update({ where: { id: userId }, data: { profileComplete: true } });
     }
 
-    res.json({ success: true });
+    const updated = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, name: true, email: true, avatar: true, profileComplete: true } });
+    res.json({ success: true, user: updated });
   } catch (error) {
     res.status(500).json({ error: "Failed" });
   }
