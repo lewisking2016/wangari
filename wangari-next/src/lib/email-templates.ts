@@ -55,6 +55,67 @@ function wrap(body: string): string {
 </html>`;
 }
 
+// ─── Daily Farm Digest ────────────────────────────────────
+
+export interface DigestAlert {
+  icon: string;
+  title: string;
+  detail: string;
+  tone: "danger" | "warning" | "info" | "success";
+}
+
+export function dailyDigestEmail(userName: string, farmName: string, alerts: DigestAlert[], dashboardUrl: string): string {
+  const toneColors: Record<DigestAlert["tone"], string> = {
+    danger: "#dc2626",
+    warning: "#d97706",
+    info: "#2563eb",
+    success: "#16a34a",
+  };
+  const toneBg: Record<DigestAlert["tone"], string> = {
+    danger: "#fef2f2",
+    warning: "#fffbeb",
+    info: "#eff6ff",
+    success: "#f0fdf4",
+  };
+
+  const alertRows = alerts.length === 0
+    ? `<p style="margin:0;font-size:14px;color:${BRAND.mutedColor};">
+         Nothing needs your attention today — your farm is running smoothly. 🌱
+       </p>`
+    : alerts.slice(0, 12).map((a) => `
+      <tr>
+        <td style="padding:10px 14px;background-color:${toneBg[a.tone]};border-radius:8px;margin-bottom:8px;">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td style="font-size:16px;width:28px;vertical-align:top;">${a.icon}</td>
+            <td>
+              <p style="margin:0;font-size:13px;font-weight:700;color:${toneColors[a.tone]};">${a.title}</p>
+              <p style="margin:2px 0 0;font-size:12px;color:${BRAND.textColor};">${a.detail}</p>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+      <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>`).join("");
+
+  const today = new Date().toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  return wrap(`
+    <h2 style="margin:0 0 4px;font-size:20px;color:${BRAND.textColor};">Good morning, ${userName} 👋</h2>
+    <p style="margin:0 0 20px;font-size:13px;color:${BRAND.mutedColor};">${farmName} · ${today}</p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${alertRows}
+    </table>
+    <div style="text-align:center;margin-top:24px;">
+      <a href="${dashboardUrl}" style="display:inline-block;background-color:${BRAND.color};color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;">
+        Open Dashboard →
+      </a>
+    </div>
+    <p style="margin:20px 0 0;font-size:11px;color:${BRAND.mutedColor};text-align:center;">
+      You receive this daily summary because you have a Wangari farm account.<br/>
+      Turn it off anytime in Settings → Notifications.
+    </p>
+  `);
+}
+
 // ─── Confirmation Code ────────────────────────────────────
 
 export function confirmationCodeEmail(code: string, purpose: string = "verification"): string {

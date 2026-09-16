@@ -39,6 +39,17 @@ export async function POST(request: Request) {
       });
     }
 
+    // Persist the hub selection on the USER record too — /api/trial/status reads
+    // user.selectedHubs to decide which hub modules a Starter subscription can
+    // access. This was previously only saved as a FarmSetting, so the gating
+    // column stayed NULL forever and plan limits were unenforceable.
+    if (Array.isArray(body.activeHubs) && body.activeHubs.length > 0) {
+      await prisma.user.update({
+        where: { id: user!.userId },
+        data: { selectedHubs: JSON.stringify(body.activeHubs) },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Preferences save error:", error);

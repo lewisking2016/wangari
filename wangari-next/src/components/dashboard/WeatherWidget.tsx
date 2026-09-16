@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Cloud, Sun, Droplets, Wind, MapPin, Sunrise, Sunset, CloudRain, CloudLightning, Moon, Star } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Cloud, Sun, Droplets, Wind, MapPin, Sunrise, Sunset, CloudRain, CloudLightning, Moon, Star, CloudSun } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface WeatherData {
   temperature: number;
@@ -266,33 +266,40 @@ function AnimatedWeatherIcon({ icon, condition, night }: { icon: string; conditi
   );
 }
 
-// ─── Mock data fallback ────────────────────────────────────
-const MOCK_DATA: WeatherData = {
-  temperature: 24,
-  feelsLike: 25,
-  humidity: 65,
-  windSpeed: 12,
-  condition: "Partly Cloudy",
-  description: "partly cloudy",
-  icon: "cloud",
-  location: "Your Farm",
-  today: { tempMin: 18, tempMax: 28, rainMm: 0, avgHumidity: 65, willRain: false },
-  sunrise: "06:30",
-  sunset: "18:45",
-  forecast: [
-    { day: "Mon", tempMin: 18, tempMax: 27, icon: "cloud" },
-    { day: "Tue", tempMin: 19, tempMax: 29, icon: "sun" },
-    { day: "Wed", tempMin: 17, tempMax: 25, icon: "rain" },
-    { day: "Thu", tempMin: 18, tempMax: 26, icon: "cloud" },
-    { day: "Fri", tempMin: 19, tempMax: 28, icon: "sun" },
-  ],
-};
+// ─── Empty state (never show fake weather — it's worse than no weather) ─────
+// If the API fails or returns nothing, render an honest "no data" card instead
+// of the old hardcoded mock (24°C / 65%) which farmers could see was fake.
+const MOCK_DATA: WeatherData | null = null;
 
 // ─── Main Widget ──────────────────────────────────────────
 export function WeatherWidget({ data, location = "Farm Location" }: WeatherWidgetProps) {
-  const weatherData = data || MOCK_DATA;
+  const weatherData = data || null;
   const [mounted, setMounted] = React.useState(false);
   const [uvIndex, setUvIndex] = React.useState(5);
+
+  // Honest empty state: no fake numbers, just a clear ask
+  if (!weatherData) {
+    return (
+      <Card className="overflow-hidden border-wangari-border">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-wangari-green-50 text-wangari-green-700 shrink-0">
+              <CloudSun className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-wangari-heading">Weather unavailable</p>
+              <p className="text-xs text-wangari-muted mt-1">
+                Add your farm&apos;s location in Settings so we can bring you accurate local forecasts, rain alerts and farming tips.
+              </p>
+              <a href="/settings" className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-wangari-green-700 hover:underline cursor-pointer">
+                Set farm location →
+              </a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   React.useEffect(() => {
     setMounted(true);

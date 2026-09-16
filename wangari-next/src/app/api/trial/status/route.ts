@@ -109,17 +109,23 @@ export async function GET(req: Request) {
     }
 
     // Build module access map
-    // Plan-tier gating: Workers management is a Growth/Enterprise feature.
-    // Trial users keep full access; Starter subscriptions get everything else.
+    // Plan-tier gating:
+    //  - Workers management is a Growth/Enterprise feature.
+    //  - Starter = 1 hub of choice (its modules + always-included ones).
+    //  - Growth/Enterprise = all hubs.
+    // Trial users keep full access so they can evaluate everything.
     const planId = (activeSub?.plan || "").toLowerCase();
     const isGrowthOrEnterprise = /growth|enterprise/.test(planId);
+    const isStarter = /starter/.test(planId) && hasAccess;
 
     const moduleAccess: Record<string, boolean> = {};
     for (const [module, hub] of Object.entries(MODULE_HUB_MAP)) {
       if (module === "workers") {
         moduleAccess[module] = trialStatus === "active" || (activeSub != null && isGrowthOrEnterprise);
-      } else if (hub === "_always") {
+      } else if (hub === "_always" || (activeSub != null && isGrowthOrEnterprise)) {
         moduleAccess[module] = true;
+      } else if (isStarter) {
+        moduleAccess[module] = selectedHubs.includes(hub);
       } else if (hasAccess && selectedHubs.includes(hub)) {
         moduleAccess[module] = true;
       } else if (hasAccess && accessReason === "subscription") {

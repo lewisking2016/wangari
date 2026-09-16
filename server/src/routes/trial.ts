@@ -111,16 +111,25 @@ router.get("/status", authMiddleware, async (req: Request, res: Response) => {
       ? JSON.parse(user.selectedHubs)
       : [];
 
-    // Plan-tier gating: Workers management is a Growth/Enterprise feature.
-    // Trial users keep full access; Starter subscriptions get everything else.
+    // Plan-tier gating:
+    //  - Workers management is a Growth/Enterprise feature.
+    //  - Starter = 1 hub of choice (its modules + the always-included ones).
+    //  - Growth/Enterprise = all hubs.
+    // Trial users keep full access so they can evaluate everything.
     const planId = (activeSub?.plan || "").toLowerCase();
     const isGrowthOrEnterprise = /growth|enterprise/.test(planId);
+    const isStarter = /starter/.test(planId) && hasAccess;
 
     const moduleAccess: Record<string, boolean> = {};
     for (const [module, hub] of Object.entries(MODULE_HUB_MAP)) {
       if (module === "workers") {
         moduleAccess[module] = trialStatus === "active" || (activeSub != null && isGrowthOrEnterprise);
-      } else if (hub === "_always" || hasAccess) {
+      } else if (hub === "_always" || (activeSub != null && isGrowthOrEnterprise)) {
+        moduleAccess[module] = true;
+      } else if (isStarter) {
+        // Starter: allow modules belonging to the user's chosen hub(s) only.
+        moduleAccess[module] = selectedHubs.includes(hub);
+      } else if (hasAccess) {
         moduleAccess[module] = true;
       } else {
         moduleAccess[module] = false;
