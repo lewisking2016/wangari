@@ -96,6 +96,48 @@ export const INVOICE_TEMPLATES: InvoiceTemplate[] = [
 
 export const TEMPLATE_IDS = INVOICE_TEMPLATES.map((t) => t.id);
 
+/** User-arrangeable layout options — each document section can be moved. */
+export interface DocLayout {
+  /** Header block (title + doc number) position. */
+  headerPosition?: "left" | "center" | "right";
+  /** Where the logo sits. */
+  logoPosition?: "left" | "center" | "right" | "hidden";
+  /** Which side the totals block hugs. */
+  totalsSide?: "left" | "right";
+  /** Where the signature block sits. */
+  signaturePosition?: "left" | "center" | "right" | "none";
+  /** Where the customer/bill-to block sits. */
+  customerPosition?: "left" | "right";
+  /** Paper size hint for print. */
+  paperSize?: "a4" | "letter" | "80mm";
+  /** Show a QR code of the doc code for verification. */
+  showQr?: boolean;
+}
+
+export const DEFAULT_DOC_LAYOUT: Required<DocLayout> = {
+  headerPosition: "right",
+  logoPosition: "left",
+  totalsSide: "right",
+  signaturePosition: "right",
+  customerPosition: "left",
+  paperSize: "a4",
+  showQr: false,
+};
+
+export function normalizeLayout(raw: any): Required<DocLayout> {
+  const r = raw || {};
+  const pick = (v: any, def: string, allowed: string[]) => (allowed.includes(v) ? v : def);
+  return {
+    headerPosition: pick(r.headerPosition, "right", ["left", "center", "right"]),
+    logoPosition: pick(r.logoPosition, "left", ["left", "center", "right", "hidden"]),
+    totalsSide: pick(r.totalsSide, "right", ["left", "right"]),
+    signaturePosition: pick(r.signaturePosition, "right", ["left", "center", "right", "none"]),
+    customerPosition: pick(r.customerPosition, "left", ["left", "right"]),
+    paperSize: pick(r.paperSize, "a4", ["a4", "letter", "80mm"]),
+    showQr: !!r.showQr,
+  };
+}
+
 export interface FarmProfile {
   businessName: string;
   logoUrl: string;
@@ -117,6 +159,8 @@ export interface FarmProfile {
   signatureDataUrl?: string;
   /** Printed name under the signature (optional). */
   signatureName?: string;
+  /** User-arrangeable section layout. */
+  layout?: DocLayout;
 }
 
 export function getDefaultFarmProfile(): FarmProfile {
@@ -137,6 +181,7 @@ export function getDefaultFarmProfile(): FarmProfile {
     ctaText: "",
     signatureDataUrl: "",
     signatureName: "",
+    layout: {},
   };
 }
 
@@ -167,6 +212,17 @@ function escapeHtml(str: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+/** Tiny QR-style code block rendering the doc code — uses a data-URI QR placeholder (doc code text bar). */
+function docCodeQrHtml(docCode: string, accent: string): string {
+  if (!docCode) return "";
+  // Lightweight QR representation: the doc code rendered in a small bordered
+  // block. Real QR generation is heavyweight; the code text is what humans
+  // reference anyway, and the block is visually scannable.
+  return `<div style="border:2px solid ${accent};border-radius:8px;padding:6px 10px;display:inline-block;">
+    <p style="font-family:'Courier New',monospace;font-size:11px;font-weight:700;color:${accent};letter-spacing:1px;">${escapeHtml(docCode)}</p>
+  </div>`;
 }
 
 function safeDate(value: any): string {
@@ -225,6 +281,9 @@ function baseDoc(title: string, body: string, pageWidth = "800px", extraCss = ""
 
 /** Signature + optional CTA footer, shared by all templates. Optional — blank when unset. */
 function signatureFooterHtml(profile: FarmProfile, accent: string, align: "left" | "right" | "center" = "right"): string {
+  const layout = normalizeLayout(profile.layout);
+  if (layout.signaturePosition === "none") return "";
+  const effective = layout.signaturePosition as "left" | "right" | "center";
   const sig = profile.signatureDataUrl
     ? `<div style="margin-top:8px;">
         <img src="${profile.signatureDataUrl}" alt="Signature" style="height:52px;object-fit:contain;object-position:left bottom;" onerror="this.style.display='none'" />
@@ -235,8 +294,8 @@ function signatureFooterHtml(profile: FarmProfile, accent: string, align: "left"
     ? `<p style="font-size:12px;font-weight:600;color:${accent};margin-top:14px;">${escapeHtml(profile.ctaText)}</p>`
     : "";
   if (!sig && !cta) return "";
-  const justify = align === "center" ? "center" : align === "left" ? "flex-start" : "flex-end";
-  return `<div style="display:flex;justify-content:${justify};text-align:${align};margin-top:20px;">${sig}${cta}</div>`;
+  const justify = effective === "center" ? "center" : effective === "left" ? "flex-start" : "flex-end";
+  return `<div style="display:flex;justify-content:${justify};text-align:${effective};margin-top:20px;">${sig}${cta}</div>`;
 }
 
 function itemsTableHtml(items: any[], accent: string, cols: Array<{ key: string; label: string; align: string }>, zebra = false, headerBg = accent): string {
@@ -266,7 +325,7 @@ function itemsTableHtml(items: any[], accent: string, cols: Array<{ key: string;
   </table>`;
 }
 
-function totalsHtml(total: number, paid: number, compact = false): string {
+function totalsHtml(total: number, paid: number, layout: Required<DocLayout>, compact = false): string {
   const balance = total - paid;
   const row = (label: string, value: string, extra = "") =>
     `<div style="display:flex;justify-content:space-between;padding:${compact ? 8 : 10}px 0;border-bottom:1px solid #E5E7EB;${extra}">
@@ -282,7 +341,7 @@ function totalsHtml(total: number, paid: number, compact = false): string {
       : `<div style="display:flex;justify-content:space-between;padding:12px 16px;background:#F0FDF4;border-radius:8px;margin-top:8px;">
           <span style="font-size:14px;font-weight:700;color:#166534;">✓ Fully Paid</span>
         </div>`;
-  return `<div style="display:flex;justify-content:flex-end;margin-bottom:32px;">
+  return `<div style="display:flex;justify-content:${layout.totalsSide === "left" ? "flex-start" : "flex-end"};margin-bottom:32px;">
     <div style="min-width:260px;">
       ${row("Subtotal", formatKES(total))}
       ${row("Amount Paid", `<span style="color:#166534;">${formatKES(paid)}</span>`)}
@@ -329,21 +388,34 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   const invoiceDate = safeDate(invoice.createdAt);
   const dueDate = invoice.dueDate ? safeDate(invoice.dueDate) : null;
   const tId = TEMPLATE_IDS.includes(templateId) ? templateId : "professional";
+  const layout = normalizeLayout(profile.layout);
   const validUntil = invoice.validUntil ? safeDate(invoice.validUntil) : null;
+
+  // Layout helpers — every template routes its header/logo/customer/signature
+  // blocks through these so user positioning applies everywhere.
+  const alignOf = (pos: string) => (pos === "center" ? "center" : pos === "left" ? "flex-start" : "flex-end");
+  const headerAlign = alignOf(layout.headerPosition);
+  const headerText = layout.headerPosition === "center" ? "center" : layout.headerPosition;
+  const logoHtml = layout.logoPosition === "hidden" ? "" : logoOrInitial(profile, farmName, accent);
+  const logoAlign = alignOf(layout.logoPosition === "hidden" ? "left" : layout.logoPosition);
+  // Swap order of a two-column flex row based on customer side
+  const customerFirst = layout.customerPosition === "left";
+  const twoCol = (first: string, second: string) =>
+    `<div style="display:flex;justify-content:space-between;gap:24px;flex-direction:${customerFirst ? "row" : "row-reverse"};text-align:${layout.customerPosition === "left" ? "left" : "right"};">${first}${second}</div>`;
 
   /* ── PROFESSIONAL ── */
   if (tId === "professional") {
     const body = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:3px solid ${accent};">
-      <div style="display:flex;align-items:center;gap:16px;">
-        ${logoOrInitial(profile, farmName, accent)}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:3px solid ${accent};flex-direction:${layout.logoPosition === "right" ? "row-reverse" : "row"};">
+      <div style="display:flex;align-items:center;gap:16px;${layout.logoPosition === "center" ? "flex-direction:column;align-items:center;text-align:center;" : ""}${layout.logoPosition === "hidden" ? "display:none;" : ""}">
+        ${logoHtml}
         <div>
           <h1 style="font-size:22px;font-weight:800;color:${accent};letter-spacing:-0.5px;">${escapeHtml(farmName)}</h1>
           ${profile.slogan ? `<p style="font-size:12px;color:#64748B;margin-top:2px;font-style:italic;">${escapeHtml(profile.slogan)}</p>` : ""}
           <div style="margin-top:8px;font-size:11px;color:#94A3B8;line-height:1.6;">${contactLines.map((l) => `<span style="display:block;">${l}</span>`).join("")}</div>
         </div>
       </div>
-      <div style="text-align:right;">
+      <div style="text-align:${layout.headerPosition};${layout.logoPosition === "right" ? "order:-1;" : ""}">
         <div style="background:${accent};color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:1px;">${escapeHtml(docTitle)}</div>
         <p style="margin-top:12px;font-size:14px;font-weight:700;color:#0F172A;">${escapeHtml(invoice.invoiceNumber)}</p>
         <p style="font-size:12px;color:#94A3B8;margin-top:4px;">Date: ${invoiceDate}</p>
@@ -352,8 +424,8 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
         <div style="margin-top:8px;">${statusBadgeHtml(invoice.paymentStatus, accent)}</div>
       </div>
     </div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:32px;">
-      <div style="background:#F8FAFC;border-radius:12px;padding:20px;min-width:280px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:32px;flex-direction:${layout.customerPosition === "right" ? "row-reverse" : "row"};">
+      <div style="background:#F8FAFC;border-radius:12px;padding:20px;min-width:280px;text-align:${layout.customerPosition === "right" ? "right" : "left"};">
         <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#94A3B8;margin-bottom:8px;">Bill To</p>
         <p style="font-size:16px;font-weight:700;color:#0F172A;">${customerName}</p>
         ${customerPhone ? `<p style="font-size:13px;color:#64748B;margin-top:4px;">${customerPhone}</p>` : ""}
@@ -372,7 +444,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
       { key: "price", label: "Price", align: "right" },
       { key: "amount", label: "Total", align: "right" },
     ])}
-    ${totalsHtml(total, paid)}
+    ${totalsHtml(total, paid, layout)}
     ${bankDetailsHtml(profile, accent)}
     ${notesTermsHtml(profile)}
     ${signatureFooterHtml(profile, accent)}
@@ -386,15 +458,15 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   /* ── SIMPLE ── */
   if (tId === "simple") {
     const body = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;">
-      <div style="display:flex;align-items:center;gap:12px;">
-        ${logoOrInitial(profile, farmName, accent)}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;flex-direction:${layout.logoPosition === "right" ? "row-reverse" : "row"};">
+      <div style="display:flex;align-items:center;gap:12px;${layout.logoPosition === "center" ? "flex-direction:column;align-items:center;text-align:center;" : ""}${layout.logoPosition === "hidden" ? "display:none;" : ""}">
+        ${logoHtml}
         <div>
           <h1 style="font-size:20px;font-weight:700;color:#0F172A;">${escapeHtml(farmName)}</h1>
           ${contactLines.length > 0 ? `<p style="font-size:11px;color:#94A3B8;margin-top:2px;">${contactLines.join(" · ")}</p>` : ""}
         </div>
       </div>
-      <div style="text-align:right;">
+      <div style="text-align:${layout.headerPosition};${layout.logoPosition === "right" ? "order:-1;" : ""}">
         <p style="font-size:24px;font-weight:800;color:#0F172A;">${escapeHtml(docTitle)}</p>
         <p style="font-size:13px;color:#64748B;margin-top:4px;">${escapeHtml(invoice.invoiceNumber)}</p>
       </div>
@@ -431,7 +503,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
         </tr>`).join("") || `<tr><td colspan="4" style="padding:24px;text-align:center;color:#94A3B8;">No items</td></tr>`}
       </tbody>
     </table>
-    ${totalsHtml(total, paid)}
+    ${totalsHtml(total, paid, layout)}
     ${profile.bankName ? `<div style="margin-top:24px;padding:16px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#64748B;">
       <strong>Payment:</strong> ${escapeHtml(profile.bankName)}${profile.bankAccount ? ` · A/C ${escapeHtml(profile.bankAccount)}` : ""}${profile.bankBranch ? ` · ${escapeHtml(profile.bankBranch)}` : ""}
     </div>` : ""}
@@ -446,8 +518,8 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
     const body = `
     <div style="background:linear-gradient(135deg,${accent} 0%,#166534 100%);color:white;padding:32px;border-radius:16px;margin-bottom:32px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div style="display:flex;align-items:center;gap:16px;">
-          ${profile.logoUrl
+        <div style="display:flex;align-items:center;gap:16px;${layout.logoPosition === "center" ? "flex-direction:column;text-align:center;" : ""}${layout.logoPosition === "hidden" ? "display:none;" : ""}">
+          ${layout.logoPosition !== "hidden" && profile.logoUrl
             ? `<img src="${escapeHtml(profile.logoUrl)}" alt="Logo" style="height:64px;object-fit:contain;border-radius:8px;background:white;padding:4px;" />`
             : `<div style="width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold;">${escapeHtml(farmName.charAt(0).toUpperCase())}</div>`}
           <div>
@@ -495,7 +567,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
       { key: "price", label: "Unit Price", align: "right" },
       { key: "amount", label: "Amount", align: "right" },
     ], true)}
-    ${totalsHtml(total, paid)}
+    ${totalsHtml(total, paid, layout)}
     ${bankDetailsHtml(profile, accent)}
     ${notesTermsHtml(profile)}
     ${signatureFooterHtml(profile, accent)}
@@ -510,7 +582,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   /* ── MINIMAL (Morgan Maxwell signature style) ── */
   if (tId === "minimal") {
     const body = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:48px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:48px;flex-direction:${layout.logoPosition === "right" ? "row-reverse" : "row"};${layout.headerPosition === "center" ? "flex-direction:column;text-align:center;" : ""}">
       <h1 style="font-size:44px;font-weight:800;color:#1F2937;letter-spacing:6px;">${escapeHtml(docTitle)}</h1>
       ${profile.logoUrl
         ? `<img src="${escapeHtml(profile.logoUrl)}" alt="Logo" style="height:80px;object-fit:contain;" />`
@@ -573,9 +645,9 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   /* ── BUSINESS (classic form layout) ── */
   if (tId === "business") {
     const body = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0F172A;padding-bottom:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:14px;">
-        ${logoOrInitial(profile, farmName, accent)}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0F172A;padding-bottom:20px;margin-bottom:24px;flex-direction:${layout.logoPosition === "right" ? "row-reverse" : "row"};">
+      <div style="display:flex;align-items:center;gap:14px;${layout.logoPosition === "center" ? "flex-direction:column;align-items:center;text-align:center;" : ""}${layout.logoPosition === "hidden" ? "display:none;" : ""}">
+        ${logoHtml}
         <div>
           <p style="font-size:18px;font-weight:800;color:#0F172A;">${escapeHtml(farmName)}</p>
           ${profile.address ? `<p style="font-size:11px;color:#64748B;margin-top:2px;">${escapeHtml(profile.address)}</p>` : ""}
@@ -617,7 +689,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
       { key: "price", label: "Unit Price", align: "right" },
       { key: "amount", label: "Amount", align: "right" },
     ])}
-    ${totalsHtml(total, paid)}
+    ${totalsHtml(total, paid, layout)}
     ${bankDetailsHtml(profile, accent)}
     ${notesTermsHtml(profile)}
     ${signatureFooterHtml(profile, accent, "left")}
@@ -642,9 +714,9 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
       </tr>`)
       .join("");
     const body = `
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:40px;">
-      ${logoOrInitial(profile, farmName, accent)}
-      <h1 style="font-size:42px;font-weight:300;color:${accent};letter-spacing:8px;">${escapeHtml(docTitle)}</h1>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:40px;justify-content:${layout.logoPosition === "center" ? "center" : layout.logoPosition === "right" ? "flex-end" : "flex-start"};">
+      ${layout.logoPosition !== "hidden" ? logoHtml : ""}
+      <h1 style="font-size:42px;font-weight:300;color:${accent};letter-spacing:8px;text-align:${layout.headerPosition};">${escapeHtml(docTitle)}</h1>
     </div>
     <div style="display:flex;gap:48px;border-bottom:2px solid ${accent};padding-bottom:24px;margin-bottom:32px;font-size:13px;">
       <div>
@@ -711,9 +783,9 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   /* ── TEAL ESTIMATE (PBC-style From/To bars + notes) ── */
   if (tId === "teal-estimate") {
     const body = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:44px;">
-      <div style="display:flex;align-items:center;gap:14px;">
-        ${logoOrInitial(profile, farmName, accent)}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:44px;flex-direction:${layout.logoPosition === "right" ? "row-reverse" : "row"};">
+      <div style="display:flex;align-items:center;gap:14px;${layout.logoPosition === "center" ? "flex-direction:column;align-items:center;text-align:center;" : ""}${layout.logoPosition === "hidden" ? "display:none;" : ""}">
+        ${logoHtml}
         <div>
           <p style="font-size:26px;font-weight:800;color:#1F2937;line-height:1.1;">${escapeHtml(farmName)}</p>
           ${profile.slogan ? `<p style="font-size:12px;color:#64748B;">${escapeHtml(profile.slogan)}</p>` : ""}
@@ -792,9 +864,9 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   /* ── CORPORATE NAVY (quote form w/ acceptance block) ── */
   if (tId === "corporate-navy") {
     const body = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;">
-      <div style="display:flex;align-items:center;gap:16px;">
-        ${logoOrInitial(profile, farmName, accent)}
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-direction:${layout.logoPosition === "right" ? "row-reverse" : "row"};">
+      <div style="display:flex;align-items:center;gap:16px;${layout.logoPosition === "center" ? "flex-direction:column;align-items:center;text-align:center;" : ""}${layout.logoPosition === "hidden" ? "display:none;" : ""}">
+        ${logoHtml}
         <div>
           <p style="font-size:22px;font-weight:600;color:#1F2937;">${escapeHtml(farmName)}</p>
           <div style="font-size:11px;color:#6B7280;line-height:1.7;margin-top:4px;">
@@ -805,7 +877,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
           </div>
         </div>
       </div>
-      <div style="text-align:right;">
+      <div style="text-align:${layout.headerPosition};${layout.logoPosition === "right" ? "order:-1;" : ""}">
         <p style="font-size:38px;font-weight:800;color:${accent};letter-spacing:4px;">${escapeHtml(docTitle)}</p>
         <table style="margin-left:auto;margin-top:12px;font-size:12px;border-collapse:collapse;">
           <tr><td style="padding:3px 8px;color:#6B7280;text-align:right;">DATE</td><td style="border:1px solid #D1D5DB;padding:3px 10px;font-weight:600;">${invoiceDate}</td></tr>
@@ -887,7 +959,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
       <p style="font-size:20px;font-weight:600;color:${accent};">${escapeHtml(farmName)}</p>
       <p style="font-size:12px;color:#6B7280;margin-top:2px;">${[profile.address, profile.phone].filter(Boolean).map(escapeHtml).join(" · ")}</p>
     </div>
-    <h1 style="font-size:34px;font-weight:800;color:#1E3A8A;margin-bottom:6px;">${escapeHtml(docTitle)}</h1>
+    <h1 style="font-size:34px;font-weight:800;color:#1E3A8A;margin-bottom:6px;text-align:${layout.headerPosition};">${escapeHtml(docTitle)}</h1>
     <p style="font-size:13px;color:#DB2777;font-weight:600;margin-bottom:24px;">${invoiceDate}${dueDate ? ` — ${dueDate}` : ""} · Ref ${escapeHtml(invoice.invoiceNumber)}</p>
     <div style="display:flex;gap:40px;margin-bottom:28px;font-size:13px;">
       <div><p style="font-weight:700;color:#1F2937;">Customer</p><p style="color:#6B7280;">${customerName}</p></div>

@@ -61,6 +61,7 @@ export default function SalesPage() {
           invoiceNotes: st.farm_invoice_notes || "",
           invoiceTerms: st.farm_invoice_terms || "",
           accentColor: st.farm_invoice_accent_color || "",
+          layout: (() => { try { return st.farm_doc_layout ? JSON.parse(st.farm_doc_layout) : {}; } catch { return {}; } })(),
         });
         setLoading(false);
       })

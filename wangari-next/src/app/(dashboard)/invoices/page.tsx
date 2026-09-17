@@ -7,10 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
-import { INVOICE_TEMPLATES, generateInvoiceHtml, generateReceiptHtml, resolveAccent, getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
+import { INVOICE_TEMPLATES, generateInvoiceHtml, generateReceiptHtml, resolveAccent, getDefaultFarmProfile, type FarmProfile, type DocLayout } from "@/components/invoices/InvoiceTemplates";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -30,6 +31,7 @@ export default function InvoicesPage() {
   const [receiptTemplate, setReceiptTemplate] = React.useState("same");
   const [quoteTemplate, setQuoteTemplate] = React.useState("same");
   const [accentColor, setAccentColor] = React.useState("");
+  const [layout, setLayout] = React.useState<DocLayout>({});
   const [savingTemplate, setSavingTemplate] = React.useState(false);
   const [farmProfile, setFarmProfile] = React.useState<FarmProfile>(getDefaultFarmProfile());
   const [showTemplatePicker, setShowTemplatePicker] = React.useState(false);
@@ -46,6 +48,7 @@ export default function InvoicesPage() {
         setReceiptTemplate(st.farm_receipt_template || "same");
         setQuoteTemplate(st.farm_quote_template || "same");
         setAccentColor(st.farm_invoice_accent_color || "");
+        try { setLayout(st.farm_doc_layout ? JSON.parse(st.farm_doc_layout) : {}); } catch { setLayout({}); }
         setFarmProfile({
           businessName: st.farm_business_name || "",
           logoUrl: st.farm_logo_url || "",
@@ -60,6 +63,7 @@ export default function InvoicesPage() {
           invoiceNotes: st.farm_invoice_notes || "",
           invoiceTerms: st.farm_invoice_terms || "",
           accentColor: st.farm_invoice_accent_color || "",
+          layout: (() => { try { return st.farm_doc_layout ? JSON.parse(st.farm_doc_layout) : {}; } catch { return {}; } })(),
         });
         setLoading(false);
       })
@@ -103,7 +107,7 @@ export default function InvoicesPage() {
   const salesWithoutInvoice = sales.filter(s => !invoices.some(inv => inv.saleId === s.id));
 
   const handlePrint = (inv: any) => {
-    const html = generateInvoiceHtml(inv, selectedTemplate, farmProfile);
+    const html = generateInvoiceHtml(inv, selectedTemplate, { ...farmProfile, layout });
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(html);
@@ -114,7 +118,7 @@ export default function InvoicesPage() {
 
   const handlePrintReceipt = (sale: any) => {
     const effective = receiptTemplate === "same" ? selectedTemplate : receiptTemplate;
-    const html = generateReceiptHtml(sale, effective, farmProfile, `RCP-${String(sale.id).padStart(5, "0")}`);
+    const html = generateReceiptHtml(sale, effective, { ...farmProfile, layout }, `RCP-${String(sale.id).padStart(5, "0")}`);
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(html);
@@ -132,6 +136,7 @@ export default function InvoicesPage() {
           farm_receipt_template: receiptTemplate,
           farm_quote_template: quoteTemplate,
           farm_invoice_accent_color: accentColor,
+          farm_doc_layout: JSON.stringify(layout),
         },
       });
       setFarmProfile((p) => ({ ...p, accentColor }));
@@ -328,6 +333,38 @@ export default function InvoicesPage() {
                     <button onClick={() => setAccentColor("")} className="text-[11px] font-bold text-[#94A3B8] hover:text-[#64748B] cursor-pointer">Reset</button>
                   )}
                 </div>
+              </div>
+
+              {/* Layout customizer — move sections where you want them */}
+              <div className="mt-6 pt-5 border-t border-[#E5E7EB]">
+                <p className="text-xs font-bold text-[#0F172A] mb-1">Arrange sections</p>
+                <p className="text-[11px] text-[#94A3B8] mb-3">Move the header, logo, totals and signature wherever you want — applies to every template.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {([
+                    { key: "headerPosition", label: "Header (title & number)", options: [["left", "Left"], ["center", "Center"], ["right", "Right"]] },
+                    { key: "logoPosition", label: "Logo", options: [["left", "Left"], ["center", "Center"], ["right", "Right"], ["hidden", "Hide"]] },
+                    { key: "customerPosition", label: "Customer block", options: [["left", "Left"], ["right", "Right"]] },
+                    { key: "totalsSide", label: "Totals block", options: [["left", "Left"], ["right", "Right"]] },
+                    { key: "signaturePosition", label: "Signature", options: [["left", "Left"], ["center", "Center"], ["right", "Right"], ["none", "Hide"]] },
+                  ] as const).map(row => (
+                    <div key={row.key}>
+                      <Label className="text-[11px] font-semibold text-[#64748B] mb-1.5 block">{row.label}</Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {row.options.map(([val, lab]) => (
+                          <button key={val} onClick={() => setLayout({ ...layout, [row.key]: val })}
+                            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                              (layout[row.key as keyof DocLayout] || (row.key === "headerPosition" || row.key === "totalsSide" || row.key === "signaturePosition" ? "right" : "left")) === val
+                                ? "bg-[#166534] text-white border-[#166534]"
+                                : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"
+                            }`}>
+                            {lab}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setLayout({})} className="mt-3 text-[11px] font-bold text-[#94A3B8] hover:text-[#64748B] cursor-pointer">Reset to template defaults</button>
               </div>
 
               <div className="mt-5 flex items-center justify-between">
