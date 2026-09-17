@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { prisma } from "../db.js";
 import { adminLogin, requireAdmin, auditAdminAction, AdminRole, signAdminToken } from "../lib/admin-auth.js";
 import { generateSecret, otpauthUri, verifyTotp, generateRecoveryCodes, hashCode } from "../lib/totp.js";
@@ -42,6 +43,50 @@ router.post("/login", async (req: Request, res: Response) => {
 // GET /api/admin/me — session check for the admin shell.
 router.get("/me", requireAdmin(), (req: Request, res: Response) => {
   res.json({ admin: (req as any).admin });
+});
+
+// POST /api/admin/mfa/email-code
+//
+// Sends (or resends) a 6-digit login code to the admin's email when they
+// don't have an authenticator app enrolled. Requires valid email+password
+// (same credentials as the login step) so this can't be used to spam
+// arbitrary addresses. Sent from noreply@imeantech.com via the shared SMTP.
+router.post("/mfa/email-code", async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
+
+    const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase().trim() } });
+    if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    const adminRoles: string[] = ["super_admin", "billing", "support", "support_read"];
+    if (!adminRoles.includes(user.role)) return res.status(401).json({ error: "Invalid credentials" });
+    if (user.totpEnabledAt && user.totpSecret) {
+      return res.status(400).json({ error: "This account uses an authenticator app — enter the code from the app" });
+    }
+
+    const code = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await prisma.verificationCode.deleteMany({ where: { userId: user.id, purpose: "admin_login_otp" } });
+    await prisma.verificationCode.create({ data: { userId: user.id, code, purpose: "admin_login_otp", expiresAt } });
+
+    const { sendEmail } = await import("../lib/email.js");
+    const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f6;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;padding:28px;"><h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Wangari Admin sign-in code</h2><p style="margin:0 0 24px;font-size:15px;color:#64748b;">Use this code to finish signing in to the Wangari admin panel. It expires in <strong>10 minutes</strong>.</p><div style="background:#f0fdf4;border-radius:8px;padding:20px;text-align:center;margin-bottom:24px;"><span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#166534;font-family:monospace;">${code}</span></div><p style="margin:0;font-size:13px;color:#64748b;">Didn't try to sign in? Someone has your password — change it immediately.</p></div></body></html>`;
+    const result = await sendEmail({
+      to: user.email,
+      subject: "Wangari Admin sign-in code — expires in 10 minutes",
+      html,
+      text: `Your Wangari Admin sign-in code is ${code}. It expires in 10 minutes. If you didn't try to sign in, change your password immediately.`,
+      template: "oneoff",
+      userId: user.id,
+    });
+
+    res.json({ ok: result.ok, error: result.ok ? undefined : result.error });
+  } catch (error: any) {
+    console.error("Admin email-code error:", error);
+    res.status(500).json({ error: "Could not send the code" });
+  }
 });
 
 // ─── MFA (TOTP) — Phase 4 ────────────────────────────────

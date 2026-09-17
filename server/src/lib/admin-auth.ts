@@ -101,6 +101,17 @@ export async function adminLogin(
       hashes.splice(idx, 1);
       await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
     }
+  } else if (user.emailVerified) {
+    // No authenticator app enrolled: fall back to an emailed OTP.
+    const code = String(totpCode || "").trim();
+    if (!code) return { mfaRequired: true };
+
+    const otp = await prisma.verificationCode.findFirst({
+      where: { userId: user.id, purpose: "admin_login_otp", usedAt: null, expiresAt: { gte: new Date() } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!otp || otp.code !== code) return { mfaInvalid: true };
+    await prisma.verificationCode.update({ where: { id: otp.id }, data: { usedAt: new Date() } });
   }
 
   return {

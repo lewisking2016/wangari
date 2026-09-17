@@ -15,6 +15,50 @@ export default function AdminLoginPage() {
   const [mfaStep, setMfaStep] = React.useState(false);
   const [error, setError] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const [emailCodeSent, setEmailCodeSent] = React.useState(false);
+  const [emailCodeBusy, setEmailCodeBusy] = React.useState(false);
+  const [emailCodeMsg, setEmailCodeMsg] = React.useState("");
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
+  // When the MFA step appears, auto-send an email code so the admin can
+  // sign in without an authenticator app. Cooldown prevents spamming.
+  React.useEffect(() => {
+    if (!mfaStep || emailCodeSent) return;
+    setEmailCodeSent(true);
+    (async () => {
+      setEmailCodeBusy(true);
+      try {
+        await adminApi.post("/mfa/email-code", { email, password });
+        setEmailCodeMsg(`We emailed a 6-digit code to ${email}. It expires in 10 minutes.`);
+        setResendCooldown(60);
+      } catch {
+        setEmailCodeMsg("");
+      } finally {
+        setEmailCodeBusy(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mfaStep]);
+
+  React.useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  async function resendEmailCode() {
+    setEmailCodeBusy(true);
+    setError("");
+    try {
+      await adminApi.post("/mfa/email-code", { email, password });
+      setEmailCodeMsg(`Code re-sent to ${email}.`);
+      setResendCooldown(60);
+    } catch (err: any) {
+      setError(err?.message || "Could not resend the code");
+    } finally {
+      setEmailCodeBusy(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,8 +99,11 @@ export default function AdminLoginPage() {
           {mfaStep ? (
             <>
               <p className="text-xs leading-relaxed text-wangari-muted">
-                Enter the 6-digit code from your authenticator app (or a recovery code) for <span className="font-semibold text-wangari-heading">{email}</span>.
+                Enter the 6-digit code we just emailed to <span className="font-semibold text-wangari-heading">{email}</span> — or a code from your authenticator app / a recovery code.
               </p>
+              {emailCodeMsg && (
+                <p className="rounded-lg bg-wangari-green-50 px-3 py-2 text-xs text-wangari-green-800">{emailCodeBusy ? "Sending code…" : emailCodeMsg}</p>
+              )}
               <input
                 type="text"
                 required
@@ -117,9 +164,19 @@ export default function AdminLoginPage() {
             {busy ? (mfaStep ? "Verifying…" : "Signing in…") : mfaStep ? "Verify code" : "Sign in to Admin"}
           </button>
           {mfaStep && (
-            <p className="text-center text-[11px] text-wangari-subtle">
-              Lost your device? Use one of your recovery codes in place of the 6-digit code.
-            </p>
+            <>
+              <button
+                type="button"
+                onClick={resendEmailCode}
+                disabled={emailCodeBusy || resendCooldown > 0}
+                className="w-full rounded-xl border border-wangari-border py-2 text-xs font-medium text-wangari-green-800 transition-colors hover:bg-wangari-green-50 disabled:opacity-50"
+              >
+                {emailCodeBusy ? "Sending…" : resendCooldown > 0 ? `Resend email code in ${resendCooldown}s` : "Resend email code"}
+              </button>
+              <p className="text-center text-[11px] text-wangari-subtle">
+                Lost your device? Use one of your recovery codes in place of the 6-digit code.
+              </p>
+            </>
           )}
         </form>
         <p className="mt-4 text-center text-[11px] text-wangari-subtle">
