@@ -791,9 +791,10 @@ model TicketMessage {
 model PromoCode {
   id             String    @id @default(cuid())
   code           String    @unique
-  type           String    @default("discount") // discount | partnership | credit
+  type           String    @default("discount") // discount | partnership | credit | sponsorship
   discountType   String?   @map("discount_type") // percent | fixed
   value          Int? // percent (1-100) or fixed KES
+  freeMonths     Int?      @map("free_months") // sponsorship: months of free subscription granted on redemption
   maxRedemptions Int?      @map("max_redemptions")
   timesRedeemed  Int       @default(0) @map("times_redeemed")
   partnerName    String?   @map("partner_name")

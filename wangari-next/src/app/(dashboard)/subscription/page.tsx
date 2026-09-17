@@ -84,6 +84,31 @@ function SubscriptionContent() {
     }).catch(() => {});
   }, []);
 
+  // Sponsorship / partnership codes: redeem directly for free months — no payment.
+  const [redeeming, setRedeeming] = React.useState(false);
+  const redeemFreeCode = async () => {
+    if (!promoCode.trim()) return;
+    setRedeeming(true);
+    setPromoNote(null);
+    try {
+      const res = await api.post<{ ok: boolean; months: number; sponsor: string | null; expiresAt: string }>(
+        "/api/promos/redeem",
+        { code: promoCode.trim().toUpperCase() }
+      );
+      setPromoNote({
+        kind: "ok",
+        text: `🎉 ${res.months} month${res.months === 1 ? "" : "s"} of free access activated${res.sponsor ? ` (sponsor: ${res.sponsor})` : ""} — valid until ${new Date(res.expiresAt).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })}. A confirmation email is on its way.`,
+      });
+      setPromoCode("");
+      // Reload so the new expiry shows immediately.
+      window.location.reload();
+    } catch (err: any) {
+      setPromoNote({ kind: "err", text: err?.message || "Could not redeem the code" });
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
   const handleSubscribe = async (planKey: string) => {
     setPurchasing(planKey);
     try {
@@ -196,7 +221,7 @@ function SubscriptionContent() {
       <motion.div initial="hidden" animate="visible" variants={fadeUp}>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 className="text-sm font-bold text-[#0F172A]">Available Plans</h3>
-          {/* Promo code — validated server-side at checkout init; applied by the webhook on payment */}
+          {/* Promo code — validated server-side at checkout init; applied by the webhook on payment. Sponsorship/partner codes can be redeemed directly for free months. */}
           <div className="flex items-center gap-2">
             <input
               value={promoCode}
@@ -204,9 +229,18 @@ function SubscriptionContent() {
                 setPromoCode(e.target.value.toUpperCase());
                 setPromoNote(null);
               }}
-              placeholder="Promo code"
-              className="h-9 w-36 rounded-lg border border-[#E5E7EB] px-3 text-xs font-semibold tracking-wide uppercase placeholder:font-normal placeholder:normal-case focus:border-[#166534] focus:outline-none"
+              placeholder="Promo / sponsor code"
+              className="h-9 w-40 rounded-lg border border-[#E5E7EB] px-3 text-xs font-semibold tracking-wide uppercase placeholder:font-normal placeholder:normal-case focus:border-[#166534] focus:outline-none"
             />
+            {promoCode && (
+              <button
+                onClick={redeemFreeCode}
+                disabled={redeeming}
+                className="h-9 whitespace-nowrap rounded-lg bg-[#166534] px-3 text-xs font-bold text-white hover:bg-[#14532D] disabled:opacity-60"
+              >
+                {redeeming ? "Checking…" : "Redeem"}
+              </button>
+            )}
             {promoCode && (
               <button
                 onClick={() => { setPromoCode(""); setPromoNote(null); }}
@@ -223,7 +257,7 @@ function SubscriptionContent() {
           </div>
         )}
         {!promoCode && (
-          <p className="mb-3 text-[11px] text-[#94A3B8]">Have a promo or partner code? Enter it above — the discount is applied to your payment.</p>
+          <p className="mb-3 text-[11px] text-[#94A3B8]">Have a promo or sponsor code? Discount codes apply to your payment. Sponsorship/partner codes — tap <span className="font-semibold">Redeem</span> for free months, no payment needed.</p>
         )}
         <div className="grid gap-4">
           {plans.map(plan => (

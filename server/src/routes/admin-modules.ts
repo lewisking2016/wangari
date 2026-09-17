@@ -378,11 +378,18 @@ router.post("/promos", requireAdmin(["billing"]), async (req: Request, res: Resp
     if (!clean || !/^[A-Z0-9_-]{3,24}$/.test(clean)) {
       return res.status(400).json({ error: "Code must be 3-24 chars (A-Z, 0-9, dash, underscore)" });
     }
-    if (!["discount", "partnership", "credit"].includes(type)) {
-      return res.status(400).json({ error: "type must be discount, partnership or credit" });
+    if (!["discount", "partnership", "credit", "sponsorship"].includes(type)) {
+      return res.status(400).json({ error: "type must be discount, partnership, credit or sponsorship" });
+    }
+    // Sponsorship codes grant free months instead of a payment discount.
+    const freeMonths = req.body?.freeMonths ? Number(req.body.freeMonths) : null;
+    if (type === "sponsorship") {
+      if (!freeMonths || !Number.isFinite(freeMonths) || freeMonths < 1 || freeMonths > 36) {
+        return res.status(400).json({ error: "sponsorship codes need freeMonths (1-36)" });
+      }
     }
     const val = Number(value);
-    if (!Number.isFinite(val) || val <= 0) {
+    if (type !== "sponsorship" && (!Number.isFinite(val) || val <= 0)) {
       return res.status(400).json({ error: "value must be a positive number" });
     }
     if (discountType === "percent" && val > 100) {
@@ -393,7 +400,8 @@ router.post("/promos", requireAdmin(["billing"]), async (req: Request, res: Resp
         code: clean,
         type,
         discountType: discountType === "percent" ? "percent" : "fixed",
-        value: Math.round(val),
+        value: type === "sponsorship" ? null : Math.round(val),
+        freeMonths: type === "sponsorship" ? Math.round(freeMonths!) : null,
         maxRedemptions: maxRedemptions ? Number(maxRedemptions) : null,
         partnerName: partnerName || null,
         expiresAt: expiresAt ? new Date(expiresAt) : null,

@@ -44,7 +44,7 @@ interface PromoRow {
 
 interface PromoListRes extends Array<PromoRow> {}
 
-const EMPTY = { code: "", type: "discount", discountType: "percent", value: "", maxRedemptions: "", partnerName: "", expiresAt: "" };
+const EMPTY = { code: "", type: "discount", discountType: "percent", value: "", freeMonths: "", maxRedemptions: "", partnerName: "", expiresAt: "" };
 
 function promoState(p: PromoRow): "active" | "expired" | "disabled" {
   if (!p.active) return "disabled";
@@ -77,7 +77,8 @@ export default function AdminPromosPage() {
         code: form.code,
         type: form.type,
         discountType: form.discountType,
-        value: Number(form.value),
+        value: form.type === "sponsorship" || form.type === "partnership" ? 0 : Number(form.value),
+        freeMonths: form.type === "sponsorship" || form.type === "partnership" ? Number(form.freeMonths) : null,
         maxRedemptions: form.maxRedemptions ? Number(form.maxRedemptions) : null,
         partnerName: form.partnerName || null,
         expiresAt: form.expiresAt || null,
@@ -208,19 +209,28 @@ export default function AdminPromosPage() {
             <Field label="Type">
               <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={inputClass}>
                 <option value="discount">Discount</option>
-                <option value="partnership">Partnership</option>
+                <option value="partnership">Partnership (free months)</option>
+                <option value="sponsorship">Sponsorship (free months)</option>
                 <option value="credit">Credit</option>
               </select>
             </Field>
-            <Field label="Discount type">
-              <select value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })} className={inputClass}>
-                <option value="percent">% off</option>
-                <option value="fixed">KES off</option>
-              </select>
-            </Field>
-            <Field label="Value" hint={form.discountType === "percent" ? "1-100" : "KES amount"}>
-              <input required type="number" min="1" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="25" className={inputClass} />
-            </Field>
+            {form.type === "sponsorship" || form.type === "partnership" ? (
+              <Field label="Free months" hint="Granted on redemption, no payment needed">
+                <input required type="number" min="1" max="36" value={form.freeMonths} onChange={(e) => setForm({ ...form, freeMonths: e.target.value })} placeholder="12" className={inputClass} />
+              </Field>
+            ) : (
+              <>
+                <Field label="Discount type">
+                  <select value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })} className={inputClass}>
+                    <option value="percent">% off</option>
+                    <option value="fixed">KES off</option>
+                  </select>
+                </Field>
+                <Field label="Value" hint={form.discountType === "percent" ? "1-100" : "KES amount"}>
+                  <input required type="number" min="1" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="25" className={inputClass} />
+                </Field>
+              </>
+            )}
             <Field label="Max uses" hint="Empty = unlimited">
               <input type="number" min="1" value={form.maxRedemptions} onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })} className={inputClass} />
             </Field>
@@ -228,7 +238,7 @@ export default function AdminPromosPage() {
               <input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className={inputClass} />
             </Field>
           </div>
-          <Field label="Partner name" hint="Optional — attribution for partnership codes">
+          <Field label={form.type === "sponsorship" ? "Sponsor name" : "Partner name"} hint="Optional — shown to the farmer when they redeem">
             <input value={form.partnerName} onChange={(e) => setForm({ ...form, partnerName: e.target.value })} className={inputClass} />
           </Field>
           <div className="flex justify-end gap-2 pt-1">
