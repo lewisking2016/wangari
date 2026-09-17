@@ -38,16 +38,16 @@ router.post("/", async (req: Request, res: Response) => {
       },
     });
 
-    // Auto-generate invoice for this sale
+    // Auto-generate invoice for this sale (sequential, never-reused code)
     try {
-      const ym = new Date().getFullYear().toString() + String(new Date().getMonth() + 1).padStart(2, "0");
-      const rand = Math.floor(Math.random() * 9000 + 1000);
+      const { nextDocCode } = await import("../lib/doc-codes.js");
+      const invoiceNumber = await prisma.$transaction((tx: any) => nextDocCode(tx, req.user!.farmId!, "invoice"));
       await prisma.invoice.create({
         data: {
           farmId: req.user!.farmId!,
           saleId: result.id,
           customerId: result.customerId,
-          invoiceNumber: `INV-${ym}-${rand}`,
+          invoiceNumber,
           items: result.items as any,
           totalAmount: Number(result.totalAmount),
           amountPaid: Number(result.amountPaid),

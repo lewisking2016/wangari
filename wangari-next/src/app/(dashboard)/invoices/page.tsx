@@ -28,6 +28,7 @@ export default function InvoicesPage() {
   const [payAmount, setPayAmount] = React.useState("");
   const [selectedTemplate, setSelectedTemplate] = React.useState("professional");
   const [receiptTemplate, setReceiptTemplate] = React.useState("same");
+  const [quoteTemplate, setQuoteTemplate] = React.useState("same");
   const [accentColor, setAccentColor] = React.useState("");
   const [savingTemplate, setSavingTemplate] = React.useState(false);
   const [farmProfile, setFarmProfile] = React.useState<FarmProfile>(getDefaultFarmProfile());
@@ -43,6 +44,7 @@ export default function InvoicesPage() {
         const st = (settingsData as any).settings || {};
         setSelectedTemplate(st.farm_invoice_template || "professional");
         setReceiptTemplate(st.farm_receipt_template || "same");
+        setQuoteTemplate(st.farm_quote_template || "same");
         setAccentColor(st.farm_invoice_accent_color || "");
         setFarmProfile({
           businessName: st.farm_business_name || "",
@@ -112,7 +114,7 @@ export default function InvoicesPage() {
 
   const handlePrintReceipt = (sale: any) => {
     const effective = receiptTemplate === "same" ? selectedTemplate : receiptTemplate;
-    const html = generateReceiptHtml(sale, effective, farmProfile);
+    const html = generateReceiptHtml(sale, effective, farmProfile, `RCP-${String(sale.id).padStart(5, "0")}`);
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(html);
@@ -128,6 +130,7 @@ export default function InvoicesPage() {
         settings: {
           farm_invoice_template: selectedTemplate,
           farm_receipt_template: receiptTemplate,
+          farm_quote_template: quoteTemplate,
           farm_invoice_accent_color: accentColor,
         },
       });
@@ -194,6 +197,11 @@ export default function InvoicesPage() {
           {receiptTemplate !== "same" && (
             <span className="text-[10px] font-bold text-[#1E3A5F] bg-[#EFF6FF] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
               receipts: {INVOICE_TEMPLATES.find(t => t.id === receiptTemplate)?.name}
+            </span>
+          )}
+          {quoteTemplate !== "same" && (
+            <span className="text-[10px] font-bold text-[#7C2D12] bg-[#FFF7ED] px-2 py-0.5 rounded-full border border-[#FED7AA]">
+              quotes: {INVOICE_TEMPLATES.find(t => t.id === quoteTemplate)?.name}
             </span>
           )}
         </button>
@@ -265,6 +273,28 @@ export default function InvoicesPage() {
                     <button key={t.id} onClick={() => setReceiptTemplate(t.id)}
                       className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         receiptTemplate === t.id ? "bg-[#166534] text-white border-[#166534]" : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"
+                      }`}>
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quote template — defaults to following the invoice template */}
+              <div className="mt-6 pt-5 border-t border-[#E5E7EB]">
+                <p className="text-xs font-bold text-[#0F172A] mb-1">Quotes &amp; estimates</p>
+                <p className="text-[11px] text-[#94A3B8] mb-3">Quote documents get their own design — Corporate Navy and Teal Estimate work great here.</p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setQuoteTemplate("same")}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      quoteTemplate === "same" ? "bg-[#166534] text-white border-[#166534]" : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"
+                    }`}>
+                    Same as invoices
+                  </button>
+                  {INVOICE_TEMPLATES.map(t => (
+                    <button key={t.id} onClick={() => setQuoteTemplate(t.id)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        quoteTemplate === t.id ? "bg-[#166534] text-white border-[#166534]" : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"
                       }`}>
                       {t.name}
                     </button>

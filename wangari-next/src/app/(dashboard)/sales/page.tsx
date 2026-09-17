@@ -135,7 +135,7 @@ export default function SalesPage() {
 
   const handlePrintReceipt = (sale: any) => {
     const effective = resolveReceiptTemplate(receiptTemplate, invoiceTemplate);
-    const html = generateReceiptHtml(sale, effective, farmProfile);
+    const html = generateReceiptHtml(sale, effective, farmProfile, `RCP-${String(sale.id).padStart(5, "0")}`);
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(html);

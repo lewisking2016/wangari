@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Building2, Phone, Mail, MapPin, CreditCard, FileText, Save, Upload, X, Eye } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, CreditCard, FileText, Save, Upload, X, Eye, PenTool } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
 import { getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
+import { SignaturePad } from "./SignaturePad";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -34,6 +35,9 @@ export function FarmProfileEditor() {
         bankBranch: s.farm_bank_branch || "",
         invoiceNotes: s.farm_invoice_notes || "",
         invoiceTerms: s.farm_invoice_terms || "",
+        ctaText: s.farm_cta_text || "",
+        signatureDataUrl: s.farm_signature_data_url || "",
+        signatureName: s.farm_signature_name || "",
       });
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -55,6 +59,9 @@ export function FarmProfileEditor() {
         farm_bank_branch: profile.bankBranch,
         farm_invoice_notes: profile.invoiceNotes,
         farm_invoice_terms: profile.invoiceTerms,
+        farm_cta_text: profile.ctaText || "",
+        farm_signature_data_url: profile.signatureDataUrl || "",
+        farm_signature_name: profile.signatureName || "",
       },
     });
     setSaving(false);
@@ -206,6 +213,27 @@ export function FarmProfileEditor() {
               <Label className="text-xs font-semibold text-[#64748B]">Terms & Conditions</Label>
               <textarea placeholder="e.g. Payment due within 30 days. Goods once sold are not returnable." value={profile.invoiceTerms} onChange={e => update("invoiceTerms", e.target.value)} className="w-full h-24 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-[#166534]/20 focus:border-[#166534]" />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-[#64748B]">Call-to-Action Line (optional)</Label>
+              <Input placeholder="e.g. Order today — call or WhatsApp +254 7XX XXX XXX" value={profile.ctaText || ""} onChange={e => update("ctaText", e.target.value)} className="h-10 rounded-xl" />
+              <p className="text-[11px] text-[#94A3B8]">Printed near the signature on every document.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Signature (optional) */}
+      <Card className="border border-[#E5E7EB]">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <PenTool className="h-4 w-4 text-[#166534]" />
+            <h3 className="text-sm font-bold text-[#0F172A]">Your Signature <span className="ml-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wide">Optional</span></h3>
+          </div>
+          <p className="text-xs text-[#94A3B8] mb-4">Draw it once with your finger or pen on a touch screen — it then prints on invoices, quotes, and receipts. Completely optional.</p>
+          <SignaturePad value={profile.signatureDataUrl || ""} onChange={(v) => update("signatureDataUrl", v)} />
+          <div className="mt-4 space-y-1">
+            <Label className="text-xs font-semibold text-[#64748B]">Name Under Signature</Label>
+            <Input placeholder="e.g. Wangari Njeri, Farm Owner" value={profile.signatureName || ""} onChange={e => update("signatureName", e.target.value)} className="h-10 rounded-xl max-w-sm" />
           </div>
         </CardContent>
       </Card>

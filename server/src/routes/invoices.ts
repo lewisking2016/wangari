@@ -7,12 +7,21 @@ import { auditMoneyMutation } from "../lib/audit.js";
 const router = Router();
 router.use(authMiddleware, requireOwner);
 
-// Generate invoice number: INV-YYYYMM-XXXX
+// Sequential, never-reused document codes per farm (see lib/doc-codes).
 function generateInvoiceNumber(): string {
   const now = new Date();
   const ym = now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, "0");
   const rand = Math.floor(Math.random() * 9000 + 1000);
   return `INV-${ym}-${rand}`;
+}
+
+async function nextInvoiceNumber(farmId: number): Promise<string> {
+  const { nextDocCode } = await import("../lib/doc-codes.js");
+  try {
+    return await prisma.$transaction((tx: any) => nextDocCode(tx, farmId, "invoice"));
+  } catch {
+    return generateInvoiceNumber(); // fallback keeps creates working if counter fails
+  }
 }
 
 // GET /api/invoices
@@ -34,12 +43,13 @@ router.get("/", async (req: Request, res: Response) => {
 router.post("/", async (req: Request, res: Response) => {
   try {
     const farmId = req.user!.farmId!;
+    const invoiceNumber = await nextInvoiceNumber(farmId);
     const result = await prisma.invoice.create({
       data: {
         farmId,
         saleId: req.body.saleId ? Number(req.body.saleId) : null,
         customerId: req.body.customerId ? Number(req.body.customerId) : null,
-        invoiceNumber: generateInvoiceNumber(),
+        invoiceNumber,
         items: req.body.items || [],
         totalAmount: Number(req.body.totalAmount),
         amountPaid: Number(req.body.amountPaid || 0),
@@ -76,12 +86,13 @@ router.post("/from-sale/:saleId", async (req: Request, res: Response) => {
     const existing = await prisma.invoice.findFirst({ where: { saleId: sale.id } });
     if (existing) return res.json(existing);
 
+    const invoiceNumber = await nextInvoiceNumber(farmId);
     const result = await prisma.invoice.create({
       data: {
         farmId,
         saleId: sale.id,
         customerId: sale.customerId,
-        invoiceNumber: generateInvoiceNumber(),
+        invoiceNumber,
         items: sale.items as any,
         totalAmount: Number(sale.totalAmount),
         amountPaid: Number(sale.amountPaid),
