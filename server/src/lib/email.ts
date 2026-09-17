@@ -16,6 +16,13 @@ const RESEND_API = "https://api.resend.com/emails";
 const FROM = process.env.EMAIL_FROM || "Wangari <noreply@imeantech.com>";
 
 // SMTP transport (created lazily once; only when SMTP env is configured).
+// pool: true keeps a warm connection open between sends — verification codes
+// skip the ~1.5s TCP+STARTTLS+AUTH handshake when sent shortly after another
+// email. Nodemailer closes the pooled connection automatically after 10 min
+// of inactivity (socketTimeout) or when maxMessages is reached, and it
+// transparently reconnects on the next send, so stale connections are never
+// a problem. Pool-level 'error' events (idle socket dropped by Mailbux) are
+// swallowed — the next send simply opens a fresh connection.
 let smtpTransport: Transporter | null = null;
 let smtpAttempted = false;
 function getSmtp(): Transporter | null {
@@ -30,6 +37,16 @@ function getSmtp(): Transporter | null {
     port: Number(process.env.SMTP_PORT) || 587,
     secure: process.env.SMTP_SECURE === "true", // true = port 465 implicit TLS; false = 587 STARTTLS
     auth: { user, pass },
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100, // recycle each connection after 100 emails
+    socketTimeout: 10 * 60 * 1000, // drop idle sockets after 10 min (Mailbux default NOOP window is safe)
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
+  });
+  smtpTransport.on("error", () => {
+    // Idle pooled connection dropped by the server etc. — nodemailer
+    // re-establishes the connection on the next send automatically.
   });
   return smtpTransport;
 }
