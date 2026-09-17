@@ -417,6 +417,68 @@ router.post("/promos", requireAdmin(["billing"]), async (req: Request, res: Resp
   }
 });
 
+// POST /api/admin/promos/batch — generate N unique codes in one go.
+// Used for sponsor batches ("100 single-use codes for the Nakuru co-op").
+// Returns the created rows so the admin can export them as CSV.
+router.post("/promos/batch", requireAdmin(["billing"]), async (req: Request, res: Response) => {
+  try {
+    const { count, type, freeMonths, discountType, value, partnerName, expiresAt } = req.body || {};
+    const n = Math.min(Math.max(Number(count) || 0, 1), 500);
+    if (!n) return res.status(400).json({ error: "count must be 1-500" });
+    if (!["discount", "partnership", "credit", "sponsorship"].includes(type)) {
+      return res.status(400).json({ error: "type must be discount, partnership, credit or sponsorship" });
+    }
+    const fm = freeMonths ? Number(freeMonths) : null;
+    if (["sponsorship", "partnership"].includes(type) && (!fm || fm < 1 || fm > 36)) {
+      return res.status(400).json({ error: "freeMonths (1-36) required for sponsorship/partnership" });
+    }
+    const val = Number(value);
+    if (!["sponsorship", "partnership"].includes(type) && (!Number.isFinite(val) || val <= 0)) {
+      return res.status(400).json({ error: "value must be a positive number" });
+    }
+
+    // Human-friendly unique codes: PREFIX-XXXX-XXXX (unambiguous alphabet).
+    const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    const genCode = () => {
+      const seg = () => Array.from({ length: 4 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
+      return `${String(req.body?.prefix || "WANGARI").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) || "WANGARI"}-${seg()}-${seg()}`;
+    };
+
+    const created: string[] = [];
+    for (let i = 0; i < n; i++) {
+      // Retry on the (rare) unique collision.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const code = genCode();
+        try {
+          await prisma.promoCode.create({
+            data: {
+              code,
+              type,
+              discountType: ["sponsorship", "partnership"].includes(type) ? null : discountType === "percent" ? "percent" : "fixed",
+              value: ["sponsorship", "partnership"].includes(type) ? null : Math.round(val),
+              freeMonths: ["sponsorship", "partnership"].includes(type) ? Math.round(fm!) : null,
+              maxRedemptions: 1, // batch codes are single-use by design
+              partnerName: partnerName || null,
+              expiresAt: expiresAt ? new Date(expiresAt) : null,
+              createdBy: (req as any).admin?.adminId,
+            },
+          });
+          created.push(code);
+          break;
+        } catch (e: any) {
+          if (attempt === 4) throw e;
+        }
+      }
+    }
+
+    auditAdminAction((req as any).admin, "admin.promo.batch_create", "promo", 0, { count: created.length, type, partnerName });
+    res.status(201).json({ ok: true, created });
+  } catch (error) {
+    console.error("Admin promo batch error:", error);
+    res.status(500).json({ error: "Batch generation failed" });
+  }
+});
+
 router.patch("/promos/:id", requireAdmin(["billing"]), async (req: Request, res: Response) => {
   try {
     const { active, maxRedemptions, expiresAt } = req.body || {};

@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Landmark, Building2, Users, Sprout, Wallet, TicketCheck, ArrowRight, UserPlus, ReceiptText,
   TrendingUp, TrendingDown, Minus, AlarmClock, ShieldCheck, MailWarning, MailCheck, History,
+  TicketPercent, Gift,
 } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
 import { PageHeader, Panel, StatCard, TableShell, Th, Td, Loading, ErrorState, EmptyState, GhostButton } from "@/components/admin/ui";
@@ -13,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface Overview {
   totals: { farms: number; users: number; workers: number; activeSubscriptions: number; mrrKes: number; openTickets: number };
+  promoStats?: { totalCodes: number; redemptionsThisMonth: number; sponsoredActive: number };
   byPlan: Record<string, { count: number; revenue: number }>;
   signups: { date: string; count: number }[];
   revenueTrend: { date: string; revenue: number }[];
@@ -99,6 +101,24 @@ export default function AdminOverviewPage() {
           hint={<span className="inline-flex items-center gap-1.5">+{data.deltas.ownersThisWeek} this week <Delta pct={data.deltas.signupChangePct} /></span>}
         />
         <StatCard label="Workers" value={t.workers} icon={<Sprout className="h-5 w-5" />} accent="amber" />
+        {data.promoStats && (
+          <StatCard
+            label="Promo codes"
+            value={data.promoStats.totalCodes}
+            icon={<TicketPercent className="h-5 w-5" />}
+            accent="violet"
+            hint={`${data.promoStats.redemptionsThisMonth} redeemed this month`}
+          />
+        )}
+        {data.promoStats && (
+          <StatCard
+            label="Sponsored farms"
+            value={data.promoStats.sponsoredActive}
+            icon={<Gift className="h-5 w-5" />}
+            accent="blue"
+            hint="active via sponsor code"
+          />
+        )}
         <StatCard
           label="Open tickets"
           value={t.openTickets}

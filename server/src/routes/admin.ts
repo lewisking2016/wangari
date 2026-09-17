@@ -283,12 +283,19 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const [totalFarms, totalUsers, totalWorkers, activeSubs, recentUsers, recentPayments, openTickets] =
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [totalFarms, totalUsers, totalWorkers, activeSubs, recentUsers, recentPayments, openTickets, promoTotals, promoRedemptionsThisMonth, sponsoredActive] =
       await Promise.all([
         prisma.farm.count(),
         prisma.user.count({ where: { role: "farm_owner" } }),
         prisma.worker.count(),
         prisma.subscription.findMany({ where: { status: "active", expiresAt: { gt: now } }, select: { amount: true, planName: true } }),
+        prisma.promoCode.count(),
+        prisma.promoRedemption.count({ where: { createdAt: { gte: monthStart } } }),
+        prisma.subscription.count({
+          where: { status: "active", expiresAt: { gt: now }, planName: { contains: "sponsored" } },
+        }),
         prisma.user.findMany({
           where: { role: "farm_owner", createdAt: { gte: sevenDaysAgo } },
           select: { id: true, name: true, email: true, createdAt: true },
@@ -416,6 +423,11 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
       trialFarms,
       emailHealth: emailsLast24h,
       recentAdminActions,
+      promoStats: {
+        totalCodes: promoTotals,
+        redemptionsThisMonth: promoRedemptionsThisMonth,
+        sponsoredActive,
+      },
     });
   } catch (error) {
     console.error("Admin overview error:", error);

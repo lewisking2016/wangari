@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import {
-  TicketPercent, Plus, Power, X,
+  TicketPercent, Plus, Power, X, Share2, Layers, Download, Check,
   Ticket as TicketIcon, Zap, Handshake, ReceiptText,
 } from "lucide-react";
 import { adminApi } from "@/lib/admin-client";
@@ -25,6 +25,7 @@ interface PromoRow {
   type: string;
   discountType: string | null;
   value: number | null;
+  freeMonths?: number | null;
   maxRedemptions: number | null;
   timesRedeemed: number;
   partnerName: string | null;
@@ -105,6 +106,83 @@ export default function AdminPromosPage() {
     }
   }
 
+  // ── WhatsApp share message ──
+  const [sharedCode, setSharedCode] = React.useState<string | null>(null);
+  function shareMessage(p: PromoRow): string {
+    const isFree = p.type === "sponsorship" || p.type === "partnership";
+    const benefit = isFree
+      ? `🎁 ${p.freeMonths || "?"} months of Wangari — completely FREE`
+      : p.discountType === "percent" ? `🎁 ${p.value}% off your subscription` : `🎁 KES ${p.value?.toLocaleString()} off your subscription`;
+    return [
+      `🌿 *Wangari Farm OS* — ${benefit}`,
+      p.partnerName ? `Powered by ${p.partnerName}` : "",
+      "",
+      `Your code: *${p.code}*`,
+      isFree
+        ? `How to use: open ${"https://wangari.imeantech.com/subscription"} → enter the code → tap *Redeem*. Free access starts instantly — no payment needed.`
+        : `How to use: open ${"https://wangari.imeantech.com/subscription"} → pick a plan → enter the code at checkout.`,
+      "",
+      "Track animals, crops, sales & workers — even offline. 🐔🌾",
+    ].filter(Boolean).join("\n");
+  }
+  async function copyShare(p: PromoRow) {
+    try {
+      await navigator.clipboard.writeText(shareMessage(p));
+      setSharedCode(p.id);
+      setTimeout(() => setSharedCode(null), 2500);
+    } catch {}
+  }
+  function openWhatsApp(p: PromoRow) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage(p))}`, "_blank");
+  }
+
+  // ── Batch generation ──
+  const [showBatch, setShowBatch] = React.useState(false);
+  const [batchForm, setBatchForm] = React.useState({ prefix: "WANGARI", count: "50", type: "sponsorship", freeMonths: "12", discountType: "percent", value: "", partnerName: "", expiresAt: "" });
+  const [batchBusy, setBatchBusy] = React.useState(false);
+  const [batchCodes, setBatchCodes] = React.useState<string[] | null>(null);
+  const [batchError, setBatchError] = React.useState("");
+
+  async function generateBatch() {
+    setBatchBusy(true);
+    setBatchError("");
+    try {
+      const isFree = batchForm.type === "sponsorship" || batchForm.type === "partnership";
+      const res = await adminApi.post<{ ok: boolean; created: string[] }>("/promos/batch", {
+        prefix: batchForm.prefix,
+        count: Number(batchForm.count),
+        type: batchForm.type,
+        ...(isFree ? { freeMonths: Number(batchForm.freeMonths) } : { discountType: batchForm.discountType, value: Number(batchForm.value) }),
+        partnerName: batchForm.partnerName || null,
+        expiresAt: batchForm.expiresAt || null,
+      });
+      setBatchCodes(res.created);
+      load();
+    } catch (e: any) {
+      setBatchError(e.message);
+    } finally {
+      setBatchBusy(false);
+    }
+  }
+
+  function exportCsv() {
+    if (!batchCodes) return;
+    const isFree = batchForm.type === "sponsorship" || batchForm.type === "partnership";
+    const rows = [
+      "code,type,benefit,partner,expires",
+      ...batchCodes.map((c) =>
+        [c, batchForm.type, isFree ? `${batchForm.freeMonths} months free` : `${batchForm.discountType === "percent" ? batchForm.value + "%" : "KES " + batchForm.value} off`, batchForm.partnerName, batchForm.expiresAt || "never"]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
+      ),
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([rows], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `wangari-codes-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -112,9 +190,14 @@ export default function AdminPromosPage() {
         title="Promo & Partnership Codes"
         description="Codes are redeemed at checkout — the payment webhook records attribution and discount."
         actions={
-          <PrimaryButton onClick={() => setShowCreate(true)}>
-            <Plus className="h-4 w-4" /> New code
-          </PrimaryButton>
+          <div className="flex gap-2">
+            <GhostButton onClick={() => { setBatchCodes(null); setShowBatch(true); }}>
+              <Layers className="h-4 w-4" /> Batch generate
+            </GhostButton>
+            <PrimaryButton onClick={() => setShowCreate(true)}>
+              <Plus className="h-4 w-4" /> New code
+            </PrimaryButton>
+          </div>
         }
       />
 
@@ -184,12 +267,26 @@ export default function AdminPromosPage() {
                       )}
                     </Td>
                     <Td className="text-right">
-                      <GhostButton
-                        onClick={(e) => { e.stopPropagation(); toggle(p); }}
-                        className="h-7 px-2 text-xs"
-                      >
-                        <Power className="h-3 w-3" /> {p.active ? "Disable" : "Enable"}
-                      </GhostButton>
+                      <div className="flex justify-end gap-1">
+                        <GhostButton
+                          onClick={(e) => { e.stopPropagation(); openWhatsApp(p); }}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <Share2 className="h-3 w-3" />
+                        </GhostButton>
+                        <GhostButton
+                          onClick={(e) => { e.stopPropagation(); copyShare(p); }}
+                          className="h-7 px-2 text-xs"
+                        >
+                          {sharedCode === p.id ? <Check className="h-3 w-3 text-wangari-green-700" /> : <Download className="h-3 w-3" />}
+                        </GhostButton>
+                        <GhostButton
+                          onClick={(e) => { e.stopPropagation(); toggle(p); }}
+                          className="h-7 px-2 text-xs"
+                        >
+                          <Power className="h-3 w-3" /> {p.active ? "Disable" : "Enable"}
+                        </GhostButton>
+                      </div>
                     </Td>
                   </tr>
                 );
@@ -248,6 +345,74 @@ export default function AdminPromosPage() {
             </PrimaryButton>
           </div>
         </form>
+      </Modal>
+
+      {/* Batch generation modal */}
+      <Modal title="Batch generate codes" onClose={() => setShowBatch(false)} open={showBatch} width="max-w-lg">
+        {batchCodes ? (
+          <div className="space-y-4">
+            <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+              ✓ {batchCodes.length} unique codes created — each is single-use.
+            </div>
+            <div className="max-h-56 overflow-y-auto rounded-xl border border-wangari-border bg-wangari-cream/40 p-3">
+              <div className="grid grid-cols-1 gap-1 font-mono text-xs text-wangari-heading">
+                {batchCodes.map((c) => <div key={c}>{c}</div>)}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <GhostButton onClick={exportCsv}><Download className="h-4 w-4" /> Export CSV</GhostButton>
+              <PrimaryButton onClick={() => { setBatchCodes(null); setShowBatch(false); }}>Done</PrimaryButton>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={(e) => { e.preventDefault(); generateBatch(); }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Code prefix" hint="e.g. NAKURU, MT-KENYA">
+                <input value={batchForm.prefix} onChange={(e) => setBatchForm({ ...batchForm, prefix: e.target.value.toUpperCase() })} placeholder="WANGARI" className={inputClass} />
+              </Field>
+              <Field label="How many" hint="1–500">
+                <input required type="number" min="1" max="500" value={batchForm.count} onChange={(e) => setBatchForm({ ...batchForm, count: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Type">
+                <select value={batchForm.type} onChange={(e) => setBatchForm({ ...batchForm, type: e.target.value })} className={inputClass}>
+                  <option value="sponsorship">Sponsorship (free months)</option>
+                  <option value="partnership">Partnership (free months)</option>
+                  <option value="discount">Discount</option>
+                </select>
+              </Field>
+              {batchForm.type === "sponsorship" || batchForm.type === "partnership" ? (
+                <Field label="Free months" hint="1–36">
+                  <input required type="number" min="1" max="36" value={batchForm.freeMonths} onChange={(e) => setBatchForm({ ...batchForm, freeMonths: e.target.value })} className={inputClass} />
+                </Field>
+              ) : (
+                <>
+                  <Field label="Discount type">
+                    <select value={batchForm.discountType} onChange={(e) => setBatchForm({ ...batchForm, discountType: e.target.value })} className={inputClass}>
+                      <option value="percent">% off</option>
+                      <option value="fixed">KES off</option>
+                    </select>
+                  </Field>
+                  <Field label="Value">
+                    <input required type="number" min="1" value={batchForm.value} onChange={(e) => setBatchForm({ ...batchForm, value: e.target.value })} className={inputClass} />
+                  </Field>
+                </>
+              )}
+              <Field label="Expires" hint="Empty = never">
+                <input type="date" value={batchForm.expiresAt} onChange={(e) => setBatchForm({ ...batchForm, expiresAt: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <Field label={batchForm.type === "sponsorship" ? "Sponsor name" : "Partner name"} hint="Optional — appears in the WhatsApp message">
+              <input value={batchForm.partnerName} onChange={(e) => setBatchForm({ ...batchForm, partnerName: e.target.value })} className={inputClass} />
+            </Field>
+            {batchError && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{batchError}</div>}
+            <div className="flex justify-end gap-2 pt-1">
+              <GhostButton onClick={() => setShowBatch(false)}>Cancel</GhostButton>
+              <PrimaryButton type="submit" disabled={batchBusy}>
+                {batchBusy ? "Generating…" : `Generate ${batchForm.count || ""} codes`}
+              </PrimaryButton>
+            </div>
+          </form>
+        )}
       </Modal>
 
       {/* Code detail drawer */}
@@ -317,6 +482,22 @@ export default function AdminPromosPage() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Share message preview */}
+              <div className="rounded-2xl border border-wangari-border bg-wangari-cream/40 p-3.5">
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-wangari-subtle">
+                  <Share2 className="h-3.5 w-3.5" /> WhatsApp message
+                </div>
+                <pre className="whitespace-pre-wrap font-sans text-xs text-wangari-text">{shareMessage(detail)}</pre>
+                <div className="mt-3 flex gap-2">
+                  <PrimaryButton onClick={() => openWhatsApp(detail)} className="h-8 px-3 text-xs">
+                    <Share2 className="h-3.5 w-3.5" /> Open WhatsApp
+                  </PrimaryButton>
+                  <GhostButton onClick={() => copyShare(detail)} className="h-8 px-3 text-xs">
+                    {sharedCode === detail.id ? <><Check className="h-3.5 w-3.5" /> Copied!</> : "Copy message"}
+                  </GhostButton>
+                </div>
               </div>
 
               <div className="flex gap-2 border-t border-wangari-border pt-4">
