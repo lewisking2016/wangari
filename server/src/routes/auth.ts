@@ -185,10 +185,23 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
       data: { resetToken, resetTokenExpiry },
     });
 
-    // In production, send an email here with the reset link.
-    // For now, log the token so it can be used during development.
+    // Send the reset link via SMTP (the shared email helper logs to email_logs).
     const resetUrl = `${process.env.FRONTEND_URL || "https://wangari.imeantech.com"}/reset-password?token=${resetToken}`;
-    console.log(`[DEV] Password reset link for ${email}: ${resetUrl}`);
+    const { sendEmail } = await import("../lib/email.js");
+    const resetHtml = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f8f6;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;padding:28px;"><h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Reset your password</h2><p style="margin:0 0 24px;font-size:15px;color:#64748b;">We received a request to reset your Wangari password. This link is valid for <strong>1 hour</strong> and can only be used once.</p><div style="text-align:center;margin-bottom:24px;"><a href="${resetUrl}" style="display:inline-block;background:#166534;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 28px;border-radius:10px;">Reset my password</a></div><p style="margin:0 0 6px;font-size:13px;color:#64748b;">Or paste this link into your browser:<br/><span style="word-break:break-all;color:#166534;">${resetUrl}</span></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" /><p style="margin:0;font-size:12px;color:#94a3b8;">Didn't request a reset? You can safely ignore this email — your password stays unchanged.</p></div></body></html>`;
+    const resetText = `Reset your Wangari password using this link (valid 1 hour):\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`;
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your password — Wangari",
+        html: resetHtml,
+        text: resetText,
+        template: "password_reset",
+        userId: user.id,
+      });
+    } catch (mailErr) {
+      console.error("Password reset email failed:", mailErr);
+    }
 
     res.json({ message: "If an account with that email exists, a reset link has been sent." });
   } catch (error) {
