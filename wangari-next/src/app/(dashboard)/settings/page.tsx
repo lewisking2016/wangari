@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Settings, User, Bell, Palette, Shield, Save, CheckCircle2, Mail, Phone, MapPin, Lock, Eye, EyeOff, Download, Trash2, Leaf, PawPrint, ClipboardList, ShoppingCart, Package, DollarSign, Users, BarChart3, Calculator, Syringe, Heart, CloudSun, Sparkles, Fingerprint, Building2 } from "lucide-react";
+import { Settings, User, Bell, Palette, Shield, Save, CheckCircle2, Mail, Phone, MapPin, Lock, Eye, EyeOff, Download, Trash2, Leaf, PawPrint, ClipboardList, ShoppingCart, Package, DollarSign, Users, BarChart3, Calculator, Syringe, Heart, CloudSun, Sparkles, Fingerprint, Building2, CloudUpload } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
 import { BiometricSettings } from "@/components/settings/BiometricSettings";
+import { SyncStatus } from "@/components/settings/SyncStatus";
 import { FarmProfileEditor } from "@/components/settings/FarmProfileEditor";
 import { useAuth } from "@/hooks/useAuth";
 import { linkGoogleAccount, mfaStatus, mfaSetup, mfaVerify, mfaDisable } from "@/lib/auth-client";
@@ -17,7 +18,7 @@ import { linkGoogleAccount, mfaStatus, mfaSetup, mfaVerify, mfaDisable } from "@
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
 
-type Tab = "profile" | "farm_profile" | "ai" | "biometric" | "modules" | "notifications" | "preferences" | "security" | "data";
+type Tab = "profile" | "farm_profile" | "ai" | "biometric" | "modules" | "notifications" | "preferences" | "security" | "sync" | "data";
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "profile", label: "Profile", icon: <User className="h-4 w-4" /> },
@@ -28,6 +29,7 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "notifications", label: "Notifications", icon: <Bell className="h-4 w-4" /> },
   { id: "preferences", label: "Preferences", icon: <Palette className="h-4 w-4" /> },
   { id: "security", label: "Security", icon: <Shield className="h-4 w-4" /> },
+  { id: "sync", label: "Sync", icon: <CloudUpload className="h-4 w-4" /> },
   { id: "data", label: "Data", icon: <Download className="h-4 w-4" /> },
 ];
 
@@ -526,6 +528,9 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Offline Sync */}
+          {activeTab === "sync" && <SyncStatus />}
 
           {/* Data Management */}
           {activeTab === "data" && (

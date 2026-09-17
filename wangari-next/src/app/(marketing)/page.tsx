@@ -62,7 +62,7 @@ const features = [
   { icon: BarChart3, title: "Smart Analytics", desc: "See your costs, revenue, and margins at a glance. Know exactly which flock is most profitable.", href: "/features/analytics" },
   { icon: Package, title: "Inventory Control", desc: "Never run out of feed or medication. Get low-stock alerts and track every bag in and out.", href: "/features/inventory" },
   { icon: Users, title: "Team Management", desc: "Manage workers, attendance, and wages. Assign tasks and track who did what.", href: "/features/team" },
-  { icon: Smartphone, title: "Mobile First", desc: "Works on any phone, even with slow internet. Log production from the field in 3 taps.", href: "/register" },
+  { icon: Smartphone, title: "Works Without Bundles", desc: "Record sales and output with zero internet. Everything is saved on your phone and syncs automatically when you're back online.", href: "/register" },
   { icon: Sparkles, title: "AI Assistant", desc: "Ask your farm anything and get instant answers from your data.", href: "/features/ai" },
 ];
 
@@ -125,8 +125,11 @@ export default function LandingPage() {
         <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-24 md:pt-32 md:pb-32 text-center">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeDown} className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-sm font-medium mb-8">
-              <img src="/images/wangari-real-logo.png" alt="" className="h-5 w-5 rounded-full object-cover" />
-              <span className="text-white/80">Named after Prof. Wangari Maathai</span>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ADE80] opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#4ADE80]" />
+              </span>
+              <span className="text-white/80">Works without bundles · Installs like an app</span>
             </motion.div>            <motion.h1 variants={fadeUp} className="max-w-4xl mx-auto px-4">
               <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight">
                 <TextRoll center>Stop Guessing.</TextRoll>
@@ -137,7 +140,8 @@ export default function LandingPage() {
             </motion.h1>
             <motion.p variants={fadeUp} className="mt-8 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
               Know your real farm profit every day. Track every egg, every bag of feed,
-              every shilling — from your phone or via WhatsApp.
+              every shilling — <span className="text-white font-semibold">even without bundles</span>.
+              Works offline, installs like an app, syncs when you&apos;re back online.
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -168,6 +172,64 @@ export default function LandingPage() {
 
       {/* ═══════ DEMO VIDEO — scroll-to-reveal panel with annotation callouts ═══════ */}
       <DemoVideoShowcase />
+
+      {/* ═══════ OFFLINE-FIRST — the differentiator for rural connectivity ═══════ */}
+      <section className="py-24 px-6 bg-[#0B1220] text-white relative overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-[#22C55E]/10 blur-[130px] pointer-events-none" />
+        <div className="relative mx-auto max-w-6xl grid lg:grid-cols-2 gap-14 items-center">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={slideInLeft}>
+            <p className="text-sm font-bold uppercase tracking-widest text-[#4ADE80] mb-3">Offline-first</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+              No bundles?
+              <br />
+              <span className="bg-gradient-to-r from-[#4ADE80] to-[#86EFAC] bg-clip-text text-transparent">No problem.</span>
+            </h2>
+            <p className="mt-5 text-lg text-white/60 leading-relaxed">
+              The shamba has no signal — your records don&apos;t care. Wangari saves everything
+              on your phone and syncs by itself the moment you&apos;re back online.
+              No data lost. Ever.
+            </p>
+            <ul className="mt-8 space-y-4">
+              {[
+                "Record sales, output & expenses with zero internet",
+                "Saved on your device instantly — nothing is ever lost",
+                "Auto-syncs when connectivity returns — no duplicates",
+                "Installs like an app: no Play Store, no downloads eating your bundles",
+              ].map((item) => (
+                <motion.li key={item} variants={fadeUp} className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-[#4ADE80] shrink-0 mt-0.5" />
+                  <span className="text-sm md:text-base font-medium text-white/80">{item}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={slideInRight} className="relative">
+            <div className="mx-auto max-w-sm rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-2xl shadow-black/40">
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-xs font-bold uppercase tracking-widest text-white/40">Wangari · Offline</span>
+                <span className="flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> No connection
+                </span>
+              </div>
+              <div className="space-y-3">
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  <p className="text-sm font-semibold">Sale recorded — 5 trays KSh 1,750</p>
+                  <p className="text-xs text-white/40 mt-0.5">Saved on device · waiting to sync</p>
+                </div>
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  <p className="text-sm font-semibold">Output — 142 eggs collected</p>
+                  <p className="text-xs text-white/40 mt-0.5">Saved on device · waiting to sync</p>
+                </div>
+                <div className="rounded-xl bg-[#22C55E]/15 border border-[#22C55E]/30 px-4 py-3">
+                  <p className="text-sm font-semibold text-[#86EFAC]">Back online — 2 records synced ✓</p>
+                  <p className="text-xs text-[#4ADE80]/60 mt-0.5">Everything up to date</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Stats — kept from the old hero, now living under the video */}
       <section className="pb-24 px-6">
