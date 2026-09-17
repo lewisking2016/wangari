@@ -91,7 +91,7 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-11 w-full rounded-xl border border-wangari-border px-4 text-sm text-wangari-heading placeholder:text-wangari-subtle focus:border-wangari-green-500 focus:outline-none focus:ring-2 focus:ring-wangari-green-500/20"
-                  placeholder="admin@imeantech.com"
+                  placeholder="you@company.com"
                 />
               </div>
               <div>
