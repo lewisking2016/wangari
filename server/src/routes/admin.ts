@@ -63,7 +63,8 @@ router.post("/mfa/email-code", async (req: Request, res: Response) => {
     const adminRoles: string[] = ["super_admin", "billing", "support", "support_read"];
     if (!adminRoles.includes(user.role)) return res.status(401).json({ error: "Invalid credentials" });
     if (user.totpEnabledAt && user.totpSecret) {
-      return res.status(400).json({ error: "This account uses an authenticator app — enter the code from the app" });
+      // Allowed even with TOTP enrolled — the emailed code is a universal
+      // fallback (lost phone scenario). Still requires the correct password.
     }
 
     const code = crypto.randomInt(100000, 999999).toString();

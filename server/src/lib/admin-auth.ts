@@ -97,9 +97,18 @@ export async function adminLogin(
       const hashes: string[] = user.recoveryCodes ? JSON.parse(user.recoveryCodes) : [];
       const h = hashCode(code);
       const idx = hashes.indexOf(h);
-      if (idx === -1) return { mfaInvalid: true }; // code given but wrong → explicit rejection
-      hashes.splice(idx, 1);
-      await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
+      if (idx !== -1) {
+        hashes.splice(idx, 1);
+        await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
+      } else {
+        // Last resort: an emailed login OTP (single-use, 10-min expiry).
+        const otp = await prisma.verificationCode.findFirst({
+          where: { userId: user.id, purpose: "admin_login_otp", usedAt: null, expiresAt: { gte: new Date() } },
+          orderBy: { createdAt: "desc" },
+        });
+        if (!otp || otp.code !== code) return { mfaInvalid: true };
+        await prisma.verificationCode.update({ where: { id: otp.id }, data: { usedAt: new Date() } });
+      }
     }
   } else if (user.emailVerified) {
     // No authenticator app enrolled: fall back to an emailed OTP.
