@@ -285,7 +285,7 @@ router.get("/overview", requireAdmin(["billing", "support", "support_read"]), as
 
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [totalFarms, totalUsers, totalWorkers, activeSubs, recentUsers, recentPayments, openTickets, promoTotals, promoRedemptionsThisMonth, sponsoredActive] =
+    const [totalFarms, totalUsers, totalWorkers, activeSubs, promoTotals, promoRedemptionsThisMonth, sponsoredActive, recentUsers, recentPayments, openTickets] =
       await Promise.all([
         prisma.farm.count(),
         prisma.user.count({ where: { role: "farm_owner" } }),
