@@ -1,11 +1,14 @@
 /**
  * Centralized API client.
  * All fetch calls should go through this to ensure JWT auth headers are sent.
+ * Write requests made while offline are queued on-device and synced later.
  */
 
 import { getToken, logout } from "./auth-client";
+import { enqueue } from "./offline-queue";
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.wangari.imeantech.com";
+export { API_BASE };
 
 interface RequestOptions extends RequestInit {
   json?: unknown;
@@ -28,6 +31,16 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
   if (json !== undefined) {
     headers["Content-Type"] = "application/json";
     fetchOptions.body = JSON.stringify(json);
+  }
+
+  // ── Offline writes: queue on-device, report success, sync later ──
+  const isWrite = json !== undefined && fetchOptions.method && fetchOptions.method !== "GET";
+  if (isWrite && typeof window !== "undefined" && !navigator.onLine && !path.includes("/auth/")) {
+    const label = describeWrite(path, fetchOptions.method as string);
+    enqueue(path, fetchOptions.method as "POST" | "PUT" | "PATCH", json, label);
+    window.dispatchEvent(new CustomEvent("wangari:write_queued", { detail: { label } }));
+    // Optimistic success — the flusher will deliver it; clientId prevents duplicates.
+    return { queued: true, offline: true } as T;
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
@@ -69,6 +82,18 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
 }
 
 // ─── Typed API helpers ────────────────────────────────────
+
+// Human-readable label for the sync banner.
+function describeWrite(path: string, method: string): string {
+  const kind = path.match(/\/api\/(\w+)/)?.[1] || "record";
+  const names: Record<string, string> = {
+    sales: "Sale", production: "Production record", transactions: "Transaction",
+    crops: "Crop entry", inventory: "Inventory update", vaccinations: "Vaccination",
+    flocks: "Flock update", workers: "Worker record", deliveries: "Delivery",
+    breeding: "Breeding record", attendance: "Attendance",
+  };
+  return `${method === "POST" ? "New" : "Updated"} ${names[kind] || "record"}`;
+}
 
 export const api = {
   get: <T = any>(path: string) => request<T>(path),

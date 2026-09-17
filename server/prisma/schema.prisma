@@ -879,6 +879,17 @@ model EmailLog {
   @@map("email_logs")
 }
 
+model SyncedWrite {
+  id           Int       @id @default(autoincrement())
+  clientId     String    @unique // idempotency key from the offline queue
+  responseBody String    // stored JSON response, replayed on duplicate
+  statusCode   Int       @default(500) // 500 = in-flight marker
+  userId       Int?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("synced_writes")
+}
+
 model AuditLog {
   id         Int      @id @default(autoincrement())
   userId     Int?     @map("user_id")
