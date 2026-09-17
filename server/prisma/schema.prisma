@@ -881,10 +881,10 @@ model EmailLog {
 
 model SyncedWrite {
   id           Int       @id @default(autoincrement())
-  clientId     String    @unique // idempotency key from the offline queue
-  responseBody String    // stored JSON response, replayed on duplicate
-  statusCode   Int       @default(500) // 500 = in-flight marker
-  userId       Int?
+  clientId     String    @unique @map("client_id") // idempotency key from the offline queue
+  responseBody String    @map("response_body") // stored JSON response, replayed on duplicate
+  statusCode   Int       @default(500) @map("status_code") // 500 = in-flight marker
+  userId       Int?      @map("user_id")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   @@map("synced_writes")
