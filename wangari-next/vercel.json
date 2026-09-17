@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/dmarc-check",
       "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/mfa-nudge",
+      "schedule": "30 7 * * 1"
     }
   ]
 }

@@ -268,7 +268,7 @@ router.get("/farm-digest", async (req: Request, res: Response) => {
  * same authenticated pattern as farm-digest.
  */
 const DOMAIN = "imeantech.com";
-const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || "lewis@imeantech.com";
+const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || "admin@imeantech.com";
 const resolver = new (require("dns").promises.Resolver)();
 
 async function txtRecords(name: string): Promise<string[]> {
@@ -321,3 +321,114 @@ router.get("/dmarc-check", async (req: Request, res: Response) => {
 });
 
 export default router;
+
+/**
+ * GET /api/cron/mfa-nudge
+ *
+ * Weekly security nudge — emails verified users who have NOT enabled
+ * authenticator-app 2FA, with a one-click setup link. Idempotent per user
+ * via lastMfaNudgedAt so nobody gets spammed. Runs Mondays by Vercel Cron.
+ */
+const NUDGE_COOLDOWN_MS = 7 * 86400000; // one email per user per week max
+
+function mfaNudgeEmailHtml(userName: string, setupUrl: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <tr><td style="background-color:#166534;padding:24px 32px;text-align:center;">
+          <span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">🌿 Wangari</span>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h2 style="margin:0 0 8px;font-size:20px;color:#334155;">Secure your farm account, ${userName} 🔐</h2>
+          <p style="margin:0 0 16px;font-size:14px;color:#475569;line-height:1.6;">
+            Your Wangari account holds your farm's crops, flocks, finances and records.
+            Adding <strong>two-factor authentication</strong> takes one minute and keeps it safe even
+            if someone learns your password.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0fdf4;border-radius:8px;margin:0 0 20px;">
+            <tr><td style="padding:14px 16px;">
+              <p style="margin:0;font-size:13px;color:#166534;font-weight:700;">How it works</p>
+              <p style="margin:6px 0 0;font-size:13px;color:#334155;line-height:1.6;">
+                1️⃣ Open the link below and scan the QR code with any authenticator app<br/>
+                2️⃣ Enter the 6-digit code it shows to confirm<br/>
+                3️⃣ From then on, sign in with password + that code
+              </p>
+            </td></tr>
+          </table>
+          <div style="text-align:center;">
+            <a href="${setupUrl}" style="display:inline-block;background-color:#166534;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;">Set up two-factor now →</a>
+          </div>
+          <p style="margin:20px 0 0;font-size:11px;color:#64748b;text-align:center;">
+            Works with Google Authenticator, Authy, 1Password and any TOTP app.<br/>
+            You receive this reminder weekly because two-factor is off. It stops automatically once you enable it.
+          </p>
+        </td></tr>
+        <tr><td style="padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#64748b;">© ${new Date().getFullYear()} Wangari · imeantech.com</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+router.get("/mfa-nudge", async (req: Request, res: Response) => {
+  const CRON_SECRET = process.env.CRON_SECRET || "";
+  const authHeader = req.headers.authorization || "";
+  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const appUrl = `${process.env.FRONTEND_URL || "https://wangari.imeantech.com"}/settings?tab=security`;
+  const cooldownAgo = new Date(Date.now() - NUDGE_COOLDOWN_MS);
+
+  try {
+    // Verified users with a password (Google-only accounts can't use TOTP),
+    // 2FA not enabled, not nudged within the past week.
+    const users = await prisma.user.findMany({
+      where: {
+        emailVerified: { not: null },
+        password: { not: null },
+        totpEnabledAt: null,
+        OR: [
+          { lastMfaNudgedAt: null },
+          { lastMfaNudgedAt: { lt: cooldownAgo } },
+        ],
+      },
+      select: { id: true, name: true, email: true },
+      take: 200,
+    });
+
+    let sent = 0;
+    const errors: string[] = [];
+
+    for (const user of users) {
+      try {
+        const result = await sendEmail({
+          to: user.email,
+          subject: `🔐 One minute to protect your Wangari farm account`,
+          html: mfaNudgeEmailHtml(user.name || "Farmer", appUrl),
+          template: "oneoff",
+        });
+        if (result.ok) {
+          sent++;
+          await prisma.user.update({ where: { id: user.id }, data: { lastMfaNudgedAt: new Date() } });
+        } else {
+          errors.push(`${user.email}: ${result.error || "send failed"}`);
+        }
+      } catch (e: any) {
+        errors.push(`${user.email}: ${e?.message || "unknown"}`);
+      }
+    }
+
+    res.json({ ok: true, eligible: users.length, sent, errors: errors.slice(0, 10) });
+  } catch (error: any) {
+    console.error("MFA nudge error:", error);
+    res.status(500).json({ error: "MFA nudge failed", detail: error?.message });
+  }
+});

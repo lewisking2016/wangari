@@ -26,6 +26,7 @@ model User {
   tokenVersion     Int       @default(0) @map("token_version")
   totpSecret       String?   @map("totp_secret")
   totpEnabledAt    DateTime? @map("totp_enabled_at")
+  lastMfaNudgedAt  DateTime? @map("last_mfa_nudged_at")
   recoveryCodes    String?   @map("recovery_codes") // JSON array of bcrypt-hashed codes
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
