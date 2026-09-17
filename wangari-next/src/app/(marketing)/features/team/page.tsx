@@ -40,6 +40,16 @@ export default function TeamFeaturePage() {
         role: "Layer Farmer, Nakuru",
         text: "Managing 12 workers used to be a nightmare of paper timesheets and disputed wages. Now everything is digital and transparent. My workers love it because they can see their hours and earnings in real-time. No more arguments about pay.",
       }}
+      farmerExperience={{
+        heading: "Payday without the arguments",
+        steps: [
+          { title: "7:00 AM — workers clock in with their phones", desc: "Each worker taps in on their own device. GPS confirms they're actually at the farm. The paper timesheet — and its creative arithmetic — is gone." },
+          { title: "Tasks assigned before you've had chai", desc: "'Michael — deworm flock B. Grace — collect and grade eggs.' Each worker sees their task on their phone, marks it done with photo proof." },
+          { title: "Their phones work offline too", desc: "A worker logging attendance or completing a task at the far end of the shamba with no signal? It saves on their device and syncs when they walk back into coverage." },
+          { title: "End of month — wages computed themselves", desc: "Days worked, tasks completed, any advances — all recorded as it happened. Open the worker profile: the amount to pay is already there, with the full history behind it." },
+          { title: "Everyone sees their own record", desc: "Workers check their hours and earnings anytime. Transparency ends the disputes before they start — and good workers finally get visible credit." },
+        ],
+      }}
     />
   );
 }

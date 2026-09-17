@@ -40,6 +40,16 @@ export default function FlocksFeaturePage() {
         role: "Layer Farmer, Nakuru",
         text: "Wangari's flock management completely changed how I run my farm. I used to lose chickens to disease before I even knew something was wrong. Now I get alerts the moment production drops, and I can trace it back to the exact cause. Last quarter I saved KES 120,000 just from early disease detection.",
       }}
+      farmerExperience={{
+        heading: "A morning with your flocks",
+        steps: [
+          { title: "6:30 AM — Open the coop, count the birds", desc: "Tap My Animals, pick the flock. Yesterday's numbers are right there — birds, eggs, feed used. You know instantly if anything is off." },
+          { title: "One tap per day's record", desc: "Enter today's egg collection, note any dead birds, log feed issued. Under 30 seconds — big buttons designed for the shamba, not the office." },
+          { title: "Wangari spots what you'd miss", desc: "Production dipped 15% this week? You get an alert with the likely cause — before a small problem becomes a dead flock." },
+          { title: "Market day — know your numbers", desc: "Which flock is ready for sale? What did the last one cost you and earn you? Open the flock profile — the profit is computed per bird." },
+          { title: "Vaccination never slips", desc: "Due dates appear on your dashboard 3 days ahead, and land in your email digest. Gumboro booster on schedule, every time." },
+        ],
+      }}
     />
   );
 }

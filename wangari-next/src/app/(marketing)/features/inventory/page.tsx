@@ -40,6 +40,16 @@ export default function InventoryFeaturePage() {
         role: "Broiler Farm, Eldoret",
         text: "The inventory alerts help me know exactly when to reorder. No more over-ordering feed out of fear. The system tracks every bag in and out.",
       }}
+      farmerExperience={{
+        heading: "Never run out of feed mid-week again",
+        steps: [
+          { title: "The old way: feed runs out Thursday", desc: "You thought you had enough for the week. Now you're buying emergency feed at a premium, or worse — rationing, and production drops for it." },
+          { title: "The Wangari way: know before it bites", desc: "Set a reorder level per item once. Every issue of feed from store is recorded in seconds, so your stock count is always real, not remembered." },
+          { title: "The alert finds you", desc: "Stock hits the reorder line and Wangari flags it — in the app, in the daily digest email. You order on your schedule, not in a panic." },
+          { title: "Every bag accountable", desc: "Deliveries in, issues out, with who took what and when. Feed stops quietly 'disappearing' — workers know the store is being counted." },
+          { title: "Works at the store with no signal", desc: "Counting stock in a dim store room with no network? Record it — it saves on your phone and syncs when you walk back into coverage." },
+        ],
+      }}
     />
   );
 }

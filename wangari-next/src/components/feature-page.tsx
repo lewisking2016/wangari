@@ -17,9 +17,11 @@ interface FeaturePageProps {
   capabilities: { title: string; desc: string }[];
   stats: { value: string; label: string }[];
   testimonial: { name: string; role: string; text: string };
+  /** Optional narrative walkthrough of the feature in a farmer's day. */
+  farmerExperience?: { heading: string; steps: { title: string; desc: string }[] };
 }
 
-export function FeaturePage({ icon: Icon, badge, title, subtitle, description, highlights, capabilities, stats, testimonial }: FeaturePageProps) {
+export function FeaturePage({ icon: Icon, badge, title, subtitle, description, highlights, capabilities, stats, testimonial, farmerExperience }: FeaturePageProps) {
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -123,6 +125,36 @@ export function FeaturePage({ icon: Icon, badge, title, subtitle, description, h
           </motion.div>
         </div>
       </section>
+
+      {/* The farmer's experience — a day-in-the-life walkthrough */}
+      {farmerExperience && (
+        <section className="py-24 px-6 bg-[#0B1220] text-white relative overflow-hidden">
+          <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full bg-[#22C55E]/10 blur-[130px] pointer-events-none" />
+          <div className="relative mx-auto max-w-4xl">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-14">
+              <motion.p variants={fadeUp} className="text-sm font-bold uppercase tracking-widest text-[#4ADE80] mb-3">The farmer&apos;s experience</motion.p>
+              <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-extrabold tracking-tight">{farmerExperience.heading}</motion.h2>
+            </motion.div>
+            <div className="relative">
+              {/* Timeline spine */}
+              <div className="absolute left-[19px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-[#22C55E]/60 via-[#22C55E]/25 to-transparent hidden sm:block" />
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="space-y-8">
+                {farmerExperience.steps.map((s, i) => (
+                  <motion.div key={s.title} variants={fadeUp} className="relative flex gap-5 sm:gap-7">
+                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#22C55E]/40 bg-[#0B1220] text-sm font-extrabold text-[#4ADE80] shadow-[0_0_20px_rgba(34,197,94,0.25)]">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+                      <h3 className="text-base md:text-lg font-bold">{s.title}</h3>
+                      <p className="mt-2 text-sm md:text-base text-white/60 leading-relaxed">{s.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="py-20 px-6 bg-gradient-to-br from-[#0B1220] to-[#166534] text-white text-center">

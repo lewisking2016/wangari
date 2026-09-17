@@ -40,6 +40,16 @@ export default function AIFeaturePage() {
         role: "Mixed Farm, Kisumu",
         text: "The AI assistant is like having an agricultural expert on speed dial. I asked it why my layers were producing fewer eggs and it analyzed three months of data to find the answer — my feed supplier had changed the protein content. I would never have figured that out on my own.",
       }}
+      farmerExperience={{
+        heading: "Ask your farm anything",
+        steps: [
+          { title: "Type it the way you'd say it", desc: "'Why are my eggs small this month?' No special commands, no menus. English or Swahili — the AI understands plain questions, even half-formed ones at 6am." },
+          { title: "It answers from YOUR data", desc: "Not generic internet advice. It reads your actual records — feed batches, production trends, expenses — and shows you the numbers behind every answer." },
+          { title: "Follow-up questions welcome", desc: "'Would raising prices by 10 shillings hurt sales?' Ask. It checks your own sales history across the price changes you've already made." },
+          { title: "An expert that never sleeps", desc: "Vet visit scheduled for next week but something looks off tonight? Ask now — the AI has read every record your farm has ever generated, at 2am if needed." },
+          { title: "Weekly insight, unprompted", desc: "Every morning digest can flag what the AI noticed: a cost creeping up, a flock underperforming, a vaccination window closing. You don't have to think to ask." },
+        ],
+      }}
     />
   );
 }

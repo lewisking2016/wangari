@@ -40,6 +40,16 @@ export default function ProductionFeaturePage() {
         role: "Broiler Farm, Eldoret",
         text: "Before Wangari, my workers would fill paper forms that often got lost or damaged. Now they log everything on their phones in seconds. The offline mode is a lifesaver — our farm has patchy signal but the data always syncs. I can see production data from my office in Nairobi.",
       }}
+      farmerExperience={{
+        heading: "Recording today's output — even with no signal",
+        steps: [
+          { title: "At the coop, phone says 'No service'", desc: "Doesn't matter. Open Wangari, tap Record Today's Output. The app works exactly the same as when you have full bars." },
+          { title: "Save — instant confirmation", desc: "142 eggs, 2 bags of feed used, one bird dead. Tap save and it confirms immediately — the record is stored safely on your phone, not lost into a broken internet." },
+          { title: "Keep working, it keeps queueing", desc: "A sale happens an hour later? Record it too. The banner quietly counts: '2 records waiting to sync.' Every one labelled, ordered, and safe." },
+          { title: "Signal returns — it syncs itself", desc: "No button, no re-entering. Green banner: '2 saved records synced successfully.' Your records land on the server exactly once — never doubled by a retry." },
+          { title: "Close the app, turn off the phone — still safe", desc: "The queue survives in your device storage. Even if the phone died at lunch, opening Wangari tomorrow with signal finishes the sync automatically." },
+        ],
+      }}
     />
   );
 }

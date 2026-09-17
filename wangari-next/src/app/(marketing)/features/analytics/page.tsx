@@ -40,6 +40,16 @@ export default function AnalyticsFeaturePage() {
         role: "Mixed Farm, Kisumu",
         text: "The analytics showed me that one of my flocks was costing me more in feed than it was producing in eggs. I would never have caught that without Wangari. I restructured that flock and saved KES 200,000 last quarter. The forecasting feature helps me plan purchases ahead of time.",
       }}
+      farmerExperience={{
+        heading: "From guesses to numbers in one dashboard",
+        steps: [
+          { title: "End of month — the question arrives", desc: "'Is this farm actually making money?' With paper records, that answer takes a weekend with a calculator. With Wangari, it's on your dashboard already." },
+          { title: "Real profit, not vibes", desc: "Income minus every recorded expense — feed, vaccines, wages, transport — computed daily. Green if you're growing, red if a flock is quietly eating your capital." },
+          { title: "Find the leak", desc: "Cost breakdown shows exactly where each shilling goes. Feed at 70% of costs? Tap in — compare feed cost per egg across flocks and spot the underperformer." },
+          { title: "Decide with numbers", desc: "Should you raise layer prices? Expand into broilers? The trends answer: your margin per tray this quarter vs last, laid out in one chart." },
+          { title: "The crop profitability calculator", desc: "Planning a new crop block? Input the seed, fertiliser and labour costs — see the harvest revenue it must beat before you plant a single seedling." },
+        ],
+      }}
     />
   );
 }
