@@ -43,7 +43,12 @@ const upload = multer({
 
 // POST /api/upload — generic image upload
 // Accepts any field name, returns the URL
-router.post("/", upload.single("file"), async (req: Request, res: Response) => {
+router.post("/", (req, res, next) => {
+  upload.single("file")(req, res, (err: any) => {
+    if (err) return res.status(400).json({ error: err.message || "Invalid file" });
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -58,7 +63,12 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
 });
 
 // POST /api/upload/multiple — upload multiple images
-router.post("/multiple", upload.array("files", 10), async (req: Request, res: Response) => {
+router.post("/multiple", (req, res, next) => {
+  upload.array("files", 10)(req, res, (err: any) => {
+    if (err) return res.status(400).json({ error: err.message || "Invalid file(s)" });
+    next();
+  });
+}, async (req: Request, res: Response) => {
   try {
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) {
