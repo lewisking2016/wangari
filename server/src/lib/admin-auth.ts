@@ -55,6 +55,24 @@ export function signAdminToken(payload: AdminTokenPayload, tokenVersion = 0): st
 export { verifyTotp };
 
 /**
+ * OTP brute-force guard (shared by admin login paths): count wrong attempts
+ * against a code and burn it after 5 failures so the 6-digit OTP can't be
+ * guessed by replaying guesses against the login endpoint.
+ */
+const OTP_MAX_ATTEMPTS = 5;
+async function recordOtpFailure(otp: { id: number; attempts: number | null }) {
+  try {
+    const attempts = (otp.attempts ?? 0) + 1;
+    await prisma.verificationCode.update({
+      where: { id: otp.id },
+      data: attempts >= OTP_MAX_ATTEMPTS ? { usedAt: new Date(), attempts } : { attempts },
+    });
+  } catch (e) {
+    console.error("OTP failure tracking error:", e);
+  }
+}
+
+/**
  * Login with email + password (+ TOTP token when MFA is enabled).
  * Only users with an admin role may log in here.
  *
@@ -101,12 +119,16 @@ export async function adminLogin(
         hashes.splice(idx, 1);
         await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
       } else {
-        // Last resort: an emailed login OTP (single-use, 10-min expiry).
+        // Last resort: an emailed login OTP (single-use, 10-min expiry,
+        // burned after 5 wrong attempts — brute-force protection).
         const otp = await prisma.verificationCode.findFirst({
           where: { userId: user.id, purpose: "admin_login_otp", usedAt: null, expiresAt: { gte: new Date() } },
           orderBy: { createdAt: "desc" },
         });
-        if (!otp || otp.code !== code) return { mfaInvalid: true };
+        if (!otp || otp.code !== code) {
+          if (otp) await recordOtpFailure(otp);
+          return { mfaInvalid: true };
+        }
         await prisma.verificationCode.update({ where: { id: otp.id }, data: { usedAt: new Date() } });
       }
     }
@@ -119,7 +141,10 @@ export async function adminLogin(
       where: { userId: user.id, purpose: "admin_login_otp", usedAt: null, expiresAt: { gte: new Date() } },
       orderBy: { createdAt: "desc" },
     });
-    if (!otp || otp.code !== code) return { mfaInvalid: true };
+    if (!otp || otp.code !== code) {
+      if (otp) await recordOtpFailure(otp);
+      return { mfaInvalid: true };
+    }
     await prisma.verificationCode.update({ where: { id: otp.id }, data: { usedAt: new Date() } });
   }
 

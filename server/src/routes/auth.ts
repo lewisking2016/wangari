@@ -527,6 +527,12 @@ router.post("/send-verification", async (req: Request, res: Response) => {
 });
 
 // POST /api/auth/verify-email
+// OTP brute-force protection: max 5 failed attempts per code, then the code
+// is invalidated and the farmer must request a fresh one. (Pentest finding:)
+// without this, a 6-digit code could be brute-forced since there's no
+// per-code attempt counter and the general limiter allows 100 req/15min.
+const OTP_MAX_ATTEMPTS = 5;
+
 router.post("/verify-email", async (req: Request, res: Response) => {
   try {
     const { email, code } = req.body || {};
@@ -549,7 +555,14 @@ router.post("/verify-email", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Code has expired. Please request a new one." });
     }
     if (verification.code !== String(code)) {
-      return res.status(400).json({ error: "Invalid code. Please try again." });
+      const attempts = (verification.attempts ?? 0) + 1;
+      if (attempts >= OTP_MAX_ATTEMPTS) {
+        // Burn the code — brute-forcing is no longer possible.
+        await prisma.verificationCode.update({ where: { id: verification.id }, data: { usedAt: new Date(), attempts } });
+        return res.status(400).json({ error: "Too many wrong attempts. Please request a new code." });
+      }
+      await prisma.verificationCode.update({ where: { id: verification.id }, data: { attempts } });
+      return res.status(400).json({ error: `Invalid code. ${OTP_MAX_ATTEMPTS - attempts} attempt${OTP_MAX_ATTEMPTS - attempts === 1 ? "" : "s"} left.` });
     }
 
     await prisma.$transaction([

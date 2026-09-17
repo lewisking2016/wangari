@@ -114,6 +114,18 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/auth/forgot-password", authLimiter);
 app.use("/api/worker/login", authLimiter);
+// OTP endpoints: tighter than authLimiter — 10 guesses / 15 min per IP on top
+// of the per-code 5-attempt burn. (Pentest hardening.)
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please wait a few minutes and try again." },
+});
+app.use("/api/auth/verify-email", otpLimiter);
+// Promo redemption: prevent code-guessing/enumeration via rapid attempts.
+app.use("/api/promos", otpLimiter);
 
 // ─── Body Parsing ─────────────────────────────────────────
 // Paystack webhook needs the RAW body to verify the HMAC signature — mount before express.json.

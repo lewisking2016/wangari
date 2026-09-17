@@ -51,6 +51,7 @@ model VerificationCode {
   userId    Int       @map("user_id")
   code      String
   purpose   String    @default("email_verification")
+  attempts  Int       @default(0) // failed verification tries; code burns at 5
   expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")

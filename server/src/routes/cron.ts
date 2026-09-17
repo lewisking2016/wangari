@@ -281,6 +281,12 @@ async function txtRecords(name: string): Promise<string[]> {
 }
 
 router.get("/dmarc-check", async (req: Request, res: Response) => {
+  const CRON_SECRET = process.env.CRON_SECRET || "";
+  const authHeader = req.headers.authorization || "";
+  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   const problems: string[] = [];
   const ok: string[] = [];
 
