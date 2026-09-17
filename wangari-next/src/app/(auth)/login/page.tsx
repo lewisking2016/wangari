@@ -36,6 +36,10 @@ function LoginForm() {
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
 
+  // Two-factor (authenticator app) state
+  const [mfaStep, setMfaStep] = React.useState(false);
+  const [totpCode, setTotpCode] = React.useState("");
+
   // Farm Worker Form State
   const [farmCode, setFarmCode] = React.useState("");
   const [workerPin, setWorkerPin] = React.useState("");
@@ -102,16 +106,21 @@ function LoginForm() {
     setAvatarState("loading");
 
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, mfaStep ? totpCode : undefined);
       setAvatarState("success");
       if ((result as any).emailVerified === null) {
         router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       } else {
         router.push(callbackUrl);
       }
-    } catch (err) {
+    } catch (err: any) {
       setAvatarState("error");
-      setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
+      if (err?.payload?.mfaRequired) {
+        setMfaStep(true);
+        setError("");
+      } else {
+        setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -233,6 +242,29 @@ function LoginForm() {
             />
           </div>
 
+          {mfaStep ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="totp" className="text-xs font-bold text-[#334155]">
+                Two-Factor Code
+              </Label>
+              <Input
+                id="totp"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={10}
+                placeholder="000000"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/[^0-9A-Za-z]/g, ""))}
+                className="h-12 rounded-xl border-[#E5E7EB] focus:border-[#166534] focus:ring-[#166534]/20 text-center text-xl font-bold tracking-[0.3em]"
+              />
+              <p className="text-[11px] text-[#94A3B8]">
+                Open your authenticator app and enter the 6-digit code. You can
+                also use one of your recovery codes.
+              </p>
+            </div>
+          ) : (
           <div className="space-y-1.5">
             <Label htmlFor="password" className="text-xs font-bold text-[#334155]">
               Password
@@ -262,7 +294,17 @@ function LoginForm() {
               </button>
             </div>
           </div>
+          )}
 
+          {mfaStep ? (
+            <button
+              type="button"
+              onClick={() => { setMfaStep(false); setTotpCode(""); setError(""); }}
+              className="text-xs font-bold text-[#64748B] hover:text-[#334155]"
+            >
+              ← Back to password
+            </button>
+          ) : (
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 text-xs font-semibold text-[#64748B] cursor-pointer">
               <input
@@ -278,6 +320,7 @@ function LoginForm() {
               Forgot password?
             </Link>
           </div>
+          )}
 
           <Button
             type="submit"
@@ -287,7 +330,12 @@ function LoginForm() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                SIGNING IN...
+                VERIFYING CODE...
+              </>
+            ) : mfaStep ? (
+              <>
+                VERIFY CODE
+                <ArrowRight className="h-4 w-4 ml-2" />
               </>
             ) : (
               <>

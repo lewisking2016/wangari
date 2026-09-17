@@ -92,19 +92,76 @@ export function isWorkerSession(): boolean {
 // ─── Auth Actions ─────────────────────────────────────────
 // All auth calls go through Next.js API routes (same origin, no env var needed)
 
-export async function login(email: string, password: string): Promise<AuthResponse> {
+export async function login(email: string, password: string, totpCode?: string): Promise<AuthResponse> {
   const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, ...(totpCode ? { totpCode } : {}) }),
   });
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Login failed");
+  if (!res.ok) {
+    if (data?.mfaRequired) {
+      // Two-factor challenge — surface the flag to the login page.
+      const err = new Error("mfaRequired") as any;
+      err.payload = { mfaRequired: true };
+      throw err;
+    }
+    throw new Error(data.error || "Login failed");
+  }
 
   setToken(data.token);
   setUser(data.user);
   track("user_logged_in", { method: "password", user_id: data.user?.id });
+  return data;
+}
+
+// ─── Two-factor authentication (authenticator app) ───
+
+export async function mfaStatus(): Promise<{ enabled: boolean }> {
+  const token = getToken();
+  const res = await fetch("/api/auth/mfa/status", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to check 2FA status");
+  return data;
+}
+
+export async function mfaSetup(): Promise<{ secret: string; uri: string }> {
+  const token = getToken();
+  const res = await fetch("/api/auth/mfa/setup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to start 2FA setup");
+  return data;
+}
+
+export async function mfaVerify(code: string): Promise<{ enabled: boolean; recoveryCodes: string[] }> {
+  const token = getToken();
+  const res = await fetch("/api/auth/mfa/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify({ code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Invalid code");
+  track("mfa_enabled", {});
+  return data;
+}
+
+export async function mfaDisable(password: string, code: string): Promise<{ enabled: boolean }> {
+  const token = getToken();
+  const res = await fetch("/api/auth/mfa/disable", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify({ password, code }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to disable 2FA");
+  track("mfa_disabled", {});
   return data;
 }
 

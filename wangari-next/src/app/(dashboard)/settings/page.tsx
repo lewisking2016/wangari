@@ -12,7 +12,7 @@ import api from "@/lib/api-client";
 import { BiometricSettings } from "@/components/settings/BiometricSettings";
 import { FarmProfileEditor } from "@/components/settings/FarmProfileEditor";
 import { useAuth } from "@/hooks/useAuth";
-import { linkGoogleAccount } from "@/lib/auth-client";
+import { linkGoogleAccount, mfaStatus, mfaSetup, mfaVerify, mfaDisable } from "@/lib/auth-client";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
@@ -79,6 +79,16 @@ export default function SettingsPage() {
   const [loading, setLoading] = React.useState(true);
   const [saved, setSaved] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+
+  // Two-factor (authenticator app) state
+  const [mfaEnabled, setMfaEnabled] = React.useState<boolean | null>(null);
+  const [mfaBusy, setMfaBusy] = React.useState(false);
+  const [mfaUri, setMfaUri] = React.useState("");
+  const [mfaQr, setMfaQr] = React.useState("");
+  const [mfaCode, setMfaCode] = React.useState("");
+  const [recoveryCodes, setRecoveryCodes] = React.useState<string[] | null>(null);
+  const [disablePw, setDisablePw] = React.useState("");
+  const [disableCode, setDisableCode] = React.useState("");
   const { user } = useAuth();
   const { showToast, ToastComponent } = useToast();
 
@@ -97,6 +107,11 @@ export default function SettingsPage() {
   const [currentPw, setCurrentPw] = React.useState("");
   const [newPw, setNewPw] = React.useState("");
   const [confirmPw, setConfirmPw] = React.useState("");
+
+  // Load 2FA status on mount
+  React.useEffect(() => {
+    mfaStatus().then((s) => setMfaEnabled(s.enabled)).catch(() => setMfaEnabled(false));
+  }, []);
 
   React.useEffect(() => {
     api.get("/api/settings").then((d: any) => {
@@ -312,6 +327,158 @@ export default function SettingsPage() {
                 <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">New Password</Label><Input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="New password" className="h-11 rounded-xl" /></div>
                 <div className="space-y-1"><Label className="text-xs font-semibold text-[#64748B]">Confirm New Password</Label><Input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="Confirm password" className="h-11 rounded-xl" /></div>
                 <Button onClick={handleChangePassword} className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"><Lock className="h-4 w-4 mr-2" /> Update Password</Button>
+
+                {/* One-time recovery codes display */}
+                {recoveryCodes && (
+                  <div className="rounded-xl bg-amber-50 border border-amber-300 p-4">
+                    <p className="text-sm font-bold text-amber-900 mb-1">Save your recovery codes now</p>
+                    <p className="text-[11px] text-amber-700 mb-3">
+                      If you lose your phone, a recovery code is the only other way in.
+                      Each works once. These are shown <strong>only this once</strong>.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {recoveryCodes.map((c) => (
+                        <code key={c} className="bg-white border border-amber-200 rounded-lg px-2 py-1.5 text-center font-mono text-xs text-amber-900 select-all">{c}</code>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={() => { navigator.clipboard?.writeText(recoveryCodes.join("\n")); showToast("Recovery codes copied"); }}
+                      variant="outline"
+                      className="mt-3 border-amber-400 text-amber-800 hover:bg-amber-100 cursor-pointer"
+                    >
+                      Copy all codes
+                    </Button>
+                  </div>
+                )}
+
+                {/* Two-Factor Authentication — authenticator app */}
+                <div className="border-t border-[#E5E7EB] pt-4 mt-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-bold text-[#0F172A]">Two-Factor Authentication</p>
+                    {mfaEnabled !== null && (
+                      <Badge className={mfaEnabled ? "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" : "bg-gray-100 text-gray-500 border-gray-200"}>
+                        {mfaEnabled ? "Enabled" : "Off"}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#94A3B8] mb-3">
+                    Add an extra lock on your account: after entering your password,
+                    you&apos;ll type the 6-digit code from your authenticator app
+                    (Google Authenticator, Authy, 1Password…). Even if someone steals
+                    your password, they can&apos;t get in.
+                  </p>
+
+                  {mfaEnabled === null ? (
+                    <p className="text-xs text-[#94A3B8]">Checking…</p>
+                  ) : !mfaEnabled ? (
+                    !mfaUri ? (
+                      <Button
+                        onClick={async () => {
+                          setMfaBusy(true);
+                          try {
+                            const s = await mfaSetup();
+                            setMfaUri(s.uri);
+                            // Render QR locally (no external service — the secret never leaves the page)
+                            const QRCode = (await import("qrcode")).default;
+                            setMfaQr(await QRCode.toDataURL(s.uri, { width: 180, margin: 1 }));
+                          } catch (err) {
+                            showToast(err instanceof Error ? err.message : "Failed to start 2FA setup");
+                          } finally {
+                            setMfaBusy(false);
+                          }
+                        }}
+                        disabled={mfaBusy}
+                        variant="outline"
+                        className="border-[#166534] text-[#166534] hover:bg-[#F0FDF4] cursor-pointer"
+                      >
+                        <Shield className="h-4 w-4 mr-2" /> {mfaBusy ? "Preparing…" : "Enable Authenticator App"}
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start">
+                          {mfaQr && <img src={mfaQr} alt="Scan this QR code with your authenticator app" className="rounded-xl border border-[#E5E7EB]" />}
+                          <div className="text-xs text-[#64748B] space-y-2">
+                            <p className="font-bold text-[#0F172A]">1. Scan with your authenticator app</p>
+                            <p>Can&apos;t scan? Enter this key manually:</p>
+                            <code className="block bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2 font-mono text-[11px] break-all select-all">
+                              {mfaUri.match(/secret=([^&]+)/)?.[1] || ""}
+                            </code>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold text-[#64748B]">2. Enter the 6-digit code to confirm</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              value={mfaCode}
+                              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                              placeholder="000000"
+                              inputMode="numeric"
+                              className="h-11 rounded-xl font-mono text-lg tracking-[0.3em] text-center max-w-[180px]"
+                            />
+                            <Button
+                              onClick={async () => {
+                                setMfaBusy(true);
+                                try {
+                                  const r = await mfaVerify(mfaCode);
+                                  setMfaEnabled(true);
+                                  setMfaUri("");
+                                  setMfaQr("");
+                                  setMfaCode("");
+                                  setRecoveryCodes(r.recoveryCodes);
+                                  showToast("Two-factor enabled — save your recovery codes!");
+                                } catch (err) {
+                                  showToast(err instanceof Error ? err.message : "Invalid code");
+                                } finally {
+                                  setMfaBusy(false);
+                                }
+                              }}
+                              disabled={mfaBusy || mfaCode.length !== 6}
+                              className="bg-[#166534] hover:bg-[#14532D] cursor-pointer"
+                            >
+                              {mfaBusy ? "Verifying…" : "Confirm & Enable"}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-xs font-bold text-[#166534]">
+                        ✓ Your account requires an authenticator code at every sign-in
+                      </div>
+                      <details className="text-xs">
+                        <summary className="font-bold text-[#0F172A] cursor-pointer">Disable two-factor</summary>
+                        <div className="mt-3 space-y-2">
+                          <Input type="password" value={disablePw} onChange={(e) => setDisablePw(e.target.value)} placeholder="Current password" className="h-11 rounded-xl" />
+                          <div className="flex gap-2">
+                            <Input value={disableCode} onChange={(e) => setDisableCode(e.target.value.replace(/[^0-9A-Za-z]/g, ""))} placeholder="Authenticator code" className="h-11 rounded-xl font-mono max-w-[180px]" />
+                            <Button
+                              onClick={async () => {
+                                setMfaBusy(true);
+                                try {
+                                  await mfaDisable(disablePw, disableCode);
+                                  setMfaEnabled(false);
+                                  setDisablePw("");
+                                  setDisableCode("");
+                                  showToast("Two-factor disabled");
+                                } catch (err) {
+                                  showToast(err instanceof Error ? err.message : "Failed to disable");
+                                } finally {
+                                  setMfaBusy(false);
+                                }
+                              }}
+                              disabled={mfaBusy || !disablePw || !disableCode}
+                              variant="outline"
+                              className="border-red-300 text-red-600 hover:bg-red-50 cursor-pointer"
+                            >
+                              Disable
+                            </Button>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </div>
 
                 {/* Google Account Linking */}
                 <div className="border-t border-[#E5E7EB] pt-4 mt-4">

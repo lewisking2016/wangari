@@ -6,6 +6,8 @@ import crypto from "crypto";
 import { createUniqueFarmCode } from "../lib/farm-code.js";
 import jwt from "jsonwebtoken";
 import { generateToken, JWT_SECRET } from "../middleware/auth.js";
+import { generateSecret, otpauthUri, verifyTotp, generateRecoveryCodes, hashCode } from "../lib/totp.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 // Allowed email domains for manual registration/login
 const ALLOWED_DOMAINS = ["gmail.com", "outlook.com", "hotmail.com", "live.com", "yahoo.com"];
@@ -121,6 +123,29 @@ router.post("/login", async (req: Request, res: Response) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Two-factor (authenticator app) — if enabled, a valid TOTP or recovery
+    // code is required before the session token is issued.
+    const mfaEnabled = !!(user.totpEnabledAt && user.totpSecret);
+    if (mfaEnabled) {
+      const code = String(req.body?.totpCode || "").trim();
+      if (!code) {
+        return res.status(200).json({ mfaRequired: true });
+      }
+      if (verifyTotp(user.totpSecret!, code)) {
+        // TOTP OK — fall through to token issuance.
+      } else {
+        // Try a single-use recovery code (compared hashed).
+        const hashes: string[] = user.recoveryCodes ? JSON.parse(user.recoveryCodes) : [];
+        const h = hashCode(code);
+        const idx = hashes.indexOf(h);
+        if (idx === -1) {
+          return res.status(401).json({ error: "Invalid authenticator or recovery code", mfaInvalid: true });
+        }
+        hashes.splice(idx, 1);
+        await prisma.user.update({ where: { id: user.id }, data: { recoveryCodes: JSON.stringify(hashes) } });
+      }
     }
 
     const member = await prisma.farmMember.findFirst({ where: { userId: user.id } });
@@ -536,6 +561,102 @@ router.post("/verify-email", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Verify email error:", error);
     res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+});
+
+// ─── Two-factor authentication (authenticator app) for farmers ───
+// Same TOTP machinery as the admin MFA, exposed on the user's own routes.
+
+// GET /api/auth/mfa/status — whether 2FA is enabled for the logged-in user.
+router.get("/mfa/status", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { totpEnabledAt: true } });
+    res.json({ enabled: !!user?.totpEnabledAt });
+  } catch (error) {
+    console.error("MFA status error:", error);
+    res.status(500).json({ error: "Failed to check 2FA status" });
+  }
+});
+
+// POST /api/auth/mfa/setup — generate a pending secret + otpauth URI.
+// Not enabled until /mfa/verify confirms a live code from the app.
+router.post("/mfa/setup", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, totpEnabledAt: true },
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    if (user.totpEnabledAt) return res.status(409).json({ error: "Two-factor is already enabled — disable it first to re-enroll" });
+
+    const secret = generateSecret();
+    await prisma.user.update({ where: { id: userId }, data: { totpSecret: secret } });
+    const uri = otpauthUri(secret, user.email, "Wangari");
+    res.json({ secret, uri }); // client renders the QR from this
+  } catch (error) {
+    console.error("MFA setup error:", error);
+    res.status(500).json({ error: "Failed to start 2FA setup" });
+  }
+});
+
+// POST /api/auth/mfa/verify — confirm a live code, enable 2FA, return
+// recovery codes ONCE (stored hashed).
+router.post("/mfa/verify", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    const code = String(req.body?.code || "");
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { totpSecret: true, totpEnabledAt: true },
+    });
+    if (!user?.totpSecret) return res.status(400).json({ error: "Start 2FA setup first" });
+    if (user.totpEnabledAt) return res.status(409).json({ error: "Two-factor is already enabled" });
+    if (!verifyTotp(user.totpSecret, code)) {
+      return res.status(401).json({ error: "That code doesn't match — check your authenticator app and try again" });
+    }
+    const { plain, hashed } = generateRecoveryCodes(8);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { totpEnabledAt: new Date(), recoveryCodes: JSON.stringify(hashed) },
+    });
+    res.json({ enabled: true, recoveryCodes: plain }); // plaintext shown exactly once
+  } catch (error) {
+    console.error("MFA verify error:", error);
+    res.status(500).json({ error: "Failed to enable 2FA" });
+  }
+});
+
+// POST /api/auth/mfa/disable — requires the current password + a live code.
+router.post("/mfa/disable", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    const { password, code } = req.body ?? {};
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true, totpSecret: true, totpEnabledAt: true },
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user.totpEnabledAt) return res.status(400).json({ error: "Two-factor is not enabled" });
+    if (!password || !user.password || !(await bcrypt.compare(String(password), user.password))) {
+      return res.status(401).json({ error: "Password is incorrect" });
+    }
+    if (!user.totpSecret || !verifyTotp(user.totpSecret, String(code || ""))) {
+      return res.status(401).json({ error: "Invalid authenticator code" });
+    }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { totpSecret: null, totpEnabledAt: null, recoveryCodes: null },
+    });
+    res.json({ enabled: false });
+  } catch (error) {
+    console.error("MFA disable error:", error);
+    res.status(500).json({ error: "Failed to disable 2FA" });
   }
 });
 
