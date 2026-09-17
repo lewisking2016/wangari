@@ -1,21 +1,35 @@
 import { NextResponse } from "next/server";
 
 /**
- * Weekly cron trigger (Vercel Cron → Express backend where the DB lives).
- * Emails verified users without 2FA a one-click setup reminder.
+ * Vercel Cron trigger for the weekly 2FA nudge.
+ *
+ * The database lives on the VPS, so the actual nudge logic runs on the
+ * Express backend (api.wangari.imeantech.com); this route just calls it
+ * with the shared CRON_SECRET.
+ *
+ * Schedule: Mondays 09:30 EAT (see vercel.json).
  */
-export async function GET() {
-  const CRON_SECRET = process.env.CRON_SECRET || "";
-  const backendUrl = process.env.BACKEND_INTERNAL_URL || "http://localhost:8925";
+
+const CRON_SECRET = process.env.CRON_SECRET || "";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.wangari.imeantech.com";
+
+export async function GET(req: Request) {
+  const authHeader = req.headers.get("authorization");
+  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
-    const res = await fetch(`${backendUrl}/api/cron/mfa-nudge`, {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 110_000);
+    const res = await fetch(`${BACKEND_URL}/api/cron/mfa-nudge`, {
       headers: { Authorization: `Bearer ${CRON_SECRET}` },
-      signal: AbortSignal.timeout(110_000),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
     const data = await res.json().catch(() => ({}));
     return NextResponse.json(data, { status: res.status });
   } catch (error: any) {
-    return NextResponse.json({ ok: false, error: error?.message || "backend unreachable" }, { status: 502 });
+    console.error("MFA nudge trigger error:", error?.message);
+    return NextResponse.json({ error: "MFA nudge failed" }, { status: 502 });
   }
 }
