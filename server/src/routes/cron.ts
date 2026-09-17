@@ -258,4 +258,66 @@ router.get("/farm-digest", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/cron/dmarc-check
+ *
+ * Weekly email-authentication health check for imeantech.com. Verifies the
+ * SPF, DKIM and DMARC DNS records are still published and sane — if any
+ * record goes missing or malformed (e.g. DNS accidental deletion, provider
+ * change), alerts the admin by email. Called weekly by Vercel Cron via the
+ * same authenticated pattern as farm-digest.
+ */
+const DOMAIN = "imeantech.com";
+const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || "lewis@imeantech.com";
+const resolver = new (require("dns").promises.Resolver)();
+
+async function txtRecords(name: string): Promise<string[]> {
+  try {
+    const records = await resolver.resolveTxt(name);
+    return records.map((chunks: string[]) => chunks.join(""));
+  } catch {
+    return [];
+  }
+}
+
+router.get("/dmarc-check", async (req: Request, res: Response) => {
+  const problems: string[] = [];
+  const ok: string[] = [];
+
+  // SPF: domain TXT must include v=spf1
+  const spf = (await txtRecords(DOMAIN)).find((r) => r.toLowerCase().startsWith("v=spf1"));
+  if (!spf) problems.push("SPF record missing for " + DOMAIN);
+  else ok.push("SPF: " + spf);
+
+  // DMARC: _dmarc TXT must be v=DMARC1
+  const dmarc = (await txtRecords("_dmarc." + DOMAIN)).find((r) => r.toLowerCase().startsWith("v=dmarc1"));
+  if (!dmarc) problems.push("DMARC record missing for _dmarc." + DOMAIN);
+  else ok.push("DMARC: " + dmarc);
+
+  // DKIM: check all known Mailbux selectors — at least one must resolve.
+  const selectors = ["v1-ed25519-20260904", "v1-rsa-20260904", "default", "mailbux", "k1", "s1", "s2", "selector1", "selector2", "mdkim"];
+  let dkimFound: string | null = null;
+  for (const sel of selectors) {
+    const rec = (await txtRecords(sel + "._domainkey." + DOMAIN)).find((r) => r.toLowerCase().includes("v=dkim1") || r.includes("p="));
+    if (rec) { dkimFound = sel; ok.push(`DKIM: selector "${sel}" published`); break; }
+  }
+  if (!dkimFound) problems.push("No DKIM key published for any known selector of " + DOMAIN);
+
+  if (problems.length > 0) {
+    try {
+      await sendEmail({
+        to: ADMIN_EMAIL,
+        subject: "⚠️ Wangari email authentication problem — action needed",
+        html: `<div style="font-family:Arial,sans-serif;padding:24px;max-width:560px;"><h2 style="color:#dc2626;">Email authentication problem detected</h2><p>Weekly check of ${DOMAIN} found problems that may push farmers' verification codes into spam or get mail rejected:</p><ul>${problems.map((p) => `<li style="color:#b91c1c;margin:8px 0;">${p}</li>`).join("")}</ul><p style="color:#64748b;font-size:13px;">Healthy records found (for reference):</p><ul>${ok.map((o) => `<li style="color:#16a34a;font-size:13px;">${o}</li>`).join("")}</ul><p style="color:#64748b;font-size:13px;">Fix DNS records at your registrar, then wait for TTL to expire. Verification codes will keep sending in the meantime.</p></div>`,
+        text: `Wangari email auth problems:\n${problems.join("\n")}\n\nHealthy:\n${ok.join("\n")}`,
+        template: "oneoff",
+      });
+    } catch (e) {
+      console.error("DMARC alert email failed:", e);
+    }
+  }
+
+  res.json({ ok: problems.length === 0, domain: DOMAIN, problems, healthy: ok, checkedAt: new Date().toISOString() });
+});
+
 export default router;

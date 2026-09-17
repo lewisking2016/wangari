@@ -8,6 +8,7 @@ import { Loader2, ArrowRight, Mail, CheckCircle2, RefreshCw, Search } from "luci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { trackEvent } from "@/lib/posthog";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -65,15 +66,21 @@ function VerifyEmailForm() {
         setDevNotice(
           data.message || "Email delivery is unavailable — use the code below."
         );
+        trackEvent("verification_code_fallback_shown", { email });
       } else {
         setDevCode(null);
         setDevNotice(null);
+        trackEvent("verification_code_sent", { email, silent });
       }
       if (!silent) setCooldown(60); // 60s cooldown
     } catch (err) {
       if (!silent) {
         setError(err instanceof Error ? err.message : "Failed to send code");
       }
+      trackEvent("verification_code_send_failed", {
+        email,
+        error: err instanceof Error ? err.message : "unknown",
+      });
     } finally {
       if (!silent) setResending(false);
     }
@@ -137,10 +144,12 @@ function VerifyEmailForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Verification failed");
       setVerified(true);
+      trackEvent("email_verified", { email });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code");
       setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
+      trackEvent("verification_code_wrong", { email });
     } finally {
       setLoading(false);
     }
@@ -288,12 +297,13 @@ function VerifyEmailForm() {
       >
         <p className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-1">
           <Search className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-          Not seeing the code? Check your spam folder
+          Not seeing the code? Check Spam <em>and</em> Promotions/Updates tabs
         </p>
         <p className="text-[11px] leading-relaxed text-slate-500">
-          If it&apos;s in Spam, open it and tap <strong>“Not spam”</strong> (or
-          <strong> “Report not spam”</strong>). That tells Gmail to deliver our
-          future emails straight to your inbox.
+          Gmail splits mail across tabs — the code sometimes lands in
+          <strong> Promotions</strong> or <strong>Updates</strong>. If it&apos;s
+          in Spam, open it and tap <strong>“Not spam”</strong>. That tells
+          Gmail to deliver our future emails straight to your inbox.
         </p>
       </motion.div>
 

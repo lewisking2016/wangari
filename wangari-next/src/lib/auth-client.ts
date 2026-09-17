@@ -215,6 +215,11 @@ export async function sendVerificationCode(email: string): Promise<{ message: st
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to send verification code");
+  if (data.devCode) {
+    track("verification_code_fallback_shown", { email });
+  } else {
+    track("verification_code_sent", { email });
+  }
   return data;
 }
 
