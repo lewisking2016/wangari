@@ -18,7 +18,7 @@ type QuoteData = {
   farmName: string;
   farmLocation: string | null;
   customerName: string | null;
-  items: { description?: string; quantity?: number; unitPrice?: number }[];
+  items: { description?: string; qty?: number; quantity?: number; unitPrice?: number }[];
   totalAmount: string | number;
   status: string;
   validUntil: string | null;
@@ -146,11 +146,12 @@ export default function PublicQuotePage({ params }: { params: Promise<{ token: s
           </thead>
           <tbody>
             {(quote.items || []).map((it, i) => {
-              const amount = Number(it.quantity || 0) * Number(it.unitPrice || 0);
+              const qty = Number(it.qty ?? it.quantity ?? 0);
+              const amount = qty * Number(it.unitPrice || 0);
               return (
                 <tr key={i} className="border-b border-slate-50">
                   <td className="py-2.5 pr-2 font-medium text-slate-700">{it.description || "Item"}</td>
-                  <td className="py-2.5 text-center text-slate-500">{it.quantity ?? "—"}</td>
+                  <td className="py-2.5 text-center text-slate-500">{qty || "—"}</td>
                   <td className="py-2.5 text-right font-semibold text-slate-700">KES {amount.toLocaleString()}</td>
                 </tr>
               );
