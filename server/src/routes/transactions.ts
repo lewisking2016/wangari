@@ -32,11 +32,21 @@ router.post("/", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Type and date are required" });
     }
 
+    // PUR- code only for expense (purchase) records; income rows don't need one.
+    let docCode: string | null = null;
+    if (req.body.type === "expense") {
+      try {
+        const { nextDocCode } = await import("../lib/doc-codes.js");
+        docCode = await prisma.$transaction((tx: any) => nextDocCode(tx, req.user!.farmId!, "purchase"));
+      } catch { docCode = null; }
+    }
+
     const result = await prisma.transaction.create({
       data: {
         farmId: req.user!.farmId!,
         type: req.body.type,
         category: req.body.category || null,
+        docCode,
         amount,
         description: req.body.description || null,
         date: new Date(req.body.date),

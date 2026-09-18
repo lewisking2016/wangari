@@ -35,6 +35,7 @@ import trialRoutes from "./routes/trial.js";
 import cronRoutes from "./routes/cron.js";
 import plansRoutes from "./routes/plans.js";
 import deliveriesRoutes from "./routes/deliveries.js";
+import documentsRoutes from "./routes/documents.js";
 import adminRoutes from "./routes/admin.js";
 import adminModulesRoutes from "./routes/admin-modules.js";
 import supportRoutes from "./routes/support.js";
@@ -169,6 +170,7 @@ app.use("/api/paystack", paystackRoutes);
 app.use("/api/trial", trialRoutes);
 app.use("/api/plans", plansRoutes);
 app.use("/api/deliveries", deliveriesRoutes);
+app.use("/api/documents", documentsRoutes);
 app.use("/api/cron", cronRoutes);
 
 // ─── Super-Admin API ──────────────────────────────────────

@@ -95,6 +95,7 @@ model SiteContent {
 model Delivery {
   id          Int      @id @default(autoincrement())
   farmId      Int      @map("farm_id")
+  docCode     String?  @map("doc_code")
   date        DateTime @db.Date
   commodity   String
   quantity    Decimal  @db.Decimal(12, 2) // litres / kg
@@ -473,6 +474,7 @@ model Transaction {
   farmId        Int      @map("farm_id")
   type          String
   category      String?
+  docCode       String?  @map("doc_code")
   amount        Decimal  @db.Decimal(12, 2)
   description   String?
   date          DateTime @db.Date

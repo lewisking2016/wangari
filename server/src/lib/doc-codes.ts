@@ -13,6 +13,8 @@ export const DOC_PREFIXES = {
   quote: "QTE",
   receipt: "RCP",
   report: "RPT",
+  delivery: "DLV",
+  purchase: "PUR",
 } as const;
 
 export type DocKind = keyof typeof DOC_PREFIXES;

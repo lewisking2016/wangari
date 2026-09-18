@@ -35,9 +35,13 @@ router.post("/", async (req: Request, res: Response) => {
     const price = unitPrice != null ? Number(unitPrice) : null;
     const expectedPay = price != null ? qty * price : null;
 
+    const { nextDocCode } = await import("../lib/doc-codes.js");
+    const docCode = await prisma.$transaction((tx: any) => nextDocCode(tx, req.user!.farmId!, "delivery"));
+
     const delivery = await prisma.delivery.create({
       data: {
         farmId: req.user!.farmId!,
+        docCode,
         date: date ? new Date(date) : new Date(),
         commodity,
         quantity: qty,
