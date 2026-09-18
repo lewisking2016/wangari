@@ -232,8 +232,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats — premium cards with GSAP entrance + count-up */}
-      <section className="pb-24 px-6">
+      {/* Stats — premium cards with GSAP entrance + count-up, centered in the band */}
+      <section className="py-24 px-6">
         <StatCards />
       </section>
       <section className="py-28 px-6">

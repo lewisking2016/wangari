@@ -4,6 +4,9 @@
  * Detects (and emails admin@imeantech.com about):
  *   - API process down or not responding on /health
  *   - Database unreachable (real query, not just a TCP ping)
+ *   - Crash-looping: PM2 restart count spiking (more than 3 restarts in
+ *     10 minutes — PM2 masks crashes by "restarting", so /health alone
+ *     can look fine between restarts)
  *   - .env integrity: file unreadable, suspiciously small, or missing/empty
  *     required keys (truncation/damage — this exact failure took production
  *     down silently on 2026-09-18, so it now pages within 5 minutes)
@@ -41,6 +44,10 @@ const ALERT_EMAIL = env("ADMIN_ALERT_EMAIL", "admin@imeantech.com");
 const STATE_FILE = "/tmp/wangari-uptime-state.json";
 const BASELINE_FILE = new URL("../logs/.env-watchdog-baseline.json", import.meta.url).pathname;
 
+/** Crash-loop thresholds: more than this many PM2 restarts in the window alerts. */
+const RESTART_WINDOW_MS = 10 * 60 * 1000;
+const RESTART_MAX_IN_WINDOW = 3;
+
 /** Keys that MUST exist with non-empty values for production to work. */
 const REQUIRED_ENV_KEYS = [
   "PORT", "NODE_ENV", "DATABASE_URL", "JWT_SECRET", "ADMIN_JWT_SECRET",
@@ -75,6 +82,52 @@ function checkEnvIntegrity() {
     return { ok: false, detail: `Missing/empty required keys: ${missing.join(", ")}`, parsed };
   }
   return { ok: true, detail: `${Object.keys(parsed).length} keys, all required present`, parsed };
+}
+
+/**
+ * Crash-loop detection via `pm2 jlist` (global CLI — the pm2 npm package is
+ * not installed locally). Compares the restart counter against the value
+ * recorded last run; every increase is a restart event. More than
+ * RESTART_MAX_IN_WINDOW within the window → fail.
+ */
+async function checkRestartLoop() {
+  let restarts, pmUptime;
+  try {
+    const { execFile } = await import("child_process");
+    const out = await new Promise((resolve, reject) => {
+      execFile("pm2", ["jlist"], { timeout: 10_000, maxBuffer: 4 * 1024 * 1024 }, (err, stdout) =>
+        err ? reject(err) : resolve(stdout)
+      );
+    });
+    const procs = JSON.parse(out);
+    const proc = procs.find((p) => p.name === "wangari-server");
+    if (!proc) return { ok: false, detail: "PM2 process wangari-server not found", restarts: 0 };
+    restarts = proc.pm2_env?.restart_time ?? 0;
+    pmUptime = proc.pm2_env?.pm_uptime ?? 0;
+  } catch (e) {
+    return { ok: false, detail: `Cannot reach PM2: ${e?.message || e}`, restarts: 0 };
+  }
+
+  const state = readState();
+  const prevRestarts = state.lastRestarts ?? restarts;
+  const events = state.restartEvents ?? [];
+  const now = Date.now();
+
+  if (restarts > prevRestarts) {
+    // (re)record each new restart event
+    for (let i = prevRestarts; i < restarts; i++) events.push(now);
+  }
+  // drop events older than the window
+  const recent = events.filter((t) => now - t < RESTART_WINDOW_MS);
+
+  return {
+    ok: recent.length <= RESTART_MAX_IN_WINDOW,
+    detail: recent.length > RESTART_MAX_IN_WINDOW
+      ? `Crash-loop: ${recent.length} PM2 restarts in ${RESTART_WINDOW_MS / 60000} min (current count ${restarts}, up since ${pmUptime ? new Date(pmUptime).toISOString() : "?"})`
+      : `${restarts} total restarts; ${recent.length} in last ${RESTART_WINDOW_MS / 60000} min`,
+    restarts,
+    recentCount: recent.length,
+  };
 }
 
 /** Last-known-good copy of alert-critical env values, for alerting when .env is broken. */
@@ -175,7 +228,11 @@ async function main() {
     checks.push({ name: "API /health", ok: false, detail: `No response: ${e?.message || e}` });
   }
 
-  // 2. Database (real query — uses the env values we just verified)
+  // 2. Crash-loop detection (restarts > 3 in 10 min)
+  const restartCheck = await checkRestartLoop();
+  checks.push({ name: "PM2 restart loop", ok: restartCheck.ok, detail: restartCheck.detail });
+
+  // 3. Database (real query — uses the env values we just verified)
   try {
     process.env.DATABASE_URL = process.env.DATABASE_URL || env("DATABASE_URL");
     const { PrismaClient } = await import("@prisma/client");
@@ -190,14 +247,27 @@ async function main() {
   const failed = checks.filter((c) => !c.ok);
   const state = readState();
 
+  // persist restart bookkeeping with whichever outcome
+  const nextState = {
+    down: failed.length > 0 ? true : false,
+    since: failed.length > 0 ? (state.down ? state.since : new Date().toISOString()) : undefined,
+    lastRestarts: restartCheck.restarts ?? state.lastRestarts,
+    restartEvents: restartCheck.restarts !== undefined
+      ? (restartCheck.ok ? [] : (state.restartEvents ?? []))
+      : state.restartEvents,
+  };
+  if (failed.length === 0) {
+    nextState.down = false;
+    nextState.since = undefined;
+  }
+  writeState(nextState);
+
   if (failed.length > 0 && !state.down) {
     // First failure — alert.
-    writeState({ down: true, since: new Date().toISOString() });
     console.log(`[uptime] DOWN — ${failed.map((f) => f.name).join(", ")}`);
-    await sendAlert(failEmail(checks), `🚨 Wangari API down — ${failed[0].name} failed`);
+    await sendAlert(failEmail(checks), `🚨 Wangari API problem — ${failed[0].name} failed`);
   } else if (failed.length === 0 && state.down) {
     // Recovery.
-    writeState({ down: false });
     const mins = state.since ? Math.round((Date.now() - new Date(state.since).getTime()) / 60000) : "?";
     console.log(`[uptime] RECOVERED after ~${mins} min`);
     await sendAlert(recoverEmail(), "✅ Wangari API recovered");
