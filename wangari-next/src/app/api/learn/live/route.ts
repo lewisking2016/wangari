@@ -70,7 +70,7 @@ async function fetchWeather(slug: string) {
   const lat = -0.3031, lon = 36.08;
   try {
     const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,relative_humidity_mean&timezone=Africa%2FNairobi&forecast_days=7`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean&timezone=Africa%2FNairobi&forecast_days=7`,
       { signal: AbortSignal.timeout(10_000) }
     );
     if (!res.ok) return null;
