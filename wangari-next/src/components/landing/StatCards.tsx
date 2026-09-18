@@ -28,9 +28,9 @@ const STATS: Stat[] = [
     label: "Offline Sync",
     description: "Works with zero bundles — syncs when signal returns",
     icon: Users,
-    chip: "from-emerald-500 to-teal-600",
-    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(16,185,129,0.45)]",
-    text: "text-emerald-600",
+    chip: "from-emerald-600 to-green-700",
+    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(5,150,105,0.45)]",
+    text: "text-emerald-700",
     countTo: 100,
     suffix: "%",
   },
@@ -39,27 +39,27 @@ const STATS: Stat[] = [
     label: "Daily Data Entry",
     description: "Log a sale, output or expense in seconds",
     icon: Bird,
-    chip: "from-sky-500 to-blue-600",
-    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(14,165,233,0.45)]",
-    text: "text-sky-600",
+    chip: "from-teal-500 to-emerald-600",
+    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(20,184,166,0.45)]",
+    text: "text-teal-600",
   },
   {
     value: "KES 1,500",
     label: "Starter Monthly",
     description: "Full farm OS for less than one crate of eggs",
     icon: TrendingUp,
-    chip: "from-amber-500 to-orange-600",
-    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(245,158,11,0.45)]",
-    text: "text-amber-600",
+    chip: "from-lime-500 to-green-600",
+    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(132,204,22,0.45)]",
+    text: "text-lime-600",
   },
   {
     value: "14 Days",
     label: "Free Trial",
     description: "Every feature unlocked — no card required",
     icon: Shield,
-    chip: "from-violet-500 to-purple-600",
-    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(139,92,246,0.45)]",
-    text: "text-violet-600",
+    chip: "from-green-600 to-emerald-800",
+    glow: "group-hover:shadow-[0_8px_40px_-8px_rgba(5,150,105,0.45)]",
+    text: "text-green-700",
     countTo: 14,
     suffix: " Days",
   },
@@ -118,8 +118,7 @@ export function StatCards() {
     return () => ctx.revert();
   }, []);
 
-  return (
-    <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-5xl mx-auto">
+  return (      <div ref={gridRef} className="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-5xl mx-auto">
       {STATS.map((s) => (
         <div
           key={s.label}
