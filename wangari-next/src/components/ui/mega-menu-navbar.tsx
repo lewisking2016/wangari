@@ -101,6 +101,7 @@ const WANGARI_RESOURCES: MegaMenuResourceGroup[] = [
       { title: "Pricing", href: "/pricing", icon: DollarSign },
       { title: "Features", href: "/about", icon: Package },
       { title: "AI Assistant", href: "/features/ai", icon: Sparkles },
+      { title: "Learn Center", href: "/learn", icon: BookOpen },
     ],
   },
   {

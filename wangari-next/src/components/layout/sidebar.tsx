@@ -99,7 +99,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Feed Helper", href: "/feed-calculator", icon: <Calculator className="h-5 w-5" /> },
       { label: "Weather", href: "/weather", icon: <CloudSun className="h-5 w-5" /> },
-      { label: "Learn", href: "/learn", icon: <GraduationCap className="h-5 w-5" /> },
+      { label: "Learn", href: "/library", icon: <GraduationCap className="h-5 w-5" /> },
       { label: "Reports", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },
       { label: "AI Assistant", href: "/ai", icon: <Sparkles className="h-5 w-5" />, badge: "Soon" },
       { label: "WhatsApp & USSD", href: "/whatsapp", icon: <MessageCircle className="h-5 w-5" />, badge: "Soon" },

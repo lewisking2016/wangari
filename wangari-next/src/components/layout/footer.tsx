@@ -54,6 +54,7 @@ export function Footer() {
             <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-widest mb-4">Explore</h3>
             <ul className="space-y-3">
               <li><Link002 href="/pricing" className="text-sm text-[#64748B] hover:text-[#166534]">Pricing Plans</Link002></li>
+              <li><Link002 href="/learn" className="text-sm text-[#64748B] hover:text-[#166534]">Learn Center — Free Farming Knowledge</Link002></li>
               <li><Link002 href="/about" className="text-sm text-[#64748B] hover:text-[#166534]">About Wangari</Link002></li>
               <li><Link002 href="/register" className="text-sm text-[#64748B] hover:text-[#166534]">Create Free Account</Link002></li>
               <li><Link002 href="/login" className="text-sm text-[#64748B] hover:text-[#166534]">Sign In</Link002></li>

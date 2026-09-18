@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { TestimonialsSlider } from "@/components/landing/TestimonialsSlider";
 import { DemoVideoShowcase } from "@/components/landing/DemoVideoShowcase";
+import { StatCards } from "@/components/landing/StatCards";
 import { TextRoll } from "@/components/ui/text-roll";
 import { WaveGridBackground } from "@/components/ui/wave-grid-background";
 
@@ -231,28 +232,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats — kept from the old hero, now living under the video */}
+      {/* Stats — premium cards with GSAP entrance + count-up */}
       <section className="pb-24 px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={stagger}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
-        >
-          {stats.map((s) => (
-            <motion.div
-              key={s.label}
-              variants={scaleIn}
-              whileHover={{ scale: 1.05, y: -4 }}
-              className="text-center p-5 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#BBF7D0] hover:shadow-lg transition-all"
-            >
-              <s.icon className="h-6 w-6 text-[#166534] mx-auto mb-3" />
-              <p className="text-2xl md:text-3xl font-extrabold text-[#0F172A]">{s.value}</p>
-              <p className="text-xs text-[#64748B] font-medium mt-1.5">{s.label}</p>
-            </motion.div>
-          ))}
-        </motion.div>
+        <StatCards />
       </section>
       <section className="py-28 px-6">
         <div className="mx-auto max-w-7xl">
