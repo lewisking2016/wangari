@@ -27,6 +27,7 @@ import {
   Lock,
   CreditCard,
   Search,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,6 +83,7 @@ const navGroups: NavGroup[] = [
     title: "Money & Workers",
     items: [
       { label: "Documents", href: "/documents", icon: <Search className="h-5 w-5" /> },
+      { label: "Quotes", href: "/quotes", icon: <FileText className="h-5 w-5" /> },
       { label: "Deliveries", href: "/deliveries", icon: <Truck className="h-5 w-5" /> },
       { label: "Income & Expenses", href: "/finances", icon: <DollarSign className="h-5 w-5" /> },
       { label: "Sales", href: "/sales", icon: <ShoppingCart className="h-5 w-5" /> },

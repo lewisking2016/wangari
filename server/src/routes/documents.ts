@@ -30,7 +30,7 @@ router.get("/", async (req: Request, res: Response) => {
     const contains = (s: string | null | undefined) => q && s && s.toLowerCase().includes(q.toLowerCase());
 
     type Row = {
-      kind: "invoice" | "receipt" | "delivery" | "purchase";
+      kind: "invoice" | "receipt" | "quote" | "delivery" | "purchase";
       code: string;
       id: number;
       title: string;
@@ -42,7 +42,8 @@ router.get("/", async (req: Request, res: Response) => {
     };
     const rows: Row[] = [];
 
-    const wantInvoices = typeFilter === "all" || ["invoice", "quote", "receipt"].includes(typeFilter);
+    const wantInvoices = typeFilter === "all" || ["invoice", "receipt"].includes(typeFilter);
+    const wantQuotes = typeFilter === "all" || typeFilter === "quote";
     const wantDeliveries = typeFilter === "all" || typeFilter === "delivery";
     const wantPurchases = typeFilter === "all" || typeFilter === "purchase";
 
@@ -84,6 +85,46 @@ router.get("/", async (req: Request, res: Response) => {
                 status: inv.paymentStatus,
                 date: inv.createdAt,
                 link: inv.saleId ? "/sales" : `/invoices?open=${inv.id}`,
+              });
+            }
+          })
+      );
+    }
+
+    if (wantQuotes) {
+      jobs.push(
+        prisma.quote
+          .findMany({
+            where: {
+              farmId,
+              ...(codeMatch
+                ? { quoteNumber: { contains: q, mode: "insensitive" } }
+                : q
+                ? {
+                    OR: [
+                      { quoteNumber: { contains: q, mode: "insensitive" } },
+                      { customer: { name: { contains: q, mode: "insensitive" } } },
+                      { notes: { contains: q, mode: "insensitive" } },
+                    ],
+                  }
+                : {}),
+            },
+            orderBy: { createdAt: "desc" },
+            take,
+            include: { customer: { select: { name: true } } },
+          })
+          .then((list) => {
+            for (const qt of list) {
+              rows.push({
+                kind: "quote",
+                code: qt.quoteNumber,
+                id: qt.id,
+                title: "Quote",
+                party: qt.customer?.name || "Walk-in Customer",
+                amount: Number(qt.totalAmount),
+                status: qt.status,
+                date: qt.createdAt,
+                link: `/quotes?open=${qt.id}`,
               });
             }
           })

@@ -188,6 +188,7 @@ model Farm {
   postHarvestBatches PostHarvestBatch[]
   soilTests        SoilTest[]
   invoices         Invoice[]
+  quotes           Quote[]
 
   @@map("farms")
 }
@@ -537,6 +538,7 @@ model Customer {
   sales    Sale[]
   credits  Credit[]
   invoices Invoice[]
+  quotes   Quote[]
 
   @@map("customers")
 }
@@ -599,6 +601,29 @@ model Invoice {
   customer Customer? @relation(fields: [customerId], references: [id])
 
   @@map("invoices")
+}
+
+model Quote {
+  id            Int       @id @default(autoincrement())
+  farmId        Int       @map("farm_id")
+  customerId    Int?      @map("customer_id")
+  quoteNumber   String    @map("quote_number")
+  items         Json
+  totalAmount   Decimal   @map("total_amount") @db.Decimal(12, 2)
+  status        String    @default("draft") // draft | sent | accepted | declined | expired | converted
+  validUntil    DateTime? @map("valid_until")
+  notes         String?
+  sentAt        DateTime? @map("sent_at")
+  respondedAt   DateTime? @map("responded_at")
+  convertedInvoiceId Int? @map("converted_invoice_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  farm      Farm      @relation(fields: [farmId], references: [id])
+  customer  Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([farmId, status])
+  @@map("quotes")
 }
 
 model Worker {
