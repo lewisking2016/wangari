@@ -11,8 +11,9 @@
  * monitor (UptimeRobot / cron-job.org, 5-min checks) pointing at
  * https://api.wangari.imeantech.com/health — one-time 2-minute setup.
  *
- * Install on the VPS:
- *   */5 * * * * cd /var/www/wangari/server && node scripts/uptime-watch.mjs >> logs/uptime.log 2>&1
+ * Install on the VPS (every 5 minutes):
+ *   (crontab -l; echo "5-star-slash cron line: see below") | crontab -
+ *   cron: /5 * * * * cd /var/www/wangari/server && node scripts/uptime-watch.mjs >> logs/uptime.log 2>&1
  */
 
 import { readFileSync } from "fs";
