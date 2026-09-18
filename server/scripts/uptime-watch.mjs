@@ -4,7 +4,14 @@
  * Detects (and emails admin@imeantech.com about):
  *   - API process down or not responding on /health
  *   - Database unreachable (real query, not just a TCP ping)
+ *   - .env integrity: file unreadable, suspiciously small, or missing/empty
+ *     required keys (truncation/damage — this exact failure took production
+ *     down silently on 2026-09-18, so it now pages within 5 minutes)
  *   - Recovery (so you know the alert can be ignored)
+ *
+ * Env-baseline: on every healthy run the watchdog saves the SMTP creds from
+ * .env to logs/.env-watchdog-baseline.json — so if .env breaks, the alert
+ * email can STILL be sent using the last-known-good values.
  *
  * Note: this runs on the VPS itself, so it cannot detect total VPS loss
  * (if the box is dead, so is the watchdog). For that, add a free external
@@ -12,11 +19,10 @@
  * https://api.wangari.imeantech.com/health — one-time 2-minute setup.
  *
  * Install on the VPS (every 5 minutes):
- *   (crontab -l; echo "5-star-slash cron line: see below") | crontab -
- *   cron: /5 * * * * cd /var/www/wangari/server && node scripts/uptime-watch.mjs >> logs/uptime.log 2>&1
+ *   cron: "*" + "/5 * * * *"  →  cd /var/www/wangari/server && node scripts/uptime-watch.mjs >> logs/uptime.log 2>&1
  */
 
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
@@ -33,6 +39,65 @@ function env(key, fallback = "") {
 const API_URL = env("API_SELF_URL", "http://localhost:3001");
 const ALERT_EMAIL = env("ADMIN_ALERT_EMAIL", "admin@imeantech.com");
 const STATE_FILE = "/tmp/wangari-uptime-state.json";
+const BASELINE_FILE = new URL("../logs/.env-watchdog-baseline.json", import.meta.url).pathname;
+
+/** Keys that MUST exist with non-empty values for production to work. */
+const REQUIRED_ENV_KEYS = [
+  "PORT", "NODE_ENV", "DATABASE_URL", "JWT_SECRET", "ADMIN_JWT_SECRET",
+  "FRONTEND_URL", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS",
+  "CRON_SECRET", "GOOGLE_CLIENT_ID",
+];
+/** Below this size the .env is certainly truncated (full file ≈ 1.3KB). */
+const MIN_ENV_BYTES = 600;
+
+function parseEnvFile() {
+  const raw = readFileSync(`${ROOT}.env`, "utf8");
+  const parsed = {};
+  for (const line of raw.split("\n")) {
+    const m = line.match(/^([A-Z_]+)=(.*)$/);
+    if (m) parsed[m[1]] = m[2].trim().replace(/^"|"$/g, "");
+  }
+  return { raw, parsed };
+}
+
+function checkEnvIntegrity() {
+  let raw, parsed;
+  try {
+    ({ raw, parsed } = parseEnvFile());
+  } catch (e) {
+    return { ok: false, detail: `Cannot read .env: ${e?.message || e}`, parsed: {} };
+  }
+  if (Buffer.byteLength(raw, "utf8") < MIN_ENV_BYTES) {
+    return { ok: false, detail: `.env is only ${Buffer.byteLength(raw, "utf8")} bytes (expected ≥${MIN_ENV_BYTES}) — likely truncated`, parsed };
+  }
+  const missing = REQUIRED_ENV_KEYS.filter((k) => !parsed[k]);
+  if (missing.length > 0) {
+    return { ok: false, detail: `Missing/empty required keys: ${missing.join(", ")}`, parsed };
+  }
+  return { ok: true, detail: `${Object.keys(parsed).length} keys, all required present`, parsed };
+}
+
+/** Last-known-good copy of alert-critical env values, for alerting when .env is broken. */
+function readBaseline() {
+  try {
+    return JSON.parse(readFileSync(BASELINE_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function writeBaseline(parsed) {
+  try {
+    mkdirSync(new URL("../logs", import.meta.url).pathname, { recursive: true });
+    const keep = {};
+    for (const k of ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_SECURE", "EMAIL_FROM", "ADMIN_ALERT_EMAIL"]) {
+      if (parsed[k]) keep[k] = parsed[k];
+    }
+    writeFileSync(BASELINE_FILE, JSON.stringify(keep, null, 2), { mode: 0o600 });
+  } catch {
+    // non-fatal
+  }
+}
 
 function readState() {
   try {
@@ -44,7 +109,6 @@ function readState() {
 
 async function writeState(state) {
   try {
-    const { writeFileSync } = await import("fs");
     writeFileSync(STATE_FILE, JSON.stringify(state));
   } catch {
     // non-fatal
@@ -86,6 +150,21 @@ function recoverEmail() {
 async function main() {
   const checks = [];
 
+  // 0. .env integrity (FIRST — the 2026-09-18 silent-truncation outage)
+  const envCheck = checkEnvIntegrity();
+  checks.push({ name: ".env integrity", ok: envCheck.ok, detail: envCheck.detail });
+
+  // If .env is damaged, restore alert-critical values from the last-known-good
+  // baseline so the alert email below can actually be sent.
+  if (!envCheck.ok) {
+    const base = readBaseline();
+    for (const [k, v] of Object.entries(base)) {
+      if (!process.env[k]) process.env[k] = v;
+    }
+  } else {
+    await writeBaseline(envCheck.parsed);
+  }
+
   // 1. API health
   try {
     const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(8000) });
@@ -96,9 +175,9 @@ async function main() {
     checks.push({ name: "API /health", ok: false, detail: `No response: ${e?.message || e}` });
   }
 
-  // 2. Database (real query)
+  // 2. Database (real query — uses the env values we just verified)
   try {
-    process.env.DATABASE_URL = env("DATABASE_URL");
+    process.env.DATABASE_URL = process.env.DATABASE_URL || env("DATABASE_URL");
     const { PrismaClient } = await import("@prisma/client");
     const prisma = new PrismaClient();
     await prisma.$queryRaw`SELECT 1`;
@@ -127,10 +206,25 @@ async function main() {
   }
 }
 
+/**
+ * Ensure the alert emailer has SMTP creds. Under cron, process.env lacks the
+ * .env values — and email.js reads them from process.env. Load from the file
+ * first, falling back to the last-known-good baseline (use when .env is the
+ * broken thing).
+ */
+function primeAlertEmailEnv() {
+  const keys = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_SECURE", "EMAIL_FROM", "RESEND_API_KEY"];
+  for (const k of keys) {
+    if (!process.env[k]) process.env[k] = env(k) || readBaseline()[k] || "";
+  }
+}
+
 async function sendAlert(html, subject) {
+  primeAlertEmailEnv();
   try {
     const { sendEmail } = await import("../dist/lib/email.js");
     await sendEmail({ to: ALERT_EMAIL, subject, html, template: "oneoff" });
+    console.log("[uptime] alert email sent");
   } catch (e) {
     console.error("[uptime] alert email failed:", e?.message);
   }
