@@ -50,6 +50,18 @@ export function FarmProfileEditor() {
     }).catch(() => setLoading(false));
   }, []);
 
+  const handleGallerySelect = async (type: DocType, templateId: string) => {
+    // Save straight to farm settings so it applies everywhere, then reflect locally
+    const key = type === "invoice" ? "farm_invoice_template" : type === "receipt" ? "farm_receipt_template" : "farm_quote_template";
+    try {
+      await api.put("/api/settings", { settings: { [key]: templateId } });
+      setTemplateSelection((prev) => ({ ...prev, [type]: templateId }));
+      showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} template updated!`, "success");
+    } catch {
+      showToast("Could not save the template choice", "error");
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     await api.put("/api/settings", {
@@ -238,7 +250,7 @@ export function FarmProfileEditor() {
             <span className="ml-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wide">Preview before you choose</span>
           </div>
           <p className="text-xs text-[#94A3B8] mb-4">Every design rendered with your own logo and details. Click any template to see it full-size or test-print it — then pick your favourite from the Templates panel below or on the Invoices page.</p>
-          <TemplateGallery profile={profile} currentSelection={templateSelection} />
+          <TemplateGallery profile={profile} currentSelection={templateSelection} onSelect={handleGallerySelect} />
         </CardContent>
       </Card>
 

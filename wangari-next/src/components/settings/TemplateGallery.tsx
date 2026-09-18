@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Eye, Printer } from "lucide-react";
+import { X, Eye, Printer, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { INVOICE_TEMPLATES, generateInvoiceHtml, generateQuoteHtml, generateReceiptHtml, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
 /**
@@ -109,7 +109,7 @@ function ScaleFixer({ containerRef }: { containerRef: React.RefObject<HTMLDivEle
   return null;
 }
 
-export function TemplateGallery({ profile, currentSelection }: { profile: FarmProfile; currentSelection: Record<DocType, string> }) {
+export function TemplateGallery({ profile, currentSelection, onSelect }: { profile: FarmProfile; currentSelection: Record<DocType, string>; onSelect?: (type: DocType, templateId: string) => void }) {
   const [docType, setDocType] = React.useState<DocType>("invoice");
   const [fullPreview, setFullPreview] = React.useState<{ type: DocType; templateId: string } | null>(null);
   const [htmlCache, setHtmlCache] = React.useState<Record<string, string>>({});
@@ -131,6 +131,13 @@ export function TemplateGallery({ profile, currentSelection }: { profile: FarmPr
     w.document.write(html);
     w.document.close();
   };
+
+  const useThisTemplate = () => {
+    if (!fullPreview || !onSelect) return;
+    onSelect(fullPreview.type, fullPreview.templateId);
+  };
+
+  const inUseForPreview = fullPreview ? currentSelection?.[fullPreview.type] === fullPreview.templateId : false;
 
   return (
     <div>
@@ -156,9 +163,12 @@ export function TemplateGallery({ profile, currentSelection }: { profile: FarmPr
                   <p className="truncate text-xs font-bold text-[#0F172A]">{t.name}</p>
                   <p className="truncate text-[10px] text-[#94A3B8]">{t.description}</p>
                 </div>
-                {currentSelection?.[docType] === t.id && (
+                {currentSelection?.[docType] === t.id ? (
                   <span className="shrink-0 rounded-full bg-[#F0FDF4] px-2 py-0.5 text-[9px] font-bold uppercase text-[#166534]">In use</span>
-                )}
+                ) : onSelect ? (
+                  <button onClick={(e) => { e.stopPropagation(); onSelect(docType, t.id); }}
+                    className="shrink-0 rounded-full bg-[#F1F5E8] px-2 py-0.5 text-[9px] font-bold uppercase text-[#166534] hover:bg-[#166534] hover:text-white transition">Use</button>
+                ) : null}
               </div>
             </div>
           </motion.div>
@@ -183,6 +193,16 @@ export function TemplateGallery({ profile, currentSelection }: { profile: FarmPr
                   <p className="text-[11px] text-[#94A3B8]">Rendered live with your logo, colors and details</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  {onSelect && fullPreview.type !== "invoice" && (
+                    <Button size="sm" variant="outline" onClick={() => setDocType(fullPreview.type)}
+                      className="hidden sm:inline-flex gap-1.5 rounded-lg text-[11px]">Switch to {DOC_TYPES.find((d) => d.id === fullPreview.type)?.label} tab to set</Button>
+                  )}
+                  {onSelect && (
+                    <Button size="sm" onClick={useThisTemplate} disabled={inUseForPreview}
+                      className={`gap-1.5 rounded-lg ${inUseForPreview ? "bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]" : "bg-[#166534] hover:bg-[#14532d]"}`}>
+                      {inUseForPreview ? <><Check className="h-3.5 w-3.5" /> In use</> : <><Check className="h-3.5 w-3.5" /> Use for {fullPreview.type}s</>}
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={printFull} className="gap-1.5 rounded-lg"><Printer className="h-3.5 w-3.5" /> Test print</Button>
                   <button onClick={() => setFullPreview(null)} className="rounded-lg p-1.5 hover:bg-slate-100"><X className="h-5 w-5 text-slate-500" /></button>
                 </div>

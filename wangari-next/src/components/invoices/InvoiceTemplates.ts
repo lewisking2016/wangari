@@ -112,6 +112,8 @@ export interface DocLayout {
   paperSize?: "a4" | "letter" | "80mm";
   /** Show a QR code of the doc code for verification. */
   showQr?: boolean;
+  /** Balanced mode — fills the space opposite the totals block with a payment/notes panel. */
+  balancedTotals?: "off" | "payment" | "notes";
 }
 
 export const DEFAULT_DOC_LAYOUT: Required<DocLayout> = {
@@ -122,6 +124,7 @@ export const DEFAULT_DOC_LAYOUT: Required<DocLayout> = {
   customerPosition: "left",
   paperSize: "a4",
   showQr: false,
+  balancedTotals: "off",
 };
 
 export function normalizeLayout(raw: any): Required<DocLayout> {
@@ -135,6 +138,7 @@ export function normalizeLayout(raw: any): Required<DocLayout> {
     customerPosition: pick(r.customerPosition, "left", ["left", "right"]),
     paperSize: pick(r.paperSize, "a4", ["a4", "letter", "80mm"]),
     showQr: !!r.showQr,
+    balancedTotals: pick(r.balancedTotals, "off", ["off", "payment", "notes"]),
   };
 }
 
@@ -325,6 +329,41 @@ function itemsTableHtml(items: any[], accent: string, cols: Array<{ key: string;
   </table>`;
 }
 
+/**
+ * Balanced panel — sits opposite the totals block when balancedTotals is on.
+ * "payment" shows a scannable bank payment QR with the doc code as reference;
+ * "notes" mirrors the farm's default notes/terms so the page reads evenly.
+ */
+// Context for the balanced panel — set per document render (module-scoped so
+// totalsHtml can reach profile/doc data without changing its 40+ call sites).
+let balancedCtx: { profile: FarmProfile; docCode: string; accent: string } = { profile: {
+  businessName: "", logoUrl: "", phone: "", email: "", address: "", tinNumber: "", slogan: "",
+  bankName: "", bankAccount: "", bankBranch: "", invoiceNotes: "", invoiceTerms: "",
+}, docCode: "", accent: "#166534" };
+function balancedPanelHtml(profile: FarmProfile, layout: Required<DocLayout>, docCode: string, accent: string): string {
+  const mode = layout.balancedTotals;
+  if (mode === "payment" && profile.bankAccount) {
+    const payload = `Bank:${profile.bankName || ""}|Acct:${profile.bankAccount}|Ref:${docCode}`;
+    const qr = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(payload)}" alt="Payment QR" width="120" height="120" style="display:block;image-rendering:pixelated;" onerror="this.style.display='none'" />`;
+    return `<div style="min-width:260px;max-width:300px;background:#F8FAFC;border:1px solid #E5E7EB;border-radius:12px;padding:16px;text-align:center;">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#94A3B8;margin-bottom:8px;">Scan to Pay</p>
+      <div style="display:flex;justify-content:center;">${qr}</div>
+      ${profile.bankName ? `<p style="font-size:11px;color:#0F172A;font-weight:700;margin-top:8px;">${escapeHtml(profile.bankName)}</p>` : ""}
+      ${profile.bankAccount ? `<p style="font-size:11px;color:#64748B;margin-top:2px;">A/C ${escapeHtml(profile.bankAccount)}</p>` : ""}
+      <p style="font-size:10px;color:#94A3B8;margin-top:6px;">Reference: <span style="font-weight:700;color:#0F172A;">${escapeHtml(docCode)}</span></p>
+    </div>`;
+  }
+  if (mode === "notes" && (profile.invoiceNotes || profile.invoiceTerms)) {
+    return `<div style="min-width:260px;max-width:320px;background:#F8FAFC;border:1px solid #E5E7EB;border-radius:12px;padding:16px;">
+      ${profile.invoiceNotes ? `<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#94A3B8;margin-bottom:4px;">Notes</p>
+      <p style="font-size:11px;color:#64748B;line-height:1.6;">${escapeHtml(profile.invoiceNotes)}</p>` : ""}
+      ${profile.invoiceTerms ? `<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#94A3B8;margin:10px 0 4px;">Terms</p>
+      <p style="font-size:10px;color:#94A3B8;line-height:1.6;">${escapeHtml(profile.invoiceTerms)}</p>` : ""}
+    </div>`;
+  }
+  return "";
+}
+
 function totalsHtml(total: number, paid: number, layout: Required<DocLayout>, compact = false): string {
   const balance = total - paid;
   const row = (label: string, value: string, extra = "") =>
@@ -341,12 +380,20 @@ function totalsHtml(total: number, paid: number, layout: Required<DocLayout>, co
       : `<div style="display:flex;justify-content:space-between;padding:12px 16px;background:#F0FDF4;border-radius:8px;margin-top:8px;">
           <span style="font-size:14px;font-weight:700;color:#166534;">✓ Fully Paid</span>
         </div>`;
-  return `<div style="display:flex;justify-content:${layout.totalsSide === "left" ? "flex-start" : "flex-end"};margin-bottom:32px;">
-    <div style="min-width:260px;">
+  const totalsBlock = `<div style="min-width:260px;">
       ${row("Subtotal", formatKES(total))}
       ${row("Amount Paid", `<span style="color:#166534;">${formatKES(paid)}</span>`)}
       ${balanceBlock}
-    </div>
+    </div>`;
+  // Balanced mode: the opposite side holds a payment QR / notes panel instead of empty space.
+  if (layout.balancedTotals !== "off") {
+    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:32px;flex-direction:${layout.totalsSide === "left" ? "row-reverse" : "row"};">
+    ${totalsBlock}
+    ${balancedPanelHtml(balancedCtx.profile, layout, balancedCtx.docCode, balancedCtx.accent)}
+  </div>`;
+  }
+  return `<div style="display:flex;justify-content:${layout.totalsSide === "left" ? "flex-start" : "flex-end"};margin-bottom:32px;">
+    ${totalsBlock}
   </div>`;
 }
 
@@ -390,6 +437,7 @@ export function generateInvoiceHtml(invoice: any, templateId: string, profile: F
   const tId = TEMPLATE_IDS.includes(templateId) ? templateId : "professional";
   const layout = normalizeLayout(profile.layout);
   const validUntil = invoice.validUntil ? safeDate(invoice.validUntil) : null;
+  balancedCtx = { profile, docCode: String(invoice.invoiceNumber || ""), accent };
 
   // Layout helpers — every template routes its header/logo/customer/signature
   // blocks through these so user positioning applies everywhere.

@@ -345,6 +345,7 @@ export default function InvoicesPage() {
                     { key: "logoPosition", label: "Logo", options: [["left", "Left"], ["center", "Center"], ["right", "Right"], ["hidden", "Hide"]] },
                     { key: "customerPosition", label: "Customer block", options: [["left", "Left"], ["right", "Right"]] },
                     { key: "totalsSide", label: "Totals block", options: [["left", "Left"], ["right", "Right"]] },
+                    { key: "balancedTotals", label: "Opposite the totals", options: [["off", "Empty"], ["payment", "Payment QR"], ["notes", "Notes panel"]] },
                     { key: "signaturePosition", label: "Signature", options: [["left", "Left"], ["center", "Center"], ["right", "Right"], ["none", "Hide"]] },
                   ] as const).map(row => (
                     <div key={row.key}>
