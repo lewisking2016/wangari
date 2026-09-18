@@ -9,13 +9,14 @@ import { LEARN_DOCS, CATEGORIES, type LearnDoc } from "@/lib/learn-library";
 /**
  * LibraryGrid — the shared "library shelf" screen.
  *
- * Used by the public /learn (teasers for member-only docs) and the dashboard
- * /learn (everything unlocked). Category filter chips + search. Clicking a
- * card opens OUR document reader — never an external site.
+ * `context` controls where clicking a card goes:
+ *   - "dashboard" → /library/[slug] (inside the app chrome, full docs)
+ *   - "public"    → /learn/[slug] (free teaser + member upsell)
  */
 
-function DocCard({ doc, index, isMember }: { doc: LearnDoc; index: number; isMember: boolean }) {
+function DocCard({ doc, index, isMember, context }: { doc: LearnDoc; index: number; isMember: boolean; context: "public" | "dashboard" }) {
   const locked = doc.memberOnly && !isMember;
+  const href = context === "dashboard" ? `/library/${doc.slug}` : `/learn/${doc.slug}`;
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -23,7 +24,7 @@ function DocCard({ doc, index, isMember }: { doc: LearnDoc; index: number; isMem
       transition={{ delay: Math.min(index * 0.04, 0.4) }}
     >
       <Link
-        href={`/learn/${doc.slug}`}
+        href={href}
         className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-[0_12px_40px_-12px_rgba(16,185,129,0.35)]"
       >
         {/* spine accent like a book */}
@@ -61,7 +62,7 @@ function DocCard({ doc, index, isMember }: { doc: LearnDoc; index: number; isMem
   );
 }
 
-export function LibraryGrid({ isMember = false }: { isMember?: boolean }) {
+export function LibraryGrid({ isMember = false, context = "public" }: { isMember?: boolean; context?: "public" | "dashboard" }) {
   const [cat, setCat] = React.useState<string>("all");
   const [query, setQuery] = React.useState("");
 
@@ -111,7 +112,7 @@ export function LibraryGrid({ isMember = false }: { isMember?: boolean }) {
       {/* Shelf */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((doc, i) => (
-          <DocCard key={doc.slug} doc={doc} index={i} isMember={isMember} />
+          <DocCard key={doc.slug} doc={doc} index={i} isMember={isMember} context={context} />
         ))}
       </div>
 

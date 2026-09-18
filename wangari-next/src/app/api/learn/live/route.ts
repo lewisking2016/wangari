@@ -109,11 +109,46 @@ export async function GET(request: NextRequest) {
 
   const payload: Record<string, unknown> = { slug, fetchedAt: new Date().toISOString() };
 
-  if (wantsWeather) payload.weather = await fetchWeather(slug);
-  if (wantsNews) payload.news = await fetchNews();
+  const [weather, news, market] = await Promise.all([
+    wantsWeather ? fetchWeather(slug) : Promise.resolve(null),
+    wantsNews ? fetchNews() : Promise.resolve([]),
+    fetchMarketRates(),
+  ]);
+
+  if (wantsWeather) payload.weather = weather;
+  if (wantsNews) payload.news = news;
+  payload.market = market;
   payload.season = seasonForMonth(new Date());
 
   return NextResponse.json(payload, {
-    headers: { "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600" },
+    headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800" },
   });
+}
+
+/**
+ * Live market context for Kenyan farmers: USD/KES exchange rate (frankfurter
+ *.dev — free, no key) + days until month-end (useful for market timing).
+ * Returns null gracefully when the API is unreachable.
+ */
+async function fetchMarketRates() {
+  try {
+    const res = await fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=KES", {
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const rate = data?.rates?.KES;
+    if (!rate) return null;
+    const now = new Date();
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return {
+      usdKes: Math.round(rate * 100) / 100,
+      asOf: data.date ?? new Date().toISOString().slice(0, 10),
+      dayOfMonth: now.getDate(),
+      daysToMonthEnd: monthEnd - now.getDate(),
+      note: "A stronger dollar usually lifts export crop prices (avocado, macadamia, tea) at the farm gate.",
+    };
+  } catch {
+    return null;
+  }
 }

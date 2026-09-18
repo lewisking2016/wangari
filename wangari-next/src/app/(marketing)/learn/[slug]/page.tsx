@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocReader } from "@/components/learn/DocReader";
+import { PublicDocGate } from "./doc-view";
 import { LEARN_DOCS, getDoc } from "@/lib/learn-library";
 
-/** Public document reader — each guide is its own in-app screen, no external redirects. */
+/**
+ * Public document route — gated: visitors get a 2-chapter teaser + member
+ * upsell; logged-in members get the full live document (rendered inside the
+ * dashboard library context).
+ */
 
 export function generateStaticParams() {
   return LEARN_DOCS.map((d) => ({ slug: d.slug }));
@@ -24,9 +28,5 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   const doc = getDoc(slug);
   if (!doc) notFound();
 
-  const idx = LEARN_DOCS.findIndex((d) => d.slug === slug);
-  const prevDoc = idx > 0 ? LEARN_DOCS[idx - 1] : undefined;
-  const nextDoc = idx < LEARN_DOCS.length - 1 ? LEARN_DOCS[idx + 1] : undefined;
-
-  return <DocReader doc={doc} prevDoc={prevDoc} nextDoc={nextDoc} />;
+  return <PublicDocGate doc={doc} />;
 }

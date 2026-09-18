@@ -38,7 +38,7 @@ export default function LearnPage() {
       </div>
 
       {/* Library shelf — everything unlocked */}
-      <LibraryGrid isMember={true} />
+      <LibraryGrid isMember={true} context="dashboard" />
 
       {/* Free tools cross-links */}
       <div className="grid gap-4 md:grid-cols-3">
