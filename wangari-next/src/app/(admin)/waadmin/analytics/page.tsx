@@ -144,6 +144,11 @@ export default function PostHogAnalyticsPage() {
   const [topPages, setTopPages] = React.useState<{ page: string; views: number }[]>([]);
   const [live, setLive] = React.useState<{ event: string; time: string; url: string; distinct_id: string }[]>([]);
   const [funnel, setFunnel] = React.useState<{ name: string; count: number }[]>([]);
+  const [qFunnel, setQFunnel] = React.useState<{
+    windowDays: number; farms: number;
+    steps: { stage: string; count: number; note: string }[];
+    totals: { draft: number; sent: number; accepted: number; declined: number; converted: number; expired: number; acceptedValue: number; conversionRate: number; sendRate: number };
+  } | null>(null);
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -152,13 +157,14 @@ export default function PostHogAnalyticsPage() {
     isRefresh ? setRefreshing(true) : setLoading(true);
     setError("");
     try {
-      const [mRes, dRes, eRes, pRes, lRes, fRes] = await Promise.allSettled([
+      const [mRes, dRes, eRes, pRes, lRes, fRes, qRes] = await Promise.allSettled([
         runQuery({ kind: "HogQLQuery", query: METRICS_HOGL }),
         runQuery({ kind: "HogQLQuery", query: PAGEVIEWS_DAILY_HOGL }),
         runQuery({ kind: "HogQLQuery", query: TOP_EVENTS_HOGL }),
         runQuery({ kind: "HogQLQuery", query: TOP_PAGES_HOGL }),
         runQuery({ kind: "HogQLQuery", query: LIVE_EVENTS_HOGL }),
         runQuery({ kind: "HogQLQuery", query: funnelQuery() }),
+        adminApi.get("/quotes-funnel?days=30"),
       ]);
 
       if (mRes.status === "fulfilled" && mRes.value.results?.[0]) {
@@ -181,6 +187,9 @@ export default function PostHogAnalyticsPage() {
       if (fRes.status === "fulfilled" && fRes.value.results?.[0]) {
         const row = fRes.value.results[0];
         setFunnel(FUNNEL_EVENTS.map((name, i) => ({ name, count: Number(row[i] ?? 0) })));
+      }
+      if (qRes.status === "fulfilled" && qRes.value?.steps) {
+        setQFunnel(qRes.value);
       }
     } catch (e: any) {
       setError(e?.message || "Failed to load analytics");
@@ -336,6 +345,45 @@ export default function PostHogAnalyticsPage() {
           )}
         </Panel>
       </div>
+
+      {/* ── Quotes funnel — real DB truth across all farms ── */}
+      <Panel
+        title={`Quotes Funnel (${qFunnel?.windowDays ?? 30}d)`}
+        description={`Draft → sent → accepted → invoiced across all farms${qFunnel ? ` · ${qFunnel.farms} farm${qFunnel.farms === 1 ? "" : "s"} quoting` : " — straight from the database"}`}
+      >
+        {!qFunnel || qFunnel.totals.sent + qFunnel.totals.draft + qFunnel.totals.accepted + qFunnel.totals.declined + qFunnel.totals.converted + qFunnel.totals.expired === 0 ? (
+          <EmptyState title="No quotes yet" hint="The funnel fills as farmers create and send quotes." />
+        ) : (
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {qFunnel.steps.map((s, i) => {
+                const prev = i > 0 ? qFunnel.steps[i - 1].count : 0;
+                const drop = i > 0 && prev > 0 ? Math.round(((prev - s.count) / prev) * 100) : 0;
+                const max = Math.max(...qFunnel.steps.map(x => x.count), 1);
+                return (
+                  <div key={s.stage} className="rounded-xl border border-wangari-border/60 bg-white p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-wangari-subtle">{s.stage}</p>
+                    <p className="mt-1 text-2xl font-extrabold text-wangari-heading">{fmt(s.count)}</p>
+                    <p className="text-[11px] text-wangari-subtle">{s.note}</p>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full" style={{ width: `${Math.max((s.count / max) * 100, 3)}%`, background: EVENT_COLORS[i % EVENT_COLORS.length] }} />
+                    </div>
+                    {i > 0 && drop > 0 && <p className="mt-1 text-[10px] font-semibold text-badge-red-text">−{drop}% from {qFunnel.steps[i - 1].stage.toLowerCase()}</p>}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Badge className="bg-wangari-green-50 text-wangari-green-700 border-0">{qFunnel.totals.conversionRate}% quote → invoice (of decided)</Badge>
+              <Badge className="bg-badge-red-bg text-badge-red-text border-0">{qFunnel.totals.declined} declined</Badge>
+              <Badge className="bg-amber-100 text-amber-800 border-0">{qFunnel.totals.expired} expired</Badge>
+              <Badge className="bg-slate-100 text-slate-600 border-0">{qFunnel.totals.sent} awaiting response</Badge>
+              <Badge className="bg-wangari-green-50 text-wangari-green-700 border-0">KES {qFunnel.totals.acceptedValue.toLocaleString()} accepted value</Badge>
+              <Badge className="bg-slate-100 text-slate-600 border-0">{qFunnel.totals.sendRate}% of drafts get sent</Badge>
+            </div>
+          </div>
+        )}
+      </Panel>
 
       {/* ── Two-column: top pages + live feed ── */}
       <div className="grid gap-6 lg:grid-cols-2">

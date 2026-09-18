@@ -36,6 +36,7 @@ import cronRoutes from "./routes/cron.js";
 import plansRoutes from "./routes/plans.js";
 import deliveriesRoutes from "./routes/deliveries.js";import documentsRoutes from "./routes/documents.js";
 import quotesRoutes from "./routes/quotes.js";
+import { quotesPublic } from "./routes/quotes.js";
 import adminRoutes from "./routes/admin.js";
 import adminModulesRoutes from "./routes/admin-modules.js";
 import supportRoutes from "./routes/support.js";
@@ -159,6 +160,8 @@ app.use("/api/breeding", breedingRoutes);
 app.use("/api/crops", idempotencyGuard, cropsRoutes);
 app.use("/api/invoices", invoicesRoutes);
 app.use("/api/quotes", quotesRoutes);
+// Public customer-facing quote responses — token-gated, mounted before nothing special:
+app.use("/api/quotes-public", quotesPublic);
 app.use("/api/farms", farmsRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/export", exportRoutes);

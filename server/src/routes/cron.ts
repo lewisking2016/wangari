@@ -438,3 +438,139 @@ router.get("/mfa-nudge", async (req: Request, res: Response) => {
     res.status(500).json({ error: "MFA nudge failed", detail: error?.message });
   }
 });
+
+// ═════════════════════════════════════════════════════════════════════
+// GET /api/cron/quote-expiry — daily quote hygiene
+//
+//  1. Auto-marks sent quotes past their valid-until date as "expired"
+//     (so they can't be accepted and stop cluttering the sent filter).
+//  2. Emails each farm owner a nudge listing quotes that expire within
+//     the next 3 days — a chance to follow up before the customer goes cold.
+//
+// Triggered daily via Vercel Cron → Next.js proxy (same pattern as farm-digest).
+// ═════════════════════════════════════════════════════════════════════
+
+interface ExpiringQuote {
+  quoteNumber: string;
+  totalAmount: any;
+  customerName: string | null;
+  validUntil: Date;
+}
+
+function quoteExpiryEmailHtml(userName: string, farmName: string, expiring: ExpiringQuote[], quotesUrl: string): string {
+  const rows = expiring.map((q) => {
+    const days = Math.max(0, Math.ceil((new Date(q.validUntil).getTime() - Date.now()) / 86400000));
+    const dayLabel = days === 0 ? "today" : days === 1 ? "tomorrow" : `in ${days} days`;
+    return `
+      <tr>
+        <td style="padding:10px 14px;background-color:#fffbeb;border-radius:8px;">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td>
+              <p style="margin:0;font-size:13px;font-weight:700;color:#92400e;">${q.quoteNumber} — ${q.customerName || "Walk-in customer"}</p>
+              <p style="margin:2px 0 0;font-size:12px;color:#334155;">KES ${Number(q.totalAmount).toLocaleString()} · expires ${dayLabel} (${new Date(q.validUntil).toLocaleDateString("en-KE", { day: "numeric", month: "short" })})</p>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+      <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>`;
+  }).join("");
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <tr><td style="background-color:#166534;padding:24px 32px;text-align:center;">
+          <span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">🌿 Wangari</span>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h2 style="margin:0 0 4px;font-size:20px;color:#334155;">Quotes expiring soon, ${userName} ⏳</h2>
+          <p style="margin:0 0 20px;font-size:13px;color:#64748b;">${farmName} · ${expiring.length} quote${expiring.length === 1 ? "" : "s"} expire${expiring.length === 1 ? "s" : ""} in the next 3 days</p>
+          <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+          <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Follow up with the customer now — a quick call or WhatsApp message before the quote expires is often all it takes to close the deal.</p>
+          <div style="text-align:center;margin-top:24px;">
+            <a href="${quotesUrl}" style="display:inline-block;background-color:#166534;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;">Open Quotes →</a>
+          </div>
+          <p style="margin:20px 0 0;font-size:11px;color:#64748b;text-align:center;">
+            You receive this because you have quotes with upcoming expiry dates.<br/>Expired quotes are marked automatically so you never chase a dead deal.
+          </p>
+        </td></tr>
+        <tr><td style="padding:16px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#64748b;">© ${new Date().getFullYear()} Wangari · imeantech.com</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+router.get("/quote-expiry", async (req: Request, res: Response) => {
+  const CRON_SECRET = process.env.CRON_SECRET || "";
+  const authHeader = req.headers.authorization || "";
+  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const now = new Date();
+  const threeDaysAhead = new Date(now.getTime() + 3 * 86400000);
+  const quotesUrl = `${process.env.FRONTEND_URL || "https://wangari.imeantech.com"}/quotes`;
+
+  try {
+    // 1. Expire: every sent quote whose validity window has closed.
+    const expired = await prisma.quote.updateMany({
+      where: { status: "sent", validUntil: { lt: now, not: null } },
+      data: { status: "expired", updatedAt: now },
+    });
+
+    // 2. Nudge: group quotes expiring in the next 3 days by farm, email each owner.
+    const expiring = await prisma.quote.findMany({
+      where: { status: "sent", validUntil: { gte: now, lte: threeDaysAhead } },
+      select: {
+        farmId: true, quoteNumber: true, totalAmount: true, validUntil: true,
+        customer: { select: { name: true } },
+        farm: { select: { name: true, owner: { select: { name: true, email: true } } } },
+      },
+      orderBy: { validUntil: "asc" },
+    });
+
+    const byFarm = new Map<number, { ownerName: string; ownerEmail: string; farmName: string; quotes: ExpiringQuote[] }>();
+    for (const q of expiring) {
+      const owner = q.farm.owner;
+      if (!owner?.email) continue;
+      if (!byFarm.has(q.farmId)) {
+        byFarm.set(q.farmId, { ownerName: owner.name || "Farmer", ownerEmail: owner.email, farmName: q.farm.name, quotes: [] });
+      }
+      byFarm.get(q.farmId)!.quotes.push({
+        quoteNumber: q.quoteNumber,
+        totalAmount: q.totalAmount,
+        customerName: q.customer?.name || null,
+        validUntil: q.validUntil as Date,
+      });
+    }
+
+    let sent = 0;
+    const errors: string[] = [];
+    for (const { ownerName, ownerEmail, farmName, quotes } of byFarm.values()) {
+      try {
+        const result = await sendEmail({
+          to: ownerEmail,
+          subject: `⏳ ${quotes.length} quote${quotes.length === 1 ? "" : "s"} expiring soon — Wangari`,
+          html: quoteExpiryEmailHtml(ownerName, farmName, quotes, quotesUrl),
+          template: "oneoff",
+        });
+        if (result.ok) sent++;
+        else errors.push(`${ownerEmail}: ${result.error || "send failed"}`);
+      } catch (e: any) {
+        errors.push(`${ownerEmail}: ${e?.message || "unknown"}`);
+      }
+    }
+
+    res.json({ ok: true, expiredCount: expired.count, farmsNudged: sent, expiringQuotes: expiring.length, errors: errors.slice(0, 10) });
+  } catch (error: any) {
+    console.error("Quote expiry cron error:", error);
+    res.status(500).json({ error: "Quote expiry failed", detail: error?.message });
+  }
+});

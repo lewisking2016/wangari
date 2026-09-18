@@ -646,4 +646,54 @@ router.post("/announcements/:id/deactivate", requireAdmin(["support"]), async (r
   }
 });
 
+// ─── Quotes funnel (analytics) ────────────────────────────
+// Draft → sent → accepted (+converted) across ALL farms, for the waadmin
+// analytics dashboard. Real database truth, not just PostHog events.
+
+router.get("/quotes-funnel", requireAdmin(["support", "support_read", "billing"]), async (req: Request, res: Response) => {
+  try {
+    const days = Math.min(365, Math.max(1, Number(req.query.days) || 30));
+    const since = new Date(Date.now() - days * 86400000);
+
+    const quotes = await prisma.quote.findMany({
+      where: { createdAt: { gte: since } },
+      select: { status: true, totalAmount: true, farmId: true },
+    });
+
+    const counts = { draft: 0, sent: 0, accepted: 0, declined: 0, converted: 0, expired: 0 };
+    let acceptedValue = 0;
+    const farmIds = new Set<number>();
+    for (const q of quotes) {
+      if (counts[q.status as keyof typeof counts] !== undefined) counts[q.status as keyof typeof counts] += 1;
+      if (q.status === "accepted" || q.status === "converted") acceptedValue += Number(q.totalAmount);
+      farmIds.add(q.farmId);
+    }
+
+    const won = counts.accepted + counts.converted;
+    const decided = won + counts.declined;
+
+    res.json({
+      windowDays: days,
+      farms: farmIds.size,
+      steps: [
+        { stage: "Draft", count: counts.draft + counts.sent + counts.accepted + counts.declined + counts.converted + counts.expired, note: "all quotes created" },
+        { stage: "Sent", count: counts.sent + counts.accepted + counts.declined + counts.converted + counts.expired, note: "shared with customers" },
+        { stage: "Accepted", count: won, note: "customer said yes" },
+        { stage: "Invoiced", count: counts.converted, note: "converted to invoice" },
+      ],
+      totals: {
+        ...counts,
+        acceptedValue,
+        conversionRate: decided ? Math.round((won / decided) * 100) : 0,
+        sendRate: counts.draft + counts.sent + won + counts.declined + counts.expired
+          ? Math.round(((counts.sent + won + counts.declined + counts.expired) / (counts.draft + counts.sent + won + counts.declined + counts.expired)) * 100)
+          : 0,
+      },
+    });
+  } catch (error) {
+    console.error("Quotes funnel error:", error);
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
 export default router;

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { randomBytes } from "crypto";
 import { prisma } from "../db.js";
 import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -8,12 +9,19 @@ import { auditMoneyMutation } from "../lib/audit.js";
  * Quotes — create, send, track, and convert to invoices.
  *
  * Lifecycle:  draft → sent → accepted | declined → converted (accepted only)
- * The farmer marks a quote sent (WhatsApp/SMS share), the customer responds,
- * and an accepted quote converts into a real invoice in one tap — the new
- * invoice keeps the quote's items and carries the quote number in its notes
- * for a clean audit trail. Conversion is idempotent and transactional.
+ * The farmer marks a quote sent (WhatsApp/SMS share), the customer responds
+ * (via the farmer, or self-serve on the public /q/<token> page), and an
+ * accepted quote converts into a real invoice in one tap — the new invoice
+ * keeps the quote's items and carries the quote number in its notes for a
+ * clean audit trail. Conversion is idempotent and transactional.
  */
 const router = Router();
+
+function newResponseToken(): string {
+  return randomBytes(18).toString("base64url"); // 24 chars, ~144 bits of entropy
+}
+
+// Authenticated farm-owner routes below; the two public ones re-declare theirs.
 router.use(authMiddleware, requireOwner);
 
 async function nextQuoteNumber(farmId: number): Promise<string> {
@@ -79,6 +87,8 @@ router.post("/", async (req: Request, res: Response) => {
         sentAt: req.body.status === "sent" ? new Date() : null,
         validUntil: req.body.validUntil ? new Date(req.body.validUntil) : null,
         notes: req.body.notes || null,
+        // Every quote gets a token at creation so it's ready the moment it's sent.
+        responseToken: newResponseToken(),
       },
       include: { customer: { select: { name: true, phone: true } } },
     });
@@ -110,6 +120,8 @@ router.patch("/:id", async (req: Request, res: Response) => {
       if (quote.status !== "draft") return res.status(400).json({ error: "Only drafts can be marked sent" });
       update.status = "sent";
       update.sentAt = new Date();
+      // Safety net: guarantee a token exists when the quote goes out.
+      if (!quote.responseToken) update.responseToken = newResponseToken();
     } else if (action === "accept" || action === "decline") {
       if (quote.status !== "sent") return res.status(400).json({ error: "Only sent quotes can be accepted or declined" });
       update.status = action === "accept" ? "accepted" : "declined";
@@ -194,6 +206,77 @@ router.delete("/:id", async (req: Request, res: Response) => {
     if (existing.status !== "draft") return res.status(400).json({ error: "Only drafts can be deleted — decline or convert it instead" });
     await prisma.quote.deleteMany({ where: { id: existing.id, farmId: req.user!.farmId! } });
     res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  PUBLIC customer-facing endpoints — NO auth. Access is gated solely
+//  by the unguessable 24-char token in the link (≈144 bits, same class
+//  as password-reset links). Responses only reveal what the customer
+//  already received on the quote itself, and only while it's actionable.
+// ══════════════════════════════════════════════════════════════════
+
+export const quotesPublic = Router();
+
+// GET /api/quotes-public/:token — quote details for the response page
+quotesPublic.get("/:token", async (req: Request, res: Response) => {
+  try {
+    const quote = await prisma.quote.findUnique({
+      where: { responseToken: String(req.params.token) },
+      select: {
+        quoteNumber: true, items: true, totalAmount: true, status: true,
+        validUntil: true, notes: true, sentAt: true, respondedAt: true,
+        farm: { select: { name: true, location: true, county: true } },
+        customer: { select: { name: true } },
+      },
+    });
+    if (!quote) return res.status(404).json({ error: "Quote not found or link is invalid" });
+    // Minimal projection for unknown viewers: don't leak contact details.
+    res.json({
+      quoteNumber: quote.quoteNumber,
+      farmName: quote.farm.name,
+      farmLocation: [quote.farm.location, quote.farm.county].filter(Boolean).join(", ") || null,
+      customerName: quote.customer?.name || null,
+      items: quote.items,
+      totalAmount: quote.totalAmount,
+      status: quote.status,
+      validUntil: quote.validUntil,
+      notes: quote.notes,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed" });
+  }
+});
+
+// POST /api/quotes-public/:token/respond — customer accept/decline
+quotesPublic.post("/:token/respond", async (req: Request, res: Response) => {
+  try {
+    const decision = req.body?.decision === "accept" ? "accept" : req.body?.decision === "decline" ? "decline" : null;
+    if (!decision) return res.status(400).json({ error: "Decision must be accept or decline" });
+
+    const quote = await prisma.quote.findUnique({
+      where: { responseToken: String(req.params.token) },
+      select: { id: true, farmId: true, quoteNumber: true, status: true, validUntil: true },
+    });
+    if (!quote) return res.status(404).json({ error: "Quote not found or link is invalid" });
+    if (quote.status === "accepted") return res.json({ status: "accepted", alreadyDone: true });
+    if (quote.status === "declined") return res.json({ status: "declined", alreadyDone: true });
+    if (quote.status !== "sent") return res.status(400).json({ error: "This quote can no longer be responded to" });
+    if (quote.validUntil && new Date(quote.validUntil) < new Date()) {
+      return res.status(400).json({ error: "This quote has expired — contact the farm for a fresh quote" });
+    }
+
+    const newStatus = decision === "accept" ? "accepted" : "declined";
+    await prisma.quote.update({ where: { id: quote.id }, data: { status: newStatus, respondedAt: new Date(), updatedAt: new Date() } });
+    auditMoneyMutation({
+      action: `quote.${newStatus}`,
+      entityType: "Quote",
+      entityId: quote.id,
+      details: { quoteNumber: quote.quoteNumber, from: "sent", to: newStatus, via: "public_link" },
+    });
+    res.json({ status: newStatus });
   } catch {
     res.status(500).json({ error: "Failed" });
   }

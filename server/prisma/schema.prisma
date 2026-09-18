@@ -616,6 +616,8 @@ model Quote {
   sentAt        DateTime? @map("sent_at")
   respondedAt   DateTime? @map("responded_at")
   convertedInvoiceId Int? @map("converted_invoice_id")
+  // Public, unguessable token for customer-facing accept/decline links (/q/<token>)
+  responseToken String?   @unique @map("response_token")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

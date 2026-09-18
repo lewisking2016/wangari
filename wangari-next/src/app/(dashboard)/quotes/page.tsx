@@ -114,7 +114,9 @@ export default function QuotesPage() {
   const openWhatsApp = (q: any) => {
     const farmName = farmProfile.businessName || "Our farm";
     const lines = (q.items || []).map((it: any) => `• ${it.qty} × ${it.description} — KES ${(Number(it.qty) * Number(it.unitPrice)).toLocaleString()}`).join("\n");
-    const msg = `Hello ${q.customer?.name || ""},\n\n*QUOTE ${q.quoteNumber}* from ${farmName}\n\n${lines}\n\n*Total: KES ${Number(q.totalAmount).toLocaleString()}*${q.validUntil ? `\nValid until: ${new Date(q.validUntil).toLocaleDateString()}` : ""}\n\nReply YES to accept this quote.\n\nThank you! 🌾`;
+    // Customer-facing link: they can accept/decline with one tap — no app, no login.
+    const link = q.responseToken ? `\n\n✅ View & respond to this quote online:\n${window.location.origin}/q/${q.responseToken}` : "";
+    const msg = `Hello ${q.customer?.name || ""},\n\n*QUOTE ${q.quoteNumber}* from ${farmName}\n\n${lines}\n\n*Total: KES ${Number(q.totalAmount).toLocaleString()}*${q.validUntil ? `\nValid until: ${new Date(q.validUntil).toLocaleDateString()}` : ""}\n\nReply YES to accept, or tap the link below to accept or decline:${link}\n\nThank you! 🌾`;
     const phone = (q.customer?.phone || "").replace(/[^0-9]/g, "").replace(/^0/, "254");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -208,7 +210,7 @@ export default function QuotesPage() {
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
           <Input placeholder="Search by quote number, customer or amount…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 flex-1 rounded-xl" />
           <div className="flex flex-wrap gap-2">
-            {["all", "draft", "sent", "accepted", "declined", "converted"].map((f) => (
+            {["all", "draft", "sent", "accepted", "declined", "expired", "converted"].map((f) => (
               <button key={f} onClick={() => setFilter(f)} className={`rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition ${filter === f ? "bg-[#166534] text-white border-[#166534]" : "bg-white text-[#64748B] border-[#E5E7EB] hover:border-[#BBF7D0]"}`}>{f}</button>
             ))}
           </div>
