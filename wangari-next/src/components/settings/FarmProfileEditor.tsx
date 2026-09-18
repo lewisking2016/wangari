@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Building2, Phone, Mail, MapPin, CreditCard, FileText, Save, Upload, X, Eye, PenTool } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, CreditCard, FileText, Save, Upload, X, Eye, PenTool, LayoutTemplate } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useToast } from "@/components/shared/toast";
 import api from "@/lib/api-client";
 import { getDefaultFarmProfile, type FarmProfile } from "@/components/invoices/InvoiceTemplates";
 import { SignaturePad } from "./SignaturePad";
+import { TemplateGallery, type DocType } from "./TemplateGallery";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
@@ -18,6 +19,7 @@ export function FarmProfileEditor() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const { showToast, ToastComponent } = useToast();
+  const [templateSelection, setTemplateSelection] = React.useState<Record<DocType, string>>({ invoice: "professional", receipt: "same", quote: "same" });
 
   React.useEffect(() => {
     api.get("/api/settings").then((d: any) => {
@@ -38,6 +40,11 @@ export function FarmProfileEditor() {
         ctaText: s.farm_cta_text || "",
         signatureDataUrl: s.farm_signature_data_url || "",
         signatureName: s.farm_signature_name || "",
+      });
+      setTemplateSelection({
+        invoice: s.farm_invoice_template || "professional",
+        receipt: s.farm_receipt_template || "same",
+        quote: s.farm_quote_template || "same",
       });
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -219,6 +226,19 @@ export function FarmProfileEditor() {
               <p className="text-[11px] text-[#94A3B8]">Printed near the signature on every document.</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Template Gallery — browse designs before selecting */}
+      <Card className="border border-[#E5E7EB]">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <LayoutTemplate className="h-4 w-4 text-[#166534]" />
+            <h3 className="text-sm font-bold text-[#0F172A]">Document Design Gallery</h3>
+            <span className="ml-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wide">Preview before you choose</span>
+          </div>
+          <p className="text-xs text-[#94A3B8] mb-4">Every design rendered with your own logo and details. Click any template to see it full-size or test-print it — then pick your favourite from the Templates panel below or on the Invoices page.</p>
+          <TemplateGallery profile={profile} currentSelection={templateSelection} />
         </CardContent>
       </Card>
 
