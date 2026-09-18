@@ -3,7 +3,13 @@
  * (https://wangari.imeantech.com/learn) to all real, verified users.
  *
  * Recipients: every user with a verified email, EXCLUDING security-probe
- * and test accounts (probe-*, *@wangari.test, test@wangari.com).
+ * and test accounts (probe-*, *@wangari.test, test@wangari.com) AND anyone
+ * already emailed this same subject (dedupe guard — re-running never
+ * double-sends).
+ *
+ * Click tracking: links are wrapped through /api/track/click which captures
+ * `email_link_clicked` to PostHog per recipient, so you can see exactly who
+ * clicked through from the email in the PostHog dashboard.
  *
  * Run on the VPS:  cd /var/www/wangari/server && node scripts/send-learn-announcement.mjs
  * Dry-run first:   DRY_RUN=1 node scripts/send-learn-announcement.mjs
@@ -19,12 +25,23 @@ for (const line of readFileSync(new URL("../.env", import.meta.url), "utf8").spl
 
 const DRY_RUN = process.env.DRY_RUN === "1";
 const SITE = "https://wangari.imeantech.com";
+const CAMPAIGN = "learn-center-launch";
+const SUBJECT = "📚 New & free: the Wangari Learn Center — farming knowledge for Kenya";
+const API = "https://api.wangari.imeantech.com";
+
+/** Wrap a destination URL with click tracking for a specific recipient. */
+function tracked(url, recipientEmail) {
+  const u = Buffer.from(url).toString("base64url");
+  const r = Buffer.from(recipientEmail).toString("base64url");
+  return `${API}/api/track/click?c=${CAMPAIGN}&r=${r}&u=${u}`;
+}
 
 const { PrismaClient } = await import("@prisma/client");
 const prisma = new PrismaClient();
 
-function emailHtml(name) {
+function emailHtml(name, email) {
   const first = (name || "Farmer").split(" ")[0];
+  const learn = tracked(`${SITE}/learn`, email);
   return `<!DOCTYPE html><html><body style="margin:0;background:#f6f7f4;font-family:-apple-system,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;"><tr><td align="center">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
@@ -55,7 +72,7 @@ function emailHtml(name) {
         woven into every guide, plus reminders generated from their own farm records.</p>
 
       <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:6px 0 22px;">
-        <a href="${SITE}/learn" style="display:inline-block;background:#059669;color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:14px 36px;border-radius:999px;">Read the library free →</a>
+        <a href="${learn}" style="display:inline-block;background:#059669;color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:14px 36px;border-radius:999px;">Read the library free →</a>
       </td></tr></table>
 
       <p style="margin:0 0 6px;font-size:13px;line-height:1.6;color:#64748b;">
@@ -88,8 +105,8 @@ Know another farmer who needs this? Forward them this email — it's free for ev
 — Wangari Farm OS, by iMeanTech`;
 }
 
-// ── recipients: verified, real users only ──
-const users = await prisma.user.findMany({
+// ── recipients: verified, real users, minus anyone already emailed this subject ──
+const candidates = await prisma.user.findMany({
   where: {
     AND: [
       { emailVerified: { not: null } },
@@ -101,12 +118,21 @@ const users = await prisma.user.findMany({
   select: { email: true, name: true },
 });
 
-console.log(`Recipients: ${users.length}`);
+// ── DEDUPE GUARD: skip anyone already sent this exact subject ──
+const alreadySent = new Set(
+  (await prisma.emailLog.findMany({
+    where: { subject: SUBJECT, status: "sent", template: { not: "email_click" } },
+    select: { to: true },
+  })).map((r) => r.to.toLowerCase())
+);
+const users = candidates.filter((u) => !alreadySent.has(u.email.toLowerCase()));
+
+console.log(`Recipients: ${users.length} (${candidates.length} candidates, ${alreadySent.size} skipped by dedupe)`);
 for (const u of users) console.log("  -", u.email);
 
 if (DRY_RUN) {
   console.log("DRY_RUN=1 — no emails sent. Subject preview:");
-  console.log("  📚 New & free: the Wangari Learn Center — farming knowledge for Kenya");
+  console.log(`  ${SUBJECT}`);
   process.exit(0);
 }
 
@@ -116,8 +142,8 @@ let sent = 0, failed = 0;
 for (const u of users) {
   const res = await sendEmail({
     to: u.email,
-    subject: "📚 New & free: the Wangari Learn Center — farming knowledge for Kenya",
-    html: emailHtml(u.name),
+    subject: SUBJECT,
+    html: emailHtml(u.name, u.email),
     text: emailText(u.name),
     template: "oneoff",
   });
