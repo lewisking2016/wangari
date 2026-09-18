@@ -82,7 +82,7 @@ async function fetchWeather(slug: string) {
       rainMm: Math.round((daily.precipitation_sum?.[i] ?? 0) * 10) / 10,
       tMax: Math.round(daily.temperature_2m_max?.[i] ?? 0),
       tMin: Math.round(daily.temperature_2m_min?.[i] ?? 0),
-      humidity: Math.round(daily.relative_humidity_mean?.[i] ?? 0),
+      humidity: Math.round(daily.relative_humidity_2m_mean?.[i] ?? 0),
     }));
     const totalRain = Math.round(days.reduce((s: number, d: { rainMm: number }) => s + d.rainMm, 0));
     const humidDays = days.filter((d: { humidity: number }) => d.humidity >= 75).length;
