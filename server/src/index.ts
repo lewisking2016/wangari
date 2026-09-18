@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import { initSentry, flushTelemetry, captureError } from "./lib/sentry.js";
 
 // Routes
 import authRoutes from "./routes/auth.js";
@@ -46,23 +47,24 @@ import { idempotencyGuard } from "./middleware/idempotency.js";
 import adminCrmRoutes from "./routes/admin-crm.js";
 import contactRoutes from "./routes/contact.js";
 import siteContentRoutes from "./routes/site-content.js";
-import { initSentry, captureError } from "./lib/sentry.js";
 import { seedPlans } from "./lib/seed-plans.js";
 
 // ─── Process-Level Crash Safety ────────────────────────────
 // One bad async call must not kill the PM2 process silently.
 process.on("unhandledRejection", (reason) => {
   console.error("[unhandledRejection]", reason);
+  captureError(reason, { kind: "unhandledRejection" });
   // Log and keep serving — rejections are recoverable.
 });
 process.on("uncaughtException", (err) => {
   console.error("[uncaughtException]", err);
+  captureError(err, { kind: "uncaughtException" });
   // Unknown state — exit and let PM2 restart us cleanly.
-  process.exit(1);
+  flushTelemetry().finally(() => process.exit(1));
 });
 
 const app = express();
-initSentry(app); // no-op unless SENTRY_DSN is set
+initSentry(); // no-op unless SENTRY_DSN is set
 
 // Behind nginx on the VPS — required for express-rate-limit to identify
 // clients correctly from X-Forwarded-For (silences ERR_ERL_UNEXPECTED_X_FORWARDED_FOR).
@@ -199,8 +201,16 @@ app.use((_req, res) => {
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("Unhandled error:", err);
   captureError(err, { path: req.path, method: req.method });
+  if (res.headersSent) return;
   res.status(500).json({ error: "Internal server error" });
 });
+
+// ─── Graceful shutdown — flush telemetry ──────────────────
+for (const sig of ["SIGTERM", "SIGINT"] as const) {
+  process.on(sig, () => {
+    flushTelemetry().finally(() => process.exit(0));
+  });
+}
 
 // ─── Start Server ─────────────────────────────────────────
 app.listen(PORT, () => {
