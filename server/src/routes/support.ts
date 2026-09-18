@@ -10,11 +10,18 @@ import { authMiddleware } from "../middleware/auth.js";
  */
 const router = Router();
 
-// GET /api/announcements/active
-router.get("/announcements/active", async (_req: Request, res: Response) => {
+// GET /api/announcements/active — global banner, or a farm-scoped notification
+// (quote accepted/declined, expiry nudges) which takes priority for that farm.
+router.get("/announcements/active", authMiddleware, async (req: Request, res: Response) => {
   try {
+    const farmId = req.user?.farmId ?? null;
     const banner = await prisma.announcement.findFirst({
-      where: { active: true },
+      where: {
+        active: true,
+        ...(farmId ? { OR: [{ farmId: null }, { farmId }] } : { farmId: null }),
+      },
+      // Farm-specific notifications first, then newest global announcement.
+      orderBy: [{ farmId: "desc" }, { createdAt: "desc" }],
       select: { id: true, message: true, link: true, createdAt: true },
     });
     res.json(banner || { id: null });

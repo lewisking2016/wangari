@@ -38,6 +38,7 @@ import deliveriesRoutes from "./routes/deliveries.js";import documentsRoutes fro
 import quotesRoutes from "./routes/quotes.js";
 import { quotesPublic } from "./routes/quotes.js";
 import adminRoutes from "./routes/admin.js";
+import cronAdvisoryRoutes from "./routes/cron-advisory.js";
 import adminModulesRoutes from "./routes/admin-modules.js";
 import supportRoutes from "./routes/support.js";
 import promoRedeemRoutes from "./routes/promo-redeem.js";
@@ -176,6 +177,7 @@ app.use("/api/plans", plansRoutes);
 app.use("/api/deliveries", deliveriesRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/cron", cronRoutes);
+app.use("/api/cron", cronAdvisoryRoutes);
 
 // ─── Super-Admin API ──────────────────────────────────────
 // Stricter limiter: admin login is a high-value brute-force target.

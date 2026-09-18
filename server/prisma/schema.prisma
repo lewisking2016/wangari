@@ -165,6 +165,7 @@ model Farm {
   flocks           Flock[]
   transactions     Transaction[]
   inventory        Inventory[]
+  announcements    Announcement[]
   customers        Customer[]
   sales            Sale[]
   workers          Worker[]
@@ -857,8 +858,14 @@ model Announcement {
   message   String
   link      String?
   active    Boolean  @default(true)
+  // Null = global (waadmin broadcasts). Set = notification for one farm only
+  // (e.g. "customer accepted your quote QTE-…").
+  farmId    Int?     @map("farm_id")
   createdAt DateTime @default(now()) @map("created_at")
 
+  farm Farm? @relation(fields: [farmId], references: [id])
+
+  @@index([farmId, active])
   @@map("announcements")
 }
 

@@ -4,6 +4,7 @@ import { prisma } from "../db.js";
 import { requireOwner } from "../middleware/requireOwner.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { auditMoneyMutation } from "../lib/audit.js";
+import { sendEmail } from "../lib/email.js";
 
 /**
  * Quotes — create, send, track, and convert to invoices.
@@ -276,6 +277,70 @@ quotesPublic.post("/:token/respond", async (req: Request, res: Response) => {
       entityId: quote.id,
       details: { quoteNumber: quote.quoteNumber, from: "sent", to: newStatus, via: "public_link" },
     });
+
+    // ── Notify the farmer: in-app banner + email ──
+    try {
+      const farm = await prisma.farm.findUnique({
+        where: { id: quote.farmId },
+        select: { name: true, owner: { select: { name: true, email: true } } },
+      });
+      if (farm) {
+        // In-app: farm-scoped announcement banner on the farmer's dashboard.
+        await prisma.announcement.create({
+          data: {
+            farmId: quote.farmId,
+            active: true,
+            message: newStatus === "accepted"
+              ? `🎉 Customer accepted quote ${quote.quoteNumber} — open Quotes to convert it into an invoice.`
+              : `Customer declined quote ${quote.quoteNumber}. Open Quotes to follow up or send a revised offer.`,
+            link: "/quotes",
+          },
+        });
+        // Email: instant ping so the farmer hears about it even out of the app.
+        const ownerEmail = farm.owner?.email;
+        if (ownerEmail) {
+          const subject = newStatus === "accepted"
+            ? `🎉 Quote ${quote.quoteNumber} accepted — ready to invoice`
+            : `Quote ${quote.quoteNumber} was declined`;
+          const html = newStatus === "accepted" ? `<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 20px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+      <tr><td style="background-color:#166534;padding:24px 32px;text-align:center;"><span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">🌿 Wangari</span></td></tr>
+      <tr><td style="padding:32px;">
+        <h2 style="margin:0 0 8px;font-size:20px;color:#166534;">🎉 Your quote was accepted!</h2>
+        <p style="margin:0 0 16px;font-size:14px;color:#334155;">Quote <strong>${quote.quoteNumber}</strong> was accepted by the customer via their quote link.</p>
+        <p style="margin:0 0 24px;font-size:13px;color:#64748b;">Open Wangari and convert it into an invoice with one tap — the customer is waiting to pay.</p>
+        <div style="text-align:center;margin-top:8px;"><a href="${process.env.FRONTEND_URL || "https://wangari.imeantech.com"}/quotes" style="display:inline-block;background-color:#166534;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;">Convert to Invoice →</a></div>
+        <p style="margin:20px 0 0;font-size:11px;color:#64748b;text-align:center;">© ${new Date().getFullYear()} Wangari · imeantech.com</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>` : `<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 20px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+      <tr><td style="background-color:#166534;padding:24px 32px;text-align:center;"><span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">🌿 Wangari</span></td></tr>
+      <tr><td style="padding:32px;">
+        <h2 style="margin:0 0 8px;font-size:20px;color:#b45309;">Quote ${quote.quoteNumber} was declined</h2>
+        <p style="margin:0 0 16px;font-size:14px;color:#334155;">The customer declined via their quote link.</p>
+        <p style="margin:0 0 24px;font-size:13px;color:#64748b;">It's not personal — price and timing are the usual reasons. Consider sending a revised quote with a small adjustment or a payment plan.</p>
+        <div style="text-align:center;margin-top:8px;"><a href="${process.env.FRONTEND_URL || "https://wangari.imeantech.com"}/quotes" style="display:inline-block;background-color:#b45309;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;">Open Quotes →</a></div>
+        <p style="margin:20px 0 0;font-size:11px;color:#64748b;text-align:center;">© ${new Date().getFullYear()} Wangari · imeantech.com</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+          await sendEmail({ to: ownerEmail, subject, html, template: "oneoff" }).catch(() => {});
+        }
+      }
+    } catch (notifyErr: any) {
+      // Never fail the customer's response because the notification hit a snag.
+      console.error("Quote response notification failed:", notifyErr?.message);
+    }
+
     res.json({ status: newStatus });
   } catch {
     res.status(500).json({ error: "Failed" });
