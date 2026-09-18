@@ -4,19 +4,18 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import {
   GraduationCap, Sprout, Droplets, Bug, Sun, Wind,
-  ExternalLink, Play, BookOpen, Leaf, Coins,
+  ExternalLink, Play, BookOpen, Leaf, Coins, Lock, Video,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Learn — free, curated farming knowledge.
+ * Learn (dashboard) — the FULL members-only library.
  *
- * The best resources are already free (KALRO, KMD forecasts, Shamba Shape Up,
- * Kilimo Diaries, OpenFarm guides) — farmers just can't find them when they
- * need them. This page brings them together, per farming type, with the
- * structured "how do I grow X" data from OpenFarm's open database concept.
+ * The public /learn page is the free taste; this is the complete version:
+ * farming-type video hubs, complete growing guides, county resource
+ * checklists, deeper civic guides. Framing reinforces the membership value.
  */
 
 interface Guide {
@@ -70,27 +69,66 @@ const GROWING_GUIDES: Guide[] = [
   },
 ];
 
+// Farming-type video hubs — curated free YouTube, embedded as topic pages
+const FARM_TYPE_HUBS = [
+  {
+    type: "Poultry (Kienyeji & Layers)", emoji: "🐔", videos: [
+      { title: "Improved Kienyeji Chicken Farming in Kenya", url: "https://www.youtube.com/results?search_query=improved+kienyeji+chicken+farming+kenya" },
+      { title: "How to Build the Best Chicken House", url: "https://www.youtube.com/results?search_query=chicken+house+design+kenya+kienyeji" },
+      { title: "Poultry Vaccination Schedule Explained", url: "https://www.youtube.com/results?search_query=poultry+vaccination+schedule+kenya" },
+      { title: "Feed Mixing — Cut Costs, Raise Profits", url: "https://www.youtube.com/results?search_query=poultry+feed+formulation+kenya" },
+    ],
+    bonus: "Log your flock in Wangari and the vaccination reminders build themselves.",
+  },
+  {
+    type: "Dairy Farming", emoji: "🐄", videos: [
+      { title: "Dairy Success Stories & 250-Cow Setups", url: "https://www.youtube.com/results?search_query=dairy+farming+kenya+success" },
+      { title: "Feeding for 20L+ per Day", url: "https://www.youtube.com/results?search_query=dairy+cow+feeding+program+kenya" },
+      { title: "Calving — What to Prepare", url: "https://www.youtube.com/results?search_query=cow+calving+management+kenya" },
+      { title: "Mastitis Prevention That Works", url: "https://www.youtube.com/results?search_query=mastitis+prevention+dairy+kenya" },
+    ],
+    bonus: "Breeding records + Wangari = automatic calving countdowns.",
+  },
+  {
+    type: "Avocado & Macadamia", emoji: "🥑", videos: [
+      { title: "Hass Avocado Farming Start to Finish", url: "https://www.youtube.com/results?search_query=hass+avocado+farming+kenya" },
+      { title: "Macadamia — the Long-Term Cash Crop", url: "https://www.youtube.com/results?search_query=macadamia+farming+kenya" },
+      { title: "Export Contracts Explained", url: "https://www.youtube.com/results?search_query=avocado+export+contract+kenya" },
+      { title: "Grafting & Seedling Selection", url: "https://www.youtube.com/results?search_query=avocado+grafting+seedlings+kenya" },
+    ],
+    bonus: "Track perennial crops with Wangari's maturity years + harvest season fields.",
+  },
+  {
+    type: "Legumes & Pulses", emoji: "🫘", videos: [
+      { title: "Beans — Varieties That Win", url: "https://www.youtube.com/results?search_query=beans+farming+kenya+varieties" },
+      { title: "Green Grams (Ndengu) Cash Crop Guide", url: "https://www.youtube.com/results?search_query=green+grams+farming+kenya" },
+      { title: "Cowpeas & Pigeon Peas for Dry Areas", url: "https://www.youtube.com/results?search_query=cowpeas+farming+kenya+dryland" },
+      { title: "Soybean Processing for Extra Profit", url: "https://www.youtube.com/results?search_query=soybean+farming+kenya+processing" },
+    ],
+    bonus: "Planting date in Wangari → top-dressing and harvest reminders fire automatically.",
+  },
+];
+
 const RESOURCE_SECTIONS = [
   {
     title: "Official & Research",
     icon: BookOpen,
     color: "text-wangari-green-700",
     items: [
-      { name: "KALRO e-extension (KEEP)", desc: "Kenya Agricultural & Livestock Research Organization — location-specific advisories, free", url: "https://keep.kalro.org/" },
+      { name: "KALRO e-extension (KEEP)", desc: "Location-specific advisories from Kenya's research organization", url: "https://keep.kalro.org/" },
       { name: "Kenya Meteorological Department", desc: "Official seasonal forecasts & county weather warnings", url: "https://meteo.go.ke/" },
       { name: "Kilimo News", desc: "Daily Kenyan agriculture news, prices, policy", url: "https://kilimonews.co.ke/" },
       { name: "FarmBiz Africa", desc: "Agribusiness guides and market analysis", url: "https://www.farmbizafrica.com/" },
     ],
   },
   {
-    title: "Video Learning (free on YouTube)",
-    icon: Play,
-    color: "text-red-600",
+    title: "Disease & Pest Diagnosis (free)",
+    icon: Bug,
+    color: "text-amber-600",
     items: [
-      { name: "Shamba Shape Up", desc: "Kenya's #1 farm-makeover show — real farms, expert fixes, proven impact", url: "https://www.youtube.com/@shambashapeup" },
-      { name: "Kilimo Diaries", desc: "Deep practical guides — kienyeji poultry, dairy, crops", url: "https://www.youtube.com/results?search_query=kilimo+diaries" },
-      { name: "Smart Farm Kenya", desc: "Modern agribusiness setups and profit breakdowns", url: "https://www.youtube.com/results?search_query=smart+farm+kenya" },
-      { name: "KTN Farm Kenya", desc: "Expert interviews on goats, dairy, export crops", url: "https://www.youtube.com/results?search_query=ktn+farm+kenya" },
+      { name: "PlantVillage", desc: "Diagnose crop disease from a photo — 38 diseases, 14 crops", url: "https://plantvillage.psu.edu/" },
+      { name: "Plantwise Knowledge Bank", desc: "Pest & disease factsheets by country, plant doctor answers", url: "https://www.plantwise.org/knowledge-bank/" },
+      { name: "KALRO Pest Guides", desc: "Fall armyworm, aflatoxin and local pest management", url: "https://www.kalro.org/" },
     ],
   },
   {
@@ -98,10 +136,9 @@ const RESOURCE_SECTIONS = [
     icon: Leaf,
     color: "text-emerald-600",
     items: [
-      { name: "OpenFarm Growing Guides", desc: "Crowd-sourced structured guides — spacing, depth, watering, companions for any crop", url: "https://openfarm.cc/" },
-      { name: "PlantVillage (Penn State)", desc: "Free crop disease diagnosis by photo — 38 diseases across 14 crops", url: "https://plantvillage.psu.edu/" },
-      { name: "Plantwise Knowledge Bank (CABI)", desc: "Pest & disease factsheets by country, plant doctor answers", url: "https://www.plantwise.org/knowledge-bank/" },
+      { name: "OpenFarm Growing Guides", desc: "Crowd-sourced structured guides for any crop", url: "https://openfarm.cc/" },
       { name: "Harvest Helper", desc: "Growing + harvest info for 45 common plants, open data", url: "https://github.com/damwhit/harvest_helper" },
+      { name: "Growstuff Crop Database", desc: "Community crop records with open API", url: "https://www.growstuff.org/crops" },
     ],
   },
 ];
@@ -113,9 +150,9 @@ const CIVIC_ITEMS = [
     body: "Before signing a produce contract (avocado, macadamia, French beans): a fair contract states the price basis (per kg, grade), weighing method, payment date, and who pays transport. You cannot legally be forced to sell at 'gate price' if your contract says otherwise. Keep a signed copy — your Wangari documents vault works.",
   },
   {
-    title: "Subsidies & programs you may qualify for",
+    title: "Subsidies & programs checklist",
     icon: Sprout,
-    body: "Ask your county agriculture office about: the e-voucher input subsidy program, KCEP-CRAL (free seed/fertilizer for smallholders), NCPB crop purchases, and free county training days. These are free public programs — but only reach farmers who ask.",
+    body: "Ask your county agriculture office about: the e-voucher input subsidy program, KCEP-CRAL (free seed/fertilizer for smallholders), NCPB crop purchases, and free county training days. Take your ID and farm records — counties prioritize farmers who can show production. These are free public programs — they only reach farmers who ask.",
   },
   {
     title: "Land & written agreements",
@@ -125,7 +162,7 @@ const CIVIC_ITEMS = [
   {
     title: "Cooperatives — strength in numbers",
     icon: Wind,
-    body: "A registered co-op gives smallholders shared transport, better prices, credit access, and bargaining power with exporters. Registration needs 10+ members and is done through the County Co-operative Officer — the process is cheaper than most farmers think.",
+    body: "A registered co-op gives smallholders shared transport, better prices, credit access, and bargaining power with exporters. Registration needs 10+ members through the County Co-operative Officer — cheaper than most farmers think.",
   },
 ];
 
@@ -134,28 +171,61 @@ export default function LearnPage() {
     <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
       <PageHeader
         title="Learn"
-        description="Free, curated farming knowledge — growing guides, official advisories, video learning and your rights as a farmer"
+        description="The full members library — growing guides, video hubs per farming type, disease diagnosis and your rights as a farmer"
       />
 
-      {/* ── Growing guides (OpenFarm-style, Kenya-tuned) ── */}
+      {/* Member-value banner */}
+      <div className="flex items-center gap-3 rounded-2xl border border-wangari-green-200 bg-wangari-green-50 px-4 py-3">
+        <GraduationCap className="h-5 w-5 shrink-0 text-wangari-green-700" />
+        <p className="text-xs font-semibold text-wangari-green-800">
+          You're seeing the <span className="font-extrabold">full member library</span> — video hubs,
+          complete guides and county checklists. Visitors only get a taste on our public Learn page.
+        </p>
+        <Badge className="ml-auto shrink-0 border-0 bg-wangari-green-800 text-[10px] font-bold text-white">Member</Badge>
+      </div>
+
+      {/* ── Farming-type video hubs ── */}
       <div>
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-wangari-heading">
-          <Sprout className="h-5 w-5 text-wangari-green-700" /> Growing guides
+          <Video className="h-5 w-5 text-wangari-green-700" /> Video hubs by farming type
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {FARM_TYPE_HUBS.map((hub, i) => (
+            <motion.div key={hub.type} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <Card className="h-full rounded-2xl border-wangari-border/70">
+                <CardContent className="p-4">
+                  <h3 className="text-base font-extrabold text-wangari-heading">{hub.emoji} {hub.type}</h3>
+                  <div className="mt-3 space-y-1.5">
+                    {hub.videos.map((v) => (
+                      <a key={v.title} href={v.url} target="_blank" rel="noreferrer" className="group flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-wangari-cream/60">
+                        <Play className="h-3.5 w-3.5 shrink-0 text-red-500" />
+                        <span className="text-xs font-semibold text-wangari-heading group-hover:underline">{v.title}</span>
+                        <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-wangari-subtle opacity-0 transition-opacity group-hover:opacity-100" />
+                      </a>
+                    ))}
+                  </div>
+                  <p className="mt-3 rounded-lg bg-wangari-green-50 px-3 py-2 text-[11px] font-semibold text-wangari-green-800">
+                    💡 {hub.bonus}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Growing guides ── */}
+      <div>
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-wangari-heading">
+          <Sprout className="h-5 w-5 text-wangari-green-700" /> Complete growing guides
         </h2>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {GROWING_GUIDES.map((g, i) => (
-            <motion.div
-              key={g.crop}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
+            <motion.div key={g.crop} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Card className="h-full rounded-2xl border-wangari-border/70">
                 <CardContent className="space-y-2.5 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-extrabold text-wangari-heading">
-                      {g.emoji} {g.crop}
-                    </span>
+                    <span className="text-xl font-extrabold text-wangari-heading">{g.emoji} {g.crop}</span>
                     <Badge className="border-0 bg-wangari-green-50 text-[10px] font-bold text-wangari-green-700">{g.season}</Badge>
                   </div>
                   <dl className="space-y-1 text-xs text-wangari-muted">
@@ -184,13 +254,7 @@ export default function LearnPage() {
               </h3>
               <div className="space-y-3">
                 {section.items.map((r) => (
-                  <a
-                    key={r.name}
-                    href={r.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group block rounded-xl border border-transparent px-3 py-2 transition-colors hover:border-wangari-border/60 hover:bg-wangari-cream/50"
-                  >
+                  <a key={r.name} href={r.url} target="_blank" rel="noreferrer" className="group block rounded-xl border border-transparent px-3 py-2 transition-colors hover:border-wangari-border/60 hover:bg-wangari-cream/50">
                     <p className="flex items-center gap-1.5 text-sm font-bold text-wangari-heading">
                       {r.name}
                       <ExternalLink className="h-3 w-3 text-wangari-subtle opacity-0 transition-opacity group-hover:opacity-100" />

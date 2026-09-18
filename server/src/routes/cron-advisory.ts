@@ -28,6 +28,27 @@ interface NewsItem {
   link: string;
   source: string;
   pubDate: Date | null;
+  risk?: string;
+}
+
+// Farmer-risk keywords — when a headline matches, it gets a red ALERT badge
+// so warnings (aflatoxin, armyworm, drought…) can't be missed.
+const RISK_KEYWORDS: { kw: string; label: string }[] = [
+  { kw: "aflatoxin", label: "AFLATOXIN" },
+  { kw: "armyworm", label: "ARMYWORM" },
+  { kw: "locust", label: "LOCUSTS" },
+  { kw: "drought", label: "DROUGHT" },
+  { kw: "flood", label: "FLOODS" },
+  { kw: "frost", label: "FROST" },
+  { kw: "disease outbreak", label: "OUTBREAK" },
+  { kw: "quarantine", label: "QUARANTINE" },
+  { kw: "price crash", label: "PRICE DROP" },
+  { kw: "ban", label: "BAN" },
+];
+
+function detectRisk(title: string): string | undefined {
+  const t = title.toLowerCase();
+  return RISK_KEYWORDS.find((r) => t.includes(r.kw))?.label;
 }
 
 function decodeEntities(s: string): string {
@@ -69,7 +90,7 @@ export async function fetchFarmNews(): Promise<NewsItem[]> {
           const link = pick("link", b).split("?")[0];
           const pub = pick("pubDate", b);
           if (title && link) {
-            items.push({ title, link, source: feed.name, pubDate: pub ? new Date(pub) : null });
+            items.push({ title, link, source: feed.name, pubDate: pub ? new Date(pub) : null, risk: detectRisk(title) });
           }
         }
       } catch {
@@ -218,8 +239,9 @@ function advisoryEmailHtml(
     ? news
         .map(
           (n) => `
-        <tr><td style="padding:9px 14px;background-color:#f8fafc;border-radius:8px;">
+        <tr><td style="padding:9px 14px;background-color:${n.risk ? "#fef2f2;border-left:3px solid #dc2626" : "#f8fafc"};border-radius:8px;">
           <a href="${n.link}" style="text-decoration:none;font-size:13px;font-weight:600;color:#1e293b;">${n.title}</a>
+          ${n.risk ? `<span style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background-color:#dc2626;color:#ffffff;font-size:9px;font-weight:800;letter-spacing:0.5px;vertical-align:middle;">⚠ ${n.risk}</span>` : ""}
           <p style="margin:2px 0 0;font-size:11px;color:#94a3b8;">${n.source}${
             n.pubDate && !isNaN(n.pubDate.getTime()) ? ` · ${n.pubDate.toLocaleDateString("en-KE", { day: "numeric", month: "short" })}` : ""
           }</p>
